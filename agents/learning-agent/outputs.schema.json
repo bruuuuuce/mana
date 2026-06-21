@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "learning-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "known_pitfalls": {
+      "type": "string"
+    },
+    "rule_update_suggestions": {
+      "type": "string"
+    },
+    "incident_learning_report": {
+      "type": "string"
+    }
+  }
+}

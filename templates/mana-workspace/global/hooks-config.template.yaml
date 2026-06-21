@@ -1,0 +1,35 @@
+# Project hooks configuration.
+# Disable skills or agents per hook if they are not relevant to this project.
+# When all items are commented out, the framework defaults for that hook are used.
+# This file lives in .mana/global/ alongside engineering-guards.md and architecture.md.
+#
+# To disable a skill or agent, uncomment its line and remove the leading #.
+# Changes to this file take effect the next time run-profile.sh is invoked.
+hooks:
+  pre_commit:
+    disabled_skills:
+      # - liquibase-syntax           # disable if project has no Liquibase changesets
+      # - liquibase-production-risk  # disable if project has no database changes
+      # - npe-nullability            # disable if project uses Kotlin or Groovy
+      # - knowledge-transfer-brief   # disable if team does not use knowledge-transfer call workflow
+      # - development-summary        # disable if team prefers manual summaries
+      # - developer-handoff          # disable if no handoff workflow
+      # - developer-decision-review  # disable if no developer choice log workflow
+      # - unit-test-gap              # disable if unit-test coverage is enforced by CI only
+      # - pre-review-defect          # disable if team runs full defect review in CI
+    disabled_agents:
+      # - pre-commit-documentation-agent  # disable if documentation artifacts are not needed at commit time
+  pre_push:
+    disabled_skills:
+      # - liquibase-syntax           # disable if project has no Liquibase changesets
+      # - liquibase-production-risk  # disable if project has no database changes
+      # - flaky-failure-classification
+      # - integration-test-gap
+      # - legacy-characterization
+      # - regression-selection
+      # - test-quality
+      # - unit-test-gap
+      # - npe-nullability            # disable if project uses Kotlin or Groovy
+      # - pre-review-defect
+    disabled_agents:
+      # - green-border-test-agent    # disable if green border is run manually only

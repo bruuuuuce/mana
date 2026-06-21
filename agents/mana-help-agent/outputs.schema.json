@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mana-help-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "mana_help_report": {
+      "type": "string"
+    },
+    "next_step_command_list": {
+      "type": "string"
+    },
+    "missing_context_checklist": {
+      "type": "string"
+    }
+  }
+}

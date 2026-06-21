@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "pre-commit-documentation-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "pre_commit_development_summary": { "type": "string" },
+    "knowledge_transfer_brief": { "type": "string" },
+    "developer_decision_review": { "type": "string" }
+  }
+}

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -u
+root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+echo "Mana pre-commit checks"
+"$root/scripts/run-profile.sh" pre-commit --project-root "$root" || exit 1
+echo "Profile-only hook: configure a local runner to execute liquibase syntax, nullability, secret scan, and formatting/lint checks."

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "jessica-fletcher-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "jessica_fletcher_report": {
+      "type": "string"
+    },
+    "likely_production_failures": {
+      "type": "string"
+    },
+    "mitigation_checklist": {
+      "type": "string"
+    },
+    "missing_tests_and_signals": {
+      "type": "string"
+    }
+  }
+}

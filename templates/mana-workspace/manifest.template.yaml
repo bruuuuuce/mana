@@ -1,0 +1,20 @@
+workspace_type: "{{workspace_type}}"
+workspace_id: "{{workspace_id}}"
+branch: "{{branch}}"
+feature_id: "{{feature_id}}"
+purpose: "{{purpose}}"
+created_at: "{{created_at}}"
+canonical_branch: {{canonical_branch}}
+artifact_root: "{{artifact_root}}"
+story_trace: "{{artifact_root}}/agent-memory/story-trace.md"
+developer_choice_log: "{{artifact_root}}/decisions/developer-choice-log.md"
+framework_version: "1.0.0"
+owners:
+  ba_po: "{{ba_po_owner}}"
+  team_leader: "{{team_leader_owner}}"
+  architect: "{{architect_owner}}"
+  developer: "{{developer_owner}}"
+policy:
+  ai_may_modify_code: false
+  require_human_approval_for_scope_expansion: true
+  require_human_approval_for_external_writes: true

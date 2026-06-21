@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "team-coaching-report-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "team_coaching_report": {
+      "type": "string",
+      "description": "Path to team-coaching-report.md in the active workspace"
+    },
+    "contributor_pattern_report": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Paths to per-contributor pattern report files in the active workspace"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "learning-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "incident_reports": {
+      "type": "string"
+    },
+    "review_comments": {
+      "type": "string"
+    },
+    "bug_tickets": {
+      "type": "string"
+    },
+    "test_history": {
+      "type": "string"
+    }
+  }
+}

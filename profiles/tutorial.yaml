@@ -1,0 +1,34 @@
+name: tutorial
+trigger: tutorial_request
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: false
+  default_purpose: tutorial
+service_context:
+  root: .mana/global
+  core_files:
+  - service-mission.md
+  - architecture.md
+  - engineering-guards.md
+  optional_files:
+  - domain-glossary.md
+  - integration-map.md
+  - testing-policy.md
+  - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- tutorial-agent
+skills:
+- mana-usage-help
+- profile-selector
+blocking_conditions:
+  - user asks to bypass an approval gate without owner present
+  - selected profile does not exist in profiles/
+warning_conditions:
+  - no active workspace (tutorial output will not be persisted)
+  - selected_profile not recognized; falling back to profiles/ directory scan
+expected_max_duration: 15 minutes
+human_approval_requirement: false

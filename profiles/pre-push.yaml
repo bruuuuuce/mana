@@ -1,0 +1,46 @@
+name: pre-push
+trigger: pre_push
+runner: junie/local
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: false
+  default_purpose: local-validation
+service_context:
+  root: .mana/global
+  core_files:
+  - service-mission.md
+  - architecture.md
+  - engineering-guards.md
+  optional_files:
+  - domain-glossary.md
+  - integration-map.md
+  - testing-policy.md
+  - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- git-hook-agent
+- green-border-test-agent
+skills:
+- flaky-failure-classification
+- green-border-plan
+- integration-test-gap
+- legacy-characterization
+- liquibase-production-risk
+- liquibase-syntax
+- npe-nullability
+- pre-review-defect
+- regression-selection
+- test-quality
+- unit-test-gap
+blocking_conditions:
+  - unresolved blocker findings
+  - missing required artifacts
+  - unsafe database, security, architecture, or cross-service risk without owner approval
+warning_conditions:
+  - medium-risk ambiguity with owner acknowledgement
+  - incomplete optional evidence
+  - MCP read limitation documented for follow-up
+expected_max_duration: 10 minutes
+human_approval_requirement: false

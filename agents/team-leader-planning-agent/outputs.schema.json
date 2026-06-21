@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "team-leader-planning-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "team_leader_plan": { "type": "string" },
+    "story_readiness_report": { "type": "string" },
+    "execution_sequence": { "type": "string" },
+    "delivery_risk_radar": { "type": "string" },
+    "review_load_plan": { "type": "string" }
+  }
+}

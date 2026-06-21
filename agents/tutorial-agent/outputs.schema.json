@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "tutorial-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "tutorial_session": {
+      "type": "string",
+      "description": "Full tutorial session transcript with profile overview, deep-dive, and annotated sample output"
+    },
+    "starter_checklist": {
+      "type": "string",
+      "description": "Checklist of prerequisites and steps to run the selected profile for the first time"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+name: am-release-ready
+trigger: release_ready
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: true
+  default_purpose: am-release-readiness
+service_context:
+  root: .mana/global
+  core_files:
+  - service-mission.md
+  - architecture.md
+  - engineering-guards.md
+  optional_files:
+  - domain-glossary.md
+  - integration-map.md
+  - testing-policy.md
+  - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- application-manager-readiness-agent
+skills:
+- business-continuity-check
+- delivery-risk-radar
+- incident-risk-forecast
+- known-pitfalls-extraction
+- release-impact-summary
+- rollback-safety
+blocking_conditions:
+  - unresolved operational, rollback, continuity, or incident blocker
+  - missing release scope or critical test evidence
+  - unsafe database, security, architecture, or cross-service risk without owner approval
+warning_conditions:
+  - support communication needed
+  - monitoring or runbook evidence incomplete
+  - MCP read limitation documented for follow-up
+expected_max_duration: 25 minutes
+human_approval_requirement: true

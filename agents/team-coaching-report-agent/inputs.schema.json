@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "team-coaching-report-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "branch_name": {
+      "type": "string",
+      "description": "Name of the branch to analyse (e.g. feature/PAY-201-payment-retry)"
+    },
+    "base_branch": {
+      "type": "string",
+      "description": "Base branch to compare against. Defaults to main if not provided.",
+      "default": "main"
+    },
+    "contributor_filter": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Optional list of contributor emails to include. If omitted, all contributors on the branch are analysed."
+    }
+  },
+  "required": ["branch_name"]
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "application-manager-readiness-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "release_scope": { "type": "string" },
+    "stories": { "type": "string" },
+    "branch_diff": { "type": "string" },
+    "test_evidence": { "type": "string" },
+    "operational_context": { "type": "string" }
+  }
+}

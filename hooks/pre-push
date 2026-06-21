@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -u
+root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+echo "Mana pre-push checks"
+"$root/scripts/run-profile.sh" pre-push --project-root "$root" || exit 1
+echo "Profile-only hook: configure a local runner to execute greenFast, Liquibase risk, unit-test-gap, and pre-review-defect checks."

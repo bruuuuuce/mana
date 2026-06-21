@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "pre-commit-documentation-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "staged_diff": { "type": "string" },
+    "branch_diff": { "type": "string" },
+    "story_context": { "type": "string" },
+    "test_evidence": { "type": "string" },
+    "developer_choice_log": { "type": "string" }
+  }
+}

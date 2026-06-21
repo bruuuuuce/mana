@@ -1,0 +1,47 @@
+name: Jira
+environment_separation: true
+audit_logs: required
+data_redaction: required
+default_mode: read_only
+implementation:
+  type: docker_mcp_server
+  upstream: sooperset/mcp-atlassian
+  image: ghcr.io/sooperset/mcp-atlassian:latest
+  wrapper_script: scripts/run-jira-mcp-docker.sh
+  env_template: mcp/env/jira-mcp.env.example
+  codex_config_example: mcp/config/codex-jira-mcp.docker.json
+  default_env:
+    READ_ONLY_MODE: "true"
+  docs:
+    - docs/deployment/jira-mcp-docker-wrapper.md
+read_operations:
+- read_issues
+- read_links
+mapped_read_tools:
+- jira_get_issue
+- jira_search
+- jira_search_fields
+- jira_get_transitions
+- jira_get_all_projects
+- jira_get_project_issues
+write_operations:
+- comment_issue
+- transition_issue
+mapped_write_tools:
+- jira_create_issue
+- jira_update_issue
+- jira_delete_issue
+- jira_transition_issue
+- jira_add_comment
+write_policy:
+  requires_human_approval: true
+  approval_record_required: true
+  disabled_in_production_by_default: true
+  wrapper_requires_allow_writes_flag: true
+project_policy_overrides: []
+fallback:
+  mode: manual_markdown_story_pack
+  template: templates/epic-story-pack.template.md
+  recommended_workspace_path: .mana/features/<EPIC-ID>/context/epic-story-pack.md
+  docs:
+    - docs/workflow/jira-fallback-story-pack.md

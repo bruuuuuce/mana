@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "git-hook-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "hook_console_report": {
+      "type": "string"
+    },
+    "hook_report": {
+      "type": "string"
+    }
+  }
+}

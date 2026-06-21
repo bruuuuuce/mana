@@ -1,0 +1,10 @@
+tools:
+  jira: mcp/servers/jira-mcp.yaml
+  confluence: mcp/servers/confluence-mcp.yaml
+  git: mcp/servers/git-mcp.yaml
+  jenkins: mcp/servers/jenkins-mcp.yaml
+  liquibase: mcp/servers/liquibase-mcp.yaml
+  postman_newman: mcp/servers/postman-newman-mcp.yaml
+  playwright: mcp/servers/playwright-mcp.yaml
+  logs_observability: mcp/servers/logs-observability-mcp.yaml
+  architecture_rules: mcp/servers/architecture-rules-mcp.yaml

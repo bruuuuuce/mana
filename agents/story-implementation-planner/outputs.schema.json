@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "story-implementation-planner-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "00_story_context": {
+      "type": "string"
+    },
+    "01_source_impact_map": {
+      "type": "string"
+    },
+    "02_implementation_plan": {
+      "type": "string"
+    },
+    "03_open_questions": {
+      "type": "string"
+    },
+    "04_technical_task_breakdown": {
+      "type": "string"
+    },
+    "05_green_border_plan": {
+      "type": "string"
+    },
+    "06_risk_register": {
+      "type": "string"
+    }
+  }
+}

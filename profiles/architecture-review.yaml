@@ -1,0 +1,42 @@
+name: architecture-review
+trigger: architecture_review
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: true
+  default_purpose: architecture-review
+service_context:
+  root: .mana/global
+  core_files:
+  - architecture.md
+  - engineering-guards.md
+  - integration-map.md
+  optional_files:
+  - service-mission.md
+  - domain-glossary.md
+  - testing-policy.md
+  - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- architecture-review-agent
+skills:
+- architecture-decision-record
+- architecture-drift-detection
+- architecture-risk
+- cross-service-contract
+- liquibase-production-risk
+- non-functional-requirements-review
+- service-boundary-fit
+- trust-boundary-review
+blocking_conditions:
+  - engineering guard violation without explicit owner approval
+  - high-risk NFR, trust-boundary, cross-service, database, or service-boundary issue
+  - missing architecture decision for material trade-off
+warning_conditions:
+  - architecture documentation drift
+  - incomplete NFR evidence
+  - MCP read limitation documented for follow-up
+expected_max_duration: 30 minutes
+human_approval_requirement: true

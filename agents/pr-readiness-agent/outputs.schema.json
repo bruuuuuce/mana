@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "pr-readiness-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "pr_description": {
+      "type": "string"
+    },
+    "reviewer_focus": {
+      "type": "string"
+    },
+    "test_evidence": {
+      "type": "string"
+    },
+    "risk_report": {
+      "type": "string"
+    },
+    "development_summary": {
+      "type": "string"
+    },
+    "developer_handoff": {
+      "type": "string"
+    },
+    "developer_decision_review": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "architecture-review-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "architecture_review_report": { "type": "string" },
+    "architecture_decision_record": { "type": "string" },
+    "nfr_review_report": { "type": "string" },
+    "architecture_drift_report": { "type": "string" },
+    "architecture_approval_questions": { "type": "string" }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "application-manager-readiness-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "am_readiness_report": { "type": "string" },
+    "release_impact_summary": { "type": "string" },
+    "incident_risk_forecast": { "type": "string" },
+    "business_continuity_report": { "type": "string" },
+    "release_communication_notes": { "type": "string" }
+  }
+}

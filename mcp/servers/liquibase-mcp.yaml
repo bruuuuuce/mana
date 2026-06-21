@@ -1,0 +1,16 @@
+name: Liquibase
+environment_separation: true
+audit_logs: required
+data_redaction: required
+default_mode: read_only
+read_operations:
+- validate_changelog
+- read_status
+- read_snapshot
+write_operations:
+- apply_changelog
+write_policy:
+  requires_human_approval: true
+  approval_record_required: true
+  disabled_in_production_by_default: true
+project_policy_overrides: []

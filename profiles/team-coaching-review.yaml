@@ -1,0 +1,35 @@
+name: team-coaching-review
+trigger: coaching_review
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: false
+  default_purpose: team-coaching-review
+service_context:
+  root: .mana/global
+  core_files:
+    - engineering-guards.md
+    - testing-policy.md
+  optional_files:
+    - architecture.md
+    - domain-glossary.md
+  missing_file_behavior: warn
+  guard_violation_behavior: warn
+agents:
+  - team-coaching-report-agent
+skills:
+  - contributor-pattern-analysis
+  - pre-review-defect
+  - test-quality
+  - npe-nullability
+  - java-performance-smell
+  - known-pitfalls-extraction
+blocking_conditions:
+  - branch has no commits beyond base branch
+  - no contributor diffs found
+warning_conditions:
+  - contributor has only 1 commit (pattern detection unreliable)
+  - service context files missing (finding classification degraded)
+expected_max_duration: 30 minutes
+human_approval_requirement: true

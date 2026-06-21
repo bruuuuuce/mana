@@ -1,0 +1,44 @@
+name: story-start
+trigger: story_start
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: true
+  default_purpose: story-delivery
+service_context:
+  root: .mana/global
+  core_files:
+  - service-mission.md
+  - architecture.md
+  - engineering-guards.md
+  optional_files:
+  - domain-glossary.md
+  - integration-map.md
+  - testing-policy.md
+  - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- story-implementation-planner
+skills:
+- acceptance-criteria-testability
+- architecture-risk
+- cross-service-contract
+- epic-goal-extraction
+- green-border-plan
+- liquibase-production-risk
+- source-impact-map
+- story-consistency
+- story-depth
+- technical-task-breakdown
+blocking_conditions:
+  - unresolved blocker findings
+  - missing required artifacts
+  - unsafe database, security, architecture, or cross-service risk without owner approval
+warning_conditions:
+  - medium-risk ambiguity with owner acknowledgement
+  - incomplete optional evidence
+  - MCP read limitation documented for follow-up
+expected_max_duration: 30 minutes
+human_approval_requirement: true

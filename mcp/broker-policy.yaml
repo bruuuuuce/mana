@@ -1,0 +1,23 @@
+policy_version: 1
+default_access: deny
+principles:
+  - least_privilege
+  - read_only_by_default
+  - human_approval_for_destructive_or_external_writes
+  - audit_all_calls
+  - redact_sensitive_data
+  - separate_dev_test_staging_prod
+approval_required_for:
+  - repository_write
+  - jira_write
+  - confluence_write
+  - database_execute
+  - deployment_trigger
+  - external_comment_publish
+redaction:
+  secrets: true
+  customer_pii: true
+  payment_data: true
+project_policies:
+  default_environment: dev
+  production_access: approval_only

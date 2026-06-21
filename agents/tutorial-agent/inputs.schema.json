@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "tutorial-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "user_role": {
+      "type": "string",
+      "description": "Role of the user: developer, team_leader, architect, application_manager, ba_po"
+    },
+    "current_phase": {
+      "type": "string",
+      "description": "Current delivery phase the user is in, if known"
+    },
+    "selected_profile": {
+      "type": "string",
+      "description": "Profile to deep-dive into. If provided, Phase 0 and Phase 1 are skipped."
+    }
+  }
+}

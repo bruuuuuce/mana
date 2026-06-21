@@ -1,0 +1,20 @@
+name: Validate Mana
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Shell syntax
+        run: bash -n scripts/*.sh hooks/pre-commit hooks/pre-push
+      - name: Validate repository
+        run: scripts/validate-repo.sh
+      - name: Mana doctor
+        env:
+          MANA_UPDATE_CHECK: off
+        run: scripts/mana-doctor.sh

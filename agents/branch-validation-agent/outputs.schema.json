@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "branch-validation-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "branch_validation_report": {
+      "type": "string"
+    },
+    "plan_drift_report": {
+      "type": "string"
+    },
+    "missing_tests_report": {
+      "type": "string"
+    },
+    "risk_status_report": {
+      "type": "string"
+    },
+    "developer_decision_review": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+# Mana local workspaces and credentials
+.mana/
+!.mana/README.md
+mcp/env/*.env
+!mcp/env/*.env.example
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Common build and tooling outputs
+node_modules/
+dist/
+build/
+coverage/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tox/
+.venv/
+venv/
+__pycache__/
+*.py[cod]

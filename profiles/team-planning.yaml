@@ -1,0 +1,42 @@
+name: team-planning
+trigger: team_planning
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: true
+  default_purpose: team-planning
+service_context:
+  root: .mana/global
+  core_files:
+  - service-mission.md
+  - architecture.md
+  - engineering-guards.md
+  optional_files:
+  - domain-glossary.md
+  - integration-map.md
+  - testing-policy.md
+  - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- team-leader-planning-agent
+skills:
+- delivery-risk-radar
+- developer-handoff
+- developer-readiness-check
+- green-border-plan
+- review-load-balancing
+- source-impact-map
+- team-execution-plan
+- technical-task-breakdown
+blocking_conditions:
+  - story not ready for development
+  - missing owner, dependency, approval, or critical test strategy
+  - task too large or unsafe to assign
+warning_conditions:
+  - review bottleneck or sequencing risk
+  - incomplete optional evidence
+  - MCP read limitation documented for follow-up
+expected_max_duration: 30 minutes
+human_approval_requirement: true

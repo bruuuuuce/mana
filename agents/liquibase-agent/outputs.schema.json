@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "liquibase-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "database_risk_report": {
+      "type": "string"
+    },
+    "rollback_safety_report": {
+      "type": "string"
+    },
+    "database_drift_report": {
+      "type": "string"
+    }
+  }
+}

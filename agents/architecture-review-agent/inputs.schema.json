@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "architecture-review-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "story": { "type": "string" },
+    "design": { "type": "string" },
+    "branch_diff": { "type": "string" },
+    "architecture_context": { "type": "string" },
+    "test_evidence": { "type": "string" }
+  }
+}

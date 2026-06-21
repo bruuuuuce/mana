@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mana-help-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "user_goal": {
+      "type": "string"
+    },
+    "current_phase": {
+      "type": "string"
+    },
+    "available_artifacts": {
+      "type": "string"
+    },
+    "repository_state": {
+      "type": "string"
+    },
+    "mcp_status": {
+      "type": "string"
+    }
+  }
+}

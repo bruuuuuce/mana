@@ -1,0 +1,6 @@
+# Local-only Mana artifacts. Teams may adjust this policy.
+agent-memory/*.tmp
+agent-memory/raw-logs/
+**/*.secret
+**/*credentials*
+**/*token*

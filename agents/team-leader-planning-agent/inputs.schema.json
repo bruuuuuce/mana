@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "team-leader-planning-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "epic": { "type": "string" },
+    "stories": { "type": "string" },
+    "planning_artifacts": { "type": "string" },
+    "team_constraints": { "type": "string" },
+    "repository_snapshot": { "type": "string" }
+  }
+}

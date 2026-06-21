@@ -1,0 +1,45 @@
+name: jessica-fletcher
+trigger: before_commit
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: false
+  default_purpose: production-premortem
+service_context:
+  root: .mana/global
+  core_files:
+  - service-mission.md
+  - architecture.md
+  - engineering-guards.md
+  optional_files:
+  - domain-glossary.md
+  - integration-map.md
+  - testing-policy.md
+  - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- jessica-fletcher-agent
+skills:
+- production-premortem
+- pre-review-defect
+- architecture-risk
+- cross-service-contract
+- liquibase-production-risk
+- rollback-safety
+- test-quality
+- regression-selection
+blocking_conditions:
+  - high-plausibility production failure with branch evidence
+  - critical behavior changed without green-border or regression evidence
+  - unsafe database, security, architecture, or cross-service risk without owner approval
+  - protected-area or engineering-guard violation
+  - missing rollback or observability for risky production path
+warning_conditions:
+  - medium-plausibility production failure hypothesis
+  - missing optional service context
+  - incomplete test evidence with owner acknowledgement
+  - MCP read limitation documented for follow-up
+expected_max_duration: 15 minutes
+human_approval_requirement: true

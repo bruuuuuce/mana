@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "green-border-test-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "green_border_report": {
+      "type": "string"
+    },
+    "test_gap_report": {
+      "type": "string"
+    },
+    "test_evidence": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+name: mana-help
+trigger: help_request
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: false
+  default_purpose: mana-help
+service_context:
+  root: .mana/global
+  core_files:
+  - service-mission.md
+  - architecture.md
+  - engineering-guards.md
+  optional_files:
+  - domain-glossary.md
+  - integration-map.md
+  - testing-policy.md
+  - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- mana-help-agent
+- tutorial-agent
+skills:
+- mana-usage-help
+- profile-selector
+blocking_conditions:
+  - user asks to bypass approval gates
+  - destructive or external write requested without approval
+  - required requirement evidence missing with no Jira or Markdown fallback
+warning_conditions:
+  - no active Mana workspace
+  - Jira MCP unavailable but Markdown fallback exists
+  - incomplete optional service context
+expected_max_duration: 5 minutes
+human_approval_requirement: false

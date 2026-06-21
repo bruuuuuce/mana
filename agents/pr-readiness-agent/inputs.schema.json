@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "pr-readiness-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "branch_validation_report": {
+      "type": "string"
+    },
+    "code_diff": {
+      "type": "string"
+    },
+    "test_evidence": {
+      "type": "string"
+    },
+    "risk_register": {
+      "type": "string"
+    }
+  }
+}

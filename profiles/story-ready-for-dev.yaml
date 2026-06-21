@@ -1,0 +1,40 @@
+name: story-ready-for-dev
+trigger: story_ready_for_dev
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: true
+  default_purpose: story-ready-for-dev
+service_context:
+  root: .mana/global
+  core_files:
+  - service-mission.md
+  - architecture.md
+  - engineering-guards.md
+  optional_files:
+  - domain-glossary.md
+  - integration-map.md
+  - testing-policy.md
+  - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- team-leader-planning-agent
+skills:
+- acceptance-criteria-testability
+- developer-readiness-check
+- delivery-risk-radar
+- green-border-plan
+- source-impact-map
+- technical-task-breakdown
+blocking_conditions:
+  - missing or untestable acceptance criteria
+  - missing impact map, technical breakdown, test plan, dependency, or approval
+  - unsafe database, security, architecture, or cross-service risk without owner approval
+warning_conditions:
+  - medium-risk ambiguity with owner acknowledgement
+  - optional evidence incomplete
+  - MCP read limitation documented for follow-up
+expected_max_duration: 20 minutes
+human_approval_requirement: true
