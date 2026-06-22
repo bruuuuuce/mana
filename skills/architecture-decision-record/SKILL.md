@@ -5,6 +5,7 @@ description: Creates or reviews Architecture Decision Records with context, deci
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

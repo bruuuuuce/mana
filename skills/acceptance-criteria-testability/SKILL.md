@@ -5,6 +5,7 @@ description: Checks if acceptance criteria are testable, measurable, and precise
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

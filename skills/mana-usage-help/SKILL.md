@@ -4,6 +4,7 @@ version: 1.0.0
 description: Helps users choose the right profile, agent, skill, workspace, and fallback path for a delivery situation.
 compatibility:
   - codex
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

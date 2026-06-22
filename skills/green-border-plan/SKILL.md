@@ -5,6 +5,7 @@ description: Generates the minimal tests required to protect old and new behavio
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

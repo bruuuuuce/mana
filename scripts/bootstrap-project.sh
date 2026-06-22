@@ -26,6 +26,8 @@ Created in the target project:
   .mana/links/*               Symlinks to framework skills, agents, profiles, docs, templates, mcp.
   .mana/jira-mcp.env          Local Jira MCP env template, ignored by Git.
   mana                        Local command wrapper for common Mana commands.
+  AGENTS.md                   Codex auto-loaded runner instructions.
+  CLAUDE.md                   Claude Code auto-loaded runner instructions.
   .mana/                      Project-local artifact workspace.
 
 Examples:
@@ -186,7 +188,7 @@ write_file "$project_root/mana" "$wrapper_content"
 chmod +x "$project_root/mana"
 
 if [ "$create_links" = true ]; then
-  for name in skills agents profiles docs templates mcp; do
+  for name in skills agents profiles docs templates mcp .codex .junie .claude; do
     source_path="$framework_root/$name"
     target_path="$project_root/.mana/links/$name"
     [ -e "$source_path" ] || continue
@@ -240,6 +242,93 @@ Do not put real Jira credentials in Git.
 
 write_file "$project_root/.mana/README.md" "$readme_content"
 
+claude_md_content="# Mana
+
+This project uses Mana for structured AI-assisted delivery.
+See \`.mana/links/.claude/instructions.md\` for full runner governance.
+
+## Invoking Profiles
+
+\`\`\`bash
+./mana profile <name>
+\`\`\`
+
+Key profiles:
+- \`dev-assist\`           — Development support (preferred runner: Claude Code)
+- \`jessica-fletcher\`     — Production pre-mortem before commit
+- \`branch-ready\`         — Branch validation before PR
+- \`pr-ready\`             — PR package generation
+- \`team-coaching-review\` — Per-contributor quality analysis (Team Leader)
+
+## How Agents And Skills Work
+
+When asked to run a profile, Claude Code:
+1. Reads \`.mana/links/profiles/<name>.yaml\`
+2. Reads \`.mana/links/agents/<agent>/AGENT.md\` and \`playbook.md\`
+3. Invokes each skill via \`.mana/links/skills/<skill>/SKILL.md\`
+4. Writes outputs to the active \`.mana/\` workspace
+
+Say: \"Run the jessica-fletcher profile\" — Claude Code follows the full chain.
+
+## Workspace
+
+Active workspace:  \`.mana/\`
+Feature work:      \`.mana/features/<JIRA-KEY>/\`
+Global context:    \`.mana/global/service-mission.md\`, \`architecture.md\`, \`engineering-guards.md\`
+
+## Governance
+
+- Load \`.mana/global/engineering-guards.md\` before any analysis.
+- Write outputs to \`.mana/\` only — never to \`src/\` or project source.
+- Do not commit automatically — every git commit requires explicit developer approval.
+"
+
+write_file "$project_root/CLAUDE.md" "$claude_md_content"
+
+agents_md_content="# Mana
+
+This project uses Mana for structured AI-assisted delivery.
+See \`.mana/links/.codex/instructions.md\` for full runner governance.
+
+## Invoking Profiles
+
+\`\`\`bash
+./mana profile <name>
+\`\`\`
+
+Key profiles:
+- \`story-start\`          — Requirement intake and planning artifacts
+- \`jessica-fletcher\`     — Production pre-mortem before commit
+- \`branch-ready\`         — Branch validation before PR
+- \`pr-ready\`             — PR package generation
+- \`team-coaching-review\` — Per-contributor quality analysis (Team Leader)
+
+## How Agents And Skills Work
+
+When asked to run a profile, Codex:
+1. Reads \`.mana/links/profiles/<name>.yaml\`
+2. Reads \`.mana/links/agents/<agent>/AGENT.md\` and \`playbook.md\`
+3. Invokes each skill via \`.mana/links/skills/<skill>/SKILL.md\`
+4. Writes outputs to the active \`.mana/\` workspace
+
+Say: \"Run the jessica-fletcher profile\" — Codex follows the full chain.
+
+## Workspace
+
+Active workspace:  \`.mana/\`
+Feature work:      \`.mana/features/<JIRA-KEY>/\`
+Global context:    \`.mana/global/service-mission.md\`, \`architecture.md\`, \`engineering-guards.md\`
+
+## Governance
+
+- Load \`.mana/global/engineering-guards.md\` before any analysis.
+- Write outputs to \`.mana/\` only — never to \`src/\` or project source.
+- Do not modify the same branch while Junie is actively editing it.
+- Do not commit automatically — every git commit requires explicit developer approval.
+"
+
+write_file "$project_root/AGENTS.md" "$agents_md_content"
+
 if [ "$update_gitignore" = true ]; then
   gitignore="$project_root/.gitignore"
   touch "$gitignore"
@@ -267,6 +356,8 @@ Mana root: $framework_root
 
 Created:
   $project_root/mana
+  $project_root/AGENTS.md
+  $project_root/CLAUDE.md
   $project_root/.mana/env
   $project_root/.mana/README.md
   $project_root/.mana/links/

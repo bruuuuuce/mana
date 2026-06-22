@@ -5,6 +5,7 @@ description: Generates a developer-oriented handoff document explaining what was
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

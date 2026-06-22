@@ -5,6 +5,7 @@ description: Performs production risk analysis for database schema changes.
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

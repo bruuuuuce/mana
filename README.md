@@ -26,8 +26,8 @@ Enterprise delivery churn usually starts before coding: stories are vague, cross
 - **MCP** is the governed integration layer for Jira, Git, Confluence, Jenkins, Liquibase, Postman/Newman, Playwright, logs, and architecture rules.
 - **Profiles** define when agents and skills run, what blocks delivery, what warns, expected duration, and approval requirements.
 
-## Codex vs Junie
-Codex is used for repository-level planning, validation, documentation, branch analysis, PR readiness, and learning. Junie is used inside the IDE for local code implementation, test generation, local fixes, green-border execution, and fast developer feedback. Do not let Codex and Junie modify the same branch at the same time.
+## Runners: Codex, Junie, and Claude Code
+Codex is used for repository-level planning, validation, documentation, branch analysis, PR readiness, and learning. Junie is used inside the IDE for local code implementation, test generation, local fixes, green-border execution, and fast developer feedback. Claude Code is used as a CLI runner for both repository-level analysis and local development support; it is the preferred runner for the `dev-assist` profile. Do not let any two runners modify the same branch at the same time.
 
 ## Quick Start
 1. Review `docs/architecture/overview.md`.
@@ -69,9 +69,10 @@ From a target application repository, run:
 /path/to/mana/scripts/bootstrap-project.sh
 ```
 
-This creates a small local `./mana` wrapper, `.mana/` links to the framework, and
-the project-local `.mana/` artifact workspace. See
-`docs/deployment/project-link-bootstrap.md`.
+This creates a small local `./mana` wrapper, `.mana/` links to the framework,
+the project-local `.mana/` artifact workspace, and `AGENTS.md` and `CLAUDE.md`
+in the project root so Codex and Claude Code load Mana instructions automatically
+at session start. See `docs/deployment/project-link-bootstrap.md`.
 
 For a complete Jira-free flow from epic input to PR readiness, see
 `docs/examples/end-to-end-codex-flow.md`.

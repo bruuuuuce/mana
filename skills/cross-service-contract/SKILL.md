@@ -5,6 +5,7 @@ description: Reviews completeness of service, API, event, and messaging contract
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

@@ -4,6 +4,7 @@ version: 1.0.0
 description: Aggregates quality findings from a single contributor's diff and identifies recurring growth patterns for coaching purposes.
 compatibility:
   - codex
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

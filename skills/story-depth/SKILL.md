@@ -5,6 +5,7 @@ description: Evaluates whether an epic or user story has sufficient and balanced
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

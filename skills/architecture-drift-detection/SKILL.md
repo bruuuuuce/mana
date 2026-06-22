@@ -5,6 +5,7 @@ description: Detects divergence between branch changes and documented architectu
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

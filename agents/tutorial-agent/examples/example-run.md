@@ -200,6 +200,9 @@ flowchart TD
 - [ ] Stage or commit changes: `git add -p` or `git commit`
 - [ ] Run jessica-fletcher: `scripts/run-profile.sh jessica-fletcher --project-root .`
 
+Claude Code can run this profile directly from the terminal as an alternative
+to Codex. See `docs/examples/end-to-end-claude-flow.md`.
+
 ## Post-Run Review
 - [ ] Read `jessica-fletcher-report.md` in the active workspace.
 - [ ] Act on all blocker findings before pushing.

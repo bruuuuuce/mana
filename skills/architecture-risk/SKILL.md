@@ -5,6 +5,7 @@ description: Detects architectural risk and violations of project rules.
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

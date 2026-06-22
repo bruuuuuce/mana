@@ -1,7 +1,9 @@
-# End-To-End Codex Flow
+# End-To-End Claude Code Flow
 
-This example shows how to use Mana from installation through pre-commit analysis
-when Jira MCP credentials are not available.
+This example shows how to use Mana from installation through PR readiness
+using Claude Code as the primary runner. Claude Code resolves `read_files`,
+`code_search`, and `git_read` natively; Jira and Confluence access require
+the MCP server configured in step 2b.
 
 ## 1. Validate Mana
 
@@ -11,6 +13,9 @@ From the Mana repository:
 scripts/validate-repo.sh
 scripts/mana-doctor.sh
 ```
+
+`mana-doctor.sh` checks for the Claude CLI and warns if it is not installed.
+Install Claude Code from `https://claude.ai/code` if needed.
 
 ## 2. Link Mana Into A Project
 
@@ -26,7 +31,20 @@ This creates:
 - `.mana/env`, with the linked Mana path.
 - `.mana/links/`, with symlinks to Mana skills, agents, profiles, docs, templates, and MCP definitions.
 - `.mana/features/EPIC-123/`, the active evidence workspace.
-- `AGENTS.md`, Codex auto-loaded runner instructions.
+
+## 2b. Configure Jira MCP (Optional)
+
+To enable `jira_read` and `confluence_read` tools, configure the MCP server:
+
+```bash
+cp /path/to/mana/mcp/config/claude-jira-mcp.json ~/.claude/mcp.json
+```
+
+Edit `~/.claude/mcp.json` to point to the correct paths for
+`run-jira-mcp-docker.sh` and `jira-mcp.env`. See
+`mcp/env/jira-mcp.env.example` for required variables.
+
+When Jira MCP is unavailable, populate requirements manually (see step 4).
 
 ## 3. Confirm The Link
 
@@ -50,9 +68,9 @@ Copy `templates/epic-story-pack.template.md` into the active workspace:
 Fill it with the epic goal, story list, acceptance criteria, constraints, open
 questions, dependencies, and known risks.
 
-## 5. Plan The Work With Codex
+## 5. Plan The Work With Claude Code
 
-Ask Codex to use:
+Ask Claude Code to use:
 
 - `agents/story-implementation-planner/AGENT.md`
 - `agents/story-implementation-planner/playbook.md`
@@ -63,15 +81,16 @@ risk register, green-border plan, and open questions.
 
 ## 6. Get Development Support Before Writing Code
 
-Before starting implementation of a task, optionally run:
+Before starting implementation of a task, run:
 
 ```bash
 ./mana profile dev-assist
 ```
 
-Ask Junie or Codex to invoke `change-impact-preview` with a description of
-the planned change. The skill identifies callers impacted, contract risks,
-concurrency flags, and tests to update — before any code is written.
+Claude Code is the preferred runner for `dev-assist`. Ask it to invoke
+`change-impact-preview` with a description of the planned change. The skill
+identifies callers impacted, contract risks, concurrency flags, and tests to
+update — before any code is written.
 
 Also invoke `concurrency-risk` for concurrent or shared-state changes, and
 `legacy-characterization` before touching legacy paths.
@@ -79,8 +98,11 @@ Also invoke `concurrency-risk` for concurrent or shared-state changes, and
 ## 7. Implement One Technical Task
 
 Use the approved plan to implement one bounded task at a time. Keep changes
-inside the approved source impact map unless Codex records plan drift and asks
-for approval.
+inside the approved source impact map unless Claude Code records plan drift
+and asks for approval.
+
+Claude Code does not commit automatically. Every `git commit` requires
+explicit developer approval.
 
 ## 8. Run Pre-Commit Pre-Mortem
 
@@ -90,7 +112,7 @@ Before commit:
 ./mana profile jessica-fletcher
 ```
 
-Ask Codex to answer:
+Ask Claude Code to answer:
 
 ```text
 The code introduced in this branch is causing production issues. Find the most

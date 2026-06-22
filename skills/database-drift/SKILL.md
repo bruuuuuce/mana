@@ -5,6 +5,7 @@ description: Detects schema drift and inconsistencies between environments.
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

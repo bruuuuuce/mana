@@ -5,6 +5,7 @@ description: Extracts an epic goal contract used by planning, testing, and revie
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

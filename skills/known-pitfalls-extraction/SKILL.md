@@ -5,6 +5,7 @@ description: Extracts repeated mistakes from bugs, incidents, reviews, and post-
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

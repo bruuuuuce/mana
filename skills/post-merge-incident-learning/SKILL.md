@@ -5,6 +5,7 @@ description: Converts post-merge incidents into reusable knowledge, rules, tests
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

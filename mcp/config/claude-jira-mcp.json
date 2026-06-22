@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "jira": {
+      "command": "/absolute/path/to/mana/scripts/run-jira-mcp-docker.sh",
+      "args": [
+        "--env-file",
+        "/absolute/path/to/secure/jira-mcp.env"
+      ]
+    }
+  }
+}

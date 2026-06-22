@@ -5,6 +5,7 @@ description: Checks whether rollback strategy is present, safe, tested, and exec
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

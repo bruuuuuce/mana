@@ -5,6 +5,7 @@ description: Selects targeted regression tests based on diff and risk.
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

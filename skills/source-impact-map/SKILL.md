@@ -5,6 +5,7 @@ description: Maps likely repository files and components impacted by a story.
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

@@ -5,6 +5,7 @@ description: Recommends reviewer focus, review order, specialist involvement, an
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

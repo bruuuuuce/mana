@@ -5,6 +5,7 @@ description: Detects unsafe null/nil/undefined dereferences and missing null gua
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: junie
 allowed_tools:
   - read_files

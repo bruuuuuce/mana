@@ -5,6 +5,7 @@ description: Reviews authentication, authorization, validation, sensitive data, 
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files
