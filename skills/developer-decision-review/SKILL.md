@@ -5,6 +5,7 @@ description: Reviews implementation choices and generates targeted questions for
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

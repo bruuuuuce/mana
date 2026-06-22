@@ -5,6 +5,7 @@ description: Forecasts likely production incidents, escalations, alert noise, su
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

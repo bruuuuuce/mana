@@ -5,6 +5,7 @@ description: Performs fast syntax and structure checks for Liquibase changelogs.
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: junie
 allowed_tools:
   - read_files

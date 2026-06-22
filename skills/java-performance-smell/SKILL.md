@@ -5,6 +5,7 @@ description: Detects Java performance smells in changed code.
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

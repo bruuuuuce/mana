@@ -5,6 +5,7 @@ description: Classifies test failures as regression, environment issue, flaky te
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: junie
 allowed_tools:
   - read_files

@@ -26,8 +26,8 @@ Enterprise delivery churn usually starts before coding: stories are vague, cross
 - **MCP** is the governed integration layer for Jira, Git, Confluence, Jenkins, Liquibase, Postman/Newman, Playwright, logs, and architecture rules.
 - **Profiles** define when agents and skills run, what blocks delivery, what warns, expected duration, and approval requirements.
 
-## Codex vs Junie
-Codex is used for repository-level planning, validation, documentation, branch analysis, PR readiness, and learning. Junie is used inside the IDE for local code implementation, test generation, local fixes, green-border execution, and fast developer feedback. Do not let Codex and Junie modify the same branch at the same time.
+## Runners: Codex, Junie, and Claude Code
+Codex is used for repository-level planning, validation, documentation, branch analysis, PR readiness, and learning. Junie is used inside the IDE for local code implementation, test generation, local fixes, green-border execution, and fast developer feedback. Claude Code is used as a CLI runner for both repository-level analysis and local development support; it is the preferred runner for the `dev-assist` profile. Do not let any two runners modify the same branch at the same time.
 
 ## Quick Start
 1. Review `docs/architecture/overview.md`.

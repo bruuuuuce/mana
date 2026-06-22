@@ -5,6 +5,7 @@ description: Checks whether a story is ready for development with enough require
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

@@ -5,6 +5,7 @@ description: Splits a story into technical subtasks with tests, risks, and defin
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

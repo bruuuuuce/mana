@@ -5,6 +5,7 @@ description: Generates the final development summary for review and team learnin
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

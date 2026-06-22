@@ -5,6 +5,7 @@ description: Detects missing unit tests for changed branches and edge cases.
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: junie
 allowed_tools:
   - read_files

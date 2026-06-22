@@ -5,6 +5,7 @@ description: Summarizes functional, technical, operational, rollback, and stakeh
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

@@ -5,6 +5,7 @@ description: Prospective analysis of a planned code change described in natural 
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: junie
 allowed_tools:
   - read_files

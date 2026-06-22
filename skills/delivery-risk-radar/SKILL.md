@@ -5,6 +5,7 @@ description: Detects delivery risks such as oversized scope, missing decisions, 
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

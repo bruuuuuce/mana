@@ -5,6 +5,7 @@ description: Creates a focused knowledge-transfer brief for developer walkthroug
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

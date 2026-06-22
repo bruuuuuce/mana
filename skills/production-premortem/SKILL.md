@@ -4,6 +4,7 @@ version: 1.0.0
 description: Analyzes a branch diff as if it already caused a production incident and identifies the most plausible failure reasons before commit.
 compatibility:
   - codex
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

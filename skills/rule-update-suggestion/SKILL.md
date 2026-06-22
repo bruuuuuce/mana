@@ -5,6 +5,7 @@ description: Suggests updates to architecture, coding, testing, and Liquibase ru
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

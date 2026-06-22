@@ -5,6 +5,7 @@ description: Converts epic and story scope into an execution plan with sequencin
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

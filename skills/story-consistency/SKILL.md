@@ -5,6 +5,7 @@ description: Detects contradictions among stories belonging to the same epic.
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

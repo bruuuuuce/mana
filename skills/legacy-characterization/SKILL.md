@@ -5,6 +5,7 @@ description: Plans characterization tests for legacy flows before modifying them
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: junie
 allowed_tools:
   - read_files

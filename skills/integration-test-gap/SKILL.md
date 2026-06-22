@@ -5,6 +5,7 @@ description: Detects missing integration tests for DB, service, messaging, and e
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: junie
 allowed_tools:
   - read_files

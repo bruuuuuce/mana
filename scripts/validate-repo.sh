@@ -2,7 +2,7 @@
 set -u
 root="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 status=0
-required_dirs=(docs skills agents profiles mcp templates scripts hooks .codex .junie templates/mana-workspace)
+required_dirs=(docs skills agents profiles mcp templates scripts hooks .codex .junie .claude templates/mana-workspace)
 for d in "${required_dirs[@]}"; do
   if [ ! -d "$root/$d" ]; then echo "ERROR: missing directory $d" >&2; status=1; fi
 done

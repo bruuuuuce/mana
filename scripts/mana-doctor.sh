@@ -25,6 +25,7 @@ Checks:
   - Linked project wrapper when --project is provided.
   - Jira MCP Docker wrapper dry-run.
   - Mana update-check script and no-fetch execution.
+  - Claude Code CLI availability (warn if not installed).
 USAGE
 }
 
@@ -105,11 +106,11 @@ echo "Mana doctor"
 echo "Root: $root"
 if [ -n "$project" ]; then echo "Project: $project"; fi
 
-for dir in docs skills agents profiles mcp templates scripts hooks templates/mana-workspace; do
+for dir in docs skills agents profiles mcp templates scripts hooks templates/mana-workspace .codex .junie .claude; do
   check_dir "$dir"
 done
 
-for file in README.md scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-profile.sh scripts/run-jira-mcp-docker.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh profiles/jessica-fletcher.yaml profiles/mana-help.yaml profiles/pre-commit.yaml profiles/am-release-ready.yaml profiles/architecture-review.yaml profiles/team-planning.yaml profiles/story-ready-for-dev.yaml agents/pre-commit-documentation-agent/AGENT.md docs/workflow/mana-workspace.md docs/standards/agent-skill-output-standard.md docs/standards/story-trace-standard.md docs/standards/developer-choice-log-standard.md templates/standard-agent-skill-report.template.md templates/mana-workspace/story-trace.template.md templates/mana-workspace/developer-choice-log.template.md templates/pre-commit-development-summary.template.md templates/knowledge-transfer-brief.template.md; do
+for file in README.md scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-profile.sh scripts/run-jira-mcp-docker.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh profiles/jessica-fletcher.yaml profiles/mana-help.yaml profiles/pre-commit.yaml profiles/am-release-ready.yaml profiles/architecture-review.yaml profiles/team-planning.yaml profiles/story-ready-for-dev.yaml agents/pre-commit-documentation-agent/AGENT.md docs/workflow/mana-workspace.md docs/standards/agent-skill-output-standard.md docs/standards/story-trace-standard.md docs/standards/developer-choice-log-standard.md templates/standard-agent-skill-report.template.md templates/mana-workspace/story-trace.template.md templates/mana-workspace/developer-choice-log.template.md templates/pre-commit-development-summary.template.md templates/knowledge-transfer-brief.template.md .codex/README.md .codex/instructions.md .junie/README.md .junie/guidelines.md .claude/README.md .claude/instructions.md; do
   check_file "$file"
 done
 
@@ -188,6 +189,12 @@ if "$root/scripts/run-jira-mcp-docker.sh" --env-file "$root/mcp/env/jira-mcp.env
   pass "Jira MCP wrapper dry-run"
 else
   error "Jira MCP wrapper dry-run failed"
+fi
+
+if command -v claude >/dev/null 2>&1; then
+  pass "Claude CLI available"
+else
+  warn "Claude CLI not found; install Claude Code to use the claude runner (https://claude.ai/code)"
 fi
 
 if [ -n "$project" ]; then

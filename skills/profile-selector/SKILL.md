@@ -5,6 +5,7 @@ description: Maps a user's natural language intent to the correct Mana profile, 
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

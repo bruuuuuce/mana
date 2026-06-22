@@ -5,6 +5,7 @@ description: Checks whether a change respects service ownership, bounded context
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files

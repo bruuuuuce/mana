@@ -5,6 +5,7 @@ description: Checks whether a change can disrupt cutoffs, batches, reconciliatio
 compatibility:
   - codex
   - junie
+  - claude
 preferred_runner: codex
 allowed_tools:
   - read_files
