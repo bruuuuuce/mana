@@ -54,7 +54,7 @@ git diff <base_branch>...<branch_name> -- $(cat /tmp/contrib_files)
 Invoke skills in this order on the contributor's diff:
 1. `pre-review-defect` — pass: diff, `engineering-guards.md` if available.
 2. `test-quality` — pass: diff, `testing-policy.md` if available.
-3. `npe-nullability` — pass: diff.
+3. `null-safety-risk` — pass: diff.
 4. `java-performance-smell` — pass: diff. **Skip if no non-test `.java`
    files in diff.** Check with:
    `grep -l "\.java$" /tmp/contrib_files | grep -v "Test\.java$"`

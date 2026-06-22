@@ -1,0 +1,45 @@
+name: dev-assist
+trigger: during_development
+runner: junie
+compatible_runners:
+  - junie
+  - codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: false
+  default_purpose: dev-assist
+service_context:
+  root: .mana/global
+  core_files:
+    - engineering-guards.md
+    - architecture.md
+  optional_files:
+    - domain-glossary.md
+    - integration-map.md
+    - testing-policy.md
+    - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: warn
+agents:
+  - green-border-test-agent
+skills:
+  - source-impact-map
+  - known-pitfalls-extraction
+  - legacy-characterization
+  - concurrency-risk
+  - architecture-risk
+  - developer-decision-review
+  - change-impact-preview
+  - java-performance-smell
+  - unit-test-gap
+  - integration-test-gap
+blocking_conditions:
+  - engineering guard violation without explicit owner approval
+  - blocker-severity concurrency risk in planned change
+warning_conditions:
+  - no active Mana workspace (output not persisted)
+  - service context files missing (risk classification degraded)
+  - target class or method not found in codebase
+expected_max_duration: 10 minutes
+human_approval_requirement: false

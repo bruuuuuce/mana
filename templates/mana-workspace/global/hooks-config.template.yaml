@@ -10,7 +10,7 @@ hooks:
     disabled_skills:
       # - liquibase-syntax           # disable if project has no Liquibase changesets
       # - liquibase-production-risk  # disable if project has no database changes
-      # - npe-nullability            # disable if project uses Kotlin or Groovy
+      # - null-safety-risk           # disable if project enforces null safety at compile time (e.g. strict TypeScript)
       # - knowledge-transfer-brief   # disable if team does not use knowledge-transfer call workflow
       # - development-summary        # disable if team prefers manual summaries
       # - developer-handoff          # disable if no handoff workflow
@@ -29,7 +29,7 @@ hooks:
       # - regression-selection
       # - test-quality
       # - unit-test-gap
-      # - npe-nullability            # disable if project uses Kotlin or Groovy
+      # - null-safety-risk           # disable if project enforces null safety at compile time (e.g. strict TypeScript)
       # - pre-review-defect
     disabled_agents:
       # - green-border-test-agent    # disable if green border is run manually only

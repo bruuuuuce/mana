@@ -1,7 +1,7 @@
 ---
-name: npe-nullability
-version: 1.0.0
-description: Performs specialized nullability and NPE risk review.
+name: null-safety-risk
+version: 1.1.0
+description: Detects unsafe null/nil/undefined dereferences and missing null guards.
 compatibility:
   - codex
   - junie
@@ -17,21 +17,28 @@ inputs:
   - code_diff
   - nullability_annotations
   - test_results
+  - language
 outputs:
   - nullability_report
   - npe_risk_findings
 risk_level: medium
 owner_role: Developer
 tags:
-  - java
   - nullability
-  - npe
+  - null-safety
+  - language-agnostic
 ---
 
-# Npe Nullability
+# Null Safety Risk
 
 ## Purpose
-Detect unsafe dereferences, nullable Optional misuse, incomplete validation, and mapper assumptions.
+Detect unsafe null/nil/undefined dereferences, missing null guards, optional
+misuse, incomplete validation, and mapper assumptions.
+
+Supports Java (NPE, Optional misuse), Python (None checks, attribute access on
+None), TypeScript (null/undefined), Go (nil pointer), and Kotlin (nullable
+types). The `language` input selects the appropriate pattern set; defaults to
+`java`.
 
 This skill exists to reduce delivery churn by making a narrow, reusable judgement explicit. It produces structured artifacts and recommendations; it does not perform broad autonomous actions.
 
@@ -48,19 +55,23 @@ This skill exists to reduce delivery churn by making a narrow, reusable judgemen
 - Do not use it to justify unsafe shortcuts against project rules.
 
 ## Inputs
-- code_diff
-- nullability_annotations
-- test_results
+- `code_diff` — diff of the changed code to analyse.
+- `nullability_annotations` — existing null annotations or contracts in the codebase.
+- `test_results` — existing test output for context.
+- `language` — (optional) target language. Supported: `java`, `python`, `typescript`, `go`, `kotlin`. Defaults to `java`.
 
 ## Outputs
 - nullability_report
 - npe_risk_findings
 
 ## Execution Logic
-1. Trace nullable inputs through changed methods.
-2. Check guards before dereference.
-3. Review Optional and collection handling.
-4. Suggest local fixes for developer or Junie to apply.
+1. Read `language` input (default: `java`). Select language-specific null
+   patterns: Java → Optional/NPE, Python → None guard, TypeScript →
+   null/undefined check, Go → nil pointer check, Kotlin → nullable operator.
+2. Trace nullable inputs through changed methods.
+3. Check guards before dereference.
+4. Review optional and collection handling.
+5. Suggest local fixes for developer or Junie to apply.
 
 ## Decision Rules
 - `blocker`: unresolved high-risk issue, missing critical input, unsafe database/security/architecture condition, or untestable requirement that prevents responsible delivery.
@@ -110,7 +121,7 @@ Internal reasoning must use compact caveman mode: terse fragments, evidence-firs
 ## Diagram
 ```mermaid
 flowchart TD
-    Inputs[Required inputs] --> Skill[npe-nullability]
+    Inputs[Required inputs] --> Skill[null-safety-risk]
     Skill --> Findings[Findings by severity]
     Skill --> Artifacts[Structured outputs]
     Findings --> HumanGate[Human review gate]
@@ -119,7 +130,7 @@ flowchart TD
 
 ## Example Output
 ```yaml
-skill: npe-nullability
+skill: null-safety-risk
 status: warning
 summary: "Analysis completed with one blocker candidate and two warnings."
 findings:

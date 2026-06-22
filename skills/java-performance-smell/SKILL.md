@@ -33,6 +33,14 @@ tags:
 ## Purpose
 Flag N+1 queries, inefficient loops, unnecessary synchronization, blocking calls, excessive object creation, and connection pool misuse.
 
+## Language Pattern
+
+`java-performance-smell` is the Java implementation of the `*-performance-smell`
+skill pattern. The profile or agent selects the appropriate implementation based
+on the project's language. Equivalent skills for other languages (e.g.
+`python-performance-smell`, `typescript-performance-smell`) follow the same
+input/output schema and can be added without modifying existing agents or profiles.
+
 This skill exists to reduce delivery churn by making a narrow, reusable judgement explicit. It produces structured artifacts and recommendations; it does not perform broad autonomous actions.
 
 ## When To Use It

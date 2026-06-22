@@ -34,7 +34,7 @@ Team Leader response: "Proceed with all three."
 
 ### Lucia Ferrari — 4 commits
 
-Skills run: `pre-review-defect`, `test-quality`, `npe-nullability`,
+Skills run: `pre-review-defect`, `test-quality`, `null-safety-risk`,
 `java-performance-smell` (Java files present), `known-pitfalls-extraction`.
 
 `contributor-pattern-analysis` result:
@@ -50,7 +50,7 @@ Skills run: `pre-review-defect`, `test-quality`, `npe-nullability`,
 
 ### Marco Rossi — 6 commits
 
-Skills run: `pre-review-defect`, `test-quality`, `npe-nullability`,
+Skills run: `pre-review-defect`, `test-quality`, `null-safety-risk`,
 `java-performance-smell`, `known-pitfalls-extraction`.
 
 `contributor-pattern-analysis` result:
@@ -67,7 +67,7 @@ Skills run: `pre-review-defect`, `test-quality`, `npe-nullability`,
 
 ### Anna Bianchi — 2 commits (low_commit_count)
 
-Skills run: `pre-review-defect`, `test-quality`, `npe-nullability`.
+Skills run: `pre-review-defect`, `test-quality`, `null-safety-risk`.
 `java-performance-smell` skipped: no non-test Java files.
 
 `contributor-pattern-analysis` result:

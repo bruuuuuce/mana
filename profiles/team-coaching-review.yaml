@@ -22,7 +22,7 @@ skills:
   - contributor-pattern-analysis
   - pre-review-defect
   - test-quality
-  - npe-nullability
+  - null-safety-risk
   - java-performance-smell
   - known-pitfalls-extraction
 blocking_conditions:

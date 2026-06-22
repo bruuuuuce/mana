@@ -30,7 +30,7 @@ skills:
 - knowledge-transfer-brief
 - liquibase-production-risk
 - liquibase-syntax
-- npe-nullability
+- null-safety-risk
 - pre-review-defect
 - unit-test-gap
 blocking_conditions:

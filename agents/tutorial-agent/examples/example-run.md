@@ -23,12 +23,15 @@ Active profile from `.mana/active-profile`: none.
 | `story-ready-for-dev` | before dev assignment | Team Leader | 10 min | Verifies that acceptance criteria, technical breakdown, and risk register are clear enough to assign to a developer. |
 | `team-planning` | sprint planning | Team Leader | 15 min | Produces execution sequence, owner/dependency map, delivery risks, and review-load plan. |
 | `architecture-review` | design gate | Architect | 20 min | Produces ADR, NFR review, service-boundary fit, architecture-drift, trust-boundary, and database-risk evidence. |
-| `pre-commit` | before git commit | Developer | 8 min | Runs fast local checks: liquibase syntax, nullability, secret scan, unit-test gap, pre-review defect, and produces development summary and knowledge-transfer brief. |
-| `jessica-fletcher` | before commit/push | Developer | 5 min | Production pre-mortem: asks why the branch would fail in production and ranks failure modes by evidence and blast radius. |
+| `dev-assist` | during development | Developer | 10 min | Supports the developer while writing code: impact map, known pitfalls, legacy characterization, concurrency risk, what-if analysis, and test gap planning. |
+| `pre-commit` | before git commit | Developer | 8 min | Runs fast local checks: liquibase syntax, nullability, unit-test gap, pre-review defect, and produces development summary and knowledge-transfer brief. |
+| `pre-push` | before git push | Developer | 10 min | Deeper pre-push checks: flaky test classification, integration test gap, legacy characterization, regression selection, and full quality scan. |
+| `jessica-fletcher` | before commit/push | Developer | 15 min | Production pre-mortem: asks why the branch would fail in production and ranks failure modes by evidence and blast radius. |
 | `branch-ready` | before PR | Developer / TL | 20 min | Validates branch against approved plan, detects drift, missing tests, unsafe DB changes, and unresolved risks. |
 | `pr-ready` | before review | Developer | 15 min | Generates PR description, reviewer focus, test evidence, risk report, development summary, and developer handoff. |
-| `am-release-ready` | before release | Application Manager | 20 min | Produces release impact, continuity, rollback, incident-risk, and support/communication evidence. |
-| `ci-validation` | CI gate | CI / TL | 15 min | Runs validation in CI: branch validation, Liquibase risk, architecture risk, cross-service contract checks. |
+| `ci-validation` | CI gate | CI / TL | 30 min | Runs validation in CI: branch validation, Liquibase risk, architecture risk, cross-service contract checks. |
+| `am-release-ready` | before release | Application Manager | 25 min | Produces release impact, continuity, rollback, incident-risk, and support/communication evidence. |
+| `team-coaching-review` | coaching session | Team Leader | 30 min | Analyzes per-contributor quality patterns on a branch and produces a confidential coaching report with growth opportunities and recommended actions. |
 | `tutorial` | onboarding | Any | 15 min | Interactive framework walkthrough — this profile. |
 | `mana-help` | any question | Any | 5 min | Answers operational questions, routes to the right profile, skill, or fallback. |
 

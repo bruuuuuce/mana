@@ -4,8 +4,8 @@ Reference guide for all 46 skills in the Mana framework, grouped by the
 profile in which they are recommended. Skills may appear in multiple profiles.
 
 Skills are ordered by delivery lifecycle: story intake → planning →
-architecture → development → branch validation → PR → release → team coaching
-→ framework help.
+architecture → **development (dev-assist)** → pre-commit → pre-push →
+branch validation → PR → release → team coaching → framework help.
 
 Skills that exist in the framework but are not yet wired into a profile appear
 at the end under [Standalone Skills](#standalone-skills).
@@ -76,13 +76,45 @@ at the end under [Standalone Skills](#standalone-skills).
 
 ---
 
+## dev-assist
+**Trigger:** `during_development` · **Owner:** Developer · **Duration:** 10 min · **Runner:** Junie (preferred)
+
+Supports the developer while writing code — before any diff exists. Organized in three phases:
+
+**Fase A — Orientamento (prima di toccare codice)**
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`source-impact-map`](../skills/source-impact-map/SKILL.md) | Prospective use: identify callers and dependent files before writing, not after. | medium | Team Leader / Developer |
+| [`known-pitfalls-extraction`](../skills/known-pitfalls-extraction/SKILL.md) | Surface known project pitfalls before the developer can repeat them. | low | Team Leader / Architect |
+| [`legacy-characterization`](../skills/legacy-characterization/SKILL.md) | Capture current legacy behavior before refactoring so regressions are visible. Must run before touching the code, not after. | medium | Developer |
+
+**Fase B — Progettazione e implementazione**
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`concurrency-risk`](../skills/concurrency-risk/SKILL.md) | Find race conditions, lost updates, non-idempotent retry behavior, and unsafe shared state. Maximum value before writing the concurrent code. | high | Architect / Team Leader |
+| [`architecture-risk`](../skills/architecture-risk/SKILL.md) | Validate service boundaries and forbidden zones before implementing a cross-service call. | medium | Architect / Team Leader |
+| [`developer-decision-review`](../skills/developer-decision-review/SKILL.md) | Challenge implementation choices while the developer can still change direction at zero cost. | medium | Developer / Team Leader |
+| [`change-impact-preview`](../skills/change-impact-preview/SKILL.md) | What-if: describe a planned change in natural language and get callers impacted, contract risks, concurrency flags, tests to update, and a suggested approach — before writing a single line. | low | Developer |
+| [`java-performance-smell`](../skills/java-performance-smell/SKILL.md) | Flag N+1 queries, inefficient loops, unnecessary synchronization, and blocking calls before they are committed. | medium | Team Leader / Developer |
+
+**Fase C — Piano di test**
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`unit-test-gap`](../skills/unit-test-gap/SKILL.md) | Plan which unit tests are needed while still implementing, not after. | low | Developer |
+| [`integration-test-gap`](../skills/integration-test-gap/SKILL.md) | Identify integration test needs early to avoid rework of the implementation. | medium | Developer / QA |
+
+---
+
 ## pre-commit
 **Trigger:** `pre_commit` · **Owner:** Developer · **Duration:** 8 min
 
 | Skill | Description | Risk | Owner |
 |---|---|---|---|
 | [`liquibase-syntax`](../skills/liquibase-syntax/SKILL.md) | Catch malformed changelogs, duplicate identifiers, missing author/id fields, invalid include paths, and obvious structural issues before deeper review. | low | Developer |
-| [`npe-nullability`](../skills/npe-nullability/SKILL.md) | Detect unsafe dereferences, nullable Optional misuse, incomplete validation, and mapper assumptions. | medium | Developer |
+| [`null-safety-risk`](../skills/null-safety-risk/SKILL.md) | Detect unsafe null/nil/undefined dereferences, missing null guards, optional misuse, incomplete validation, and mapper assumptions. | medium | Developer |
 | [`unit-test-gap`](../skills/unit-test-gap/SKILL.md) | Verify changed branches, validators, mappers, error paths, and null handling have meaningful unit tests. | low | Developer |
 | [`pre-review-defect`](../skills/pre-review-defect/SKILL.md) | Catch possible NPEs, bad error handling, missing validations, hidden side effects, suspicious mapping, and poor readability. | medium | Team Leader / Developer |
 | [`liquibase-production-risk`](../skills/liquibase-production-risk/SKILL.md) | Detect lock risks, missing rollback, unsafe index operations, large table updates, destructive DDL, and traffic-aware ordering issues. | high | DBA / Team Leader |
@@ -100,7 +132,7 @@ at the end under [Standalone Skills](#standalone-skills).
 | Skill | Description | Risk | Owner |
 |---|---|---|---|
 | [`liquibase-syntax`](../skills/liquibase-syntax/SKILL.md) | Catch malformed changelogs, duplicate identifiers, missing author/id fields, and invalid include paths before deeper review. | low | Developer |
-| [`npe-nullability`](../skills/npe-nullability/SKILL.md) | Detect unsafe dereferences, nullable Optional misuse, incomplete validation, and mapper assumptions. | medium | Developer |
+| [`null-safety-risk`](../skills/null-safety-risk/SKILL.md) | Detect unsafe null/nil/undefined dereferences, missing null guards, optional misuse, incomplete validation, and mapper assumptions. | medium | Developer |
 | [`unit-test-gap`](../skills/unit-test-gap/SKILL.md) | Verify changed branches, validators, mappers, error paths, and null handling have meaningful unit tests. | low | Developer |
 | [`integration-test-gap`](../skills/integration-test-gap/SKILL.md) | Ensure persistence, transaction boundaries, messaging, HTTP clients, and external failures are validated beyond unit tests. | medium | Developer / QA |
 | [`legacy-characterization`](../skills/legacy-characterization/SKILL.md) | Capture current behavior before refactoring or modifying legacy code so regressions are visible. | medium | Developer |
@@ -210,7 +242,7 @@ Same skills as `branch-ready`, plus `development-summary`:
 |---|---|---|---|
 | [`pre-review-defect`](../skills/pre-review-defect/SKILL.md) | Catch possible NPEs, bad error handling, missing validations, hidden side effects, suspicious mapping, and poor readability — run per contributor. | medium | Team Leader / Developer |
 | [`test-quality`](../skills/test-quality/SKILL.md) | Find assertion-free tests, overmocking, snapshot-only assertions, order dependency, and flaky patterns — run per contributor. | low | QA / Team Leader |
-| [`npe-nullability`](../skills/npe-nullability/SKILL.md) | Detect unsafe dereferences, nullable Optional misuse, incomplete validation, and mapper assumptions — run per contributor. | medium | Developer |
+| [`null-safety-risk`](../skills/null-safety-risk/SKILL.md) | Detect unsafe null/nil/undefined dereferences, missing null guards, optional misuse, and mapper assumptions — run per contributor. | medium | Developer |
 | [`java-performance-smell`](../skills/java-performance-smell/SKILL.md) | Flag N+1 queries, inefficient loops, unnecessary synchronization, blocking calls, excessive object creation, and connection pool misuse. | medium | Team Leader / Developer |
 | [`known-pitfalls-extraction`](../skills/known-pitfalls-extraction/SKILL.md) | Cross-reference contributor findings against known project pitfalls documented in the team's knowledge base. | low | Team Leader / Architect |
 | [`contributor-pattern-analysis`](../skills/contributor-pattern-analysis/SKILL.md) | Aggregate quality findings for a single contributor and identify recurring growth patterns (habit / tendency / isolated) for coaching purposes. | low | Team Leader |
@@ -245,7 +277,6 @@ a custom profile.
 
 | Skill | Description | Risk | Owner | Agent |
 |---|---|---|---|---|
-| [`concurrency-risk`](../skills/concurrency-risk/SKILL.md) | Find race conditions, lost updates, non-idempotent retry behavior, duplicate event processing, and unsafe shared state. | high | Architect / Team Leader | — |
 | [`post-merge-incident-learning`](../skills/post-merge-incident-learning/SKILL.md) | Close the loop after incidents by identifying missed signals and updating future guardrails. | medium | Team Leader / Architect | `learning-agent` |
 | [`rule-update-suggestion`](../skills/rule-update-suggestion/SKILL.md) | Convert lessons into proposed governance updates without automatically changing enforced rules. | medium | Architect / Team Leader | `learning-agent` |
 
@@ -262,7 +293,7 @@ a custom profile.
 |---|---|
 | `architecture-drift-detection` | architecture-review |
 | `business-continuity-check` | am-release-ready |
-| `concurrency-risk` | — |
+| `concurrency-risk` | dev-assist |
 | `liquibase-production-risk` | story-start, architecture-review, pre-commit, jessica-fletcher, branch-ready, pr-ready, ci-validation, pre-push |
 | `production-premortem` | jessica-fletcher |
 | `rollback-safety` | jessica-fletcher, branch-ready, am-release-ready, ci-validation |
@@ -272,26 +303,26 @@ a custom profile.
 | Skill | Profiles |
 |---|---|
 | `architecture-decision-record` | architecture-review |
-| `architecture-risk` | story-start, architecture-review, jessica-fletcher, branch-ready, pr-ready, ci-validation |
+| `architecture-risk` | story-start, architecture-review, dev-assist, jessica-fletcher, branch-ready, pr-ready, ci-validation |
 | `cross-service-contract` | story-start, architecture-review, jessica-fletcher, branch-ready, pr-ready, ci-validation |
 | `database-drift` | branch-ready, ci-validation |
 | `delivery-risk-radar` | story-ready-for-dev, team-planning, am-release-ready |
-| `developer-decision-review` | pre-commit, branch-ready, pr-ready |
+| `developer-decision-review` | dev-assist, pre-commit, branch-ready, pr-ready |
 | `developer-readiness-check` | story-ready-for-dev, team-planning |
 | `flaky-failure-classification` | pre-push |
 | `green-border-plan` | story-start, story-ready-for-dev, team-planning, pre-commit, branch-ready, ci-validation, pre-push |
 | `incident-risk-forecast` | am-release-ready |
-| `integration-test-gap` | pre-push |
-| `java-performance-smell` | team-coaching-review |
-| `legacy-characterization` | pre-push |
+| `integration-test-gap` | dev-assist, pre-push |
+| `java-performance-smell` | dev-assist, team-coaching-review |
+| `legacy-characterization` | dev-assist, pre-push |
 | `non-functional-requirements-review` | architecture-review |
-| `npe-nullability` | pre-commit, pre-push, team-coaching-review |
+| `null-safety-risk` | pre-commit, pre-push, team-coaching-review |
 | `post-merge-incident-learning` | — |
 | `pre-review-defect` | pre-commit, jessica-fletcher, branch-ready, pr-ready, ci-validation, pre-push, team-coaching-review |
 | `release-impact-summary` | am-release-ready |
 | `rule-update-suggestion` | — |
 | `service-boundary-fit` | architecture-review |
-| `source-impact-map` | story-start, story-ready-for-dev, team-planning, branch-ready, ci-validation |
+| `source-impact-map` | story-start, story-ready-for-dev, team-planning, dev-assist, branch-ready, ci-validation |
 | `team-execution-plan` | team-planning |
 | `technical-task-breakdown` | story-start, story-ready-for-dev, team-planning, branch-ready, ci-validation |
 
@@ -299,12 +330,13 @@ a custom profile.
 | Skill | Profiles |
 |---|---|
 | `acceptance-criteria-testability` | story-start, story-ready-for-dev |
+| `change-impact-preview` | dev-assist |
 | `contributor-pattern-analysis` | team-coaching-review |
 | `developer-handoff` | team-planning, pre-commit, pr-ready |
 | `development-summary` | pre-commit, pr-ready, ci-validation |
 | `epic-goal-extraction` | story-start |
 | `knowledge-transfer-brief` | pre-commit |
-| `known-pitfalls-extraction` | am-release-ready, team-coaching-review |
+| `known-pitfalls-extraction` | dev-assist, am-release-ready, team-coaching-review |
 | `liquibase-syntax` | pre-commit, branch-ready, ci-validation, pre-push |
 | `mana-usage-help` | tutorial, mana-help |
 | `profile-selector` | tutorial, mana-help |
@@ -313,4 +345,4 @@ a custom profile.
 | `story-consistency` | story-start |
 | `story-depth` | story-start |
 | `test-quality` | jessica-fletcher, branch-ready, pr-ready, ci-validation, pre-push, team-coaching-review |
-| `unit-test-gap` | pre-commit, pre-push |
+| `unit-test-gap` | dev-assist, pre-commit, pre-push |

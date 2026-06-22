@@ -29,7 +29,7 @@ skills:
 - legacy-characterization
 - liquibase-production-risk
 - liquibase-syntax
-- npe-nullability
+- null-safety-risk
 - pre-review-defect
 - regression-selection
 - test-quality

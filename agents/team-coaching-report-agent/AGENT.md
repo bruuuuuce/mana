@@ -9,7 +9,7 @@ skills_used:
   - contributor-pattern-analysis
   - pre-review-defect
   - test-quality
-  - npe-nullability
+  - null-safety-risk
   - java-performance-smell
   - known-pitfalls-extraction
 allowed_tools:
@@ -88,7 +88,7 @@ For each confirmed contributor:
 3. Invoke skills in order, passing the contributor's diff as input:
    a. `pre-review-defect` → `defect_findings`
    b. `test-quality` → `test_findings`
-   c. `npe-nullability` → `npe_findings`
+   c. `null-safety-risk` → `npe_findings`
    d. `java-performance-smell` → `performance_findings` (only when diff
       contains non-test `.java` files)
    e. `known-pitfalls-extraction` → `known_pitfalls` (optional; skip if
@@ -137,7 +137,7 @@ Write `team-coaching-report.md` to the active workspace. Structure:
   NPEs, unsafe error handling, missing validations, side effects.
 - `test-quality`: identifies test gaps — missing coverage of edge cases,
   error paths, or integration scenarios.
-- `npe-nullability`: finds nullability violations specific to Java — unsafe
+- `null-safety-risk`: finds nullability violations specific to Java — unsafe
   Optional usage, missing null guards.
 - `java-performance-smell`: detects performance anti-patterns in Java code —
   N+1 queries, unnecessary object allocation, blocking calls.
@@ -230,7 +230,7 @@ flowchart TD
     PerContrib --> Diff[Get contributor diff]
     Diff --> Defect[pre-review-defect]
     Diff --> Test[test-quality]
-    Diff --> NPE[npe-nullability]
+    Diff --> NPE[null-safety-risk]
     Diff --> Perf[java-performance-smell?]
     Diff --> Pitfall[known-pitfalls-extraction?]
     Defect & Test & NPE & Perf & Pitfall --> Pattern[contributor-pattern-analysis]

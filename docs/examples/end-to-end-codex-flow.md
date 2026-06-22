@@ -60,13 +60,28 @@ Ask Codex to use:
 Expected outputs include story context, source impact map, technical breakdown,
 risk register, green-border plan, and open questions.
 
-## 6. Implement One Technical Task
+## 6. Get Development Support Before Writing Code
+
+Before starting implementation of a task, optionally run:
+
+```bash
+./mana profile dev-assist
+```
+
+Ask Junie or Codex to invoke `change-impact-preview` with a description of
+the planned change. The skill identifies callers impacted, contract risks,
+concurrency flags, and tests to update — before any code is written.
+
+Also invoke `concurrency-risk` for concurrent or shared-state changes, and
+`legacy-characterization` before touching legacy paths.
+
+## 7. Implement One Technical Task
 
 Use the approved plan to implement one bounded task at a time. Keep changes
 inside the approved source impact map unless Codex records plan drift and asks
 for approval.
 
-## 7. Run Pre-Commit Pre-Mortem
+## 8. Run Pre-Commit Pre-Mortem
 
 Before commit:
 
@@ -84,7 +99,7 @@ likely reasons.
 Use `agents/jessica-fletcher-agent/AGENT.md` and route findings into the active
 `.mana/` workspace.
 
-## 8. Validate The Branch And PR Package
+## 9. Validate The Branch And PR Package
 
 ```bash
 ./mana profile branch-ready

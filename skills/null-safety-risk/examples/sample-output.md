@@ -1,7 +1,7 @@
 # Sample Output
 
 ```yaml
-skill: npe-nullability
+skill: null-safety-risk
 status: warning
 summary: Example finding requiring owner review.
 owner_role: "Developer"

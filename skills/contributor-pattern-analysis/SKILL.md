@@ -30,7 +30,7 @@ tags:
 
 ## Purpose
 Aggregate quality findings from pre-review-defect, test-quality,
-npe-nullability, java-performance-smell, and known-pitfalls-extraction into
+null-safety-risk, java-performance-smell, and known-pitfalls-extraction into
 a per-contributor growth pattern report. The report is intended for Team
 Leader use only as a coaching instrument — not for performance evaluation.
 
@@ -56,7 +56,7 @@ blocker.
 - `contributor_commits` — list of commits (SHA, subject, date) authored on the branch.
 - `defect_findings` — structured output from `pre-review-defect` on this contributor's diff.
 - `test_findings` — structured output from `test-quality` on this contributor's diff.
-- `npe_findings` — structured output from `npe-nullability` on this contributor's diff.
+- `npe_findings` — structured output from `null-safety-risk` on this contributor's diff.
 - `performance_findings` — (optional) output from `java-performance-smell`; include only when diff contains non-test `.java` files.
 - `known_pitfalls` — (optional) output from `known-pitfalls-extraction`.
 
@@ -174,7 +174,7 @@ patterns:
     severity: warning
     summary: "Optional return values used without null-check guard"
     evidence: "src/main/java/payments/PaymentMapper.java:88"
-    coaching_recommendation: "Code review focus on Optional chaining; reference project npe-nullability examples"
+    coaching_recommendation: "Code review focus on Optional chaining; reference project null-safety-risk examples"
   - category: defect_quality
     classification: isolated
     occurrences: 1

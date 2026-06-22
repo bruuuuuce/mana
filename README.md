@@ -1,6 +1,10 @@
+<p align="center">
+  <img src="assets/mana-logo.png" alt="Mana" width="220">
+</p>
+
 # Mana
 
-Mana is a production-oriented, agent-ready delivery framework for enterprise Java and payment projects. It turns uneven requirements, late architecture decisions, weak tests, Liquibase risk, and overloaded reviews into a governed workflow of reusable skills, orchestrating agents, MCP integrations, profiles, templates, and operating guides.
+Mana is a production-oriented, agent-ready delivery framework for enterprise software delivery. It turns uneven requirements, late architecture decisions, weak tests, database risk, and overloaded reviews into a governed workflow of reusable skills, orchestrating agents, MCP integrations, profiles, templates, and operating guides.
 
 ## Current Status
 Mana currently provides the framework structure, governance model, reusable
@@ -35,13 +39,14 @@ Codex is used for repository-level planning, validation, documentation, branch a
 7. Use `profiles/team-planning.yaml` or `profiles/story-ready-for-dev.yaml` when a Team Leader needs start/no-start and sequencing evidence.
 8. Use `profiles/team-coaching-review.yaml` on any feature branch to identify recurring quality patterns per contributor and produce a confidential coaching report for the Team Leader.
 9. Use `profiles/architecture-review.yaml` when an Architect needs ADR, NFR, boundary, drift, contract, or trust-boundary evidence.
-10. Implement one technical task at a time in Junie using `.junie/profiles/technical-task-execution.md`.
-11. Run a production pre-mortem with `profiles/jessica-fletcher.yaml`.
-12. Run green-border checks with `profiles/pre-push.yaml`.
-13. Validate the branch with `profiles/branch-ready.yaml`.
-14. Use `profiles/am-release-ready.yaml` when an Application Manager needs release, continuity, rollback, and incident-risk evidence.
-15. Generate the PR package with `profiles/pr-ready.yaml`.
-16. Learn the framework interactively at any time with `profiles/tutorial.yaml` or by asking `scripts/run-profile.sh mana-help`.
+10. Use `profiles/dev-assist.yaml` while implementing to get impact analysis, known pitfalls, concurrency risk, what-if change preview, and test gap planning before writing code.
+11. Implement one technical task at a time in Junie using `.junie/profiles/technical-task-execution.md`.
+12. Run a production pre-mortem with `profiles/jessica-fletcher.yaml`.
+13. Run green-border checks with `profiles/pre-push.yaml`.
+14. Validate the branch with `profiles/branch-ready.yaml`.
+15. Use `profiles/am-release-ready.yaml` when an Application Manager needs release, continuity, rollback, and incident-risk evidence.
+16. Generate the PR package with `profiles/pr-ready.yaml`.
+17. Learn the framework interactively at any time with `profiles/tutorial.yaml` or by asking `scripts/run-profile.sh mana-help`.
 
 ## Repository Structure
 ```text
@@ -176,6 +181,7 @@ more specific artifact template does not exist.
 - **Prepare Team Leader planning:** run `profiles/team-planning.yaml` to produce execution sequence, owner/dependency map, delivery risks, and review-load plan.
 - **Check story readiness for development:** run `profiles/story-ready-for-dev.yaml` before assigning work to a developer.
 - **Run architecture review:** use `profiles/architecture-review.yaml` for ADR, NFR, service-boundary, architecture-drift, trust-boundary, contract, and database-risk evidence.
+- **Get development support before writing code:** use `profiles/dev-assist.yaml` to ask what-if questions about planned changes (`change-impact-preview`), identify concurrency risks, surface known pitfalls, characterize legacy code before refactoring, and plan unit and integration tests.
 - **Implement a task in Junie:** open the approved technical task, restrict edits to the approved source-impact map, and run local tests after each change.
 - **Run green border:** use the Green Border Test Agent to generate or run focused unit, integration, contract, regression, and legacy tests.
 - **Generate pre-commit development notes:** use `profiles/pre-commit.yaml` and `pre-commit-documentation-agent` to create `pr/pre-commit-development-summary.md` and `pr/knowledge-transfer-brief.md`.
