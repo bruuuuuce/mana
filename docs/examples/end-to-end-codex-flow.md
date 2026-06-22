@@ -26,6 +26,7 @@ This creates:
 - `.mana/env`, with the linked Mana path.
 - `.mana/links/`, with symlinks to Mana skills, agents, profiles, docs, templates, and MCP definitions.
 - `.mana/features/EPIC-123/`, the active evidence workspace.
+- `AGENTS.md`, Codex auto-loaded runner instructions.
 
 ## 3. Confirm The Link
 

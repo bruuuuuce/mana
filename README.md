@@ -69,9 +69,10 @@ From a target application repository, run:
 /path/to/mana/scripts/bootstrap-project.sh
 ```
 
-This creates a small local `./mana` wrapper, `.mana/` links to the framework, and
-the project-local `.mana/` artifact workspace. See
-`docs/deployment/project-link-bootstrap.md`.
+This creates a small local `./mana` wrapper, `.mana/` links to the framework,
+the project-local `.mana/` artifact workspace, and `AGENTS.md` and `CLAUDE.md`
+in the project root so Codex and Claude Code load Mana instructions automatically
+at session start. See `docs/deployment/project-link-bootstrap.md`.
 
 For a complete Jira-free flow from epic input to PR readiness, see
 `docs/examples/end-to-end-codex-flow.md`.
