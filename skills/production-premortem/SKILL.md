@@ -89,21 +89,27 @@ approve risk.
 - mitigation_checklist
 
 ## Execution Logic
-1. Read the full local branch diff against the resolved main branch and classify
-   touched risk domains. Include uncommitted working-tree changes when present.
+1. Build a filtered diff inventory against the resolved main branch before
+   reading full files. Include uncommitted working-tree changes when present.
    Do not use staged diff as the analysis boundary.
 2. Exclude Mana framework/bootstrap noise from production hypotheses, findings,
    evidence, missing-test lists, and failure modes: `.mana/**`, `AGENTS.md`,
    `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or env ignore changes.
    Mention these only as operational setup notes when relevant.
-3. Compare changed files with story context, impact map, service context, and
+3. If the filtered diff is larger than roughly 80 changed files or 2,000 changed
+   lines, or is dominated by generated/vendor-like churn, stop with
+   `needs_human_decision` and ask the user to choose a review scope.
+4. Classify touched risk domains from the filtered inventory, then read full
+   file contents only where needed to validate plausible blocker or warning
+   hypotheses.
+5. Compare changed files with story context, impact map, service context, and
    engineering guards.
-4. Ask the incident question for each touched domain: "if this caused production
+6. Ask the incident question for each touched domain: "if this caused production
    trouble, what failed first and why?"
-5. Rank hypotheses by plausibility, impact, and evidence strength.
-6. Identify missing tests, missing observability, unsafe defaults, config drift,
+7. Rank hypotheses by plausibility, impact, and evidence strength.
+8. Identify missing tests, missing observability, unsafe defaults, config drift,
    rollback gaps, and owner approvals.
-7. Produce a mitigation checklist with stop/go guidance.
+9. Produce a mitigation checklist with stop/go guidance.
 
 ## Failure Mode Catalogue
 Review at least these classes when relevant:

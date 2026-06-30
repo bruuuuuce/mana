@@ -56,11 +56,18 @@ Orchestrate architecture review before implementation or merge. The agent makes 
    base is missing or ambiguous, stop with `needs_human_decision` and ask which
    branch to compare against. Do not silently default to `main`.
 2. Load story, design, branch diff, architecture context, engineering guards, integration map, and test evidence.
-3. Use `architecture-decision-record` for significant decisions and trade-offs.
-4. Use `non-functional-requirements-review` for performance, resilience, security, observability, scalability, auditability, operability, and compliance.
-5. Use `service-boundary-fit` for ownership, bounded context, data ownership, and responsibility boundaries.
-6. Use `architecture-drift-detection` to compare branch changes against documented architecture and decisions.
-7. Use `architecture-risk`, `cross-service-contract`, `trust-boundary-review`, and `liquibase-production-risk` for specialist risk checks.
+3. Use `architecture-decision-record` only for significant decisions and
+   trade-offs that need durable owner-visible documentation.
+4. Use `non-functional-requirements-review` only when performance, resilience,
+   security, observability, scalability, auditability, operability, or
+   compliance are in scope.
+5. Use `service-boundary-fit` only when ownership, bounded context, data
+   ownership, or responsibility boundaries are touched.
+6. Use `architecture-drift-detection` when branch changes must be compared
+   against documented architecture and decisions.
+7. Use `architecture-risk`, `cross-service-contract`,
+   `trust-boundary-review`, and `liquibase-production-risk` only for touched
+   specialist domains.
 8. Aggregate findings into approval questions and architecture review status.
 
 ## Skills Used And Why

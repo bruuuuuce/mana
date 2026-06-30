@@ -45,10 +45,14 @@ Updates knowledge after merges, incidents, review comments, or recurring failure
 - recurring_failure_detected
 
 ## Workflow
-1. Invoke `known-pitfalls-extraction` and store its structured result.
-2. Invoke `post-merge-incident-learning` and store its structured result.
-3. Invoke `rule-update-suggestion` and store its structured result.
-4. Invoke `flaky-failure-classification` and store its structured result.
+1. Load `known-pitfalls-extraction` when review comments, bug tickets,
+   incidents, or local knowledge sources contain repeatable pitfalls.
+2. Load `post-merge-incident-learning` only for closed incidents, escaped
+   defects, or production-impacting post-merge events.
+3. Load `rule-update-suggestion` only when evidence points to a reusable guard,
+   checklist, standard, or automation change.
+4. Load `flaky-failure-classification` only when test history includes flaky,
+   intermittent, timeout, ordering, or environment-sensitive failures.
 5. Aggregate blocker, warning, and info findings into the expected artifacts.
 6. Stop at human approval gates when blockers or out-of-policy actions are detected.
 

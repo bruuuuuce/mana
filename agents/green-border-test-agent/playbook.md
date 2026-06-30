@@ -9,7 +9,8 @@
 1. Resolve or initialize the active Mana workspace using `scripts/mana-workspace.sh`.
 2. Read `manifest.yaml` and `index.md` from the workspace.
 - Create or locate the working artifact folder inside the active `.mana` workspace.
-- Run skills in the order listed in `AGENT.md`.
+- Load and run only the test skills whose conditions in `AGENT.md` match the
+  changed code, test plan, regression need, test evidence, or failure logs.
 - Stop immediately on missing inputs or blocker findings.
 - Aggregate findings into the expected outputs.
 - Write outputs to the workspace folders defined by `AGENT.md`.

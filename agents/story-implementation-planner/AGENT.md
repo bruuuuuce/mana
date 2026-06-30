@@ -57,18 +57,21 @@ Orchestrates requirement, architecture, source-impact, task-breakdown, and test-
 - before_development
 
 ## Workflow
-1. Invoke `story-depth` and store its structured result.
-2. Invoke `epic-goal-extraction` and store its structured result.
-3. Invoke `story-consistency` and store its structured result.
-4. Invoke `acceptance-criteria-testability` and store its structured result.
-5. Invoke `source-impact-map` and store its structured result.
-6. Invoke `architecture-risk` and store its structured result.
-7. Invoke `cross-service-contract` and store its structured result.
-8. Invoke `liquibase-production-risk` and store its structured result.
-9. Invoke `technical-task-breakdown` and store its structured result.
-10. Invoke `green-border-plan` and store its structured result.
-11. Aggregate blocker, warning, and info findings into the expected artifacts.
-12. Stop at human approval gates when blockers or out-of-policy actions are detected.
+1. Load only the planning skills needed for the available story inputs.
+2. Use `story-depth`, `story-consistency`, and
+   `acceptance-criteria-testability` when story text or acceptance criteria are
+   present.
+3. Use `epic-goal-extraction` only when an epic, parent objective, or linked
+   roadmap context is present.
+4. Use `source-impact-map` when repository areas, components, or likely changed
+   files must be identified.
+5. Use `technical-task-breakdown` and `green-border-plan` after scope is clear
+   enough to plan implementation tasks and tests.
+6. Use `architecture-risk`, `cross-service-contract`, and
+   `liquibase-production-risk` only when the planned scope touches architecture
+   boundaries, integrations/contracts, or database changes.
+7. Aggregate blocker, warning, and info findings into the expected artifacts.
+8. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Jira Fallback
 When Jira MCP access is unavailable, incomplete, or intentionally disabled, load

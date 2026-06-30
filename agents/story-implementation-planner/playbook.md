@@ -12,7 +12,9 @@
 - If `epic_story_pack` is provided, load it as the requirement source before invoking requirement skills.
 - Report missing Jira fields, links, or acceptance criteria as evidence gaps instead of inventing them.
 - Create or locate the working artifact folder inside the active `.mana` workspace.
-- Run skills in the order listed in `AGENT.md`.
+- Load and run only the planning skills whose conditions in `AGENT.md` match the
+  available story, epic, repository, architecture, integration, database, or
+  test-planning inputs.
 - Stop immediately on missing inputs or blocker findings.
 - Aggregate findings into the expected outputs.
 - Write outputs to the workspace folders defined by `AGENT.md`.

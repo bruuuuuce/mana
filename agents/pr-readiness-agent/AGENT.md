@@ -57,16 +57,19 @@ Builds the final pull request package for reviewers. The agent orchestrates skil
    input, then `origin/HEAD`, then a single credible primary branch. If the base
    is missing or ambiguous, stop with `needs_human_decision` and ask which
    branch to compare against. Do not silently default to `main`.
-2. Invoke `development-summary` and store its structured result.
-3. Invoke `developer-handoff` and store its structured result.
-4. Invoke `developer-decision-review` and store its structured result.
-5. Invoke `pre-review-defect` and store its structured result.
-6. Invoke `architecture-risk` and store its structured result.
-7. Invoke `cross-service-contract` and store its structured result.
-8. Invoke `liquibase-production-risk` and store its structured result.
-9. Invoke `test-quality` and store its structured result.
-10. Aggregate blocker, warning, and info findings into the expected artifacts.
-11. Stop at human approval gates when blockers or out-of-policy actions are detected.
+2. Load `development-summary` as the primary PR package skill.
+3. Load `developer-handoff` when the change needs maintainer context,
+   diagrams, rationale, or non-obvious implementation notes.
+4. Load `developer-decision-review` when the diff shows unexplained choices,
+   plan drift, risky trade-offs, or missing rationale.
+5. Load `pre-review-defect` when application code changed and focused defect
+   screening is useful before human review.
+6. Load `architecture-risk`, `cross-service-contract`, and
+   `liquibase-production-risk` only when the filtered diff touches architecture
+   boundaries, integrations/contracts, or database changes.
+7. Load `test-quality` only when test evidence exists and must be evaluated.
+8. Aggregate blocker, warning, and info findings into the expected artifacts.
+9. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Skills Used And Why
 - `development-summary`: creates the delivery record with assumptions, decisions, implemented changes, tests, risks, and unresolved items.

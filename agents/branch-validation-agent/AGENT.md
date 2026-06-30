@@ -61,13 +61,21 @@ The central responsibility is plan-drift detection: compare approved planning ar
    is missing or ambiguous, stop with `needs_human_decision` and ask which
    branch to compare against. Do not silently default to `main`.
 3. Load the current branch diff, test evidence, and any generated hook or green-border reports.
-4. Use `source-impact-map` to compare planned files with modified files and classify drift as approved, unplanned, missing, or forbidden.
-5. Use `technical-task-breakdown` to verify each planned technical task has implementation evidence or an explicit deferral.
-6. Use `green-border-plan`, `regression-selection`, and `test-quality` to verify required tests exist, were selected correctly, and are meaningful.
-7. Use `pre-review-defect` for common code defects before human review.
-8. Use `developer-decision-review` to generate targeted questions for unexplained choices, plan drift, risky trade-offs, and missing rationale.
-9. Use `architecture-risk` and `cross-service-contract` for design and integration risks introduced by the actual diff.
-10. Use `liquibase-production-risk` when any database changelog or migration file changed.
+4. Use `source-impact-map` when planned files must be compared with modified
+   files or drift needs classification.
+5. Use `technical-task-breakdown` when planned tasks need implementation
+   evidence or explicit deferral checks.
+6. Use `green-border-plan`, `regression-selection`, and `test-quality` only
+   when required tests, selected regressions, or test evidence must be verified.
+7. Use `pre-review-defect` when application code changed and focused defect
+   screening is useful before human review.
+8. Use `developer-decision-review` when unexplained choices, plan drift, risky
+   trade-offs, or missing rationale are present.
+9. Use `architecture-risk` and `cross-service-contract` only for design,
+   boundary, API, event, message, or integration risks introduced by the actual
+   diff.
+10. Use `liquibase-production-risk` only when database changelog or migration
+   files changed.
 11. Aggregate blocker, warning, and info findings into the expected artifacts.
 12. Stop at human approval gates when blockers or out-of-policy actions are detected.
 

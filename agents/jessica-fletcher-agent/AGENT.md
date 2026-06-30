@@ -71,28 +71,37 @@ actions before the branch is committed, pushed, or opened for review.
    `origin/master`, `main`, `master`, `develop`, or `dev` only when exactly one
    candidate is credible. If the main branch is unclear, stop and ask the user
    which branch to compare against.
-2. Load the full local branch diff against the resolved main branch, including
-   committed branch changes and uncommitted working-tree changes. Do not limit
-   the pre-mortem to the staged diff.
-3. Report the resolved main branch and diff command in the output evidence.
-4. Exclude Mana framework/bootstrap noise from production hypotheses, findings,
+2. Build a filtered diff inventory before reading full files: use changed
+   file/status and changed-line counts for the resolved base plus uncommitted
+   working-tree changes. Do not limit the pre-mortem to the staged diff.
+3. If the filtered diff is larger than roughly 80 changed files or 2,000 changed
+   lines, or is dominated by generated/vendor-like churn, stop with
+   `needs_human_decision` and ask the user which scope Jessica should review
+   first.
+4. Report the resolved main branch, diff command, and filtered diff scope in the
+   output evidence.
+5. Exclude Mana framework/bootstrap noise from production hypotheses, findings,
    evidence, missing-test lists, and failure modes: `.mana/**`, `AGENTS.md`,
    `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or env ignore changes.
    Mention these only as operational setup notes when relevant.
-5. Load active `.mana` planning artifacts when present: story context,
+6. Load active `.mana` planning artifacts when present: story context,
    source impact map, technical task breakdown, green-border plan, risk register,
    test evidence, and decision log.
-6. Load Service Context Layer files when present.
-7. Invoke `production-premortem` as the primary skill.
-8. Invoke specialist skills only when relevant to the diff:
+7. Load Service Context Layer files when present.
+8. Load and invoke `production-premortem` as the primary skill.
+9. Do not load every listed specialist skill up front. Load and invoke
+   specialist skills only when relevant to the filtered diff:
    `liquibase-production-risk` and `rollback-safety` for DB changes,
    `cross-service-contract` for API/event/message changes,
    `architecture-risk` for boundary or pattern changes,
    `pre-review-defect` for code-level defects,
    `test-quality` and `regression-selection` for test evidence gaps.
-9. Rank findings by severity, plausibility, production blast radius, and evidence
+10. Read full file contents only where needed to validate plausible blocker or
+   warning hypotheses. Prefer targeted searches from changed symbols, APIs,
+   tables, events, routes, config keys, and tests over repository-wide scans.
+11. Rank findings by severity, plausibility, production blast radius, and evidence
    strength.
-10. Produce a stop/go recommendation with mitigation checklist.
+12. Produce a stop/go recommendation with mitigation checklist.
 
 ## Skills Used And Why
 - `production-premortem`: primary incident-hypothesis analysis.

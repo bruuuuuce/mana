@@ -18,6 +18,15 @@
 - For any profile using branch or code diff evidence, resolve and report the
   comparison base. Prefer explicit input, then `origin/HEAD`, then a single
   credible primary branch. If ambiguous, ask the user; do not default to `main`.
+- For any profile using branch or code diff evidence, start with a filtered diff
+  inventory, exclude Mana/bootstrap noise, classify changed files by risk domain,
+  and read only files needed to validate plausible blocker or warning
+  hypotheses. If the filtered diff is larger than roughly 80 files or 2,000
+  changed lines, ask the user to choose a review scope instead of scanning the
+  whole repository.
+- Do not read every skill listed in a profile up front. Read the agent and
+  playbook first, load the primary skill needed to start, then load specialist
+  skills only when the filtered inputs show their risk domain is relevant.
 
 ## MCP Tool Availability
 
@@ -61,5 +70,6 @@ Fill in `/path/to/secure/jira-mcp.env` with the credentials documented in
 scripts/run-profile.sh <profile-name> --project-root /path/to/project
 ```
 
-Claude Code reads the printed profile and invokes the listed agents and skills.
+Claude Code reads the printed profile, loads the listed agents, and loads only
+the primary or conditionally relevant skills.
 Output artifacts go into the active `.mana` workspace.

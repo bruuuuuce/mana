@@ -268,7 +268,8 @@ Key profiles:
 When asked to run a profile, Claude Code:
 1. Reads \`.mana/links/profiles/<name>.yaml\`
 2. Reads \`.mana/links/agents/<agent>/AGENT.md\` and \`playbook.md\`
-3. Invokes each skill via \`.mana/links/skills/<skill>/SKILL.md\`
+3. Loads only the primary or conditionally relevant skills via
+   \`.mana/links/skills/<skill>/SKILL.md\`
 4. Writes outputs to the active \`.mana/\` workspace
 
 Run: \`./mana profile jessica-fletcher --claude\` — Claude Code follows the full chain.
@@ -313,7 +314,8 @@ Key profiles:
 When asked to run a profile, Codex:
 1. Reads \`.mana/links/profiles/<name>.yaml\`
 2. Reads \`.mana/links/agents/<agent>/AGENT.md\` and \`playbook.md\`
-3. Invokes each skill via \`.mana/links/skills/<skill>/SKILL.md\`
+3. Loads only the primary or conditionally relevant skills via
+   \`.mana/links/skills/<skill>/SKILL.md\`
 4. Writes outputs to the active \`.mana/\` workspace
 
 Run: \`./mana profile jessica-fletcher --codex\` — Codex follows the full chain.

@@ -113,6 +113,48 @@ stop with `needs_human_decision` and ask which branch to compare against. Do
 not silently default to `main`. Every report using branch evidence must name
 the base branch and diff form used, for example `git diff origin/main...HEAD`.
 
+### Branch Diff Analysis Budget
+
+Agents and skills using branch or code diff evidence must keep analysis scoped
+to changed application behavior.
+
+Default budget rules:
+
+- Start with a diff inventory, for example `git diff --name-status <base>...HEAD`
+  plus working-tree status, before reading full file contents.
+- Exclude framework/bootstrap noise before estimating scope.
+- Classify changed files by risk domain, then read only the files needed to
+  validate plausible blocker or warning hypotheses.
+- Prefer targeted searches from changed symbols, APIs, tables, events, routes,
+  config keys, and tests over repository-wide scans.
+- Invoke specialist skills only for risk domains touched by the filtered diff.
+- Report no more than the highest-signal findings by default: blocker findings
+  first, then warnings with concrete branch evidence. Avoid exhaustive low-risk
+  commentary.
+- If the filtered diff is too large to review responsibly in one pass, stop with
+  `needs_human_decision` and ask the user to choose a scope, for example risky
+  modules first, production paths only, or a specific story/PR target.
+
+As a default threshold, treat more than 80 filtered changed files, more than
+2,000 filtered changed lines, or generated/vendor-like churn as a scope decision
+rather than an invitation to inspect the whole repository. Profiles may define a
+stricter budget.
+
+### Skill Loading Budget
+
+Agents should not read every skill listed in a profile before they know the
+actual scope. Load the agent `AGENT.md` and `playbook.md`, then load only:
+
+- the primary skill needed to start the workflow;
+- specialist skills whose risk domain is touched by the filtered inputs;
+- supporting skills required by a confirmed blocker, warning, or output
+  contract.
+
+For branch/code diff profiles, classify the filtered diff before loading
+specialist skills. For example, load database or rollback skills only after DB
+changes are present, and load contract skills only after API, event, message, or
+integration changes are present.
+
 ### Framework And Bootstrap Noise
 
 Do not use Mana framework/bootstrap files as production-risk findings or main
