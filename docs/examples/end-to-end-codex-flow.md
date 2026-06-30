@@ -37,7 +37,8 @@ This creates:
 ```
 
 `profile` renders the selected profile and runs the Mana freshness check. It
-does not autonomously execute every listed agent or skill.
+does not execute every listed agent or skill unless a runner flag such as
+`--codex` or `--claude` is supplied.
 
 ## 4. Add Requirements Without Jira MCP
 
@@ -87,14 +88,7 @@ for approval.
 Before commit:
 
 ```bash
-./mana profile jessica-fletcher
-```
-
-Ask Codex to answer:
-
-```text
-The code introduced in this branch is causing production issues. Find the most
-likely reasons.
+./mana profile jessica-fletcher --codex
 ```
 
 Use `agents/jessica-fletcher-agent/AGENT.md` and route findings into the active

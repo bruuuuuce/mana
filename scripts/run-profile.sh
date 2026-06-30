@@ -3,6 +3,8 @@ set -u
 root="$(cd "$(dirname "$0")/.." && pwd)"
 profile=""
 project_root=""
+render_only=false
+runner=""
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -10,6 +12,20 @@ while [ "$#" -gt 0 ]; do
       project_root="${2:-}"
       [ -n "$project_root" ] || { echo "ERROR: --project-root requires a path" >&2; exit 2; }
       shift 2
+      ;;
+    --render-only)
+      render_only=true
+      shift
+      ;;
+    --codex)
+      [ -z "$runner" ] || { echo "ERROR: choose only one runner flag" >&2; exit 2; }
+      runner="codex"
+      shift
+      ;;
+    --claude)
+      [ -z "$runner" ] || { echo "ERROR: choose only one runner flag" >&2; exit 2; }
+      runner="claude"
+      shift
       ;;
     --*)
       echo "ERROR: unknown option: $1" >&2
@@ -33,7 +49,7 @@ if [ -z "$profile" ]; then
     profile="$(tr -d '[:space:]' < "$active_file")"
     echo "Using active profile: $profile (from .mana/active-profile)"
   else
-    echo "Usage: scripts/run-profile.sh <profile-name> [--project-root <path>]"
+    echo "Usage: scripts/run-profile.sh <profile-name> [--codex|--claude|--render-only] [--project-root <path>]"
     exit 2
   fi
 fi
@@ -41,11 +57,20 @@ fi
 file="$root/profiles/${profile}.yaml"
 if [ ! -f "$file" ]; then echo "ERROR: profile not found: $profile"; exit 1; fi
 
+if [ -z "$project_root" ]; then
+  project_root="$(pwd)"
+fi
+
+if [ "$render_only" = true ] && [ -n "$runner" ]; then
+  echo "ERROR: --render-only cannot be combined with --$runner" >&2
+  exit 2
+fi
+
 "$root/scripts/mana-update-check.sh" --root "$root" --profile "$profile" || exit 1
 
 echo "Profile: $profile"
 echo "This profile renderer validates Mana freshness and prints the configured profile."
-echo "It does not execute the listed agents or skills autonomously."
+echo "Use --codex or --claude to execute the profile through a runner."
 sed -n '1,220p' "$file"
 echo
 echo "Workspace note: profiles use the project-local .mana workspace. Run scripts/mana-workspace.sh init in the target project before agent execution when artifacts must be persisted."
@@ -92,3 +117,67 @@ if [ -n "$hooks_config" ]; then
     fi
   fi
 fi
+
+if [ "$render_only" = true ] || [ "${MANA_PROFILE_RUNNING:-}" = "1" ] || [ -z "$runner" ]; then
+  if [ "$render_only" = true ]; then
+    echo
+    echo "Execution note: --render-only requested; no runner was started."
+  elif [ "${MANA_PROFILE_RUNNING:-}" = "1" ]; then
+    echo
+    echo "Execution note: already inside a Mana profile runner; no nested runner was started."
+  else
+    echo
+    echo "Execution note: no runner flag was provided, so no runner was started."
+    echo "Run with --codex or --claude to execute the profile through that runner."
+  fi
+  exit 0
+fi
+
+prompt="$(cat <<PROMPT
+Run the Mana profile '$profile' in this repository.
+
+Repository root: $project_root
+Mana framework root: $root
+Selected runner: $runner
+
+Instructions:
+- Do not run './mana profile $profile' or 'scripts/run-profile.sh $profile' again; this command already rendered the profile and would recurse.
+- Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'.
+- Read the listed agent AGENT.md and playbook.md, then invoke the listed skills by following their SKILL.md files.
+- Resolve the active .mana workspace and write the profile artifacts there using the agent routing rules.
+- Load .mana/global/service-mission.md, architecture.md, and engineering-guards.md when present before analysis.
+- For jessica-fletcher, resolve the main branch first, compare the full local branch changes against it, include uncommitted working-tree changes, and stop with a clear question if the main branch is ambiguous.
+- For any profile using branch or code diff evidence, resolve and report the comparison base. Prefer explicit input, then origin/HEAD, then a single credible primary branch. If ambiguous, ask the user; do not default to main.
+- Exclude Mana framework/bootstrap noise from production findings and evidence: .mana/**, AGENTS.md, CLAUDE.md, mana, and Mana-only .gitignore or env ignore changes. Mention them only as operational setup notes when relevant.
+- Do not commit, push, deploy, trigger CI, write to external systems, or make destructive changes.
+- Final response must summarize status, blockers, warnings, artifact paths, and any required human approval.
+PROMPT
+)"
+
+case "$runner" in
+  codex)
+    if ! command -v codex >/dev/null 2>&1; then
+      echo "ERROR: --codex requested, but codex was not found in PATH" >&2
+      exit 1
+    fi
+
+    echo
+    echo "Starting Codex runner for profile: $profile"
+    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write "$prompt"
+    ;;
+  claude)
+    if ! command -v claude >/dev/null 2>&1; then
+      echo "ERROR: --claude requested, but claude was not found in PATH" >&2
+      exit 1
+    fi
+
+    echo
+    echo "Starting Claude runner for profile: $profile"
+    cd "$project_root" || exit 1
+    MANA_PROFILE_RUNNING=1 claude -p --permission-mode default "$prompt"
+    ;;
+  *)
+    echo "ERROR: unsupported runner: $runner" >&2
+    exit 2
+    ;;
+esac

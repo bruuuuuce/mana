@@ -4,7 +4,7 @@
 
 ```yaml
 branch_name: feature/PAY-201-payment-retry
-base_branch: main
+base_branch: main # explicit Team Leader input
 ```
 
 ---

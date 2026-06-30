@@ -4,10 +4,16 @@
   "type": "object",
   "additionalProperties": true,
   "properties": {
-    "staged_diff": {
+    "main_branch": {
+      "type": "string"
+    },
+    "local_branch_diff": {
       "type": "string"
     },
     "branch_diff": {
+      "type": "string"
+    },
+    "uncommitted_diff": {
       "type": "string"
     },
     "story_context": {

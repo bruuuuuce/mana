@@ -51,13 +51,17 @@ Orchestrate architecture review before implementation or merge. The agent makes 
 - before_pr
 
 ## Workflow
-1. Load story, design, branch diff, architecture context, engineering guards, integration map, and test evidence.
-2. Use `architecture-decision-record` for significant decisions and trade-offs.
-3. Use `non-functional-requirements-review` for performance, resilience, security, observability, scalability, auditability, operability, and compliance.
-4. Use `service-boundary-fit` for ownership, bounded context, data ownership, and responsibility boundaries.
-5. Use `architecture-drift-detection` to compare branch changes against documented architecture and decisions.
-6. Use `architecture-risk`, `cross-service-contract`, `trust-boundary-review`, and `liquibase-production-risk` for specialist risk checks.
-7. Aggregate findings into approval questions and architecture review status.
+1. Resolve and report the branch diff base. Prefer explicit design/PR target or
+   user input, then `origin/HEAD`, then a single credible primary branch. If the
+   base is missing or ambiguous, stop with `needs_human_decision` and ask which
+   branch to compare against. Do not silently default to `main`.
+2. Load story, design, branch diff, architecture context, engineering guards, integration map, and test evidence.
+3. Use `architecture-decision-record` for significant decisions and trade-offs.
+4. Use `non-functional-requirements-review` for performance, resilience, security, observability, scalability, auditability, operability, and compliance.
+5. Use `service-boundary-fit` for ownership, bounded context, data ownership, and responsibility boundaries.
+6. Use `architecture-drift-detection` to compare branch changes against documented architecture and decisions.
+7. Use `architecture-risk`, `cross-service-contract`, `trust-boundary-review`, and `liquibase-production-risk` for specialist risk checks.
+8. Aggregate findings into approval questions and architecture review status.
 
 ## Skills Used And Why
 - `architecture-decision-record`: records context, alternatives, decision, consequences, and owner.
@@ -84,6 +88,7 @@ Write outputs to the active Mana workspace:
 Architect approval is mandatory for blockers, architecture drift, new patterns, protected-area changes, and high-risk NFR trade-offs.
 
 ## Blocking Conditions
+- Branch diff base is missing or ambiguous and no owner has confirmed it.
 - Engineering guard violation without explicit approval.
 - High-risk NFR gap without evidence.
 - Unapproved service boundary or data ownership violation.

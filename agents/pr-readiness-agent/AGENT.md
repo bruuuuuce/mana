@@ -53,16 +53,20 @@ Builds the final pull request package for reviewers. The agent orchestrates skil
 - pull_request_update
 
 ## Workflow
-1. Invoke `development-summary` and store its structured result.
-2. Invoke `developer-handoff` and store its structured result.
-3. Invoke `developer-decision-review` and store its structured result.
-4. Invoke `pre-review-defect` and store its structured result.
-5. Invoke `architecture-risk` and store its structured result.
-6. Invoke `cross-service-contract` and store its structured result.
-7. Invoke `liquibase-production-risk` and store its structured result.
-8. Invoke `test-quality` and store its structured result.
-9. Aggregate blocker, warning, and info findings into the expected artifacts.
-10. Stop at human approval gates when blockers or out-of-policy actions are detected.
+1. Resolve and report the code diff base. Prefer explicit PR target or user
+   input, then `origin/HEAD`, then a single credible primary branch. If the base
+   is missing or ambiguous, stop with `needs_human_decision` and ask which
+   branch to compare against. Do not silently default to `main`.
+2. Invoke `development-summary` and store its structured result.
+3. Invoke `developer-handoff` and store its structured result.
+4. Invoke `developer-decision-review` and store its structured result.
+5. Invoke `pre-review-defect` and store its structured result.
+6. Invoke `architecture-risk` and store its structured result.
+7. Invoke `cross-service-contract` and store its structured result.
+8. Invoke `liquibase-production-risk` and store its structured result.
+9. Invoke `test-quality` and store its structured result.
+10. Aggregate blocker, warning, and info findings into the expected artifacts.
+11. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Skills Used And Why
 - `development-summary`: creates the delivery record with assumptions, decisions, implemented changes, tests, risks, and unresolved items.
@@ -111,6 +115,7 @@ Junie is preferred for IDE-local implementation, local test generation, local te
 
 ## Blocking Conditions
 - Missing required input artifacts.
+- Code diff base is missing or ambiguous and no owner has confirmed it.
 - Unresolved high-risk database, security, architecture, or cross-service issue.
 - Missing green-border tests for critical behavior.
 - Plan drift that changes scope without approval.

@@ -9,3 +9,9 @@
 - Prefer reports, risk registers, and proposed patches over direct destructive edits.
 - Respect MCP least privilege, redaction, approval, and audit policies.
 - Stop on high-risk database, architecture, security, or cross-service blockers.
+- Exclude Mana framework/bootstrap noise from production findings and evidence:
+  `.mana/**`, `AGENTS.md`, `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or
+  env ignore changes. Mention them only as operational setup notes when relevant.
+- For any profile using branch or code diff evidence, resolve and report the
+  comparison base. Prefer explicit input, then `origin/HEAD`, then a single
+  credible primary branch. If ambiguous, ask the user; do not default to `main`.

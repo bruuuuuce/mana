@@ -3,6 +3,10 @@
 ## Preparation
 - Confirm the trigger point: `release_ready`, `before_deploy`, or `am_review`.
 - Collect release scope, linked stories, branch diff, test evidence, rollback notes, monitoring context, and known operational constraints.
+- Resolve and report the branch diff base. Prefer explicit release target or
+  user input, then `origin/HEAD`, then a single credible primary branch. If the
+  base is missing or ambiguous, stop with `needs_human_decision` and ask which
+  branch to compare against. Do not silently default to `main`.
 - Confirm MCP access is read-only unless an external write has explicit approval.
 
 ## Execution

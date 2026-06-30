@@ -3,8 +3,12 @@
 ## Preparation
 
 Before starting:
-1. Confirm that `branch_name` and `base_branch` are provided. Default
-   `base_branch` to `main` if not specified.
+1. Confirm `branch_name`. Resolve `base_branch` by preferring explicit input,
+   then the upstream default branch such as `origin/HEAD`, then a single
+   credible primary branch such as `origin/main`, `origin/master`, `main`,
+   `master`, `develop`, or `dev`. If the base is missing or ambiguous, stop
+   with `needs_human_decision` and ask: "Which base branch should the team
+   coaching report compare against?" Do not silently default to `main`.
 2. Load `.mana/global/engineering-guards.md` and
    `.mana/global/testing-policy.md` if present. Note missing files as
    warnings — do not block.
@@ -33,6 +37,8 @@ confirmation gate needed.
 
 Edge cases:
 - Zero commits beyond base → status `blocked`, stop immediately.
+- Ambiguous or missing base branch → status `needs_human_decision`, stop and
+  ask for the base branch.
 - Contributor with 1 commit → flag `low_commit_count`, continue with
   reduced confidence.
 - Bot accounts (e.g., CI bots) identified by email pattern → skip by

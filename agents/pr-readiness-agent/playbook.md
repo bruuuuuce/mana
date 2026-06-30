@@ -3,6 +3,10 @@
 ## Preparation
 - Confirm the trigger point: `pr_ready, before_opening_pr, pull_request_update`.
 - Collect inputs: `branch_validation_report, code_diff, test_evidence, risk_register`.
+- Resolve and report the code diff base. Prefer explicit PR target or user
+  input, then `origin/HEAD`, then a single credible primary branch. If the base
+  is missing or ambiguous, stop with `needs_human_decision` and ask which branch
+  to compare against. Do not silently default to `main`.
 - Confirm MCP access is least-privilege and read-only unless approval is recorded.
 
 ## Execution

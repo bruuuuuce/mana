@@ -62,20 +62,26 @@ full responsibility for how and when to use the report.
 ## Workflow
 
 ### Phase 1 — Enumerate Contributors
-1. Run `git log <branch_name> --not <base_branch> --format="%ae|%an"` and
+1. Resolve `base_branch` before running Git comparisons. Prefer explicit input,
+   then the upstream default branch such as `origin/HEAD`, then a single
+   credible primary branch such as `origin/main`, `origin/master`, `main`,
+   `master`, `develop`, or `dev`. If the base is missing or ambiguous, stop
+   with `needs_human_decision` and ask which base branch to compare against.
+   Do not silently default to `main`.
+2. Run `git log <branch_name> --not <base_branch> --format="%ae|%an"` and
    deduplicate to build the contributor list.
-2. For each contributor, retrieve their commits:
+3. For each contributor, retrieve their commits:
    `git log <branch_name> --not <base_branch> --author=<email>
    --format="%H|%s|%ad" --date=short`.
-3. Present the contributor list and commit counts to the Team Leader.
-4. Ask the Team Leader to confirm the list or exclude any contributor before
+4. Present the contributor list and commit counts to the Team Leader.
+5. Ask the Team Leader to confirm the list or exclude any contributor before
    proceeding. This is a lightweight human gate — not a blocker if the TL
    confirms immediately.
-5. If `contributor_filter` is provided in inputs, pre-filter the list
+6. If `contributor_filter` is provided in inputs, pre-filter the list
    without asking for confirmation.
-6. If no commits are found beyond `base_branch`, stop with status `blocked`
+7. If no commits are found beyond `base_branch`, stop with status `blocked`
    and message: "No commits found on branch beyond base. Nothing to analyse."
-7. If a contributor has only 1 commit, flag it as `low_commit_count` —
+8. If a contributor has only 1 commit, flag it as `low_commit_count` —
    pattern classification will be unreliable for that contributor.
 
 ### Phase 2 — Per-Contributor Analysis (sequential)
@@ -176,6 +182,7 @@ No Jira, Confluence, CI, or write MCP access is needed or permitted.
 | Final report review | Team Leader | TL reads and approves report before any developer action |
 
 ## Blocking Conditions
+- Base branch is missing or ambiguous and the Team Leader has not confirmed it.
 - No commits found on branch beyond base branch.
 - All contributor diffs are empty (no code changes detected).
 

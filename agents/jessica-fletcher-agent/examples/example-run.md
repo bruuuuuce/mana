@@ -3,8 +3,8 @@
 Input:
 
 ```yaml
-staged_diff: "git diff --cached"
-branch_diff: "git diff origin/main...HEAD"
+main_branch: "origin/main"
+local_branch_diff: "git diff origin/main...HEAD plus uncommitted working-tree changes"
 story_context: ".mana/features/PROJ-123/context/story-context.md"
 test_evidence: ".mana/features/PROJ-123/tests/test-evidence.md"
 ```

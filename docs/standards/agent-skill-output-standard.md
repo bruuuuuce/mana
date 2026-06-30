@@ -95,6 +95,46 @@ Use bullets with concrete references:
 
 Avoid vague evidence such as "code seems fine".
 
+### Branch Diff Base Resolution
+
+Any agent or skill that consumes `branch_diff`, `code_diff`, `local_branch_diff`,
+or compares a branch against a base must resolve and report the comparison base.
+Prefer, in order:
+
+1. An explicit user-provided `base_branch`, `main_branch`, PR target, or release
+   branch.
+2. The upstream default branch such as `origin/HEAD`.
+3. A common primary branch name such as `origin/main`, `origin/master`,
+   `main`, `master`, `develop`, or `dev`, only when exactly one candidate is
+   credible in the repository.
+
+If the base branch is missing, ambiguous, detached, or not present locally,
+stop with `needs_human_decision` and ask which branch to compare against. Do
+not silently default to `main`. Every report using branch evidence must name
+the base branch and diff form used, for example `git diff origin/main...HEAD`.
+
+### Framework And Bootstrap Noise
+
+Do not use Mana framework/bootstrap files as production-risk findings or main
+evidence unless the active profile is explicitly reviewing Mana setup,
+runner wiring, workspace bootstrap, or profile selection. Exclude them from
+`## Findings`, `## Evidence`, risk tables, missing-test tables, and production
+failure hypotheses for normal delivery profiles.
+
+Default excluded paths and files:
+
+- `.mana/**`
+- `AGENTS.md`
+- `CLAUDE.md`
+- `mana`
+- project ignore/env bootstrap changes whose only purpose is Mana setup, such
+  as `.gitignore` entries for `.mana/` or `.mana/jira-mcp.env`
+
+If these files matter operationally, mention them only in a short operational
+note or setup warning, not as application behavior evidence. Placeholder service
+context files under `.mana/global/` may be reported as a context-quality warning,
+but should not be listed as changed production evidence.
+
 ## Diagram
 
 Include Mermaid by default when flow, ownership, dependency, or sequence matters:
