@@ -4,7 +4,7 @@ Every story or feature workspace that involves developer interaction must keep
 one canonical developer choice log:
 
 ```text
-.mana/features/<JIRA-KEY>/decisions/developer-choice-log.md
+.mana/features/<FEATURE-ID>/decisions/developer-choice-log.md
 ```
 
 For canonical-branch sessions, use:

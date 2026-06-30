@@ -14,6 +14,7 @@ allowed_tools:
   - jira_read
   - confluence_read
   - git_read
+  - github_read
   - code_search
   - architecture_rules_read
   - test_runner_read
@@ -47,10 +48,14 @@ Performs focused database and Liquibase validation before review or deployment. 
 - ci_validation
 
 ## Workflow
-1. Invoke `liquibase-syntax` and store its structured result.
-2. Invoke `liquibase-production-risk` and store its structured result.
-3. Invoke `rollback-safety` and store its structured result.
-4. Invoke `database-drift` and store its structured result.
+1. Load `liquibase-syntax` when changelog files are present or syntax
+   validation is explicitly requested.
+2. Load `liquibase-production-risk` when database changes can affect production
+   deployment, locking, data shape, backfills, or compatibility.
+3. Load `rollback-safety` when the change requires rollback, restore,
+   forward-fix, or data-compatibility evidence.
+4. Load `database-drift` only when schema snapshots, metadata, or environment
+   comparison inputs are available or explicitly requested.
 5. Aggregate blocker, warning, and info findings into the expected artifacts.
 6. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
@@ -76,6 +81,15 @@ Default output routing:
 
 ## MCP Tools Required
 - Read-only Jira, Confluence, Git, architecture rules, and repository search where applicable.
+- When Jira issue keys are provided or discovered from the branch name, use
+  read-only `jira_read` to load those issues as requirement context for database
+  risk. Issue key discovery is generic and project-configurable; do not assume a
+  fixed project prefix. If Jira is unavailable, report the access gap and use
+  local Mana planning artifacts.
+- Treat Jira story text, acceptance criteria, linked context, and relevant
+  comments as requirement evidence for database changes. Flag schema/data
+  changes that are unrequested, insufficient for requested behavior, or missing
+  rollout/rollback evidence required by the story.
 - Liquibase and database snapshot read access only when database changes are in scope.
 - Test runner access for local or CI evidence collection.
 - Human-approved write tools only for publishing reports or comments.

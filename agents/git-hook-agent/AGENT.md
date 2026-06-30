@@ -14,6 +14,7 @@ skills_used:
   - liquibase-production-risk
 allowed_tools:
   - git_read
+  - github_read
   - code_search
   - test_runner_read
   - liquibase_validate

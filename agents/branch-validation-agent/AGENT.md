@@ -20,6 +20,7 @@ allowed_tools:
   - jira_read
   - confluence_read
   - git_read
+  - github_read
   - code_search
   - architecture_rules_read
   - test_runner_read
@@ -55,21 +56,36 @@ The central responsibility is plan-drift detection: compare approved planning ar
 - ci_validation
 
 ## Workflow
-1. Load the original `00-story-context.md`, `01-source-impact-map.md`, `02-implementation-plan.md`, `04-technical-task-breakdown.md`, `05-green-border-plan.md`, and `06-risk-register.md`.
+1. Load the Jira story or Markdown story-pack requirement source, then load the
+   original `00-story-context.md`, `01-source-impact-map.md`,
+   `02-implementation-plan.md`, `04-technical-task-breakdown.md`,
+   `05-green-border-plan.md`, and `06-risk-register.md`.
 2. Resolve and report the branch diff base. Prefer explicit PR target or user
    input, then `origin/HEAD`, then a single credible primary branch. If the base
    is missing or ambiguous, stop with `needs_human_decision` and ask which
    branch to compare against. Do not silently default to `main`.
 3. Load the current branch diff, test evidence, and any generated hook or green-border reports.
-4. Use `source-impact-map` to compare planned files with modified files and classify drift as approved, unplanned, missing, or forbidden.
-5. Use `technical-task-breakdown` to verify each planned technical task has implementation evidence or an explicit deferral.
-6. Use `green-border-plan`, `regression-selection`, and `test-quality` to verify required tests exist, were selected correctly, and are meaningful.
-7. Use `pre-review-defect` for common code defects before human review.
-8. Use `developer-decision-review` to generate targeted questions for unexplained choices, plan drift, risky trade-offs, and missing rationale.
-9. Use `architecture-risk` and `cross-service-contract` for design and integration risks introduced by the actual diff.
-10. Use `liquibase-production-risk` when any database changelog or migration file changed.
-11. Aggregate blocker, warning, and info findings into the expected artifacts.
-12. Stop at human approval gates when blockers or out-of-policy actions are detected.
+4. Compare branch changes against the story text and acceptance criteria:
+   identify requested behavior that is missing, implemented behavior that is not
+   requested, contradicted acceptance criteria, and tests that do not prove the
+   story.
+5. Use `source-impact-map` when planned files must be compared with modified
+   files or drift needs classification.
+6. Use `technical-task-breakdown` when planned tasks need implementation
+   evidence or explicit deferral checks.
+7. Use `green-border-plan`, `regression-selection`, and `test-quality` only
+   when required tests, selected regressions, or test evidence must be verified.
+8. Use `pre-review-defect` when application code changed and focused defect
+   screening is useful before human review.
+9. Use `developer-decision-review` when unexplained choices, plan drift, risky
+   trade-offs, or missing rationale are present.
+10. Use `architecture-risk` and `cross-service-contract` only for design,
+   boundary, API, event, message, or integration risks introduced by the actual
+   diff.
+11. Use `liquibase-production-risk` only when database changelog or migration
+   files changed.
+12. Aggregate blocker, warning, and info findings into the expected artifacts.
+13. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Skills Used And Why
 - `source-impact-map`: detects unplanned files, missing planned files, and files that should not be touched without approval.
@@ -102,6 +118,13 @@ Default output routing:
 
 ## MCP Tools Required
 - Read-only Jira, Confluence, Git, architecture rules, and repository search where applicable.
+- When Jira issue keys are provided or discovered from the branch name, use
+  read-only `jira_read` to load those issues as requirement and plan context.
+  Issue key discovery is generic and project-configurable; do not assume a fixed
+  project prefix. If Jira is unavailable, report the access gap and use local
+  Mana planning artifacts.
+- Treat Jira story text, acceptance criteria, linked context, and relevant
+  comments as evidence for story-vs-branch coherence.
 - Liquibase and database snapshot read access only when database changes are in scope.
 - Test runner access for local or CI evidence collection.
 - Human-approved write tools only for publishing reports or comments.

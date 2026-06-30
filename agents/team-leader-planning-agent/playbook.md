@@ -8,7 +8,8 @@
 ## Execution
 1. Resolve or initialize the active Mana workspace using `scripts/mana-workspace.sh`.
 2. Load service context and team decisions.
-3. Run skills in the order listed in `AGENT.md`.
+3. Load and run only the skills whose conditions in `AGENT.md` match the
+   planning scope, story readiness, delivery risk, or handoff need.
 4. Stop on missing start conditions or unapproved protected-area work.
 5. Write planning outputs into the active workspace.
 6. Route decisions and approvals to the Team Leader and specialist owners.

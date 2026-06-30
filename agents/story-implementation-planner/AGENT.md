@@ -20,6 +20,7 @@ allowed_tools:
   - jira_read
   - confluence_read
   - git_read
+  - github_read
   - code_search
   - architecture_rules_read
   - test_runner_read
@@ -57,18 +58,27 @@ Orchestrates requirement, architecture, source-impact, task-breakdown, and test-
 - before_development
 
 ## Workflow
-1. Invoke `story-depth` and store its structured result.
-2. Invoke `epic-goal-extraction` and store its structured result.
-3. Invoke `story-consistency` and store its structured result.
-4. Invoke `acceptance-criteria-testability` and store its structured result.
-5. Invoke `source-impact-map` and store its structured result.
-6. Invoke `architecture-risk` and store its structured result.
-7. Invoke `cross-service-contract` and store its structured result.
-8. Invoke `liquibase-production-risk` and store its structured result.
-9. Invoke `technical-task-breakdown` and store its structured result.
-10. Invoke `green-border-plan` and store its structured result.
-11. Aggregate blocker, warning, and info findings into the expected artifacts.
-12. Stop at human approval gates when blockers or out-of-policy actions are detected.
+1. Load the Jira story or Markdown story-pack requirement source before
+   planning whenever issue keys or story context are available.
+2. Check story feasibility before implementation planning: verify that the
+   requested behavior is coherent, implementable, testable, bounded, and has the
+   required owners, dependencies, data, mocks, approvals, and acceptance
+   criteria. Stop with open questions instead of inventing missing requirements.
+3. Load only the planning skills needed for the available story inputs.
+4. Use `story-depth`, `story-consistency`, and
+   `acceptance-criteria-testability` when story text or acceptance criteria are
+   present.
+5. Use `epic-goal-extraction` only when an epic, parent objective, or linked
+   roadmap context is present.
+6. Use `source-impact-map` when repository areas, components, or likely changed
+   files must be identified.
+7. Use `technical-task-breakdown` and `green-border-plan` after scope is clear
+   enough to plan implementation tasks and tests.
+8. Use `architecture-risk`, `cross-service-contract`, and
+   `liquibase-production-risk` only when the planned scope touches architecture
+   boundaries, integrations/contracts, or database changes.
+9. Aggregate blocker, warning, and info findings into the expected artifacts.
+10. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Jira Fallback
 When Jira MCP access is unavailable, incomplete, or intentionally disabled, load
@@ -111,6 +121,15 @@ Default output routing:
 
 ## MCP Tools Required
 - Read-only Jira, Confluence, Git, architecture rules, and repository search where applicable.
+- When Jira issue keys are provided or discovered from the branch name, use
+  read-only `jira_read` to load those issues as story context. Issue key
+  discovery is generic and project-configurable; do not assume a fixed project
+  prefix. If Jira is unavailable, use the documented Markdown story-pack
+  fallback.
+- Treat Jira story text, acceptance criteria, linked context, and relevant
+  comments as requirement evidence. Use them to decide whether the story is
+  ready and feasible; do not produce an implementation plan that silently fills
+  requirement gaps.
 - Liquibase and database snapshot read access only when database changes are in scope.
 - Test runner access for local or CI evidence collection.
 - Human-approved write tools only for publishing reports or comments.

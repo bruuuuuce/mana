@@ -5,6 +5,13 @@ profile=""
 project_root=""
 render_only=false
 runner=""
+pr_number=""
+publish_high_risk_comments=false
+jira_keys=""
+jira_key_regex="${MANA_JIRA_KEY_REGEX:-[A-Z][A-Z0-9]+-[0-9]+}"
+jira_env_file="${MANA_JIRA_MCP_ENV:-}"
+jira_mcp_configured=false
+jira_mcp_config_source=""
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -26,6 +33,25 @@ while [ "$#" -gt 0 ]; do
       [ -z "$runner" ] || { echo "ERROR: choose only one runner flag" >&2; exit 2; }
       runner="claude"
       shift
+      ;;
+    --pr|--pr-number)
+      pr_number="${2:-}"
+      [ -n "$pr_number" ] || { echo "ERROR: $1 requires a pull request number or URL" >&2; exit 2; }
+      shift 2
+      ;;
+    --publish-high-risk-comments)
+      publish_high_risk_comments=true
+      shift
+      ;;
+    --jira-key|--jira-issue)
+      jira_keys="${jira_keys}${jira_keys:+ }${2:-}"
+      [ -n "${2:-}" ] || { echo "ERROR: $1 requires a Jira issue key" >&2; exit 2; }
+      shift 2
+      ;;
+    --jira-key-regex)
+      jira_key_regex="${2:-}"
+      [ -n "$jira_key_regex" ] || { echo "ERROR: --jira-key-regex requires a regex" >&2; exit 2; }
+      shift 2
       ;;
     --*)
       echo "ERROR: unknown option: $1" >&2
@@ -49,7 +75,7 @@ if [ -z "$profile" ]; then
     profile="$(tr -d '[:space:]' < "$active_file")"
     echo "Using active profile: $profile (from .mana/active-profile)"
   else
-    echo "Usage: scripts/run-profile.sh <profile-name> [--codex|--claude|--render-only] [--project-root <path>]"
+    echo "Usage: scripts/run-profile.sh <profile-name> [--codex|--claude|--render-only] [--project-root <path>] [--pr <number-or-url>] [--jira-key <KEY>] [--jira-key-regex <regex>] [--publish-high-risk-comments]"
     exit 2
   fi
 fi
@@ -57,8 +83,48 @@ fi
 file="$root/profiles/${profile}.yaml"
 if [ ! -f "$file" ]; then echo "ERROR: profile not found: $profile"; exit 1; fi
 
+if [ "$publish_high_risk_comments" = true ] && [ "$profile" != "requested-pr-review" ]; then
+  echo "ERROR: --publish-high-risk-comments is only supported by requested-pr-review" >&2
+  exit 2
+fi
+
+if [ "$publish_high_risk_comments" = true ] && [ -z "$pr_number" ]; then
+  echo "ERROR: --publish-high-risk-comments requires --pr <number-or-url>" >&2
+  exit 2
+fi
+
 if [ -z "$project_root" ]; then
   project_root="$(pwd)"
+fi
+
+current_branch=""
+if git -C "$project_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  current_branch="$(git -C "$project_root" branch --show-current 2>/dev/null || true)"
+fi
+
+discovered_jira_keys=""
+if [ -n "$current_branch" ]; then
+  discovered_jira_keys="$(printf '%s\n' "$current_branch" | grep -Eo "$jira_key_regex" | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//' || true)"
+fi
+if [ -z "$jira_keys" ]; then
+  jira_keys="$discovered_jira_keys"
+elif [ -n "$discovered_jira_keys" ]; then
+  jira_keys="$(printf '%s\n%s\n' "$jira_keys" "$discovered_jira_keys" | tr ' ' '\n' | sed '/^$/d' | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+fi
+
+if [ -z "$jira_env_file" ]; then
+  if [ -f "$project_root/.mana/jira-mcp.env" ]; then
+    jira_env_file="$project_root/.mana/jira-mcp.env"
+  elif [ -f "$root/mcp/env/jira-mcp.env" ]; then
+    jira_env_file="$root/mcp/env/jira-mcp.env"
+  fi
+fi
+if [ -n "$jira_env_file" ]; then
+  jira_mcp_configured=true
+  jira_mcp_config_source="env_file"
+elif [ -n "${JIRA_URL:-}" ] && { [ -n "${JIRA_PERSONAL_TOKEN:-}" ] || { [ -n "${JIRA_USERNAME:-}" ] && [ -n "${JIRA_API_TOKEN:-}" ]; }; }; then
+  jira_mcp_configured=true
+  jira_mcp_config_source="environment"
 fi
 
 if [ "$render_only" = true ] && [ -n "$runner" ]; then
@@ -73,6 +139,27 @@ echo "This profile renderer validates Mana freshness and prints the configured p
 echo "Use --codex or --claude to execute the profile through a runner."
 sed -n '1,220p' "$file"
 echo
+if [ -n "$pr_number" ] || [ "$publish_high_risk_comments" = true ] || [ -n "$jira_keys" ]; then
+  echo "Profile input overrides:"
+  if [ -n "$pr_number" ]; then
+    echo "  pr_number: $pr_number"
+  fi
+  if [ -n "$jira_keys" ]; then
+    echo "  jira_issue_keys: $jira_keys"
+    echo "  jira_key_regex: $jira_key_regex"
+  fi
+  if [ "$publish_high_risk_comments" = true ]; then
+    echo "  publish_high_risk_comments: true"
+  fi
+  echo
+fi
+if [ "$jira_mcp_configured" = true ] && [ "$jira_mcp_config_source" = "env_file" ]; then
+  echo "Jira MCP env: configured ($jira_env_file)"
+elif [ "$jira_mcp_configured" = true ]; then
+  echo "Jira MCP env: configured from environment variables"
+else
+  echo "Jira MCP env: not configured; jira_read agents must use local artifacts or ask for credentials."
+fi
 echo "Workspace note: profiles use the project-local .mana workspace. Run scripts/mana-workspace.sh init in the target project before agent execution when artifacts must be persisted."
 
 hooks_config=""
@@ -139,17 +226,34 @@ Run the Mana profile '$profile' in this repository.
 Repository root: $project_root
 Mana framework root: $root
 Selected runner: $runner
+Profile input overrides:
+- pr_number: ${pr_number:-}
+- publish_high_risk_comments: $publish_high_risk_comments
+- jira_issue_keys: ${jira_keys:-}
+- jira_key_regex: $jira_key_regex
+- current_branch: ${current_branch:-}
+- jira_mcp_configured: $jira_mcp_configured
+- jira_mcp_config_source: ${jira_mcp_config_source:-none}
 
 Instructions:
 - Do not run './mana profile $profile' or 'scripts/run-profile.sh $profile' again; this command already rendered the profile and would recurse.
 - Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'.
-- Read the listed agent AGENT.md and playbook.md, then invoke the listed skills by following their SKILL.md files.
+- Read the listed agent AGENT.md and playbook.md. Load only the primary skill required to start the profile, then load specialist skills only when the filtered inputs show that their risk domain is relevant. Do not read every listed skill up front.
 - Resolve the active .mana workspace and write the profile artifacts there using the agent routing rules.
 - Load .mana/global/service-mission.md, architecture.md, and engineering-guards.md when present before analysis.
+- If the profile or agent allows jira_read and jira_issue_keys is non-empty, read those Jira issues as requirement context through the configured Jira MCP server before drawing requirement, plan-drift, risk, or review conclusions. Treat Jira as read-only. Do not expose tokens, transition issues, write comments, or update tickets.
+- In a Mana-linked project, prefer './mana jira-mcp --get-issue <KEY>' for fast read-only Jira story retrieval. Use './mana jira-mcp --check-access --issue <KEY>' only to diagnose credentials or permissions.
+- Treat Jira story text, acceptance criteria, linked context, and relevant comments as requirement evidence. For feasibility/planning profiles, check whether the requested story is coherent, implementable, testable, and has the owners/approvals needed to start. For review/validation/premortem/PR profiles, compare the branch or PR changes against the story and report missing requested behavior, unrequested scope, contradicted acceptance criteria, and tests that do not prove the story. Do not treat code correctness as sufficient when it diverges from the story.
+- Jira issue keys are generic and project-configurable. Use the provided jira_key_regex only as discovery input; do not assume a project-specific prefix. If no Jira issue keys are found, continue with repository and Mana artifacts unless the selected profile requires story context.
+- If jira_issue_keys are present but Jira MCP is unavailable or unauthenticated, report the access gap and fall back to local .mana planning artifacts or ask the user for story context when needed.
 - For jessica-fletcher, resolve the main branch first, compare the full local branch changes against it, include uncommitted working-tree changes, and stop with a clear question if the main branch is ambiguous.
 - For any profile using branch or code diff evidence, resolve and report the comparison base. Prefer explicit input, then origin/HEAD, then a single credible primary branch. If ambiguous, ask the user; do not default to main.
+- For any profile using branch or code diff evidence, start with a filtered diff inventory, exclude Mana/bootstrap noise, classify changed files by risk domain, and read only files needed to validate plausible blocker or warning hypotheses. If the filtered diff is larger than roughly 80 files or 2,000 changed lines, ask the user to choose a review scope instead of scanning the whole repository.
 - Exclude Mana framework/bootstrap noise from production findings and evidence: .mana/**, AGENTS.md, CLAUDE.md, mana, and Mana-only .gitignore or env ignore changes. Mention them only as operational setup notes when relevant.
-- Do not commit, push, deploy, trigger CI, write to external systems, or make destructive changes.
+- If a profile or agent allows github_read, treat authenticated gh CLI as an optional read-only helper for PR metadata, diffs, files, checks, and reviewer requests. Do not approve, comment, merge, edit, label, assign, or otherwise write through gh without explicit human approval.
+- If the selected profile is requested-pr-review and pr_number is set, analyze that pull request directly instead of discovering all PRs where the user is a requested reviewer.
+- If the selected profile is requested-pr-review and publish_high_risk_comments is true, this flag is explicit human approval to publish exactly one gh PR comment on the selected PR containing only blocker or high-criticality findings found by this run. Do not publish medium/low findings. Do not approve, request changes, merge, edit, label, assign, push, or trigger CI.
+- Do not commit, push, deploy, trigger CI, write to external systems, or make destructive changes, except for the limited requested-pr-review high-risk PR comment explicitly allowed above.
 - Final response must summarize status, blockers, warnings, artifact paths, and any required human approval.
 PROMPT
 )"
@@ -163,7 +267,19 @@ case "$runner" in
 
     echo
     echo "Starting Codex runner for profile: $profile"
-    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write "$prompt"
+    if [ "$jira_mcp_configured" = true ] && [ "$jira_mcp_config_source" = "env_file" ]; then
+      MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write \
+        -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
+        -c "mcp_servers.jira.args=[\"--env-file\",\"$jira_env_file\"]" \
+        "$prompt"
+    elif [ "$jira_mcp_configured" = true ]; then
+      MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write \
+        -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
+        -c "mcp_servers.jira.args=[]" \
+        "$prompt"
+    else
+      MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write "$prompt"
+    fi
     ;;
   claude)
     if ! command -v claude >/dev/null 2>&1; then

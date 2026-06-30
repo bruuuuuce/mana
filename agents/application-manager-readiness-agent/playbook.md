@@ -12,7 +12,8 @@
 ## Execution
 1. Resolve or initialize the active Mana workspace using `scripts/mana-workspace.sh`.
 2. Load service context and known pitfalls.
-3. Run skills in the order listed in `AGENT.md`.
+3. Load and run only the skills whose conditions in `AGENT.md` match the
+   release scope, diff, evidence, and operational context.
 4. Stop on blocker findings that affect release safety, continuity, rollback, or support readiness.
 5. Write outputs to `validation/` and release notes to `pr/`.
 6. Route approval requests to AM, Team Leader, Architect, DBA, Security, or Operations as appropriate.

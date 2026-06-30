@@ -57,17 +57,21 @@ git log <branch_name> --not <base_branch> \
 git diff <base_branch>...<branch_name> -- $(cat /tmp/contrib_files)
 ```
 
-Invoke skills in this order on the contributor's diff:
-1. `pre-review-defect` — pass: diff, `engineering-guards.md` if available.
-2. `test-quality` — pass: diff, `testing-policy.md` if available.
-3. `null-safety-risk` — pass: diff.
-4. `java-performance-smell` — pass: diff. **Skip if no non-test `.java`
-   files in diff.** Check with:
+Load only the quality skills relevant to the contributor's filtered diff:
+1. `pre-review-defect` — pass diff and `engineering-guards.md` when
+   application code changed.
+2. `test-quality` — pass diff and `testing-policy.md` when test files or test
+   evidence are present.
+3. `null-safety-risk` — pass diff when nullable, mapping, DTO, Java/Kotlin, or
+   dereference-sensitive code changed.
+4. `java-performance-smell` — pass diff only when non-test `.java` files on
+   production paths changed. Check with:
    `grep -l "\.java$" /tmp/contrib_files | grep -v "Test\.java$"`
-5. `known-pitfalls-extraction` — pass: diff + `known-pitfalls` doc if
-   available. Skip if no pitfall database found.
+5. `known-pitfalls-extraction` — pass diff + `known-pitfalls` doc only when a
+   pitfall database or historical context is available.
 
-Invoke `contributor-pattern-analysis` with all collected findings.
+Invoke `contributor-pattern-analysis` with the collected findings that actually
+exist.
 
 Save output to workspace:
 `agent-memory/contributor-pattern-report-<sanitized-name>.md`

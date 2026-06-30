@@ -9,7 +9,8 @@
 1. Detect whether an active Mana workspace already exists.
 2. Do not initialize a new workspace automatically from pre-commit.
 - Use the active `.mana` workspace only when it already exists.
-- Run skills in the order listed in `AGENT.md`.
+- Load and run only the hook skills whose conditions in `AGENT.md` match the
+  hook mode and changed files.
 - Stop immediately on missing inputs or blocker findings.
 - Aggregate findings into the expected outputs.
 - Write optional outputs to the workspace folders defined by `AGENT.md`.

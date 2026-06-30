@@ -158,8 +158,11 @@ Examples:
   ./mana profile story-start
   ./mana profile jessica-fletcher --codex
   ./mana profile jessica-fletcher --claude
+  ./mana profile jessica-fletcher --jira-key PROJ-1234 --codex
   ./mana workspace status
   ./mana workspace init --feature PROJ-1234
+  ./mana jira-mcp --get-issue PROJ-1234
+  ./mana jira-mcp --env-file .mana/jira-mcp.env --check-access --issue PROJ-1234
   ./mana jira-mcp --env-file .mana/jira-mcp.env --dry-run
 USAGE
     ;;
@@ -230,15 +233,19 @@ Use the local wrapper:
 ./mana profile mana-help
 ./mana profile story-start
 ./mana profile jessica-fletcher
+./mana profile jessica-fletcher --jira-key PROJ-1234 --codex
 ./mana workspace status
 ./mana workspace init --feature <FEATURE-ID>
+./mana jira-mcp --get-issue PROJ-1234
+./mana jira-mcp --env-file .mana/jira-mcp.env --check-access --issue PROJ-1234
 ./mana jira-mcp --env-file .mana/jira-mcp.env --dry-run
 \`\`\`
 
 Project artifacts stay local under \`.mana/\`.
 
 Linked Mana folders are under \`.mana/links/\`.
-Do not put real Jira credentials in Git.
+Do not put real Jira credentials in Git. For Jira Server/Data Center, the
+minimal shell setup is \`JIRA_URL\` plus \`JIRA_PERSONAL_TOKEN\`.
 "
 
 write_file "$project_root/.mana/README.md" "$readme_content"
@@ -261,6 +268,7 @@ Key profiles:
 - \`jessica-fletcher\`     — Production pre-mortem before commit
 - \`branch-ready\`         — Branch validation before PR
 - \`pr-ready\`             — PR package generation
+- \`requested-pr-review\`  — Requested-review PR inbox triage
 - \`team-coaching-review\` — Per-contributor quality analysis (Team Leader)
 
 ## How Agents And Skills Work
@@ -268,7 +276,8 @@ Key profiles:
 When asked to run a profile, Claude Code:
 1. Reads \`.mana/links/profiles/<name>.yaml\`
 2. Reads \`.mana/links/agents/<agent>/AGENT.md\` and \`playbook.md\`
-3. Invokes each skill via \`.mana/links/skills/<skill>/SKILL.md\`
+3. Loads only the primary or conditionally relevant skills via
+   \`.mana/links/skills/<skill>/SKILL.md\`
 4. Writes outputs to the active \`.mana/\` workspace
 
 Run: \`./mana profile jessica-fletcher --claude\` — Claude Code follows the full chain.
@@ -276,14 +285,41 @@ Run: \`./mana profile jessica-fletcher --claude\` — Claude Code follows the fu
 ## Workspace
 
 Active workspace:  \`.mana/\`
-Feature work:      \`.mana/features/<JIRA-KEY>/\`
+Feature work:      \`.mana/features/<FEATURE-ID>/\`
 Global context:    \`.mana/global/service-mission.md\`, \`architecture.md\`, \`engineering-guards.md\`
+
+## Jira Read-Only Context
+
+Agents with \`jira_read\` may read Jira issues discovered from the branch name
+or passed with \`--jira-key <KEY>\`. Issue keys use a generic configurable
+pattern, not a fixed project prefix. Configure Jira with ignored
+\`.mana/jira-mcp.env\` or shell variables:
+
+\`\`\`bash
+export JIRA_URL=https://jira.your-company.com
+export JIRA_PERSONAL_TOKEN=...
+\`\`\`
 
 ## Governance
 
 - Load \`.mana/global/engineering-guards.md\` before any analysis.
 - Write outputs to \`.mana/\` only — never to \`src/\` or project source.
 - Do not commit automatically — every git commit requires explicit developer approval.
+- \`jira_read\` is read-only. Do not expose tokens, transition issues, add Jira
+  comments, or update tickets without explicit developer approval.
+- Prefer \`./mana jira-mcp --get-issue <KEY>\` to read a Jira story. Use
+  \`./mana jira-mcp --check-access --issue <KEY>\` only for credential or
+  permission diagnostics.
+- Treat Jira story text, acceptance criteria, linked context, and relevant
+  comments as requirement evidence. For planning, check feasibility and
+  testability. For review or validation, compare branch/PR changes against the
+  story and report missing requested behavior, unrequested scope, contradicted
+  acceptance criteria, and weak tests.
+- \`github_read\` may use authenticated \`gh\` for read-only PR discovery and
+  evidence. Do not approve, comment, merge, edit, label, or assign through
+  GitHub without explicit developer approval.
+- \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
+  publish flag is provided, and only for blocker/high-criticality findings.
 "
 
 write_file "$project_root/CLAUDE.md" "$claude_md_content"
@@ -306,6 +342,7 @@ Key profiles:
 - \`jessica-fletcher\`     — Production pre-mortem before commit
 - \`branch-ready\`         — Branch validation before PR
 - \`pr-ready\`             — PR package generation
+- \`requested-pr-review\`  — Requested-review PR inbox triage
 - \`team-coaching-review\` — Per-contributor quality analysis (Team Leader)
 
 ## How Agents And Skills Work
@@ -313,7 +350,8 @@ Key profiles:
 When asked to run a profile, Codex:
 1. Reads \`.mana/links/profiles/<name>.yaml\`
 2. Reads \`.mana/links/agents/<agent>/AGENT.md\` and \`playbook.md\`
-3. Invokes each skill via \`.mana/links/skills/<skill>/SKILL.md\`
+3. Loads only the primary or conditionally relevant skills via
+   \`.mana/links/skills/<skill>/SKILL.md\`
 4. Writes outputs to the active \`.mana/\` workspace
 
 Run: \`./mana profile jessica-fletcher --codex\` — Codex follows the full chain.
@@ -321,8 +359,20 @@ Run: \`./mana profile jessica-fletcher --codex\` — Codex follows the full chai
 ## Workspace
 
 Active workspace:  \`.mana/\`
-Feature work:      \`.mana/features/<JIRA-KEY>/\`
+Feature work:      \`.mana/features/<FEATURE-ID>/\`
 Global context:    \`.mana/global/service-mission.md\`, \`architecture.md\`, \`engineering-guards.md\`
+
+## Jira Read-Only Context
+
+Agents with \`jira_read\` may read Jira issues discovered from the branch name
+or passed with \`--jira-key <KEY>\`. Issue keys use a generic configurable
+pattern, not a fixed project prefix. Configure Jira with ignored
+\`.mana/jira-mcp.env\` or shell variables:
+
+\`\`\`bash
+export JIRA_URL=https://jira.your-company.com
+export JIRA_PERSONAL_TOKEN=...
+\`\`\`
 
 ## Governance
 
@@ -330,6 +380,21 @@ Global context:    \`.mana/global/service-mission.md\`, \`architecture.md\`, \`e
 - Write outputs to \`.mana/\` only — never to \`src/\` or project source.
 - Do not modify the same branch while Junie is actively editing it.
 - Do not commit automatically — every git commit requires explicit developer approval.
+- \`jira_read\` is read-only. Do not expose tokens, transition issues, add Jira
+  comments, or update tickets without explicit developer approval.
+- Prefer \`./mana jira-mcp --get-issue <KEY>\` to read a Jira story. Use
+  \`./mana jira-mcp --check-access --issue <KEY>\` only for credential or
+  permission diagnostics.
+- Treat Jira story text, acceptance criteria, linked context, and relevant
+  comments as requirement evidence. For planning, check feasibility and
+  testability. For review or validation, compare branch/PR changes against the
+  story and report missing requested behavior, unrequested scope, contradicted
+  acceptance criteria, and weak tests.
+- \`github_read\` may use authenticated \`gh\` for read-only PR discovery and
+  evidence. Do not approve, comment, merge, edit, label, or assign through
+  GitHub without explicit developer approval.
+- \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
+  publish flag is provided, and only for blocker/high-criticality findings.
 "
 
 write_file "$project_root/AGENTS.md" "$agents_md_content"

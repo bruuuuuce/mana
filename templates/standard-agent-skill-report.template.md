@@ -28,6 +28,7 @@
 
 - `<artifact or file>`: `<why it matters>`.
 - `Diff base`: `<base branch and diff command, when branch/code diff evidence is used>`.
+- `Diff scope`: `<filtered changed file/line count and any scope limit, when branch/code diff evidence is used>`.
 
 <!-- Exclude Mana framework/bootstrap noise from production evidence:
      .mana/**, AGENTS.md, CLAUDE.md, mana, and Mana-only .gitignore/env setup.

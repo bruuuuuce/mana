@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "requested-pr-review-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "repository": {
+      "type": "string",
+      "description": "Optional GitHub repository in owner/name form. If omitted, infer from the current checkout."
+    },
+    "reviewer": {
+      "type": "string",
+      "description": "Reviewer login to query. Defaults to @me when using GitHub CLI."
+    },
+    "pr_number": {
+      "type": ["integer", "string"],
+      "description": "Optional pull request number or URL. When provided, analyze this PR directly instead of listing the requested-review inbox."
+    },
+    "pr_filter": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional filters such as label, author, base branch, head branch, or PR number."
+    },
+    "max_prs": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Maximum number of requested-review PRs to analyze after risk ranking."
+    },
+    "publish_high_risk_comments": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true with pr_number, publish exactly one GitHub PR comment containing only blocker or high-criticality findings from the current run."
+    }
+  }
+}

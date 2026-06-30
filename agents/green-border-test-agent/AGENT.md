@@ -17,6 +17,7 @@ allowed_tools:
   - jira_read
   - confluence_read
   - git_read
+  - github_read
   - code_search
   - architecture_rules_read
   - test_runner_read
@@ -48,13 +49,19 @@ Generates, selects, runs, and evaluates green-border tests during local developm
 - after_local_fix
 
 ## Workflow
-1. Invoke `green-border-plan` and store its structured result.
-2. Invoke `unit-test-gap` and store its structured result.
-3. Invoke `integration-test-gap` and store its structured result.
-4. Invoke `legacy-characterization` and store its structured result.
-5. Invoke `regression-selection` and store its structured result.
-6. Invoke `test-quality` and store its structured result.
-7. Invoke `flaky-failure-classification` and store its structured result.
+1. Load `green-border-plan` as the primary test-boundary skill when no current
+   green-border plan exists or the plan needs refresh.
+2. Load `unit-test-gap` only for changed code paths that should have focused
+   unit coverage.
+3. Load `integration-test-gap` only for persistence, external dependency,
+   messaging, API, configuration, or cross-component behavior.
+4. Load `legacy-characterization` only when changed behavior touches legacy or
+   poorly specified paths.
+5. Load `regression-selection` only when a regression set must be chosen or
+   justified.
+6. Load `test-quality` only when test evidence exists and must be evaluated.
+7. Load `flaky-failure-classification` only when test logs include flaky,
+   intermittent, timeout, ordering, or environment-sensitive failures.
 8. Aggregate blocker, warning, and info findings into the expected artifacts.
 9. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
@@ -83,6 +90,14 @@ Default output routing:
 
 ## MCP Tools Required
 - Read-only Jira, Confluence, Git, architecture rules, and repository search where applicable.
+- When Jira issue keys are provided or discovered from the branch name, use
+  read-only `jira_read` to load those issues as acceptance and regression
+  context. Issue key discovery is generic and project-configurable; do not
+  assume a fixed project prefix. If Jira is unavailable, report the access gap
+  and use local Mana planning artifacts.
+- Treat Jira story text, acceptance criteria, linked context, and relevant
+  comments as the source for required behavior and regression coverage. Tests
+  should prove the story, not only exercise changed code.
 - Liquibase and database snapshot read access only when database changes are in scope.
 - Test runner access for local or CI evidence collection.
 - Human-approved write tools only for publishing reports or comments.

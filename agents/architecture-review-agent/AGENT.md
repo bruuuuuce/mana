@@ -18,6 +18,7 @@ allowed_tools:
   - jira_read
   - confluence_read
   - git_read
+  - github_read
   - code_search
   - architecture_rules_read
 trigger_points:
@@ -56,11 +57,18 @@ Orchestrate architecture review before implementation or merge. The agent makes 
    base is missing or ambiguous, stop with `needs_human_decision` and ask which
    branch to compare against. Do not silently default to `main`.
 2. Load story, design, branch diff, architecture context, engineering guards, integration map, and test evidence.
-3. Use `architecture-decision-record` for significant decisions and trade-offs.
-4. Use `non-functional-requirements-review` for performance, resilience, security, observability, scalability, auditability, operability, and compliance.
-5. Use `service-boundary-fit` for ownership, bounded context, data ownership, and responsibility boundaries.
-6. Use `architecture-drift-detection` to compare branch changes against documented architecture and decisions.
-7. Use `architecture-risk`, `cross-service-contract`, `trust-boundary-review`, and `liquibase-production-risk` for specialist risk checks.
+3. Use `architecture-decision-record` only for significant decisions and
+   trade-offs that need durable owner-visible documentation.
+4. Use `non-functional-requirements-review` only when performance, resilience,
+   security, observability, scalability, auditability, operability, or
+   compliance are in scope.
+5. Use `service-boundary-fit` only when ownership, bounded context, data
+   ownership, or responsibility boundaries are touched.
+6. Use `architecture-drift-detection` when branch changes must be compared
+   against documented architecture and decisions.
+7. Use `architecture-risk`, `cross-service-contract`,
+   `trust-boundary-review`, and `liquibase-production-risk` only for touched
+   specialist domains.
 8. Aggregate findings into approval questions and architecture review status.
 
 ## Skills Used And Why
@@ -75,6 +83,17 @@ Orchestrate architecture review before implementation or merge. The agent makes 
 
 ## Service Context Layer
 Load `.mana/global/architecture.md`, `engineering-guards.md`, `integration-map.md`, `database-policy.md`, `testing-policy.md`, `domain-glossary.md`, and `.mana/global/team-decisions/` when present.
+
+## Jira Context
+When Jira issue keys are provided by the profile or discovered from the branch
+name, use read-only `jira_read` to load those issues as requirement and design
+context before drawing architecture conclusions. Issue key discovery is generic
+and project-configurable; do not assume a fixed project prefix. If Jira is
+unavailable, report the access gap and continue with local Mana artifacts or
+explicit user-provided design context.
+Use the story text, acceptance criteria, linked context, and relevant comments
+to check whether the requested change makes architectural sense, needs an ADR or
+owner approval, and whether branch/design evidence contradicts the requirement.
 
 ## Artifact Workspace
 Write outputs to the active Mana workspace:

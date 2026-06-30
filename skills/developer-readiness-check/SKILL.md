@@ -54,10 +54,13 @@ Prevent developers from starting work on stories that are not implementable, tes
 - start_conditions
 
 ## Execution Logic
-1. Check that acceptance criteria are testable and aligned with epic goals.
-2. Verify source impact, technical tasks, dependencies, test plan, data/mocks, and approval gates are clear enough.
-3. Separate start blockers from follow-up warnings.
-4. Produce start conditions and owner questions.
+1. Read the Jira story text, acceptance criteria, linked context, and relevant
+   comments or the documented Markdown fallback.
+2. Check that the requested behavior is coherent, implementable, testable,
+   bounded, and aligned with epic goals.
+3. Verify source impact, technical tasks, dependencies, test plan, data/mocks, and approval gates are clear enough.
+4. Separate start blockers from follow-up warnings.
+5. Produce start conditions and owner questions.
 
 ## Decision Rules
 - `blocker`: missing acceptance criteria, unclear scope, missing critical dependency, missing test strategy, or unapproved high-risk area.

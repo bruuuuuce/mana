@@ -44,9 +44,10 @@ Codex is used for repository-level planning, validation, documentation, branch a
 12. Run a production pre-mortem with `profiles/jessica-fletcher.yaml`.
 13. Run green-border checks with `profiles/pre-push.yaml`.
 14. Validate the branch with `profiles/branch-ready.yaml`.
-15. Use `profiles/am-release-ready.yaml` when an Application Manager needs release, continuity, rollback, and incident-risk evidence.
-16. Generate the PR package with `profiles/pr-ready.yaml`.
-17. Learn the framework interactively at any time with `profiles/tutorial.yaml` or by asking `scripts/run-profile.sh mana-help`.
+15. Use `profiles/requested-pr-review.yaml` to triage open PRs where you are a requested reviewer.
+16. Use `profiles/am-release-ready.yaml` when an Application Manager needs release, continuity, rollback, and incident-risk evidence.
+17. Generate the PR package with `profiles/pr-ready.yaml`.
+18. Learn the framework interactively at any time with `profiles/tutorial.yaml` or by asking `scripts/run-profile.sh mana-help`.
 
 ## Repository Structure
 ```text
@@ -106,7 +107,7 @@ Feature branches use ticket or branch-derived workspaces:
 Each story or feature workspace contains a canonical trace file:
 
 ```text
-.mana/features/<JIRA-KEY>/agent-memory/story-trace.md
+.mana/features/<FEATURE-ID>/agent-memory/story-trace.md
 ```
 
 Agents use this file for concise reasoning summaries, assumptions, decisions,
@@ -116,7 +117,7 @@ chain-of-thought log. See `docs/standards/story-trace-standard.md`.
 Developer-confirmed implementation choices are tracked separately:
 
 ```text
-.mana/features/<JIRA-KEY>/decisions/developer-choice-log.md
+.mana/features/<FEATURE-ID>/decisions/developer-choice-log.md
 ```
 
 Use it for developer questions, developer answers, confirmed implementation
@@ -176,6 +177,19 @@ more specific artifact template does not exist.
 - **Learn the framework interactively:** run `scripts/run-profile.sh tutorial` to start a conversational walkthrough of profiles, agents, and skills tailored to your role and current delivery phase.
 - **Review team code quality for coaching:** run `scripts/run-profile.sh team-coaching-review` on a feature branch to identify recurring quality patterns per contributor. The `team-coaching-report-agent` produces a confidential report for the Team Leader with a per-contributor growth analysis and a prioritised coaching action plan.
 - **Start a story:** run the story-start profile to produce story context, impact map, technical breakdown, risk register, and green-border plan.
+- **Read Jira context from a branch:** configure `JIRA_URL` plus
+  `JIRA_PERSONAL_TOKEN` for Jira Server/Data Center, or use
+  `.mana/jira-mcp.env`. Profiles discover generic issue keys such as
+  `PROJ-1234` from the branch, or accept `--jira-key <KEY>`.
+- **Read one Jira story quickly:** in a linked project, run
+  `./mana jira-mcp --get-issue PROJ-1234`. Use
+  `./mana jira-mcp --check-access --issue PROJ-1234` only for credential or
+  permission diagnostics.
+- **Use the story as evidence:** planning profiles use Jira story text and
+  acceptance criteria to check feasibility, testability, scope, owners, and
+  approvals. Review, validation, pre-mortem, and PR profiles compare branch/PR
+  changes against the story and flag missing requested behavior, unrequested
+  scope, contradicted acceptance criteria, and weak tests.
 - **Work without Jira MCP:** create `.mana/features/<EPIC-ID>/context/epic-story-pack.md` from `templates/epic-story-pack.template.md` and use it as the requirement source.
 - **Create workspace:** run `scripts/mana-workspace.sh init`; feature work goes under `.mana/features/<feature-id>/`, canonical branch work goes under `.mana/sessions/<timestamp>-<branch>-<purpose>/`.
 - **Generate a plan:** use the Story Implementation Planner Agent and route open questions to BA/PO, Team Leader, Architect, or DBA.
@@ -188,6 +202,8 @@ more specific artifact template does not exist.
 - **Generate pre-commit development notes:** use `profiles/pre-commit.yaml` and `pre-commit-documentation-agent` to create `pr/pre-commit-development-summary.md` and `pr/knowledge-transfer-brief.md`.
 - **Run a production pre-mortem:** use `profiles/jessica-fletcher.yaml` or `jessica-fletcher-agent` before commit/push to ask why the branch would fail in production.
 - **Validate branch:** run the Branch Validation Agent to detect plan drift, unplanned files, missing tests, unresolved risks, and unsafe DB changes.
+- **Triage requested reviews:** use `profiles/requested-pr-review.yaml` to read open GitHub PRs where you are a requested reviewer, rank them by risk, and produce draft review findings. The agent may use authenticated `gh` for read-only evidence and must not post comments or reviews without approval.
+- **Review one PR quickly:** run `scripts/run-profile.sh requested-pr-review --pr <number> --codex`. Add `--publish-high-risk-comments` only when you want one PR comment with blocker or high-criticality findings from that run.
 - **Prepare AM release readiness:** use `profiles/am-release-ready.yaml` for release impact, continuity, incident-risk, rollback, support, and communication evidence.
 - **Generate PR package:** run the PR Readiness Agent to create the PR description, reviewer focus, test evidence, risk report, and development summary.
 - **Create developer handoff:** use `skills/developer-handoff` through PR Readiness to generate a developer-facing reading guide with diagrams, code references, short snippets, tests to read first, and intentional non-changes.
@@ -211,7 +227,7 @@ MANA_UPDATE_CHECK=strict scripts/run-profile.sh branch-ready
 AI supports, analyzes, documents, suggests, and validates. It does not replace accountability. BA/PO owns requirement clarity; Team Leader and Architect own technical decisions and approval; Developers own implementation and final correctness; DBA/Security owners approve high-risk database or trust-boundary findings.
 
 ## Security Considerations
-Use MCP least privilege, environment separation, audit logs, data redaction, and explicit approval for destructive or external writes. Never expose secrets or production data in prompts, reports, or logs. Destructive database, repository, Jira, or CI operations must be human-approved.
+Use MCP least privilege, environment separation, audit logs, data redaction, and explicit approval for destructive or external writes. Jira MCP access is read-only by default: agents may read issue context when issue keys are provided or discovered from the branch, but must not expose tokens, transition issues, add comments, or update tickets without explicit human approval. Optional GitHub CLI access is read-only by default: agents may read PR metadata, changed files, diffs, checks, and reviewer requests, but must not approve, comment, merge, edit, label, or assign without explicit human approval. A requested PR review run may publish one `gh pr comment` only with a selected PR and an explicit publish flag, and only for blocker or high-criticality findings. Never expose secrets or production data in prompts, reports, or logs. Destructive database, repository, Jira, GitHub, or CI operations must be human-approved.
 
 ## Contribution Guide
 Read `CONTRIBUTING.md`. New skills must be atomic, include required front matter, examples, decision rules, failure modes, MCP behavior, and human review gates. New agents must orchestrate existing skills rather than duplicate logic.

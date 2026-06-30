@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "requested-pr-review-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "requested_pr_review_report": {
+      "type": "string",
+      "description": "Path to requested-pr-review-report.md in the active workspace"
+    },
+    "pr_review_focus": {
+      "type": "string",
+      "description": "Path to pr-review-focus.md in the active workspace"
+    },
+    "pr_risk_summary": {
+      "type": "string",
+      "description": "Path to pr-risk-summary.md in the active workspace"
+    },
+    "per_pr_notes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Paths to per-PR review notes"
+    },
+    "published_comment": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional status for a high-risk PR comment published through gh pr comment"
+    }
+  }
+}

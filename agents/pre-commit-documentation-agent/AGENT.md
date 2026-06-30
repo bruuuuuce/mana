@@ -12,6 +12,7 @@ skills_used:
   - knowledge-transfer-brief
 allowed_tools:
   - git_read
+  - github_read
   - code_search
   - read_files
   - test_runner_read

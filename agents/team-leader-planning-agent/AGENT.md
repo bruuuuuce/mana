@@ -18,6 +18,7 @@ allowed_tools:
   - jira_read
   - confluence_read
   - git_read
+  - github_read
   - code_search
   - architecture_rules_read
 trigger_points:
@@ -52,12 +53,18 @@ Help Team Leaders convert requirements and technical analysis into a development
 
 ## Workflow
 1. Load epic, stories, planning artifacts, team constraints, repository snapshot, and service context.
-2. Use `developer-readiness-check` to determine whether each story can start development.
-3. Use `source-impact-map`, `technical-task-breakdown`, and `green-border-plan` to verify scope, tasks, and test strategy are usable.
-4. Use `team-execution-plan` for sequencing, parallelization, ownership, and dependency mapping.
-5. Use `delivery-risk-radar` for escalation risks, missing decisions, plan drift, and bottlenecks.
-6. Use `review-load-balancing` to recommend reviewer focus and specialist involvement.
-7. Use `developer-handoff` when work is ready to be assigned.
+2. Use `developer-readiness-check` when deciding whether stories can start
+   development.
+3. Use `source-impact-map`, `technical-task-breakdown`, and
+   `green-border-plan` only for stories whose scope, tasks, or test strategy
+   need validation.
+4. Use `team-execution-plan` when sequencing, parallelization, ownership, or
+   dependency mapping is needed.
+5. Use `delivery-risk-radar` when escalation risks, missing decisions, plan
+   drift, or bottlenecks are present.
+6. Use `review-load-balancing` when reviewer focus or specialist involvement
+   must be planned.
+7. Use `developer-handoff` only when work is ready to be assigned.
 8. Aggregate outputs into a Team Leader plan and explicit start/no-start decisions.
 
 ## Skills Used And Why
@@ -72,6 +79,16 @@ Help Team Leaders convert requirements and technical analysis into a development
 
 ## Service Context Layer
 Load `.mana/global/service-mission.md`, `architecture.md`, `engineering-guards.md`, `testing-policy.md`, and `.mana/global/team-decisions/` when present.
+
+## Jira Context
+When Jira issue keys are provided by the profile or discovered from the branch
+name, use read-only `jira_read` to load those issues as story-planning context.
+Issue key discovery is generic and project-configurable; do not assume a fixed
+project prefix. If Jira is unavailable, report the access gap and continue with
+local Mana artifacts or explicit user-provided story context.
+Use the story text, acceptance criteria, linked context, and relevant comments
+to decide whether the story is ready to start, whether it is sliceable and
+testable, and whether ownership, dependencies, and approvals are sufficient.
 
 ## Artifact Workspace
 Write outputs to the active Mana workspace:

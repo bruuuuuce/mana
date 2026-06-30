@@ -73,15 +73,21 @@ governance gates.
 ## Execution Logic
 1. Identify the user's lifecycle phase: installation, workspace setup, epic
    intake, story planning, Team Leader planning, story readiness, architecture
-   review, implementation, branch validation, AM release readiness, PR
-   readiness, CI validation, or learning.
+   review, implementation, branch validation, requested PR review, AM release
+   readiness, PR readiness, CI validation, or learning.
 2. Check whether `.mana` workspace artifacts are available or need to be
    initialized.
 3. Recommend the smallest relevant profile, agent, and skill set.
-4. Prefer Jira MCP read-only inputs when available.
-5. If Jira MCP is unavailable, recommend the Markdown fallback story pack.
-6. List concrete commands and expected artifact paths.
-7. Flag missing service context, evidence gaps, or approval gates.
+4. Prefer Jira MCP read-only inputs when available. In a linked project, use
+   `./mana jira-mcp --get-issue <KEY>` to read one story quickly and
+   `./mana jira-mcp --check-access --issue <KEY>` only for credential or
+   permission diagnostics.
+5. Treat Jira story text and acceptance criteria as requirement evidence:
+   planning checks feasibility and readiness; review/validation compares branch
+   or PR changes against the story.
+6. If Jira MCP is unavailable, recommend the Markdown fallback story pack.
+7. List concrete commands and expected artifact paths.
+8. Flag missing service context, evidence gaps, or approval gates.
 
 ## Decision Rules
 - `blocker`: the user is about to skip a required approval gate, run write
@@ -121,6 +127,8 @@ guidance but should not use it to widen implementation scope.
 ## Interaction With MCP
 MCP access must be read-only by default. If Jira MCP is unavailable, use
 `templates/epic-story-pack.template.md` as the manual requirement fallback.
+When Jira MCP is available, prefer `./mana jira-mcp --get-issue <KEY>` for a
+single story read instead of constructing ad hoc REST commands.
 Writes, comments, transitions, or publication to external systems require human
 approval and audit logging.
 
@@ -132,6 +140,8 @@ approval and audit logging.
 - Ask how to proceed when Jira credentials are missing.
 - Ask which `.mana` path should hold story planning artifacts.
 - Ask how to prepare a branch for PR readiness.
+- Ask how to review PRs where the user is a requested reviewer.
+- Ask how to analyze one PR quickly by number.
 
 ## Incorrect Usage Examples
 - Do not use this skill to approve a PR.

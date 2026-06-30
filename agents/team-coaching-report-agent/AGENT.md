@@ -14,6 +14,7 @@ skills_used:
   - known-pitfalls-extraction
 allowed_tools:
   - git_read
+  - github_read
   - code_search
   - read_files
 trigger_points:
@@ -91,15 +92,17 @@ For each confirmed contributor:
    that contributor (via `git log --name-only --author=<email>`).
 2. Load `.mana/global/engineering-guards.md` and `.mana/global/testing-policy.md`
    as context if available.
-3. Invoke skills in order, passing the contributor's diff as input:
-   a. `pre-review-defect` → `defect_findings`
-   b. `test-quality` → `test_findings`
-   c. `null-safety-risk` → `npe_findings`
-   d. `java-performance-smell` → `performance_findings` (only when diff
-      contains non-test `.java` files)
-   e. `known-pitfalls-extraction` → `known_pitfalls` (optional; skip if
-      no pitfall database is available)
-4. Invoke `contributor-pattern-analysis` with all collected findings.
+3. Load only the quality skills relevant to the contributor's filtered diff:
+   a. `pre-review-defect` when application code changed.
+   b. `test-quality` when test files or test evidence are present.
+   c. `null-safety-risk` when nullable, mapping, DTO, Java/Kotlin, or
+      dereference-sensitive code changed.
+   d. `java-performance-smell` only when the diff contains non-test `.java`
+      files on production paths.
+   e. `known-pitfalls-extraction` only when a pitfall database or historical
+      review/incident context is available.
+4. Invoke `contributor-pattern-analysis` with the collected findings that
+   actually exist.
 5. Save the resulting `contributor-pattern-report` to the active workspace
    as `contributor-pattern-report-<sanitized-name>.md`.
 

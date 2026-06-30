@@ -12,7 +12,9 @@
 ## Execution
 1. Resolve or initialize the active Mana workspace using `scripts/mana-workspace.sh`.
 2. Load service context and previous team decisions.
-3. Run skills in the order listed in `AGENT.md`.
+3. Load and run only the architecture skills whose conditions in `AGENT.md`
+   match the design scope, diff, NFR, boundary, contract, trust, or database
+   evidence.
 4. Stop on direct engineering guard violations or unapproved protected-area changes.
 5. Write reports and approval questions to the active workspace.
 6. Route unresolved decisions to the architect and specialist owners.

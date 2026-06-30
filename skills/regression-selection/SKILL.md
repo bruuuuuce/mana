@@ -62,10 +62,12 @@ This skill exists to reduce delivery churn by making a narrow, reusable judgemen
 - test_run_plan
 
 ## Execution Logic
-1. Map changed files to owning tests.
+1. Map Jira story behavior and acceptance criteria to changed files and owning
+   tests when requirement evidence is available.
 2. Include upstream and downstream contract tests.
 3. Add high-risk legacy tests.
-4. Explain why each test is selected.
+4. Select tests that prove requested behavior and guard likely regressions.
+5. Explain why each test is selected.
 
 ## Decision Rules
 - `blocker`: unresolved high-risk issue, missing critical input, unsafe database/security/architecture condition, or untestable requirement that prevents responsible delivery.

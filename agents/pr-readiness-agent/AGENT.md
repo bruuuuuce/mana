@@ -18,6 +18,7 @@ allowed_tools:
   - jira_read
   - confluence_read
   - git_read
+  - github_read
   - code_search
   - architecture_rules_read
   - test_runner_read
@@ -57,14 +58,22 @@ Builds the final pull request package for reviewers. The agent orchestrates skil
    input, then `origin/HEAD`, then a single credible primary branch. If the base
    is missing or ambiguous, stop with `needs_human_decision` and ask which
    branch to compare against. Do not silently default to `main`.
-2. Invoke `development-summary` and store its structured result.
-3. Invoke `developer-handoff` and store its structured result.
-4. Invoke `developer-decision-review` and store its structured result.
-5. Invoke `pre-review-defect` and store its structured result.
-6. Invoke `architecture-risk` and store its structured result.
-7. Invoke `cross-service-contract` and store its structured result.
-8. Invoke `liquibase-production-risk` and store its structured result.
-9. Invoke `test-quality` and store its structured result.
+2. Load the Jira story or Markdown story-pack requirement source when issue keys
+   or story context are available.
+3. Compare the branch/PR diff against the story text and acceptance criteria:
+   report missing requested behavior, unrequested scope, contradicted
+   acceptance criteria, and test evidence that does not prove the story.
+4. Load `development-summary` as the primary PR package skill.
+5. Load `developer-handoff` when the change needs maintainer context,
+   diagrams, rationale, or non-obvious implementation notes.
+6. Load `developer-decision-review` when the diff shows unexplained choices,
+   plan drift, risky trade-offs, or missing rationale.
+7. Load `pre-review-defect` when application code changed and focused defect
+   screening is useful before human review.
+8. Load `architecture-risk`, `cross-service-contract`, and
+   `liquibase-production-risk` only when the filtered diff touches architecture
+   boundaries, integrations/contracts, or database changes.
+9. Load `test-quality` only when test evidence exists and must be evaluated.
 10. Aggregate blocker, warning, and info findings into the expected artifacts.
 11. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
@@ -98,6 +107,13 @@ Default output routing:
 
 ## MCP Tools Required
 - Read-only Jira, Confluence, Git, architecture rules, and repository search where applicable.
+- When Jira issue keys are provided or discovered from the branch name, use
+  read-only `jira_read` to load those issues as PR requirement context. Issue
+  key discovery is generic and project-configurable; do not assume a fixed
+  project prefix. If Jira is unavailable, report the access gap and use local
+  Mana planning artifacts.
+- Treat Jira story text, acceptance criteria, linked context, and relevant
+  comments as evidence for PR readiness and story-vs-implementation coherence.
 - Liquibase and database snapshot read access only when database changes are in scope.
 - Test runner access for local or CI evidence collection.
 - Human-approved write tools only for publishing reports or comments.

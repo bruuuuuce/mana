@@ -14,6 +14,15 @@
 - Use the full local branch diff against the resolved main branch. Include
   committed branch changes and uncommitted working-tree changes. Do not narrow
   analysis to staged files.
+- Start with a filtered diff inventory before reading full files:
+  `git diff --name-status <base>...HEAD`, changed-line counts, and working-tree
+  status. Exclude Mana/bootstrap noise before estimating scope.
+- If the filtered diff is larger than roughly 80 changed files or 2,000 changed
+  lines, or is dominated by generated/vendor-like churn, stop with
+  `needs_human_decision` and ask which scope Jessica should review first.
+- Read full files only to validate plausible blocker or warning hypotheses.
+  Prefer targeted searches from changed symbols, APIs, tables, events, routes,
+  config keys, and tests over repository-wide scans.
 - Exclude Mana framework/bootstrap noise from production hypotheses, findings,
   evidence, missing-test lists, and failure modes: `.mana/**`, `AGENTS.md`,
   `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or env ignore changes.
@@ -24,10 +33,12 @@
 ## Execution
 1. Ask the incident question explicitly: "The code introduced in this branch is
    causing production problems; what are the most plausible reasons?"
-2. Classify changed files by production risk domain.
-3. Record the resolved main branch and diff command in the evidence section.
-4. Invoke `production-premortem`.
-5. Invoke specialist skills only for touched risk areas.
+2. Classify filtered changed files by production risk domain.
+3. Record the resolved main branch, diff command, and filtered diff scope in the
+   evidence section.
+4. Load and invoke `production-premortem`.
+5. Do not load every listed specialist skill up front. Load and invoke
+   specialist skills only for touched risk areas.
 6. Rank each hypothesis by:
    - severity
    - plausibility

@@ -16,6 +16,7 @@ skills_used:
   - regression-selection
 allowed_tools:
   - git_read
+  - github_read
   - code_search
   - read_files
   - jira_read
@@ -71,28 +72,42 @@ actions before the branch is committed, pushed, or opened for review.
    `origin/master`, `main`, `master`, `develop`, or `dev` only when exactly one
    candidate is credible. If the main branch is unclear, stop and ask the user
    which branch to compare against.
-2. Load the full local branch diff against the resolved main branch, including
-   committed branch changes and uncommitted working-tree changes. Do not limit
-   the pre-mortem to the staged diff.
-3. Report the resolved main branch and diff command in the output evidence.
-4. Exclude Mana framework/bootstrap noise from production hypotheses, findings,
+2. Build a filtered diff inventory before reading full files: use changed
+   file/status and changed-line counts for the resolved base plus uncommitted
+   working-tree changes. Do not limit the pre-mortem to the staged diff.
+3. If the filtered diff is larger than roughly 80 changed files or 2,000 changed
+   lines, or is dominated by generated/vendor-like churn, stop with
+   `needs_human_decision` and ask the user which scope Jessica should review
+   first.
+4. Report the resolved main branch, diff command, and filtered diff scope in the
+   output evidence.
+5. Exclude Mana framework/bootstrap noise from production hypotheses, findings,
    evidence, missing-test lists, and failure modes: `.mana/**`, `AGENTS.md`,
    `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or env ignore changes.
    Mention these only as operational setup notes when relevant.
-5. Load active `.mana` planning artifacts when present: story context,
+6. Load active `.mana` planning artifacts when present: story context,
    source impact map, technical task breakdown, green-border plan, risk register,
    test evidence, and decision log.
-6. Load Service Context Layer files when present.
-7. Invoke `production-premortem` as the primary skill.
-8. Invoke specialist skills only when relevant to the diff:
+7. Load Jira story evidence when issue keys are available. Use story text,
+   acceptance criteria, linked context, and relevant comments to check whether
+   branch changes implement the requested behavior, add unrequested scope, miss
+   critical constraints, or create production risk through requirement
+   divergence.
+8. Load Service Context Layer files when present.
+9. Load and invoke `production-premortem` as the primary skill.
+10. Do not load every listed specialist skill up front. Load and invoke
+   specialist skills only when relevant to the filtered diff:
    `liquibase-production-risk` and `rollback-safety` for DB changes,
    `cross-service-contract` for API/event/message changes,
    `architecture-risk` for boundary or pattern changes,
    `pre-review-defect` for code-level defects,
    `test-quality` and `regression-selection` for test evidence gaps.
-9. Rank findings by severity, plausibility, production blast radius, and evidence
+11. Read full file contents only where needed to validate plausible blocker or
+   warning hypotheses. Prefer targeted searches from changed symbols, APIs,
+   tables, events, routes, config keys, and tests over repository-wide scans.
+12. Rank findings by severity, plausibility, production blast radius, and evidence
    strength.
-10. Produce a stop/go recommendation with mitigation checklist.
+13. Produce a stop/go recommendation with mitigation checklist.
 
 ## Skills Used And Why
 - `production-premortem`: primary incident-hypothesis analysis.
@@ -135,6 +150,15 @@ If no workspace exists, return the report in chat/console and recommend running
 ## MCP Tools Required
 - Local Git diff, main-branch resolution, and repository search are required.
 - Jira/Confluence are optional read-only sources for requirement/design context.
+- When Jira issue keys are provided or discovered from the branch name, use
+  read-only `jira_read` to load those issues before drawing requirement,
+  production-risk, rollback, or missing-test conclusions. Issue key discovery is
+  generic and project-configurable; do not assume a fixed project prefix. If
+  Jira is unavailable, report the access gap and continue with local Mana
+  artifacts and branch evidence.
+- Treat Jira story text, acceptance criteria, linked context, and relevant
+  comments as production-risk evidence. A technically valid change can still be
+  a Jessica finding if it contradicts or only partially implements the story.
 - Logs/observability are optional read-only sources if available.
 - No production database access, deployment trigger, external write, Jira comment,
   or issue transition is required.

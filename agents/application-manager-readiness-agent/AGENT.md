@@ -16,6 +16,7 @@ allowed_tools:
   - jira_read
   - confluence_read
   - git_read
+  - github_read
   - code_search
   - logs_observability_read
   - architecture_rules_read
@@ -55,12 +56,18 @@ Produce AM-facing release readiness evidence for functional impact, operational 
    base is missing or ambiguous, stop with `needs_human_decision` and ask which
    branch to compare against. Do not silently default to `main`.
 2. Load release scope, stories, branch diff, test evidence, and operational context.
-3. Use `release-impact-summary` to identify functional, technical, stakeholder, and support impact.
-4. Use `business-continuity-check` to assess cutoffs, batches, reconciliation, reporting, SLA, and manual procedures.
-5. Use `incident-risk-forecast` to list likely production symptoms, detection gaps, and mitigations.
-6. Use `rollback-safety` to verify rollback constraints and data compatibility.
-7. Use `known-pitfalls-extraction` to include historical or local pitfalls from the service context.
-8. Use `delivery-risk-radar` to aggregate owner, dependency, evidence, and escalation risks.
+3. Use `release-impact-summary` as the primary AM release-impact skill.
+4. Use `business-continuity-check` only when cutoffs, batches,
+   reconciliation, reporting, SLA, manual procedures, or support continuity are
+   in scope.
+5. Use `incident-risk-forecast` only when likely production symptoms,
+   detection gaps, or mitigations need forecast.
+6. Use `rollback-safety` only when rollback constraints, data compatibility, or
+   operational recovery are relevant.
+7. Use `known-pitfalls-extraction` only when historical or local pitfalls are
+   available in service context.
+8. Use `delivery-risk-radar` only when owner, dependency, evidence, or
+   escalation risks need aggregation.
 9. Aggregate blockers, warnings, and AM decisions needed into the expected artifacts.
 
 ## Skills Used And Why
@@ -73,6 +80,17 @@ Produce AM-facing release readiness evidence for functional impact, operational 
 
 ## Service Context Layer
 Load `.mana/global/service-mission.md`, `architecture.md`, `engineering-guards.md`, `integration-map.md`, `testing-policy.md`, `database-policy.md`, and `.mana/global/known-pitfalls/` when present.
+
+## Jira Context
+When Jira issue keys are provided by the profile or discovered from the branch
+name, use read-only `jira_read` to load those issues as release-scope and
+requirement context. Issue key discovery is generic and project-configurable; do
+not assume a fixed project prefix. If Jira is unavailable, report the access gap
+and continue with local Mana artifacts or explicit user-provided scope.
+Use the story text, acceptance criteria, linked context, and relevant comments
+to verify release impact and operational readiness against what was actually
+requested. Flag unrequested scope, missing requested behavior, and acceptance
+criteria that lack release/test/rollback evidence.
 
 ## Artifact Workspace
 Write outputs to the active Mana workspace:

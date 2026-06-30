@@ -29,6 +29,7 @@ Active profile from `.mana/active-profile`: none.
 | `jessica-fletcher` | before commit/push | Developer | 15 min | Production pre-mortem: asks why the branch would fail in production and ranks failure modes by evidence and blast radius. |
 | `branch-ready` | before PR | Developer / TL | 20 min | Validates branch against approved plan, detects drift, missing tests, unsafe DB changes, and unresolved risks. |
 | `pr-ready` | before review | Developer | 15 min | Generates PR description, reviewer focus, test evidence, risk report, development summary, and developer handoff. |
+| `requested-pr-review` | reviewer requested | Reviewer / TL | 30 min | Finds PRs where you are a requested reviewer, or analyzes one PR by number, and produces focused review findings. |
 | `ci-validation` | CI gate | CI / TL | 30 min | Runs validation in CI: branch validation, Liquibase risk, architecture risk, cross-service contract checks. |
 | `am-release-ready` | before release | Application Manager | 25 min | Produces release impact, continuity, rollback, incident-risk, and support/communication evidence. |
 | `team-coaching-review` | coaching session | Team Leader | 30 min | Analyzes per-contributor quality patterns on a branch and produces a confidential coaching report with growth opportunities and recommended actions. |
@@ -98,15 +99,18 @@ flowchart TD
 |---|---|---|
 | Main branch | Yes | Explicit user input, `origin/HEAD`, or the only credible primary branch |
 | Full local branch diff | Yes | `git diff <main-branch>...HEAD` plus uncommitted working-tree changes |
-| Story context | Recommended | `.mana/features/<JIRA-KEY>/context/` or Jira MCP |
-| Source impact map | Recommended | `.mana/features/<JIRA-KEY>/planning/01-source-impact-map.md` |
-| Green-border plan | Recommended | `.mana/features/<JIRA-KEY>/planning/05-green-border-plan.md` |
-| Risk register | Recommended | `.mana/features/<JIRA-KEY>/planning/06-risk-register.md` |
+| Story context | Recommended | `./mana jira-mcp --get-issue <KEY>` or `.mana/features/<FEATURE-ID>/context/` |
+| Source impact map | Recommended | `.mana/features/<FEATURE-ID>/planning/01-source-impact-map.md` |
+| Green-border plan | Recommended | `.mana/features/<FEATURE-ID>/planning/05-green-border-plan.md` |
+| Risk register | Recommended | `.mana/features/<FEATURE-ID>/planning/06-risk-register.md` |
 | Service context | Recommended | `.mana/global/service-mission.md`, `architecture.md`, `engineering-guards.md` |
-| Test evidence | Recommended | `.mana/features/<JIRA-KEY>/tests/` |
+| Test evidence | Recommended | `.mana/features/<FEATURE-ID>/tests/` |
 
 Planning artifacts are optional but improve result quality significantly.
 Without them, jessica-fletcher works from the full local branch diff alone.
+When a Jira issue key is available, Jessica should read the story with
+`./mana jira-mcp --get-issue <KEY>` and compare branch changes against the story
+text and acceptance criteria.
 
 ### Annotated Sample Output
 
@@ -190,15 +194,16 @@ flowchart TD
 
 ## Prerequisites
 - [ ] Mana framework linked to the project: `scripts/bootstrap-project.sh --project-root .`
-- [ ] Workspace initialized: `scripts/mana-workspace.sh init --root . --feature <JIRA-KEY>`
+- [ ] Workspace initialized: `scripts/mana-workspace.sh init --root . --feature <FEATURE-ID>`
 - [ ] Service context populated: `.mana/global/service-mission.md`, `architecture.md`, `engineering-guards.md`
 
 ## Recommended (improves result quality)
-- [ ] Story context exists: `.mana/features/<JIRA-KEY>/context/story-context.md`
-- [ ] Source impact map exists: `.mana/features/<JIRA-KEY>/planning/01-source-impact-map.md`
-- [ ] Green-border plan exists: `.mana/features/<JIRA-KEY>/planning/05-green-border-plan.md`
-- [ ] Risk register exists: `.mana/features/<JIRA-KEY>/planning/06-risk-register.md`
-- [ ] Test evidence collected: `.mana/features/<JIRA-KEY>/tests/`
+- [ ] Jira story readable when available: `./mana jira-mcp --get-issue <KEY>`
+- [ ] Story context exists: `.mana/features/<FEATURE-ID>/context/story-context.md`
+- [ ] Source impact map exists: `.mana/features/<FEATURE-ID>/planning/01-source-impact-map.md`
+- [ ] Green-border plan exists: `.mana/features/<FEATURE-ID>/planning/05-green-border-plan.md`
+- [ ] Risk register exists: `.mana/features/<FEATURE-ID>/planning/06-risk-register.md`
+- [ ] Test evidence collected: `.mana/features/<FEATURE-ID>/tests/`
 
 ## Run Command
 - [ ] Make local branch changes; staging is not required for Jessica.

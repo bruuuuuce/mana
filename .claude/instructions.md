@@ -12,12 +12,48 @@
 - Respect MCP least privilege, redaction, approval, and audit policies.
 - Stop on high-risk database, architecture, security, or cross-service blockers.
 - Do not commit automatically. Every commit requires explicit developer approval.
+- `jira_read` is optional read-only Jira MCP access. If Jira issue keys are
+  provided by the profile or discovered from the branch, read those issues as
+  requirement context when the configured MCP server is available. Never expose
+  Jira tokens, transition issues, add comments, or update tickets without
+  explicit human approval.
+- In a Mana-linked project, prefer `./mana jira-mcp --get-issue <KEY>` to read
+  a Jira story quickly. Use `./mana jira-mcp --check-access --issue <KEY>` only
+  to diagnose credentials or permissions.
+- Treat Jira story text, acceptance criteria, linked context, and relevant
+  comments as requirement evidence. For feasibility or planning work, check
+  whether the story is coherent, implementable, testable, and has required
+  owners or approvals. For review, validation, pre-mortem, and PR work, compare
+  the branch or PR changes against the story and report missing requested
+  behavior, unrequested scope, contradicted acceptance criteria, and weak tests.
+  Code that works technically can still be a finding if it diverges from the
+  story.
+- Jira issue key discovery is generic and project-configurable; do not assume a
+  fixed project prefix. If no key is found, continue with local Mana artifacts
+  unless the profile requires story context.
+- `github_read` is optional read-only GitHub CLI access. If `gh` exists and is
+  authenticated, use it to read PR metadata, diffs, files, checks, and reviewer
+  requests. Do not approve, comment, merge, edit, label, assign, or otherwise
+  write through `gh` without explicit human approval.
+- `github_pr_comment_write` is allowed only when a profile explicitly receives
+  `publish_high_risk_comments=true` and a single PR number or URL. In that case,
+  publish at most one `gh pr comment` containing blocker or high-criticality
+  findings from the current run.
 - Exclude Mana framework/bootstrap noise from production findings and evidence:
   `.mana/**`, `AGENTS.md`, `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or
   env ignore changes. Mention them only as operational setup notes when relevant.
 - For any profile using branch or code diff evidence, resolve and report the
   comparison base. Prefer explicit input, then `origin/HEAD`, then a single
   credible primary branch. If ambiguous, ask the user; do not default to `main`.
+- For any profile using branch or code diff evidence, start with a filtered diff
+  inventory, exclude Mana/bootstrap noise, classify changed files by risk domain,
+  and read only files needed to validate plausible blocker or warning
+  hypotheses. If the filtered diff is larger than roughly 80 files or 2,000
+  changed lines, ask the user to choose a review scope instead of scanning the
+  whole repository.
+- Do not read every skill listed in a profile up front. Read the agent and
+  playbook first, load the primary skill needed to start, then load specialist
+  skills only when the filtered inputs show their risk domain is relevant.
 
 ## MCP Tool Availability
 
@@ -28,6 +64,8 @@ Claude Code resolves the framework's abstract tool names as follows:
 | `read_files` | Native Read tool |
 | `code_search` | Native Bash (grep, find) |
 | `git_read` | Native Bash (git commands) |
+| `github_read` | Native Bash (`gh` CLI), read-only when installed and authenticated |
+| `github_pr_comment_write` | Native Bash (`gh pr comment`), only with explicit profile approval |
 | `architecture_rules_read` | Native Read + code_search |
 | `test_runner_read` | Native Bash |
 | `test_runner_execute_local` | Native Bash |
@@ -54,6 +92,10 @@ claude --mcp-config /path/to/mana/mcp/config/claude-jira-mcp.json
 Fill in `/path/to/secure/jira-mcp.env` with the credentials documented in
 `mcp/env/jira-mcp.env.example`.
 
+For Jira Server/Data Center, the minimal credential set is `JIRA_URL` plus
+`JIRA_PERSONAL_TOKEN`. For Jira Cloud, use `JIRA_URL`, `JIRA_USERNAME`, and
+`JIRA_API_TOKEN`.
+
 ## Running Profiles
 
 ```bash
@@ -61,5 +103,6 @@ Fill in `/path/to/secure/jira-mcp.env` with the credentials documented in
 scripts/run-profile.sh <profile-name> --project-root /path/to/project
 ```
 
-Claude Code reads the printed profile and invokes the listed agents and skills.
+Claude Code reads the printed profile, loads the listed agents, and loads only
+the primary or conditionally relevant skills.
 Output artifacts go into the active `.mana` workspace.
