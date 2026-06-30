@@ -71,6 +71,24 @@ Gate names should be concrete, for example:
 - Operations
 - Review readiness
 
+## Requirement Evidence
+
+When a Jira story, Markdown story-pack, or equivalent requirement source is
+available, agents and skills must treat it as evidence, not background. The
+output should state which story or requirement source was used and whether the
+task was:
+
+- feasibility/planning: verify that the requested behavior is coherent,
+  implementable, testable, bounded, and has required owners, dependencies, and
+  approvals;
+- review/validation/pre-mortem/PR readiness: compare the branch or PR changes
+  against the story text and acceptance criteria.
+
+Findings must call out missing requested behavior, unrequested scope,
+contradicted acceptance criteria, weak tests that do not prove the story, and
+requirement gaps that block responsible delivery. If Jira is unavailable, report
+the access gap and identify the fallback source used.
+
 ## Findings
 
 Use this table shape:

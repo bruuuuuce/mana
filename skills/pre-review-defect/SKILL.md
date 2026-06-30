@@ -62,10 +62,11 @@ This skill exists to reduce delivery churn by making a narrow, reusable judgemen
 - review_checklist
 
 ## Execution Logic
-1. Scan changed code for common defect patterns.
-2. Cross-check tests against new behavior.
-3. Classify findings by blocker, warning, or info.
-4. Provide targeted reviewer checklist.
+1. Read story context and acceptance criteria when available.
+2. Scan changed code for common defect patterns and story divergence.
+3. Cross-check tests against requested behavior, not only new code paths.
+4. Classify findings by blocker, warning, or info.
+5. Provide targeted reviewer checklist.
 
 ## Decision Rules
 - `blocker`: unresolved high-risk issue, missing critical input, unsafe database/security/architecture condition, or untestable requirement that prevents responsible delivery.

@@ -61,9 +61,11 @@ This skill exists to reduce delivery churn by making a narrow, reusable judgemen
 
 ## Execution Logic
 1. Inspect test intent and assertions.
-2. Compare tests with planned scenarios.
-3. Flag brittle setup or hidden shared state.
-4. Recommend focused improvements.
+2. Compare tests with Jira story text, acceptance criteria, and planned
+   scenarios when available.
+3. Flag tests that exercise code but do not prove requested behavior.
+4. Flag brittle setup or hidden shared state.
+5. Recommend focused improvements.
 
 ## Decision Rules
 - `blocker`: unresolved high-risk issue, missing critical input, unsafe database/security/architecture condition, or untestable requirement that prevents responsible delivery.

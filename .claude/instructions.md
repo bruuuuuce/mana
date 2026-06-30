@@ -12,6 +12,25 @@
 - Respect MCP least privilege, redaction, approval, and audit policies.
 - Stop on high-risk database, architecture, security, or cross-service blockers.
 - Do not commit automatically. Every commit requires explicit developer approval.
+- `jira_read` is optional read-only Jira MCP access. If Jira issue keys are
+  provided by the profile or discovered from the branch, read those issues as
+  requirement context when the configured MCP server is available. Never expose
+  Jira tokens, transition issues, add comments, or update tickets without
+  explicit human approval.
+- In a Mana-linked project, prefer `./mana jira-mcp --get-issue <KEY>` to read
+  a Jira story quickly. Use `./mana jira-mcp --check-access --issue <KEY>` only
+  to diagnose credentials or permissions.
+- Treat Jira story text, acceptance criteria, linked context, and relevant
+  comments as requirement evidence. For feasibility or planning work, check
+  whether the story is coherent, implementable, testable, and has required
+  owners or approvals. For review, validation, pre-mortem, and PR work, compare
+  the branch or PR changes against the story and report missing requested
+  behavior, unrequested scope, contradicted acceptance criteria, and weak tests.
+  Code that works technically can still be a finding if it diverges from the
+  story.
+- Jira issue key discovery is generic and project-configurable; do not assume a
+  fixed project prefix. If no key is found, continue with local Mana artifacts
+  unless the profile requires story context.
 - `github_read` is optional read-only GitHub CLI access. If `gh` exists and is
   authenticated, use it to read PR metadata, diffs, files, checks, and reviewer
   requests. Do not approve, comment, merge, edit, label, assign, or otherwise
@@ -72,6 +91,10 @@ claude --mcp-config /path/to/mana/mcp/config/claude-jira-mcp.json
 
 Fill in `/path/to/secure/jira-mcp.env` with the credentials documented in
 `mcp/env/jira-mcp.env.example`.
+
+For Jira Server/Data Center, the minimal credential set is `JIRA_URL` plus
+`JIRA_PERSONAL_TOKEN`. For Jira Cloud, use `JIRA_URL`, `JIRA_USERNAME`, and
+`JIRA_API_TOKEN`.
 
 ## Running Profiles
 

@@ -14,6 +14,7 @@ skills_used:
   - test-quality
   - regression-selection
 allowed_tools:
+  - jira_read
   - github_read
   - github_pr_comment_write
   - git_read
@@ -60,19 +61,28 @@ Find open pull requests where the current user is a requested reviewer, or analy
    is a requested reviewer. Prefer `gh pr list --review-requested @me --state
    open` in the active repository. If the repository cannot be inferred, ask the
    user for the target repo.
-3. For each candidate or selected PR, read metadata only: number, title, author, head
-   branch, base branch, review requests, labels, changed file count, additions,
-   deletions, checks status, and PR URL.
-4. Rank PRs by review risk before reading large diffs. Prioritize production
+3. For each candidate or selected PR, read metadata only: number, title, author,
+   head branch, base branch, review requests, labels, changed file count,
+   additions, deletions, checks status, and PR URL.
+4. Extract generic Jira issue keys from PR head branch names and titles when
+   available, or use issue keys provided by the profile. If `jira_read` is
+   configured, read those issues as requirement context before ranking review
+   risk. Do not assume a fixed project prefix. If Jira is unavailable, report
+   the access gap and continue with PR evidence.
+5. Compare selected PR changes against Jira story text and acceptance criteria
+   when story evidence is available. Report missing requested behavior,
+   unrequested scope, contradicted acceptance criteria, and tests that do not
+   prove the story.
+6. Rank PRs by review risk before reading large diffs. Prioritize production
    paths, database changes, public APIs, cross-service contracts, auth/security,
    concurrency, large diffs, failing checks, missing tests, and stale PRs.
-5. For each selected PR, load the PR diff and changed-file list. Exclude
+7. For each selected PR, load the PR diff and changed-file list. Exclude
    Mana/bootstrap noise from findings and evidence: `.mana/**`, `AGENTS.md`,
    `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or env ignore changes.
-6. If a selected PR has more than roughly 80 changed files or 2,000 changed
+8. If a selected PR has more than roughly 80 changed files or 2,000 changed
    lines after filtering, stop that PR with `needs_human_decision` and ask for
    a narrower review scope.
-7. Load only skills relevant to the filtered PR diff:
+9. Load only skills relevant to the filtered PR diff:
    - `pre-review-defect` when application code changed.
    - `architecture-risk` when design boundaries, transactions, feature flags,
      concurrency, or forbidden zones are touched.
@@ -82,14 +92,14 @@ Find open pull requests where the current user is a requested reviewer, or analy
      changed.
    - `test-quality` when test files or CI/check evidence must be evaluated.
    - `regression-selection` when the reviewer needs targeted test suggestions.
-8. Produce review-ready findings with file/line or PR evidence, questions for
+10. Produce review-ready findings with file/line or PR evidence, questions for
    the author, suggested local checks, and suggested review comments.
-9. If `publish_high_risk_comments` is true, `pr_number` is provided, and the run
+11. If `publish_high_risk_comments` is true, `pr_number` is provided, and the run
    found blocker or high-criticality findings, publish exactly one PR comment
    with only those highest-criticality findings. Do not publish medium, low, or
    speculative findings. If no blocker or high-criticality findings exist, do
    not comment.
-10. Stop at human approval gates for any external write not explicitly covered
+12. Stop at human approval gates for any external write not explicitly covered
    by `publish_high_risk_comments`, destructive actions, or
    high-risk blocker conclusions.
 
@@ -138,6 +148,9 @@ Default output routing:
 
 ## MCP Tools Required
 - Optional read-only GitHub CLI access through `github_read`.
+- Optional read-only Jira access through `jira_read` for issue keys discovered
+  from PR branches or supplied by the profile. Issue key discovery is generic
+  and project-configurable; do not assume a fixed project prefix.
 - Optional human-approved PR comment publishing through `github_pr_comment_write`.
 - Read-only Git and repository search.
 - Architecture rules read access where applicable.

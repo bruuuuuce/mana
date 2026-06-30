@@ -78,6 +78,14 @@ Default output routing:
 
 ## MCP Tools Required
 - Read-only Jira, Confluence, Git, architecture rules, and repository search where applicable.
+- When Jira issue keys are provided or discovered from the branch name, use
+  read-only `jira_read` to load those issues as delivery context. Issue key
+  discovery is generic and project-configurable; do not assume a fixed project
+  prefix. If Jira is unavailable, report the access gap and continue with local
+  artifacts.
+- Treat Jira story text, acceptance criteria, linked context, and relevant
+  comments as the expected delivery intent when classifying incidents, misses,
+  rule updates, and process learning.
 - Liquibase and database snapshot read access only when database changes are in scope.
 - Test runner access for local or CI evidence collection.
 - Human-approved write tools only for publishing reports or comments.

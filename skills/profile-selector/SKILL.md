@@ -80,6 +80,7 @@ to switch phase without looking up the profile catalogue manually.
 | PR readiness, PR package, handoff | Developer | `pr-ready` |
 | Review PRs where I am requested reviewer | Reviewer / TL | `requested-pr-review` |
 | Review one PR by number | Reviewer / TL | `requested-pr-review --pr <number>` |
+| Read one Jira story quickly | Developer / TL / Reviewer | `./mana jira-mcp --get-issue <KEY>` |
 | Release readiness, continuity, rollback | Application Manager | `am-release-ready` |
 | CI validation gate | CI / TL | `ci-validation` |
 | General framework question, onboarding, next step | Any | `mana-help` |
@@ -136,6 +137,11 @@ without user confirmation.
 ## Interaction With MCP
 No MCP write operations. Read-only access to local files and `profiles/` is
 sufficient. No external system access required.
+When routing a request that includes a Jira issue key, prefer profiles or
+commands that preserve story evidence. For simple story reads, use
+`./mana jira-mcp --get-issue <KEY>`. For planning, review, validation, and
+pre-mortem profiles, ensure the selected agent compares story text and
+acceptance criteria against the requested feasibility or branch/PR analysis.
 
 ## Correct Usage Examples
 - User says "I'm about to commit and want to run the pre-mortem" → selects `jessica-fletcher`.
@@ -144,6 +150,8 @@ sufficient. No external system access required.
 - User says "review the PRs assigned to me" → selects `requested-pr-review`.
 - User says "review PR 123" → selects `requested-pr-review` with command
   `scripts/run-profile.sh requested-pr-review --pr 123 --project-root .`.
+- User says "read Jira story PROJ-1234" → recommend
+  `./mana jira-mcp --get-issue PROJ-1234` in a linked project.
 - User says "I just started this story" → selects `story-start`.
 - User says "switch to AM release readiness" → selects `am-release-ready`, warns if user lacks AM role.
 

@@ -102,8 +102,10 @@ approve risk.
 4. Classify touched risk domains from the filtered inventory, then read full
    file contents only where needed to validate plausible blocker or warning
    hypotheses.
-5. Compare changed files with story context, impact map, service context, and
-   engineering guards.
+5. Compare changed files with Jira story text, acceptance criteria, story
+   context, impact map, service context, and engineering guards.
+   Treat missing requested behavior, unrequested scope, and contradicted
+   acceptance criteria as production-risk hypotheses.
 6. Ask the incident question for each touched domain: "if this caused production
    trouble, what failed first and why?"
 7. Rank hypotheses by plausibility, impact, and evidence strength.

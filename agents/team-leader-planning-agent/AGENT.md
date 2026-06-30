@@ -80,6 +80,16 @@ Help Team Leaders convert requirements and technical analysis into a development
 ## Service Context Layer
 Load `.mana/global/service-mission.md`, `architecture.md`, `engineering-guards.md`, `testing-policy.md`, and `.mana/global/team-decisions/` when present.
 
+## Jira Context
+When Jira issue keys are provided by the profile or discovered from the branch
+name, use read-only `jira_read` to load those issues as story-planning context.
+Issue key discovery is generic and project-configurable; do not assume a fixed
+project prefix. If Jira is unavailable, report the access gap and continue with
+local Mana artifacts or explicit user-provided story context.
+Use the story text, acceptance criteria, linked context, and relevant comments
+to decide whether the story is ready to start, whether it is sliceable and
+testable, and whether ownership, dependencies, and approvals are sufficient.
+
 ## Artifact Workspace
 Write outputs to the active Mana workspace:
 - `team-leader-plan.md` -> `planning/team-leader-plan.md`

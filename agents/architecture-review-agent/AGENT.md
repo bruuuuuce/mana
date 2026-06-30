@@ -84,6 +84,17 @@ Orchestrate architecture review before implementation or merge. The agent makes 
 ## Service Context Layer
 Load `.mana/global/architecture.md`, `engineering-guards.md`, `integration-map.md`, `database-policy.md`, `testing-policy.md`, `domain-glossary.md`, and `.mana/global/team-decisions/` when present.
 
+## Jira Context
+When Jira issue keys are provided by the profile or discovered from the branch
+name, use read-only `jira_read` to load those issues as requirement and design
+context before drawing architecture conclusions. Issue key discovery is generic
+and project-configurable; do not assume a fixed project prefix. If Jira is
+unavailable, report the access gap and continue with local Mana artifacts or
+explicit user-provided design context.
+Use the story text, acceptance criteria, linked context, and relevant comments
+to check whether the requested change makes architectural sense, needs an ADR or
+owner approval, and whether branch/design evidence contradicts the requirement.
+
 ## Artifact Workspace
 Write outputs to the active Mana workspace:
 - `architecture-review-report.md` -> `validation/architecture-review-report.md`

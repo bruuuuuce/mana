@@ -62,10 +62,13 @@ This skill exists to reduce delivery churn by making a narrow, reusable judgemen
 - inspection_scope
 
 ## Execution Logic
-1. Search code for domain terms, endpoints, events, entities, mappers, and tests.
-2. Classify findings by confidence.
-3. Respect forbidden zones and ownership boundaries.
-4. Record assumptions and approval gates.
+1. Extract domain terms, requested behavior, acceptance criteria, data,
+   integrations, and constraints from the Jira story or fallback story-pack when
+   available.
+2. Search code for domain terms, endpoints, events, entities, mappers, and tests.
+3. Classify findings by confidence.
+4. Respect forbidden zones and ownership boundaries.
+5. Record assumptions, unrequested candidate scope, and approval gates.
 
 ## Impact Classification
 - `probably_modify`: files or components strongly connected to the requested behavior and likely to need code or test changes.

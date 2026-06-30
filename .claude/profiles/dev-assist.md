@@ -8,4 +8,4 @@ Typical invocation sequence:
 3. Ask Claude Code to invoke `concurrency-risk` and `known-pitfalls-extraction` on the target class.
 4. Review findings before writing any code.
 
-Output artifacts go into `.mana/features/<JIRA-KEY>/agent-memory/`. Do not commit the workspace artifacts automatically.
+Output artifacts go into `.mana/features/<FEATURE-ID>/agent-memory/`. Do not commit the workspace artifacts automatically.

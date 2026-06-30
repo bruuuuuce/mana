@@ -148,6 +148,10 @@ Supports the developer while writing code — before any diff exists. Organized 
 ## jessica-fletcher
 **Trigger:** `before_commit` · **Owner:** Developer · **Duration:** 15 min
 
+Reads Jira story evidence when issue keys are available and compares the branch
+against story text and acceptance criteria before ranking production failure
+hypotheses.
+
 | Skill | Description | Risk | Owner |
 |---|---|---|---|
 | [`production-premortem`](../skills/production-premortem/SKILL.md) | Analyze branch changes from the incident question: "This code is causing production problems — find the reasons." Rank failure modes by plausibility and blast radius. | high | Team Leader / Architect / Developer |
@@ -163,6 +167,10 @@ Supports the developer while writing code — before any diff exists. Organized 
 
 ## branch-ready
 **Trigger:** `before_pr` · **Owner:** Developer / Team Leader · **Duration:** 20 min
+
+Uses story evidence, planning artifacts, and branch diff together to detect
+missing requested behavior, unrequested scope, contradicted acceptance criteria,
+plan drift, missing tests, and unresolved risk before PR.
 
 | Skill | Description | Risk | Owner |
 |---|---|---|---|
@@ -208,6 +216,10 @@ Same skills as `branch-ready`, plus `development-summary`:
 ## pr-ready
 **Trigger:** `pr_ready` · **Owner:** Developer · **Duration:** 15 min
 
+Builds the PR package from branch evidence and story evidence, ensuring the PR
+description, reviewer focus, risks, and tests reflect what the story actually
+asked for.
+
 | Skill | Description | Risk | Owner |
 |---|---|---|---|
 | [`development-summary`](../skills/development-summary/SKILL.md) | Document assumptions, decisions, clarifications, implemented changes, tests, risks, and unresolved items for team alignment. | low | Developer / Team Leader |
@@ -227,8 +239,11 @@ Same skills as `branch-ready`, plus `development-summary`:
 Uses read-only GitHub CLI access when available to find open PRs where the user
 is a requested reviewer, or to analyze one explicit PR with `--pr <number>`,
 rank them by review risk, and run only the review skills relevant to each
-selected PR diff. With `--publish-high-risk-comments`, the agent may publish one
-PR comment containing only blocker or high-criticality findings from that run.
+selected PR diff. When Jira issue keys are available from the PR branch/title or
+profile input, it reads the story and compares the PR against story text and
+acceptance criteria. With `--publish-high-risk-comments`, the agent may publish
+one PR comment containing only blocker or high-criticality findings from that
+run.
 
 | Skill | Description | Risk | Owner |
 |---|---|---|---|

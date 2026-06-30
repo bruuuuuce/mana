@@ -45,3 +45,25 @@ commands:
 warnings:
   - "Add --publish-high-risk-comments only if you want one blocker/high-criticality PR comment to be posted automatically."
 ```
+
+## Example 3: Read One Jira Story
+
+Input:
+
+```yaml
+user_question: "Can Mana read Jira story PROJ-1234?"
+mcp_status: "jira env configured"
+```
+
+Output:
+
+```yaml
+agent: mana-help-agent
+status: ready
+next_step: "Read the Jira story through the Mana wrapper."
+commands:
+  - "./mana jira-mcp --get-issue PROJ-1234"
+  - "./mana jira-mcp --check-access --issue PROJ-1234"
+warnings:
+  - "Use --check-access only for credential or permission diagnostics."
+```

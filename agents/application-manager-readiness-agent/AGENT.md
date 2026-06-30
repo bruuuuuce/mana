@@ -81,6 +81,17 @@ Produce AM-facing release readiness evidence for functional impact, operational 
 ## Service Context Layer
 Load `.mana/global/service-mission.md`, `architecture.md`, `engineering-guards.md`, `integration-map.md`, `testing-policy.md`, `database-policy.md`, and `.mana/global/known-pitfalls/` when present.
 
+## Jira Context
+When Jira issue keys are provided by the profile or discovered from the branch
+name, use read-only `jira_read` to load those issues as release-scope and
+requirement context. Issue key discovery is generic and project-configurable; do
+not assume a fixed project prefix. If Jira is unavailable, report the access gap
+and continue with local Mana artifacts or explicit user-provided scope.
+Use the story text, acceptance criteria, linked context, and relevant comments
+to verify release impact and operational readiness against what was actually
+requested. Flag unrequested scope, missing requested behavior, and acceptance
+criteria that lack release/test/rollback evidence.
+
 ## Artifact Workspace
 Write outputs to the active Mana workspace:
 - `am-readiness-report.md` -> `validation/am-readiness-report.md`

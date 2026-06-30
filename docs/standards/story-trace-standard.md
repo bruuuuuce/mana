@@ -3,7 +3,7 @@
 Every feature or Jira-story workspace must maintain one canonical story trace:
 
 ```text
-.mana/features/<JIRA-KEY>/agent-memory/story-trace.md
+.mana/features/<FEATURE-ID>/agent-memory/story-trace.md
 ```
 
 For canonical-branch sessions, use the equivalent session workspace:

@@ -37,10 +37,26 @@ After bootstrap, use:
 ./mana profile mana-help
 ./mana profile story-start
 ./mana profile jessica-fletcher
+./mana profile jessica-fletcher --jira-key PROJ-1234 --codex
 ./mana workspace status
 ./mana workspace init --feature PROJ-1234
+./mana jira-mcp --get-issue PROJ-1234
+./mana jira-mcp --env-file .mana/jira-mcp.env --check-access --issue PROJ-1234
 ./mana jira-mcp --env-file .mana/jira-mcp.env --dry-run
 ```
+
+For Jira Server/Data Center, you can skip the env file and launch the profile
+from a shell with:
+
+```bash
+export JIRA_URL=https://jira.your-company.com
+export JIRA_PERSONAL_TOKEN=...
+./mana profile jessica-fletcher --codex
+```
+
+Mana discovers generic Jira issue keys from the current branch name using a
+configurable pattern such as `PROJ-1234`. Pass `--jira-key <KEY>` when the
+branch name does not contain the issue key.
 
 ## Git Ignore
 
@@ -57,6 +73,6 @@ artifacts intentionally.
 ## Notes
 
 - `.mana/links/` contains symlinks to framework folders for discoverability.
-- Real Jira credentials should stay in `.mana/jira-mcp.env` or another ignored
-  env file.
+- Real Jira credentials should stay in `.mana/jira-mcp.env`, another ignored
+  env file, or shell environment variables. They must not be committed.
 - Re-run with `--force` to refresh generated wrapper files and managed symlinks.

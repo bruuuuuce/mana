@@ -123,6 +123,7 @@ still requires the normal owner approval.
 - "What should an Architect run before approving this branch?"
 - "What should an Application Manager run before release readiness?"
 - "Jira MCP does not work; how do I continue?"
+- "Can Mana read Jira story PROJ-1234?"
 - "Which profile should I use before opening a PR?"
 - "Which profile should I use to review PRs assigned to me?"
 - "How do I review PR 123 quickly?"

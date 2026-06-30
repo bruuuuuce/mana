@@ -62,9 +62,12 @@ This skill exists to reduce delivery churn by making a narrow, reusable judgemen
 - clarification_questions
 
 ## Execution Logic
-1. Normalize domain terms.
-2. Compare business rules and acceptance criteria.
-3. Detect conflicting defaults, enum values, statuses, and ownership.
+1. Normalize domain terms from the Jira story, acceptance criteria, linked
+   context, and fallback story-pack when available.
+2. Compare business rules and acceptance criteria for internal consistency and
+   feasibility.
+3. Detect conflicting defaults, enum values, statuses, ownership, missing
+   requested behavior, and unrequested scope.
 4. Group conflicts by blocking severity.
 
 ## Decision Rules
@@ -94,6 +97,9 @@ Junie may use the output inside the IDE to implement one approved task at a time
 
 ## Interaction With MCP
 MCP access must be least-privilege. Read-only access is preferred. Writes, destructive operations, external comments, database execution, or ticket updates require human approval and audit logging.
+When Jira is available, use story text, acceptance criteria, linked context, and
+relevant comments as requirement evidence. If Jira is unavailable, report the
+gap and use the documented Markdown fallback instead of inferring requirements.
 
 ## Correct Usage Examples
 - Run during the intended lifecycle phase with the full story, context, and linked artifacts available.
