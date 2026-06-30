@@ -11,11 +11,11 @@ Mana currently provides the framework structure, governance model, reusable
 skill/agent definitions, profile metadata, artifact templates, workspace
 management, Jira MCP wrapper, project bootstrap, and diagnostics.
 
-`scripts/run-profile.sh` is intentionally conservative: it validates Mana
-freshness and prints the configured profile. It is not yet a full autonomous
-execution engine for every skill and agent. Use Codex with the documented
-profiles, agents, and playbooks, or connect a runner that interprets these
-definitions in your environment.
+`scripts/run-profile.sh` is intentionally conservative by default: it validates
+Mana freshness and prints the configured profile. Add `--codex` or `--claude`
+to route the rendered profile to that local runner. Mana still treats profiles,
+agents, and skills as governed definitions; the selected runner interprets them
+and writes artifacts into the active project workspace.
 
 ## Why This Framework Exists
 Enterprise delivery churn usually starts before coding: stories are vague, cross-service contracts are implicit, database changes are reviewed late, and tests are selected by habit rather than risk. The framework reduces analysis, development, review, testing, database deployment, cross-service integration, and regression churn by making evidence explicit at each lifecycle gate.

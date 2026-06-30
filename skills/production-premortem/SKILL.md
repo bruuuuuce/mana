@@ -15,8 +15,10 @@ allowed_tools:
   - architecture_rules_read
   - test_runner_read
 inputs:
+  - main_branch
+  - local_branch_diff
   - branch_diff
-  - staged_diff
+  - uncommitted_diff
   - story_context
   - source_impact_map
   - green_border_plan
@@ -68,8 +70,10 @@ approve risk.
   architecture docs, logs, or repository evidence.
 
 ## Inputs
+- main_branch
+- local_branch_diff
 - branch_diff
-- staged_diff
+- uncommitted_diff
 - story_context
 - source_impact_map
 - green_border_plan
@@ -85,15 +89,21 @@ approve risk.
 - mitigation_checklist
 
 ## Execution Logic
-1. Read the branch or staged diff and classify touched risk domains.
-2. Compare changed files with story context, impact map, service context, and
+1. Read the full local branch diff against the resolved main branch and classify
+   touched risk domains. Include uncommitted working-tree changes when present.
+   Do not use staged diff as the analysis boundary.
+2. Exclude Mana framework/bootstrap noise from production hypotheses, findings,
+   evidence, missing-test lists, and failure modes: `.mana/**`, `AGENTS.md`,
+   `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or env ignore changes.
+   Mention these only as operational setup notes when relevant.
+3. Compare changed files with story context, impact map, service context, and
    engineering guards.
-3. Ask the incident question for each touched domain: "if this caused production
+4. Ask the incident question for each touched domain: "if this caused production
    trouble, what failed first and why?"
-4. Rank hypotheses by plausibility, impact, and evidence strength.
-5. Identify missing tests, missing observability, unsafe defaults, config drift,
+5. Rank hypotheses by plausibility, impact, and evidence strength.
+6. Identify missing tests, missing observability, unsafe defaults, config drift,
    rollback gaps, and owner approvals.
-6. Produce a mitigation checklist with stop/go guidance.
+7. Produce a mitigation checklist with stop/go guidance.
 
 ## Failure Mode Catalogue
 Review at least these classes when relevant:
@@ -121,6 +131,8 @@ Review at least these classes when relevant:
 - `info`: low-risk hypothesis or reviewer note useful for PR context.
 
 ## Failure Modes
+- If the main branch is ambiguous, the runner must ask the user which base branch
+  to compare against before producing findings.
 - Missing production topology, traffic, data volume, or incident history can
   understate risk.
 - Repository-only analysis cannot prove runtime behavior.
@@ -161,6 +173,7 @@ triggers require human approval.
 
 ## Correct Usage Examples
 - Run on a branch diff before commit and ask for likely production failure modes.
+- Run on `git diff <main-branch>...HEAD` plus uncommitted local changes.
 - Run after tests pass but before PR to identify missing production safeguards.
 - Use the report to add targeted tests or ask for owner approval.
 
@@ -178,7 +191,8 @@ Internal reasoning must use compact caveman mode: terse fragments, evidence-firs
 ## Diagram
 ```mermaid
 flowchart TD
-    Diff[Branch or staged diff] --> Domains[Risk domain classification]
+    Base[Resolved main branch] --> Diff[Full local branch diff]
+    Diff --> Domains[Risk domain classification]
     Domains --> Incident[Production incident hypotheses]
     Incident --> Evidence[Evidence and missing evidence]
     Evidence --> Rank[Rank plausibility and impact]

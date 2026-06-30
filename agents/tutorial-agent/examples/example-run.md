@@ -54,7 +54,10 @@ correct.
 
 ```mermaid
 flowchart TD
-    Trigger[Before commit or push] --> Load[Load staged diff + branch diff]
+    Trigger[Before commit or push] --> Base[Resolve main branch]
+    Base --> Clear{Main branch clear?}
+    Clear -->|no| Ask[Ask developer for base branch]
+    Clear -->|yes| Load[Load full local branch diff]
     Load --> Context[Load .mana planning artifacts if present]
     Context --> SC[Load .mana/global service context]
     SC --> Pre[production-premortem: rank failure modes]
@@ -93,7 +96,8 @@ flowchart TD
 
 | Input | Required | Where to find it |
 |---|---|---|
-| Staged diff or branch diff | Yes | `git diff --staged` or `git diff main...HEAD` |
+| Main branch | Yes | Explicit user input, `origin/HEAD`, or the only credible primary branch |
+| Full local branch diff | Yes | `git diff <main-branch>...HEAD` plus uncommitted working-tree changes |
 | Story context | Recommended | `.mana/features/<JIRA-KEY>/context/` or Jira MCP |
 | Source impact map | Recommended | `.mana/features/<JIRA-KEY>/planning/01-source-impact-map.md` |
 | Green-border plan | Recommended | `.mana/features/<JIRA-KEY>/planning/05-green-border-plan.md` |
@@ -102,7 +106,7 @@ flowchart TD
 | Test evidence | Recommended | `.mana/features/<JIRA-KEY>/tests/` |
 
 Planning artifacts are optional but improve result quality significantly.
-Without them, jessica-fletcher works from the diff alone.
+Without them, jessica-fletcher works from the full local branch diff alone.
 
 ### Annotated Sample Output
 
@@ -133,7 +137,7 @@ is missing. All other findings are warnings or informational.
 ## Findings
 | Severity | Area | Finding | Evidence | Owner | Recommended Action |
 |---|---|---|---|---|---|
-| blocker | concurrency | PaymentRetryService.retry() not idempotent | No lock or idempotency check in staged diff | Developer / Architect | Add idempotency key; review with Architect before merge |
+| blocker | concurrency | PaymentRetryService.retry() not idempotent | No lock or idempotency check in branch diff | Developer / Architect | Add idempotency key; review with Architect before merge |
 | warning | database | Migration V42 missing rollback | liquibase-production-risk: no <rollback> tag | DBA | Add rollback SQL; DBA review required |
 | warning | test | No concurrent retry test | regression-selection: only unit happy-path found | Developer | Add test before PR |
 | info | architecture | No boundary changes detected | architecture-risk: no cross-service call added | — | None |
@@ -197,8 +201,9 @@ flowchart TD
 - [ ] Test evidence collected: `.mana/features/<JIRA-KEY>/tests/`
 
 ## Run Command
-- [ ] Stage or commit changes: `git add -p` or `git commit`
+- [ ] Make local branch changes; staging is not required for Jessica.
 - [ ] Run jessica-fletcher: `scripts/run-profile.sh jessica-fletcher --project-root .`
+- [ ] Confirm the main branch if Codex or Claude cannot resolve it unambiguously.
 
 Claude Code can run this profile directly from the terminal as an alternative
 to Codex. See `docs/examples/end-to-end-claude-flow.md`.

@@ -3,6 +3,10 @@
 ## Preparation
 - Confirm the trigger point: `architecture_review`, `before_development`, or `before_pr`.
 - Collect story, design notes, architecture context, engineering guards, integration map, branch diff, and test evidence.
+- Resolve and report the branch diff base. Prefer explicit design/PR target or
+  user input, then `origin/HEAD`, then a single credible primary branch. If the
+  base is missing or ambiguous, stop with `needs_human_decision` and ask which
+  branch to compare against. Do not silently default to `main`.
 - Identify whether database, security, cross-service, or operational concerns are in scope.
 
 ## Execution

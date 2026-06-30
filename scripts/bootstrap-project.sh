@@ -156,7 +156,8 @@ Usage:
 
 Examples:
   ./mana profile story-start
-  ./mana profile jessica-fletcher
+  ./mana profile jessica-fletcher --codex
+  ./mana profile jessica-fletcher --claude
   ./mana workspace status
   ./mana workspace init --feature PROJ-1234
   ./mana jira-mcp --env-file .mana/jira-mcp.env --dry-run
@@ -250,7 +251,9 @@ See \`.mana/links/.claude/instructions.md\` for full runner governance.
 ## Invoking Profiles
 
 \`\`\`bash
-./mana profile <name>
+./mana profile <name>                # render profile
+./mana profile <name> --codex        # run via Codex
+./mana profile <name> --claude       # run via Claude Code
 \`\`\`
 
 Key profiles:
@@ -268,7 +271,7 @@ When asked to run a profile, Claude Code:
 3. Invokes each skill via \`.mana/links/skills/<skill>/SKILL.md\`
 4. Writes outputs to the active \`.mana/\` workspace
 
-Say: \"Run the jessica-fletcher profile\" — Claude Code follows the full chain.
+Run: \`./mana profile jessica-fletcher --claude\` — Claude Code follows the full chain.
 
 ## Workspace
 
@@ -293,7 +296,9 @@ See \`.mana/links/.codex/instructions.md\` for full runner governance.
 ## Invoking Profiles
 
 \`\`\`bash
-./mana profile <name>
+./mana profile <name>                # render profile
+./mana profile <name> --codex        # run via Codex
+./mana profile <name> --claude       # run via Claude Code
 \`\`\`
 
 Key profiles:
@@ -311,7 +316,7 @@ When asked to run a profile, Codex:
 3. Invokes each skill via \`.mana/links/skills/<skill>/SKILL.md\`
 4. Writes outputs to the active \`.mana/\` workspace
 
-Say: \"Run the jessica-fletcher profile\" — Codex follows the full chain.
+Run: \`./mana profile jessica-fletcher --codex\` — Codex follows the full chain.
 
 ## Workspace
 

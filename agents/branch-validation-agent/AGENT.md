@@ -56,16 +56,20 @@ The central responsibility is plan-drift detection: compare approved planning ar
 
 ## Workflow
 1. Load the original `00-story-context.md`, `01-source-impact-map.md`, `02-implementation-plan.md`, `04-technical-task-breakdown.md`, `05-green-border-plan.md`, and `06-risk-register.md`.
-2. Load the current branch diff, test evidence, and any generated hook or green-border reports.
-3. Use `source-impact-map` to compare planned files with modified files and classify drift as approved, unplanned, missing, or forbidden.
-4. Use `technical-task-breakdown` to verify each planned technical task has implementation evidence or an explicit deferral.
-5. Use `green-border-plan`, `regression-selection`, and `test-quality` to verify required tests exist, were selected correctly, and are meaningful.
-6. Use `pre-review-defect` for common code defects before human review.
-7. Use `developer-decision-review` to generate targeted questions for unexplained choices, plan drift, risky trade-offs, and missing rationale.
-8. Use `architecture-risk` and `cross-service-contract` for design and integration risks introduced by the actual diff.
-9. Use `liquibase-production-risk` when any database changelog or migration file changed.
-10. Aggregate blocker, warning, and info findings into the expected artifacts.
-11. Stop at human approval gates when blockers or out-of-policy actions are detected.
+2. Resolve and report the branch diff base. Prefer explicit PR target or user
+   input, then `origin/HEAD`, then a single credible primary branch. If the base
+   is missing or ambiguous, stop with `needs_human_decision` and ask which
+   branch to compare against. Do not silently default to `main`.
+3. Load the current branch diff, test evidence, and any generated hook or green-border reports.
+4. Use `source-impact-map` to compare planned files with modified files and classify drift as approved, unplanned, missing, or forbidden.
+5. Use `technical-task-breakdown` to verify each planned technical task has implementation evidence or an explicit deferral.
+6. Use `green-border-plan`, `regression-selection`, and `test-quality` to verify required tests exist, were selected correctly, and are meaningful.
+7. Use `pre-review-defect` for common code defects before human review.
+8. Use `developer-decision-review` to generate targeted questions for unexplained choices, plan drift, risky trade-offs, and missing rationale.
+9. Use `architecture-risk` and `cross-service-contract` for design and integration risks introduced by the actual diff.
+10. Use `liquibase-production-risk` when any database changelog or migration file changed.
+11. Aggregate blocker, warning, and info findings into the expected artifacts.
+12. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Skills Used And Why
 - `source-impact-map`: detects unplanned files, missing planned files, and files that should not be touched without approval.
@@ -115,6 +119,7 @@ Junie is preferred for IDE-local implementation, local test generation, local te
 
 ## Blocking Conditions
 - Missing required planning artifacts or branch diff.
+- Branch diff base is missing or ambiguous and no owner has confirmed it.
 - Planned technical task has no implementation evidence and no approved deferral.
 - Modified file is outside the approved impact map and lacks owner approval.
 - File marked `do not touch unless approved` was changed without approval.

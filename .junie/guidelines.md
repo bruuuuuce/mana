@@ -9,3 +9,6 @@
 - Never modify files outside the approved source-impact map without asking.
 - Do not perform broad autonomous refactoring.
 - Do not edit the same branch concurrently with Codex-generated changes.
+- Exclude Mana framework/bootstrap noise from production findings and evidence:
+  `.mana/**`, `AGENTS.md`, `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or
+  env ignore changes. Mention them only as operational setup notes when relevant.

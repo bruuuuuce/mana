@@ -109,7 +109,7 @@ explicit developer approval.
 Before commit:
 
 ```bash
-./mana profile jessica-fletcher
+./mana profile jessica-fletcher --claude
 ```
 
 Ask Claude Code to answer:

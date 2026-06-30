@@ -10,8 +10,7 @@
     },
     "base_branch": {
       "type": "string",
-      "description": "Base branch to compare against. Defaults to main if not provided.",
-      "default": "main"
+      "description": "Base branch to compare against. If omitted, the runner must resolve a single credible base branch or ask the user."
     },
     "contributor_filter": {
       "type": "array",

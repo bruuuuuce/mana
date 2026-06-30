@@ -28,8 +28,10 @@ trigger_points:
   - pre_review
   - production_risk_question
 inputs:
-  - staged_diff
+  - main_branch
+  - local_branch_diff
   - branch_diff
+  - uncommitted_diff
   - story_context
   - planning_artifacts
   - test_evidence
@@ -63,21 +65,34 @@ actions before the branch is committed, pushed, or opened for review.
 - production_risk_question
 
 ## Workflow
-1. Load staged diff when available; otherwise load branch diff.
-2. Load active `.mana` planning artifacts when present: story context,
+1. Resolve the repository's main branch before analysis. Prefer an explicit
+   user-provided base branch; otherwise use the upstream default branch
+   (`origin/HEAD`), then common primary names such as `origin/main`,
+   `origin/master`, `main`, `master`, `develop`, or `dev` only when exactly one
+   candidate is credible. If the main branch is unclear, stop and ask the user
+   which branch to compare against.
+2. Load the full local branch diff against the resolved main branch, including
+   committed branch changes and uncommitted working-tree changes. Do not limit
+   the pre-mortem to the staged diff.
+3. Report the resolved main branch and diff command in the output evidence.
+4. Exclude Mana framework/bootstrap noise from production hypotheses, findings,
+   evidence, missing-test lists, and failure modes: `.mana/**`, `AGENTS.md`,
+   `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or env ignore changes.
+   Mention these only as operational setup notes when relevant.
+5. Load active `.mana` planning artifacts when present: story context,
    source impact map, technical task breakdown, green-border plan, risk register,
    test evidence, and decision log.
-3. Load Service Context Layer files when present.
-4. Invoke `production-premortem` as the primary skill.
-5. Invoke specialist skills only when relevant to the diff:
+6. Load Service Context Layer files when present.
+7. Invoke `production-premortem` as the primary skill.
+8. Invoke specialist skills only when relevant to the diff:
    `liquibase-production-risk` and `rollback-safety` for DB changes,
    `cross-service-contract` for API/event/message changes,
    `architecture-risk` for boundary or pattern changes,
    `pre-review-defect` for code-level defects,
    `test-quality` and `regression-selection` for test evidence gaps.
-6. Rank findings by severity, plausibility, production blast radius, and evidence
+9. Rank findings by severity, plausibility, production blast radius, and evidence
    strength.
-7. Produce a stop/go recommendation with mitigation checklist.
+10. Produce a stop/go recommendation with mitigation checklist.
 
 ## Skills Used And Why
 - `production-premortem`: primary incident-hypothesis analysis.
@@ -118,7 +133,7 @@ If no workspace exists, return the report in chat/console and recommend running
 `scripts/mana-workspace.sh init`.
 
 ## MCP Tools Required
-- Local Git diff and repository search are required.
+- Local Git diff, main-branch resolution, and repository search are required.
 - Jira/Confluence are optional read-only sources for requirement/design context.
 - Logs/observability are optional read-only sources if available.
 - No production database access, deployment trigger, external write, Jira comment,
@@ -139,6 +154,7 @@ report.
 
 ## Blocking Conditions
 - High-plausibility production failure mode with code evidence.
+- Main branch cannot be resolved unambiguously without developer input.
 - Critical behavior changed without green-border or regression evidence.
 - Unsafe database migration or missing rollback.
 - Protected-area or engineering-guard violation.
@@ -185,7 +201,10 @@ Internal reasoning must use compact caveman mode: terse fragments, evidence-firs
 ## Diagram
 ```mermaid
 flowchart TD
-    Trigger[Before commit or risk question] --> Diff[Load staged or branch diff]
+    Trigger[Before commit or risk question] --> Base[Resolve main branch]
+    Base --> Ambiguous{Main branch clear?}
+    Ambiguous -->|no| Ask[Ask user for base branch]
+    Ambiguous -->|yes| Diff[Load full local branch diff]
     Diff --> Context[Load Mana and service context]
     Context --> Premortem[production-premortem]
     Premortem --> Specialists[Specialist skills when relevant]
