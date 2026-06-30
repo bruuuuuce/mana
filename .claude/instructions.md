@@ -12,6 +12,14 @@
 - Respect MCP least privilege, redaction, approval, and audit policies.
 - Stop on high-risk database, architecture, security, or cross-service blockers.
 - Do not commit automatically. Every commit requires explicit developer approval.
+- `github_read` is optional read-only GitHub CLI access. If `gh` exists and is
+  authenticated, use it to read PR metadata, diffs, files, checks, and reviewer
+  requests. Do not approve, comment, merge, edit, label, assign, or otherwise
+  write through `gh` without explicit human approval.
+- `github_pr_comment_write` is allowed only when a profile explicitly receives
+  `publish_high_risk_comments=true` and a single PR number or URL. In that case,
+  publish at most one `gh pr comment` containing blocker or high-criticality
+  findings from the current run.
 - Exclude Mana framework/bootstrap noise from production findings and evidence:
   `.mana/**`, `AGENTS.md`, `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or
   env ignore changes. Mention them only as operational setup notes when relevant.
@@ -37,6 +45,8 @@ Claude Code resolves the framework's abstract tool names as follows:
 | `read_files` | Native Read tool |
 | `code_search` | Native Bash (grep, find) |
 | `git_read` | Native Bash (git commands) |
+| `github_read` | Native Bash (`gh` CLI), read-only when installed and authenticated |
+| `github_pr_comment_write` | Native Bash (`gh pr comment`), only with explicit profile approval |
 | `architecture_rules_read` | Native Read + code_search |
 | `test_runner_read` | Native Bash |
 | `test_runner_execute_local` | Native Bash |

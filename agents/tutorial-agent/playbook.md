@@ -18,7 +18,8 @@
 - Build the overview table from `profiles/*.yaml`.
 - Order rows by lifecycle: story-start → story-ready-for-dev → team-planning
   → architecture-review → pre-commit → jessica-fletcher → branch-ready
-  → pr-ready → am-release-ready → ci-validation → tutorial → mana-help.
+  → pr-ready → requested-pr-review → am-release-ready → ci-validation
+  → tutorial → mana-help.
 - Include `expected_max_duration` and `human_approval_requirement` from each
   profile YAML.
 - After presenting the table, ask one question: "Which profile do you want to

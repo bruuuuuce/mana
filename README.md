@@ -44,9 +44,10 @@ Codex is used for repository-level planning, validation, documentation, branch a
 12. Run a production pre-mortem with `profiles/jessica-fletcher.yaml`.
 13. Run green-border checks with `profiles/pre-push.yaml`.
 14. Validate the branch with `profiles/branch-ready.yaml`.
-15. Use `profiles/am-release-ready.yaml` when an Application Manager needs release, continuity, rollback, and incident-risk evidence.
-16. Generate the PR package with `profiles/pr-ready.yaml`.
-17. Learn the framework interactively at any time with `profiles/tutorial.yaml` or by asking `scripts/run-profile.sh mana-help`.
+15. Use `profiles/requested-pr-review.yaml` to triage open PRs where you are a requested reviewer.
+16. Use `profiles/am-release-ready.yaml` when an Application Manager needs release, continuity, rollback, and incident-risk evidence.
+17. Generate the PR package with `profiles/pr-ready.yaml`.
+18. Learn the framework interactively at any time with `profiles/tutorial.yaml` or by asking `scripts/run-profile.sh mana-help`.
 
 ## Repository Structure
 ```text
@@ -188,6 +189,8 @@ more specific artifact template does not exist.
 - **Generate pre-commit development notes:** use `profiles/pre-commit.yaml` and `pre-commit-documentation-agent` to create `pr/pre-commit-development-summary.md` and `pr/knowledge-transfer-brief.md`.
 - **Run a production pre-mortem:** use `profiles/jessica-fletcher.yaml` or `jessica-fletcher-agent` before commit/push to ask why the branch would fail in production.
 - **Validate branch:** run the Branch Validation Agent to detect plan drift, unplanned files, missing tests, unresolved risks, and unsafe DB changes.
+- **Triage requested reviews:** use `profiles/requested-pr-review.yaml` to read open GitHub PRs where you are a requested reviewer, rank them by risk, and produce draft review findings. The agent may use authenticated `gh` for read-only evidence and must not post comments or reviews without approval.
+- **Review one PR quickly:** run `scripts/run-profile.sh requested-pr-review --pr <number> --codex`. Add `--publish-high-risk-comments` only when you want one PR comment with blocker or high-criticality findings from that run.
 - **Prepare AM release readiness:** use `profiles/am-release-ready.yaml` for release impact, continuity, incident-risk, rollback, support, and communication evidence.
 - **Generate PR package:** run the PR Readiness Agent to create the PR description, reviewer focus, test evidence, risk report, and development summary.
 - **Create developer handoff:** use `skills/developer-handoff` through PR Readiness to generate a developer-facing reading guide with diagrams, code references, short snippets, tests to read first, and intentional non-changes.
@@ -211,7 +214,7 @@ MANA_UPDATE_CHECK=strict scripts/run-profile.sh branch-ready
 AI supports, analyzes, documents, suggests, and validates. It does not replace accountability. BA/PO owns requirement clarity; Team Leader and Architect own technical decisions and approval; Developers own implementation and final correctness; DBA/Security owners approve high-risk database or trust-boundary findings.
 
 ## Security Considerations
-Use MCP least privilege, environment separation, audit logs, data redaction, and explicit approval for destructive or external writes. Never expose secrets or production data in prompts, reports, or logs. Destructive database, repository, Jira, or CI operations must be human-approved.
+Use MCP least privilege, environment separation, audit logs, data redaction, and explicit approval for destructive or external writes. Optional GitHub CLI access is read-only by default: agents may read PR metadata, changed files, diffs, checks, and reviewer requests, but must not approve, comment, merge, edit, label, or assign without explicit human approval. A requested PR review run may publish one `gh pr comment` only with a selected PR and an explicit publish flag, and only for blocker or high-criticality findings. Never expose secrets or production data in prompts, reports, or logs. Destructive database, repository, Jira, GitHub, or CI operations must be human-approved.
 
 ## Contribution Guide
 Read `CONTRIBUTING.md`. New skills must be atomic, include required front matter, examples, decision rules, failure modes, MCP behavior, and human review gates. New agents must orchestrate existing skills rather than duplicate logic.

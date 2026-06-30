@@ -261,6 +261,7 @@ Key profiles:
 - \`jessica-fletcher\`     — Production pre-mortem before commit
 - \`branch-ready\`         — Branch validation before PR
 - \`pr-ready\`             — PR package generation
+- \`requested-pr-review\`  — Requested-review PR inbox triage
 - \`team-coaching-review\` — Per-contributor quality analysis (Team Leader)
 
 ## How Agents And Skills Work
@@ -285,6 +286,11 @@ Global context:    \`.mana/global/service-mission.md\`, \`architecture.md\`, \`e
 - Load \`.mana/global/engineering-guards.md\` before any analysis.
 - Write outputs to \`.mana/\` only — never to \`src/\` or project source.
 - Do not commit automatically — every git commit requires explicit developer approval.
+- \`github_read\` may use authenticated \`gh\` for read-only PR discovery and
+  evidence. Do not approve, comment, merge, edit, label, or assign through
+  GitHub without explicit developer approval.
+- \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
+  publish flag is provided, and only for blocker/high-criticality findings.
 "
 
 write_file "$project_root/CLAUDE.md" "$claude_md_content"
@@ -307,6 +313,7 @@ Key profiles:
 - \`jessica-fletcher\`     — Production pre-mortem before commit
 - \`branch-ready\`         — Branch validation before PR
 - \`pr-ready\`             — PR package generation
+- \`requested-pr-review\`  — Requested-review PR inbox triage
 - \`team-coaching-review\` — Per-contributor quality analysis (Team Leader)
 
 ## How Agents And Skills Work
@@ -332,6 +339,11 @@ Global context:    \`.mana/global/service-mission.md\`, \`architecture.md\`, \`e
 - Write outputs to \`.mana/\` only — never to \`src/\` or project source.
 - Do not modify the same branch while Junie is actively editing it.
 - Do not commit automatically — every git commit requires explicit developer approval.
+- \`github_read\` may use authenticated \`gh\` for read-only PR discovery and
+  evidence. Do not approve, comment, merge, edit, label, or assign through
+  GitHub without explicit developer approval.
+- \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
+  publish flag is provided, and only for blocker/high-criticality findings.
 "
 
 write_file "$project_root/AGENTS.md" "$agents_md_content"

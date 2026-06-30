@@ -221,6 +221,26 @@ Same skills as `branch-ready`, plus `development-summary`:
 
 ---
 
+## requested-pr-review
+**Trigger:** `reviewer_requested` · **Owner:** Reviewer / Team Leader · **Duration:** 30 min
+
+Uses read-only GitHub CLI access when available to find open PRs where the user
+is a requested reviewer, or to analyze one explicit PR with `--pr <number>`,
+rank them by review risk, and run only the review skills relevant to each
+selected PR diff. With `--publish-high-risk-comments`, the agent may publish one
+PR comment containing only blocker or high-criticality findings from that run.
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`pre-review-defect`](../skills/pre-review-defect/SKILL.md) | Catch likely code defects and review churn before line-by-line human review. | medium | Team Leader / Developer |
+| [`architecture-risk`](../skills/architecture-risk/SKILL.md) | Review transaction boundaries, sync/async flows, idempotency, retries, feature flags, bounded contexts, and forbidden zones. | medium | Architect / Team Leader |
+| [`cross-service-contract`](../skills/cross-service-contract/SKILL.md) | Check payloads, schemas, Kafka topics, error mapping, retry policy, timeout, idempotency, versioning, and ownership. | medium | Team Leader / Architect |
+| [`liquibase-production-risk`](../skills/liquibase-production-risk/SKILL.md) | Detect lock risks, missing rollback, unsafe index operations, large table updates, destructive DDL, drift concerns, and traffic-aware ordering issues. | high | DBA / Team Leader |
+| [`test-quality`](../skills/test-quality/SKILL.md) | Find assertion-free tests, overmocking, snapshot-only assertions, order dependency, excessive sleeps, and flaky patterns. | low | QA / Team Leader |
+| [`regression-selection`](../skills/regression-selection/SKILL.md) | Select a defensible subset of existing tests related to changed files and risk areas to reduce slow feedback loops. | low | Developer / QA |
+
+---
+
 ## am-release-ready
 **Trigger:** `release_ready` · **Owner:** Application Manager · **Duration:** 25 min
 
@@ -294,7 +314,7 @@ a custom profile.
 | `architecture-drift-detection` | architecture-review |
 | `business-continuity-check` | am-release-ready |
 | `concurrency-risk` | dev-assist |
-| `liquibase-production-risk` | story-start, architecture-review, pre-commit, jessica-fletcher, branch-ready, pr-ready, ci-validation, pre-push |
+| `liquibase-production-risk` | story-start, architecture-review, pre-commit, jessica-fletcher, branch-ready, pr-ready, requested-pr-review, ci-validation, pre-push |
 | `production-premortem` | jessica-fletcher |
 | `rollback-safety` | jessica-fletcher, branch-ready, am-release-ready, ci-validation |
 | `trust-boundary-review` | architecture-review |
@@ -303,8 +323,8 @@ a custom profile.
 | Skill | Profiles |
 |---|---|
 | `architecture-decision-record` | architecture-review |
-| `architecture-risk` | story-start, architecture-review, dev-assist, jessica-fletcher, branch-ready, pr-ready, ci-validation |
-| `cross-service-contract` | story-start, architecture-review, jessica-fletcher, branch-ready, pr-ready, ci-validation |
+| `architecture-risk` | story-start, architecture-review, dev-assist, jessica-fletcher, branch-ready, pr-ready, requested-pr-review, ci-validation |
+| `cross-service-contract` | story-start, architecture-review, jessica-fletcher, branch-ready, pr-ready, requested-pr-review, ci-validation |
 | `database-drift` | branch-ready, ci-validation |
 | `delivery-risk-radar` | story-ready-for-dev, team-planning, am-release-ready |
 | `developer-decision-review` | dev-assist, pre-commit, branch-ready, pr-ready |
@@ -318,7 +338,7 @@ a custom profile.
 | `non-functional-requirements-review` | architecture-review |
 | `null-safety-risk` | pre-commit, pre-push, team-coaching-review |
 | `post-merge-incident-learning` | — |
-| `pre-review-defect` | pre-commit, jessica-fletcher, branch-ready, pr-ready, ci-validation, pre-push, team-coaching-review |
+| `pre-review-defect` | pre-commit, jessica-fletcher, branch-ready, pr-ready, requested-pr-review, ci-validation, pre-push, team-coaching-review |
 | `release-impact-summary` | am-release-ready |
 | `rule-update-suggestion` | — |
 | `service-boundary-fit` | architecture-review |
@@ -340,9 +360,9 @@ a custom profile.
 | `liquibase-syntax` | pre-commit, branch-ready, ci-validation, pre-push |
 | `mana-usage-help` | tutorial, mana-help |
 | `profile-selector` | tutorial, mana-help |
-| `regression-selection` | jessica-fletcher, branch-ready, ci-validation, pre-push |
+| `regression-selection` | jessica-fletcher, branch-ready, requested-pr-review, ci-validation, pre-push |
 | `review-load-balancing` | team-planning |
 | `story-consistency` | story-start |
 | `story-depth` | story-start |
-| `test-quality` | jessica-fletcher, branch-ready, pr-ready, ci-validation, pre-push, team-coaching-review |
+| `test-quality` | jessica-fletcher, branch-ready, pr-ready, requested-pr-review, ci-validation, pre-push, team-coaching-review |
 | `unit-test-gap` | dev-assist, pre-commit, pre-push |

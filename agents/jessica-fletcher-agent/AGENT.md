@@ -16,6 +16,7 @@ skills_used:
   - regression-selection
 allowed_tools:
   - git_read
+  - github_read
   - code_search
   - read_files
   - jira_read

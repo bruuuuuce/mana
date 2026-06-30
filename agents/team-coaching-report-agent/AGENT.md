@@ -14,6 +14,7 @@ skills_used:
   - known-pitfalls-extraction
 allowed_tools:
   - git_read
+  - github_read
   - code_search
   - read_files
 trigger_points:

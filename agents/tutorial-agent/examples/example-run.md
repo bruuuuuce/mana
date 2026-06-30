@@ -29,6 +29,7 @@ Active profile from `.mana/active-profile`: none.
 | `jessica-fletcher` | before commit/push | Developer | 15 min | Production pre-mortem: asks why the branch would fail in production and ranks failure modes by evidence and blast radius. |
 | `branch-ready` | before PR | Developer / TL | 20 min | Validates branch against approved plan, detects drift, missing tests, unsafe DB changes, and unresolved risks. |
 | `pr-ready` | before review | Developer | 15 min | Generates PR description, reviewer focus, test evidence, risk report, development summary, and developer handoff. |
+| `requested-pr-review` | reviewer requested | Reviewer / TL | 30 min | Finds PRs where you are a requested reviewer, or analyzes one PR by number, and produces focused review findings. |
 | `ci-validation` | CI gate | CI / TL | 30 min | Runs validation in CI: branch validation, Liquibase risk, architecture risk, cross-service contract checks. |
 | `am-release-ready` | before release | Application Manager | 25 min | Produces release impact, continuity, rollback, incident-risk, and support/communication evidence. |
 | `team-coaching-review` | coaching session | Team Leader | 30 min | Analyzes per-contributor quality patterns on a branch and produces a confidential coaching report with growth opportunities and recommended actions. |

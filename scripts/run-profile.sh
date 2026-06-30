@@ -5,6 +5,8 @@ profile=""
 project_root=""
 render_only=false
 runner=""
+pr_number=""
+publish_high_risk_comments=false
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -25,6 +27,15 @@ while [ "$#" -gt 0 ]; do
     --claude)
       [ -z "$runner" ] || { echo "ERROR: choose only one runner flag" >&2; exit 2; }
       runner="claude"
+      shift
+      ;;
+    --pr|--pr-number)
+      pr_number="${2:-}"
+      [ -n "$pr_number" ] || { echo "ERROR: $1 requires a pull request number or URL" >&2; exit 2; }
+      shift 2
+      ;;
+    --publish-high-risk-comments)
+      publish_high_risk_comments=true
       shift
       ;;
     --*)
@@ -49,13 +60,23 @@ if [ -z "$profile" ]; then
     profile="$(tr -d '[:space:]' < "$active_file")"
     echo "Using active profile: $profile (from .mana/active-profile)"
   else
-    echo "Usage: scripts/run-profile.sh <profile-name> [--codex|--claude|--render-only] [--project-root <path>]"
+    echo "Usage: scripts/run-profile.sh <profile-name> [--codex|--claude|--render-only] [--project-root <path>] [--pr <number-or-url>] [--publish-high-risk-comments]"
     exit 2
   fi
 fi
 
 file="$root/profiles/${profile}.yaml"
 if [ ! -f "$file" ]; then echo "ERROR: profile not found: $profile"; exit 1; fi
+
+if [ "$publish_high_risk_comments" = true ] && [ "$profile" != "requested-pr-review" ]; then
+  echo "ERROR: --publish-high-risk-comments is only supported by requested-pr-review" >&2
+  exit 2
+fi
+
+if [ "$publish_high_risk_comments" = true ] && [ -z "$pr_number" ]; then
+  echo "ERROR: --publish-high-risk-comments requires --pr <number-or-url>" >&2
+  exit 2
+fi
 
 if [ -z "$project_root" ]; then
   project_root="$(pwd)"
@@ -73,6 +94,16 @@ echo "This profile renderer validates Mana freshness and prints the configured p
 echo "Use --codex or --claude to execute the profile through a runner."
 sed -n '1,220p' "$file"
 echo
+if [ -n "$pr_number" ] || [ "$publish_high_risk_comments" = true ]; then
+  echo "Profile input overrides:"
+  if [ -n "$pr_number" ]; then
+    echo "  pr_number: $pr_number"
+  fi
+  if [ "$publish_high_risk_comments" = true ]; then
+    echo "  publish_high_risk_comments: true"
+  fi
+  echo
+fi
 echo "Workspace note: profiles use the project-local .mana workspace. Run scripts/mana-workspace.sh init in the target project before agent execution when artifacts must be persisted."
 
 hooks_config=""
@@ -139,6 +170,9 @@ Run the Mana profile '$profile' in this repository.
 Repository root: $project_root
 Mana framework root: $root
 Selected runner: $runner
+Profile input overrides:
+- pr_number: ${pr_number:-}
+- publish_high_risk_comments: $publish_high_risk_comments
 
 Instructions:
 - Do not run './mana profile $profile' or 'scripts/run-profile.sh $profile' again; this command already rendered the profile and would recurse.
@@ -150,7 +184,10 @@ Instructions:
 - For any profile using branch or code diff evidence, resolve and report the comparison base. Prefer explicit input, then origin/HEAD, then a single credible primary branch. If ambiguous, ask the user; do not default to main.
 - For any profile using branch or code diff evidence, start with a filtered diff inventory, exclude Mana/bootstrap noise, classify changed files by risk domain, and read only files needed to validate plausible blocker or warning hypotheses. If the filtered diff is larger than roughly 80 files or 2,000 changed lines, ask the user to choose a review scope instead of scanning the whole repository.
 - Exclude Mana framework/bootstrap noise from production findings and evidence: .mana/**, AGENTS.md, CLAUDE.md, mana, and Mana-only .gitignore or env ignore changes. Mention them only as operational setup notes when relevant.
-- Do not commit, push, deploy, trigger CI, write to external systems, or make destructive changes.
+- If a profile or agent allows github_read, treat authenticated gh CLI as an optional read-only helper for PR metadata, diffs, files, checks, and reviewer requests. Do not approve, comment, merge, edit, label, assign, or otherwise write through gh without explicit human approval.
+- If the selected profile is requested-pr-review and pr_number is set, analyze that pull request directly instead of discovering all PRs where the user is a requested reviewer.
+- If the selected profile is requested-pr-review and publish_high_risk_comments is true, this flag is explicit human approval to publish exactly one gh PR comment on the selected PR containing only blocker or high-criticality findings found by this run. Do not publish medium/low findings. Do not approve, request changes, merge, edit, label, assign, push, or trigger CI.
+- Do not commit, push, deploy, trigger CI, write to external systems, or make destructive changes, except for the limited requested-pr-review high-risk PR comment explicitly allowed above.
 - Final response must summarize status, blockers, warnings, artifact paths, and any required human approval.
 PROMPT
 )"

@@ -16,6 +16,7 @@ allowed_tools:
   - jira_read
   - confluence_read
   - git_read
+  - github_read
   - code_search
   - logs_observability_read
   - architecture_rules_read

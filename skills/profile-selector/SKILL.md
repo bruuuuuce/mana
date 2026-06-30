@@ -78,6 +78,8 @@ to switch phase without looking up the profile catalogue manually.
 | Production pre-mortem before commit or push | Developer | `jessica-fletcher` |
 | Branch validation before PR | Developer / TL | `branch-ready` |
 | PR readiness, PR package, handoff | Developer | `pr-ready` |
+| Review PRs where I am requested reviewer | Reviewer / TL | `requested-pr-review` |
+| Review one PR by number | Reviewer / TL | `requested-pr-review --pr <number>` |
 | Release readiness, continuity, rollback | Application Manager | `am-release-ready` |
 | CI validation gate | CI / TL | `ci-validation` |
 | General framework question, onboarding, next step | Any | `mana-help` |
@@ -139,6 +141,9 @@ sufficient. No external system access required.
 - User says "I'm about to commit and want to run the pre-mortem" → selects `jessica-fletcher`.
 - User says "we're in branch validation now" → selects `branch-ready`.
 - User says "I need to prepare the PR package" → selects `pr-ready`.
+- User says "review the PRs assigned to me" → selects `requested-pr-review`.
+- User says "review PR 123" → selects `requested-pr-review` with command
+  `scripts/run-profile.sh requested-pr-review --pr 123 --project-root .`.
 - User says "I just started this story" → selects `story-start`.
 - User says "switch to AM release readiness" → selects `am-release-ready`, warns if user lacks AM role.
 

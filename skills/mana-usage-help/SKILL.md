@@ -73,8 +73,8 @@ governance gates.
 ## Execution Logic
 1. Identify the user's lifecycle phase: installation, workspace setup, epic
    intake, story planning, Team Leader planning, story readiness, architecture
-   review, implementation, branch validation, AM release readiness, PR
-   readiness, CI validation, or learning.
+   review, implementation, branch validation, requested PR review, AM release
+   readiness, PR readiness, CI validation, or learning.
 2. Check whether `.mana` workspace artifacts are available or need to be
    initialized.
 3. Recommend the smallest relevant profile, agent, and skill set.
@@ -132,6 +132,8 @@ approval and audit logging.
 - Ask how to proceed when Jira credentials are missing.
 - Ask which `.mana` path should hold story planning artifacts.
 - Ask how to prepare a branch for PR readiness.
+- Ask how to review PRs where the user is a requested reviewer.
+- Ask how to analyze one PR quickly by number.
 
 ## Incorrect Usage Examples
 - Do not use this skill to approve a PR.

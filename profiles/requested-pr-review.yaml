@@ -1,0 +1,44 @@
+name: requested-pr-review
+trigger: reviewer_requested
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: false
+  default_purpose: requested-pr-review
+service_context:
+  root: .mana/global
+  core_files:
+    - service-mission.md
+    - architecture.md
+    - engineering-guards.md
+  optional_files:
+    - domain-glossary.md
+    - integration-map.md
+    - testing-policy.md
+    - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+  - requested-pr-review-agent
+skills:
+  - pre-review-defect
+  - architecture-risk
+  - cross-service-contract
+  - liquibase-production-risk
+  - test-quality
+  - regression-selection
+blocking_conditions:
+  - GitHub CLI unavailable or unauthenticated and no PR URLs were provided
+  - repository or reviewer cannot be resolved
+  - publish_high_risk_comments requested without a specific PR number or URL
+  - selected PR diff cannot be read
+  - selected PR scope exceeds diff budget without human scope decision
+  - high-risk database, security, architecture, or cross-service issue without owner approval
+warning_conditions:
+  - missing optional service context
+  - CI/check status unavailable from GitHub CLI
+  - incomplete test evidence
+  - medium-risk PR finding needs author clarification
+expected_max_duration: 30 minutes
+human_approval_requirement: true

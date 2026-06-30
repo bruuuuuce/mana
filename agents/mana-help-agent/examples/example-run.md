@@ -23,3 +23,25 @@ commands:
 warnings:
   - "Jira MCP unavailable; keep evidence gaps explicit."
 ```
+
+## Requested PR Review Example
+
+Input:
+
+```yaml
+user_goal: "Review PR 123 quickly."
+current_phase: "pull request review"
+mcp_status: "gh available"
+```
+
+Output:
+
+```yaml
+agent: mana-help-agent
+status: ready
+next_step: "Run requested-pr-review for the selected PR."
+commands:
+  - "scripts/run-profile.sh requested-pr-review --pr 123 --codex"
+warnings:
+  - "Add --publish-high-risk-comments only if you want one blocker/high-criticality PR comment to be posted automatically."
+```

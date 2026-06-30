@@ -9,6 +9,14 @@
 - Prefer reports, risk registers, and proposed patches over direct destructive edits.
 - Respect MCP least privilege, redaction, approval, and audit policies.
 - Stop on high-risk database, architecture, security, or cross-service blockers.
+- `github_read` is optional read-only GitHub CLI access. If `gh` exists and is
+  authenticated, use it to read PR metadata, diffs, files, checks, and reviewer
+  requests. Do not approve, comment, merge, edit, label, assign, or otherwise
+  write through `gh` without explicit human approval.
+- `github_pr_comment_write` is allowed only when a profile explicitly receives
+  `publish_high_risk_comments=true` and a single PR number or URL. In that case,
+  publish at most one `gh pr comment` containing blocker or high-criticality
+  findings from the current run.
 - Exclude Mana framework/bootstrap noise from production findings and evidence:
   `.mana/**`, `AGENTS.md`, `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or
   env ignore changes. Mention them only as operational setup notes when relevant.
