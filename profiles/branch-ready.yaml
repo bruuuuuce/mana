@@ -23,14 +23,19 @@ agents:
 - branch-validation-agent
 - liquibase-agent
 skills:
+- architecture-guard-detector
 - architecture-risk
+- changed-files-risk-classifier
 - cross-service-contract
 - database-drift
+- dependency-security-evidence
 - developer-decision-review
 - green-border-plan
+- jira-acceptance-criteria-normalizer
 - liquibase-production-risk
 - liquibase-syntax
 - pre-review-defect
+- sonar-evidence-triage
 - regression-selection
 - rollback-safety
 - source-impact-map

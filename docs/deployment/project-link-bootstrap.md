@@ -46,6 +46,8 @@ After bootstrap, use:
 ./mana jira-mcp --env-file .mana/jira-mcp.env --dry-run
 ./mana sonar --init-config
 ./mana sonar --check
+./mana dependency-evidence --collect
+./mana evidence-index
 ```
 
 For Jira Server/Data Center, you can skip the env file and launch the profile
@@ -83,6 +85,26 @@ Initialize and validate them with:
 ./mana sonar --init-config
 ./mana sonar --check
 ```
+
+## Evidence Index And Dependency Evidence
+
+When dependency manifests, lockfiles, or local dependency scanner reports are
+part of a branch or PR, collect a local inventory:
+
+```bash
+./mana dependency-evidence --collect
+```
+
+After collecting Jira, Sonar, dependency, test, validation, or PR artifacts,
+refresh the active workspace index:
+
+```bash
+./mana evidence-index
+```
+
+The index is written under `.mana/<workspace>/evidence/index.md` and lets review
+and validation agents read a compact evidence map before loading detailed
+artifacts.
 
 ## Git Ignore
 

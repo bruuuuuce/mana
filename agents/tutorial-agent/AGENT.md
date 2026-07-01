@@ -124,6 +124,8 @@ action triggered after the tutorial still requires the normal owner approval.
 - Team Leader asks "show me what branch-ready does before I approve it".
 - Architect asks "what does the architecture-review profile cover?".
 - Anyone asks "I want to understand jessica-fletcher before I run it".
+- Reviewer asks "show me how evidence-index, dependency evidence, Sonar
+  evidence, and requested-pr-review fit together".
 
 ## Incorrect Usage Examples
 - Do not use this agent to approve delivery gates.

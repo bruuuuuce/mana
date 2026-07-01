@@ -127,6 +127,11 @@ Each feature or session workspace should use this internal layout:
     developer-choice-log.md
     clarification-log.md
     architecture-decisions.md
+  evidence/
+    index.md
+    jira/
+    sonar/
+    dependencies/
   tests/
     green-border-plan.md
     green-border-report.md

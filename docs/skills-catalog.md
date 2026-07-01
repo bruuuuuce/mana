@@ -1,6 +1,6 @@
 # Skills Catalog
 
-Reference guide for all 48 skills in the Mana framework, grouped by the
+Reference guide for all 55 skills in the Mana framework, grouped by the
 profile in which they are recommended. Skills may appear in multiple profiles.
 
 Skills are ordered by delivery lifecycle: story intake → planning →
@@ -21,6 +21,7 @@ at the end under [Standalone Skills](#standalone-skills).
 | [`story-depth`](../skills/story-depth/SKILL.md) | Detect incomplete or uneven analysis across functional goal, data requirements, validations, external calls, error behavior, and acceptance criteria. | low | BA / Team Leader |
 | [`story-consistency`](../skills/story-consistency/SKILL.md) | Find conflicting rules, duplicated scope, incompatible acceptance criteria, inconsistent terminology, and mismatched assumptions across related stories. | low | BA / Team Leader |
 | [`acceptance-criteria-testability`](../skills/acceptance-criteria-testability/SKILL.md) | Ensure acceptance criteria can be translated into concrete tests with observable inputs, outputs, preconditions, and failure behavior. | low | BA / QA / Team Leader |
+| [`jira-acceptance-criteria-normalizer`](../skills/jira-acceptance-criteria-normalizer/SKILL.md) | Convert Jira or story-pack acceptance criteria into a traceable behavior, implementation, and test checklist. | low | BA / QA / Team Leader |
 | [`source-impact-map`](../skills/source-impact-map/SKILL.md) | Identify files and components to probably modify, inspect before deciding, and avoid unless approved. | medium | Team Leader / Developer |
 | [`technical-task-breakdown`](../skills/technical-task-breakdown/SKILL.md) | Create actionable tasks for developers and Junie, each with scope, candidate files, dependencies, tests, risks, and definition of done. | medium | Team Leader / Developer |
 | [`architecture-risk`](../skills/architecture-risk/SKILL.md) | Review transaction boundaries, sync/async flows, idempotency, retries, feature flags, bounded contexts, and forbidden zones. | medium | Architect / Team Leader |
@@ -36,9 +37,15 @@ at the end under [Standalone Skills](#standalone-skills).
 | Skill | Description | Risk | Owner |
 |---|---|---|---|
 | [`acceptance-criteria-testability`](../skills/acceptance-criteria-testability/SKILL.md) | Ensure acceptance criteria can be translated into concrete tests with observable inputs, outputs, preconditions, and failure behavior. | low | BA / QA / Team Leader |
+| [`jira-acceptance-criteria-normalizer`](../skills/jira-acceptance-criteria-normalizer/SKILL.md) | Normalize Jira or epic story-pack acceptance criteria before readiness and planning decisions. | low | BA / QA / Team Leader |
 | [`developer-readiness-check`](../skills/developer-readiness-check/SKILL.md) | Prevent developers from starting work on stories that are not implementable, testable, scoped, or approved enough. | medium | Team Leader / Developer |
 | [`epic-story-partitioning`](../skills/epic-story-partitioning/SKILL.md) | Review epic sibling stories for overlap, missing slices, hidden dependencies, oversized stories, and weak acceptance boundaries. | medium | BA / PO / Team Leader |
 | [`source-impact-map`](../skills/source-impact-map/SKILL.md) | Identify files and components to probably modify, inspect before deciding, and avoid unless approved. | medium | Team Leader / Developer |
+| [`changed-files-risk-classifier`](../skills/changed-files-risk-classifier/SKILL.md) | Classify changed files by risk domain so branch validation loads only relevant specialist skills. | low | Developer / Reviewer / Team Leader |
+| [`jira-acceptance-criteria-normalizer`](../skills/jira-acceptance-criteria-normalizer/SKILL.md) | Compare story acceptance criteria with branch implementation and test evidence. | low | BA / QA / Team Leader |
+| [`architecture-guard-detector`](../skills/architecture-guard-detector/SKILL.md) | Detect changed files or patterns that hit engineering guards, protected areas, and owner gates. | high | Architect / Team Leader |
+| [`sonar-evidence-triage`](../skills/sonar-evidence-triage/SKILL.md) | Reuse existing Sonar evidence and separate changed/touched findings from unrelated noise. | medium | Reviewer / Team Leader |
+| [`dependency-security-evidence`](../skills/dependency-security-evidence/SKILL.md) | Collect and triage dependency manifest, lockfile, and scanner-report evidence for changed dependency surfaces. | medium | Developer / Security / Team Leader |
 | [`technical-task-breakdown`](../skills/technical-task-breakdown/SKILL.md) | Create actionable tasks for developers and Junie, each with scope, candidate files, dependencies, tests, risks, and definition of done. | medium | Team Leader / Developer |
 | [`delivery-risk-radar`](../skills/delivery-risk-radar/SKILL.md) | Provide a concise risk radar before scope, schedule, or quality problems become late surprises. | medium | Team Leader / Application Manager |
 | [`green-border-plan`](../skills/green-border-plan/SKILL.md) | Plan unit, integration, contract, regression, and legacy characterization tests needed before and during implementation. | medium | Team Leader / QA |
@@ -99,6 +106,7 @@ Supports the developer while writing code — before any diff exists. Organized 
 | [`architecture-risk`](../skills/architecture-risk/SKILL.md) | Validate service boundaries and forbidden zones before implementing a cross-service call. | medium | Architect / Team Leader |
 | [`developer-decision-review`](../skills/developer-decision-review/SKILL.md) | Challenge implementation choices while the developer can still change direction at zero cost. | medium | Developer / Team Leader |
 | [`change-impact-preview`](../skills/change-impact-preview/SKILL.md) | What-if: describe a planned change in natural language and get callers impacted, contract risks, concurrency flags, tests to update, and a suggested approach — before writing a single line. | low | Developer |
+| [`sonar-change-risk`](../skills/sonar-change-risk/SKILL.md) | Estimate how risky it is to modify a specific class/file using Sonar evidence, git churn, tests, story scope, and engineering guards. | medium | Developer / Team Leader |
 | [`java-performance-smell`](../skills/java-performance-smell/SKILL.md) | Flag N+1 queries, inefficient loops, unnecessary synchronization, and blocking calls before they are committed. | medium | Team Leader / Developer |
 
 **Fase C — Piano di test**
@@ -227,6 +235,11 @@ asked for.
 | [`development-summary`](../skills/development-summary/SKILL.md) | Document assumptions, decisions, clarifications, implemented changes, tests, risks, and unresolved items for team alignment. | low | Developer / Team Leader |
 | [`developer-handoff`](../skills/developer-handoff/SKILL.md) | Generate a practical handoff document explaining what was developed, why, how to read the change, and what future developers must know. | low | Developer / Team Leader |
 | [`developer-decision-review`](../skills/developer-decision-review/SKILL.md) | Challenge implementation choices by asking targeted "why" questions about non-obvious decisions, plan drift, and implicit trade-offs. | medium | Developer / Team Leader |
+| [`changed-files-risk-classifier`](../skills/changed-files-risk-classifier/SKILL.md) | Classify the PR diff before deep-loading specialist skills. | low | Developer / Reviewer / Team Leader |
+| [`jira-acceptance-criteria-normalizer`](../skills/jira-acceptance-criteria-normalizer/SKILL.md) | Normalize acceptance criteria for PR description and reviewer traceability. | low | BA / QA / Team Leader |
+| [`architecture-guard-detector`](../skills/architecture-guard-detector/SKILL.md) | Detect PR changes that hit engineering guards, protected areas, and owner gates. | high | Architect / Team Leader |
+| [`sonar-evidence-triage`](../skills/sonar-evidence-triage/SKILL.md) | Reuse existing Sonar evidence to focus PR risk on touched findings. | medium | Reviewer / Team Leader |
+| [`dependency-security-evidence`](../skills/dependency-security-evidence/SKILL.md) | Check dependency evidence when manifests or lockfiles changed. | medium | Developer / Security / Team Leader |
 | [`pre-review-defect`](../skills/pre-review-defect/SKILL.md) | Catch possible NPEs, bad error handling, missing validations, hidden side effects, suspicious mapping, and poor readability. | medium | Team Leader / Developer |
 | [`architecture-risk`](../skills/architecture-risk/SKILL.md) | Review transaction boundaries, sync/async flows, idempotency, retries, feature flags, bounded contexts, and forbidden zones. | medium | Architect / Team Leader |
 | [`cross-service-contract`](../skills/cross-service-contract/SKILL.md) | Check payloads, schemas, Kafka topics, error mapping, retry policy, timeout, idempotency, versioning, and ownership. | medium | Team Leader / Architect |
@@ -250,6 +263,11 @@ run.
 | Skill | Description | Risk | Owner |
 |---|---|---|---|
 | [`pre-review-defect`](../skills/pre-review-defect/SKILL.md) | Catch likely code defects and review churn before line-by-line human review. | medium | Team Leader / Developer |
+| [`changed-files-risk-classifier`](../skills/changed-files-risk-classifier/SKILL.md) | Classify PR files before loading expensive review skills. | low | Developer / Reviewer / Team Leader |
+| [`jira-acceptance-criteria-normalizer`](../skills/jira-acceptance-criteria-normalizer/SKILL.md) | Compare PR changes with Jira acceptance criteria when story evidence is available. | low | BA / QA / Team Leader |
+| [`architecture-guard-detector`](../skills/architecture-guard-detector/SKILL.md) | Detect engineering guard hits in the selected PR. | high | Architect / Team Leader |
+| [`sonar-evidence-triage`](../skills/sonar-evidence-triage/SKILL.md) | Reuse existing Sonar evidence and surface only findings relevant to the PR. | medium | Reviewer / Team Leader |
+| [`dependency-security-evidence`](../skills/dependency-security-evidence/SKILL.md) | Check dependency/security evidence when dependency files changed. | medium | Developer / Security / Team Leader |
 | [`architecture-risk`](../skills/architecture-risk/SKILL.md) | Review transaction boundaries, sync/async flows, idempotency, retries, feature flags, bounded contexts, and forbidden zones. | medium | Architect / Team Leader |
 | [`cross-service-contract`](../skills/cross-service-contract/SKILL.md) | Check payloads, schemas, Kafka topics, error mapping, retry policy, timeout, idempotency, versioning, and ownership. | medium | Team Leader / Architect |
 | [`liquibase-production-risk`](../skills/liquibase-production-risk/SKILL.md) | Detect lock risks, missing rollback, unsafe index operations, large table updates, destructive DDL, drift concerns, and traffic-aware ordering issues. | high | DBA / Team Leader |
@@ -330,6 +348,7 @@ a custom profile.
 | Skill | Profiles |
 |---|---|
 | `architecture-drift-detection` | architecture-review |
+| `architecture-guard-detector` | branch-ready, pr-ready, requested-pr-review |
 | `business-continuity-check` | am-release-ready |
 | `concurrency-risk` | dev-assist |
 | `liquibase-production-risk` | story-start, architecture-review, pre-commit, jessica-fletcher, branch-ready, pr-ready, requested-pr-review, ci-validation, pre-push |
@@ -345,6 +364,7 @@ a custom profile.
 | `cross-service-contract` | story-start, architecture-review, jessica-fletcher, branch-ready, pr-ready, requested-pr-review, ci-validation |
 | `database-drift` | branch-ready, ci-validation |
 | `delivery-risk-radar` | story-ready-for-dev, team-planning, am-release-ready |
+| `dependency-security-evidence` | branch-ready, pr-ready, requested-pr-review |
 | `developer-decision-review` | dev-assist, pre-commit, branch-ready, pr-ready |
 | `developer-readiness-check` | story-ready-for-dev, team-planning |
 | `epic-story-partitioning` | story-ready-for-dev, team-planning |
@@ -361,6 +381,8 @@ a custom profile.
 | `release-impact-summary` | am-release-ready |
 | `rule-update-suggestion` | — |
 | `service-boundary-fit` | architecture-review |
+| `sonar-change-risk` | dev-assist |
+| `sonar-evidence-triage` | branch-ready, pr-ready, requested-pr-review |
 | `source-impact-map` | story-start, story-ready-for-dev, team-planning, dev-assist, branch-ready, ci-validation |
 | `team-execution-plan` | team-planning |
 | `technical-task-breakdown` | story-start, story-ready-for-dev, team-planning, branch-ready, ci-validation |
@@ -370,12 +392,14 @@ a custom profile.
 |---|---|
 | `acceptance-criteria-testability` | story-start, story-ready-for-dev |
 | `change-impact-preview` | dev-assist |
+| `changed-files-risk-classifier` | branch-ready, pr-ready, requested-pr-review |
 | `contributor-pattern-analysis` | team-coaching-review |
 | `developer-handoff` | team-planning, pre-commit, pr-ready |
 | `development-summary` | pre-commit, pr-ready, ci-validation |
 | `epic-goal-extraction` | story-start |
 | `knowledge-transfer-brief` | pre-commit |
 | `known-pitfalls-extraction` | dev-assist, am-release-ready, team-coaching-review |
+| `jira-acceptance-criteria-normalizer` | story-start, story-ready-for-dev, branch-ready, pr-ready, requested-pr-review |
 | `liquibase-syntax` | pre-commit, branch-ready, ci-validation, pre-push |
 | `mana-usage-help` | tutorial, mana-help |
 | `profile-selector` | tutorial, mana-help |

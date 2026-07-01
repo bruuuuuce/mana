@@ -14,7 +14,7 @@ done
 for f in README.md LICENSE CHANGELOG.md CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md docs/standards/agent-skill-output-standard.md docs/standards/story-trace-standard.md docs/standards/developer-choice-log-standard.md templates/standard-agent-skill-report.template.md templates/mana-workspace/story-trace.template.md templates/mana-workspace/developer-choice-log.template.md; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1; fi
 done
-for f in scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-sonar-scanner.sh docs/workflow/mana-workspace.md docs/workflow/service-context-layer.md docs/deployment/project-link-bootstrap.md templates/mana-workspace/manifest.template.yaml templates/mana-workspace/index.template.md templates/mana-workspace/global/service-mission.template.md templates/mana-workspace/global/engineering-guards.template.md templates/mana-workspace/global/hooks-config.template.yaml templates/mana-workspace/global/sonar-project.properties.template; do
+for f in scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/run-evidence-index.sh docs/workflow/mana-workspace.md docs/workflow/service-context-layer.md docs/deployment/project-link-bootstrap.md templates/mana-workspace/manifest.template.yaml templates/mana-workspace/index.template.md templates/mana-workspace/global/service-mission.template.md templates/mana-workspace/global/engineering-guards.template.md templates/mana-workspace/global/hooks-config.template.yaml templates/mana-workspace/global/sonar-project.properties.template; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1; fi
 done
 if [ -f "$root/scripts/mana-workspace.sh" ] && [ ! -x "$root/scripts/mana-workspace.sh" ]; then
@@ -35,6 +35,14 @@ if [ -f "$root/scripts/mana-update-check.sh" ] && [ ! -x "$root/scripts/mana-upd
 fi
 if [ -f "$root/scripts/run-sonar-scanner.sh" ] && [ ! -x "$root/scripts/run-sonar-scanner.sh" ]; then
   echo "ERROR: scripts/run-sonar-scanner.sh is not executable" >&2
+  status=1
+fi
+if [ -f "$root/scripts/run-dependency-evidence.sh" ] && [ ! -x "$root/scripts/run-dependency-evidence.sh" ]; then
+  echo "ERROR: scripts/run-dependency-evidence.sh is not executable" >&2
+  status=1
+fi
+if [ -f "$root/scripts/run-evidence-index.sh" ] && [ ! -x "$root/scripts/run-evidence-index.sh" ]; then
+  echo "ERROR: scripts/run-evidence-index.sh is not executable" >&2
   status=1
 fi
 if [ -f "$root/scripts/validate-output-standard.sh" ] && [ ! -x "$root/scripts/validate-output-standard.sh" ]; then

@@ -45,6 +45,8 @@ cd /path/to/project
 ./mana profile mana-help
 ./mana profile story-start --render-only
 ./mana profile story-start --codex
+./mana dependency-evidence --collect
+./mana evidence-index
 ```
 
 The bootstrap creates a project-local `./mana` wrapper, `.mana/` evidence
@@ -109,9 +111,11 @@ explicitly allows a narrow action and the human enables it.
 | Jira story | Read the requested behavior and acceptance criteria | `./mana jira-mcp --get-issue PROJ-1234` when Jira is configured | Story JSON or reported access gap | Whether the available requirement evidence is enough | Update Jira, infer missing AC, expose credentials |
 | Story evidence / readiness | Check feasibility, scope, testability, dependencies, and approvals | `./mana profile story-start --codex` or `./mana profile story-ready-for-dev --codex` | Story context, readiness findings, open questions, risk register | Start, clarify, split, or block the story | Invent requirements or mark owner approval as complete |
 | Epic story pack | Cache epic and sibling story evidence as Markdown | `./mana jira-mcp --fetch-epic-story-pack PROJ-1234` | `.mana/features/<EPIC-ID>/evidence/jira/epic-story-pack.md` | Whether stories are partitioned, overlapping, missing slices, or ready for planning | Edit Jira, store credentials, or treat cached evidence as permanent truth |
+| Local evidence index | Build a compact map of available evidence before deep analysis | `./mana evidence-index` after Jira, Sonar, dependency, test, validation, or PR evidence exists | `.mana/<workspace>/evidence/index.md` | Which evidence to inspect first and which gaps remain | Treat missing evidence as proof of safety |
 | Source impact analysis | Identify likely code, tests, contracts, database areas, and protected zones | `story-start` output, `team-planning`, or `dev-assist` | Source impact map and inspection scope | What can be changed and what requires approval | Modify files outside the approved scope without asking |
 | Developer assistance | Support bounded implementation work | `./mana profile dev-assist --codex` or Junie profile `.junie/profiles/technical-task-execution.md` | Change impact preview, pitfalls, test gaps, local task guidance | Whether the planned local change is still within scope | Run broad autonomous refactors |
 | Branch validation | Compare branch evidence against story, plan, tests, and risks | `./mana profile branch-ready --codex` | Branch validation report, plan-drift findings, missing-test evidence | Whether the branch is ready for PR | Pick an ambiguous base branch silently |
+| Dependency evidence | Record local dependency manifests, lockfiles, and existing scanner reports when dependency surfaces changed | `./mana dependency-evidence --collect` | `.mana/<workspace>/evidence/dependencies/dependency-summary.md` | Whether dependency/security follow-up is needed before review | Invent CVEs or replace project-approved security scanners |
 | Requested PR review | Triage requested reviews or analyze one PR | `./mana profile requested-pr-review --pr <number> --codex` | PR risk summary, review focus, high-signal findings | What the reviewer should inspect or block | Approve, request changes, merge, label, or comment unless explicitly enabled |
 | Architecture review if needed | Review ADR, NFR, service boundary, trust, contract, or database concerns | `./mana profile architecture-review --codex` | Architecture report, drift and approval questions | Whether specialist owner approval is required | Treat architecture approval as implicit |
 | AM / release readiness | Translate technical change into release, rollback, continuity, and support evidence | `./mana profile am-release-ready --codex` | Release impact, incident-risk forecast, continuity and rollback findings | Go/no-go readiness and operational mitigations | Release, deploy, trigger CI, or accept operational risk |
@@ -166,6 +170,9 @@ reports, PR material, developer handoff, and learning artifacts.
 
 The framework does not initialize Git branches. It resolves an evidence
 workspace for the current branch, feature id, or canonical-branch session.
+Use `./mana evidence-index` after collecting Jira, Sonar, dependency, test,
+validation, or PR artifacts so agents can read a compact index before
+deep-loading only the evidence relevant to the current task.
 
 `.mana/global/` is the Service Context Layer. Agents and skills use it to keep
 decisions aligned with the service mission, architecture and engineering guards:
@@ -328,6 +335,10 @@ artifact template does not exist.
   `./mana sonar --analyze`. Mana writes scanner logs and summary under
   `.mana/<workspace>/evidence/sonar/` so review and validation agents can use
   the evidence without rerunning the scanner.
+- **Estimate class change risk:** use `profiles/dev-assist.yaml` with
+  `sonar-change-risk` before modifying a fragile class. The skill combines
+  Sonar evidence, git churn, tests, story scope, and engineering guards to
+  recommend a safe change strategy.
 - **Use the story as evidence:** planning profiles use Jira story text and
   acceptance criteria to check feasibility, testability, scope, owners, and
   approvals. Review, validation, pre-mortem, and PR profiles compare branch/PR

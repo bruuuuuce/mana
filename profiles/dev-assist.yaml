@@ -31,6 +31,7 @@ skills:
   - architecture-risk
   - developer-decision-review
   - change-impact-preview
+  - sonar-change-risk
   - java-performance-smell
   - unit-test-gap
   - integration-test-gap

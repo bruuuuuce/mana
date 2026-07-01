@@ -22,10 +22,15 @@ service_context:
 agents:
   - requested-pr-review-agent
 skills:
+  - architecture-guard-detector
+  - changed-files-risk-classifier
   - pre-review-defect
   - architecture-risk
   - cross-service-contract
+  - dependency-security-evidence
+  - jira-acceptance-criteria-normalizer
   - liquibase-production-risk
+  - sonar-evidence-triage
   - test-quality
   - regression-selection
 blocking_conditions:

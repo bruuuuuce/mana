@@ -34,6 +34,7 @@ This creates:
 ./mana path
 ./mana workspace status
 ./mana profile mana-help
+./mana evidence-index
 ```
 
 `profile` renders the selected profile and runs the Mana freshness check. It
@@ -77,6 +78,14 @@ concurrency flags, and tests to update — before any code is written.
 Also invoke `concurrency-risk` for concurrent or shared-state changes, and
 `legacy-characterization` before touching legacy paths.
 
+If Sonar evidence already exists, use `sonar-change-risk` before modifying a
+fragile class. If dependency manifests or lockfiles are in scope, run:
+
+```bash
+./mana dependency-evidence --collect
+./mana evidence-index
+```
+
 ## 7. Implement One Technical Task
 
 Use the approved plan to implement one bounded task at a time. Keep changes
@@ -102,4 +111,5 @@ Use `agents/jessica-fletcher-agent/AGENT.md` and route findings into the active
 ```
 
 Use the corresponding agents to check drift, missing tests, unresolved risks,
-database safety, reviewer focus, and PR evidence.
+database safety, dependency evidence, Sonar evidence, reviewer focus, and PR
+evidence. Refresh `./mana evidence-index` after adding new evidence artifacts.
