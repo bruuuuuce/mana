@@ -85,6 +85,11 @@ to switch phase without looking up the profile catalogue manually.
 | Cache epic and sibling stories as Markdown | BA / PO / Team Leader | `./mana jira-mcp --fetch-epic-story-pack <KEY>` |
 | Configure local Sonar scanner evidence | Developer / TL | `./mana sonar --init-config` then `./mana sonar --check` |
 | Run local Sonar evidence before branch or PR review | Developer / Reviewer / TL | `./mana sonar --analyze` |
+| Collect local dependency evidence | Developer / Reviewer / TL | `./mana dependency-evidence --collect` |
+| Build compact evidence index | Developer / Reviewer / TL | `./mana evidence-index` |
+| Estimate risk before modifying a class | Developer / TL | `dev-assist` with `sonar-change-risk` |
+| Compare story acceptance criteria with branch or PR | Developer / Reviewer / TL | `branch-ready`, `pr-ready`, or `requested-pr-review` with `jira-acceptance-criteria-normalizer` |
+| Check engineering guard hits in a diff | Architect / TL / Reviewer | `branch-ready`, `pr-ready`, or `requested-pr-review` with `architecture-guard-detector` |
 | Release readiness, continuity, rollback | Application Manager | `am-release-ready` |
 | CI validation gate | CI / TL | `ci-validation` |
 | General framework question, onboarding, next step | Any | `mana-help` |
@@ -146,6 +151,9 @@ commands that preserve story evidence. For simple story reads, use
 `./mana jira-mcp --get-issue <KEY>`. For planning, review, validation, and
 pre-mortem profiles, ensure the selected agent compares story text and
 acceptance criteria against the requested feasibility or branch/PR analysis.
+When routing review or validation work, recommend `./mana evidence-index` after
+Jira, Sonar, dependency, test, validation, or PR artifacts are collected. Use it
+to help agents load summaries first and deep-load only relevant evidence.
 
 ## Correct Usage Examples
 - User says "I'm about to commit and want to run the pre-mortem" → selects `jessica-fletcher`.
@@ -156,6 +164,8 @@ acceptance criteria against the requested feasibility or branch/PR analysis.
   `scripts/run-profile.sh requested-pr-review --pr 123 --project-root .`.
 - User says "read Jira story PROJ-1234" → recommend
   `./mana jira-mcp --get-issue PROJ-1234` in a linked project.
+- User says "I collected Sonar and dependency evidence" → recommend
+  `./mana evidence-index` before `branch-ready` or `requested-pr-review`.
 - User says "I just started this story" → selects `story-start`.
 - User says "switch to AM release readiness" → selects `am-release-ready`, warns if user lacks AM role.
 

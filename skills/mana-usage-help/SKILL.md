@@ -87,7 +87,9 @@ governance gates.
    or PR changes against the story.
 6. If Jira MCP is unavailable, recommend the Markdown fallback story pack.
 7. List concrete commands and expected artifact paths.
-8. Flag missing service context, evidence gaps, or approval gates.
+8. Recommend `./mana evidence-index` after local Jira, Sonar, dependency, test,
+   validation, or PR evidence is collected.
+9. Flag missing service context, evidence gaps, or approval gates.
 
 ## Decision Rules
 - `blocker`: the user is about to skip a required approval gate, run write
@@ -137,6 +139,19 @@ the `./mana sonar --init-config`, `./mana sonar --check`, and
 `./mana sonar --analyze` commands. Keep only `SONAR_HOST_URL` and `SONAR_TOKEN`
 in the environment; keep scanner project properties under
 `.mana/global/sonar-project.properties`.
+When the user asks how risky it is to modify a class or file, recommend
+`dev-assist` with `sonar-change-risk`; use existing Sonar evidence when present
+and combine it with git history, tests, story scope, and engineering guards.
+When dependency manifests or lockfiles changed, recommend
+`./mana dependency-evidence --collect` to store a local inventory under the
+active workspace. This is evidence collection, not a vulnerability scanner.
+When multiple evidence sources exist, recommend `./mana evidence-index` so
+review and validation agents can read `.mana/<workspace>/evidence/index.md`
+first and avoid deep-loading unrelated artifacts.
+For branch or PR validation, route acceptance-criteria traceability to
+`jira-acceptance-criteria-normalizer`, changed-file routing to
+`changed-files-risk-classifier`, guard checks to `architecture-guard-detector`,
+and existing Sonar summaries to `sonar-evidence-triage`.
 Writes, comments, transitions, or publication to external systems require human
 approval and audit logging.
 
@@ -152,6 +167,10 @@ approval and audit logging.
 - Ask how to review PRs where the user is a requested reviewer.
 - Ask how to analyze one PR quickly by number.
 - Ask how to configure or run local Sonar scanner evidence for a branch or PR.
+- Ask how risky it is to modify a specific class or file.
+- Ask how to collect dependency evidence before review.
+- Ask how to build an evidence index after collecting Jira, Sonar, dependency,
+  test, validation, or PR artifacts.
 
 ## Incorrect Usage Examples
 - Do not use this skill to approve a PR.

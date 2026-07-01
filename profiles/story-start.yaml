@@ -28,6 +28,7 @@ skills:
 - epic-goal-extraction
 - green-border-plan
 - liquibase-production-risk
+- jira-acceptance-criteria-normalizer
 - source-impact-map
 - story-consistency
 - story-depth

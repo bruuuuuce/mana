@@ -268,6 +268,7 @@ index_content="# Mana Workspace Index
 - \`decisions/\`: decisions, clarifications and approvals.
 - \`decisions/developer-choice-log.md\`: developer-confirmed implementation choices and rationale.
 - \`evidence/\`: external and generated evidence such as Jira packs, Sonar summaries, CI logs, or tool reports.
+- \`evidence/index.md\`: generated index of available evidence artifacts.
 - \`tests/\`: green-border, regression and test evidence.
 - \`validation/\`: branch validation, drift, missing tests and risk status.
 - \`pr/\`: PR package, reviewer focus, development summary and developer handoff.

@@ -6,6 +6,11 @@ preferred_runner: codex
 compatible_runners:
   - codex
 skills_used:
+  - changed-files-risk-classifier
+  - jira-acceptance-criteria-normalizer
+  - architecture-guard-detector
+  - sonar-evidence-triage
+  - dependency-security-evidence
   - development-summary
   - developer-handoff
   - developer-decision-review
@@ -63,24 +68,35 @@ Builds the final pull request package for reviewers. The agent orchestrates skil
 3. Compare the branch/PR diff against the story text and acceptance criteria:
    report missing requested behavior, unrequested scope, contradicted
    acceptance criteria, and test evidence that does not prove the story.
-4. Load existing `.mana/**/evidence/sonar/sonar-summary.md` evidence when
+4. Use `changed-files-risk-classifier` before deep-loading specialist review
+   skills. Use `jira-acceptance-criteria-normalizer` when acceptance criteria
+   need explicit traceability in the PR package.
+5. Load existing `.mana/**/evidence/sonar/sonar-summary.md` evidence when
    present. Do not run `sonar-scanner` from this agent unless the human
    explicitly asks for fresh Sonar evidence.
-5. Load `development-summary` as the primary PR package skill.
-6. Load `developer-handoff` when the change needs maintainer context,
+6. Use `sonar-evidence-triage`, `dependency-security-evidence`, and
+   `architecture-guard-detector` only when existing evidence or changed files
+   make those domains relevant.
+7. Load `development-summary` as the primary PR package skill.
+8. Load `developer-handoff` when the change needs maintainer context,
    diagrams, rationale, or non-obvious implementation notes.
-7. Load `developer-decision-review` when the diff shows unexplained choices,
+9. Load `developer-decision-review` when the diff shows unexplained choices,
    plan drift, risky trade-offs, or missing rationale.
-8. Load `pre-review-defect` when application code changed and focused defect
+10. Load `pre-review-defect` when application code changed and focused defect
    screening is useful before human review.
-9. Load `architecture-risk`, `cross-service-contract`, and
+11. Load `architecture-risk`, `cross-service-contract`, and
    `liquibase-production-risk` only when the filtered diff touches architecture
    boundaries, integrations/contracts, or database changes.
-10. Load `test-quality` only when test evidence exists and must be evaluated.
-11. Aggregate blocker, warning, and info findings into the expected artifacts.
-12. Stop at human approval gates when blockers or out-of-policy actions are detected.
+12. Load `test-quality` only when test evidence exists and must be evaluated.
+13. Aggregate blocker, warning, and info findings into the expected artifacts.
+14. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Skills Used And Why
+- `changed-files-risk-classifier`: classifies the diff before loading expensive specialist skills.
+- `jira-acceptance-criteria-normalizer`: normalizes acceptance criteria for PR description traceability.
+- `architecture-guard-detector`: maps PR files to engineering guards and owner gates.
+- `sonar-evidence-triage`: reuses existing Sonar evidence for PR risk focus.
+- `dependency-security-evidence`: checks dependency evidence when manifests or lockfiles changed.
 - `development-summary`: creates the delivery record with assumptions, decisions, implemented changes, tests, risks, and unresolved items.
 - `developer-handoff`: creates a developer reading guide with diagrams, code references, short snippets, and rationale for future maintainers.
 - `developer-decision-review`: generates targeted questions for the developer about why important choices were made and which rationale should be added before review.

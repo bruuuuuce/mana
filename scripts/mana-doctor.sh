@@ -225,11 +225,11 @@ for dir in docs skills agents profiles mcp templates scripts hooks templates/man
   check_dir "$dir"
 done
 
-for file in README.md scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-profile.sh scripts/run-jira-mcp-docker.sh scripts/run-sonar-scanner.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh profiles/jessica-fletcher.yaml profiles/mana-help.yaml profiles/pre-commit.yaml profiles/am-release-ready.yaml profiles/architecture-review.yaml profiles/team-planning.yaml profiles/story-ready-for-dev.yaml agents/pre-commit-documentation-agent/AGENT.md docs/workflow/mana-workspace.md docs/standards/agent-skill-output-standard.md docs/standards/story-trace-standard.md docs/standards/developer-choice-log-standard.md templates/standard-agent-skill-report.template.md templates/mana-workspace/story-trace.template.md templates/mana-workspace/developer-choice-log.template.md templates/mana-workspace/global/sonar-project.properties.template templates/pre-commit-development-summary.template.md templates/knowledge-transfer-brief.template.md .codex/README.md .codex/instructions.md .junie/README.md .junie/guidelines.md .claude/README.md .claude/instructions.md; do
+for file in README.md scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-profile.sh scripts/run-jira-mcp-docker.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/run-evidence-index.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh profiles/jessica-fletcher.yaml profiles/mana-help.yaml profiles/pre-commit.yaml profiles/am-release-ready.yaml profiles/architecture-review.yaml profiles/team-planning.yaml profiles/story-ready-for-dev.yaml agents/pre-commit-documentation-agent/AGENT.md docs/workflow/mana-workspace.md docs/standards/agent-skill-output-standard.md docs/standards/story-trace-standard.md docs/standards/developer-choice-log-standard.md templates/standard-agent-skill-report.template.md templates/mana-workspace/story-trace.template.md templates/mana-workspace/developer-choice-log.template.md templates/mana-workspace/global/sonar-project.properties.template templates/pre-commit-development-summary.template.md templates/knowledge-transfer-brief.template.md .codex/README.md .codex/instructions.md .junie/README.md .junie/guidelines.md .claude/README.md .claude/instructions.md; do
   check_file "$file"
 done
 
-for file in scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-jira-mcp-docker.sh scripts/run-sonar-scanner.sh scripts/run-profile.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh; do
+for file in scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-jira-mcp-docker.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/run-evidence-index.sh scripts/run-profile.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh; do
   check_exec "$file"
 done
 
@@ -320,6 +320,18 @@ else
 fi
 rm -rf "$sonar_tmp"
 
+evidence_tmp="${TMPDIR:-/tmp}/mana-doctor-evidence-$$"
+rm -rf "$evidence_tmp"
+mkdir -p "$evidence_tmp/src"
+if "$root/scripts/mana-workspace.sh" init --root "$evidence_tmp" --feature MANA-EVIDENCE >/dev/null &&
+  "$root/scripts/run-dependency-evidence.sh" --project-root "$evidence_tmp" --collect >/dev/null &&
+  "$root/scripts/run-evidence-index.sh" --project-root "$evidence_tmp" >/dev/null; then
+  pass "dependency evidence and evidence index initialization"
+else
+  error "dependency evidence or evidence index initialization failed"
+fi
+rm -rf "$evidence_tmp"
+
 if [ -n "$project" ]; then
   if [ -x "$project/mana" ]; then pass "project wrapper exists: mana"; else warn "project wrapper missing: mana"; fi
   if [ -f "$project/.mana/env" ]; then pass "project Mana env exists"; else warn "project .mana/env missing"; fi
@@ -334,11 +346,45 @@ if [ -n "$project" ]; then
   else
     warn "project .mana/global/sonar-project.properties missing; run: ./mana sonar --init-config"
   fi
+  for context_file in service-mission.md architecture.md engineering-guards.md; do
+    if [ -s "$project/.mana/global/$context_file" ]; then
+      pass "project service context exists: $context_file"
+    else
+      warn "project service context missing or empty: .mana/global/$context_file"
+    fi
+  done
+  project_branch="$(git -C "$project" branch --show-current 2>/dev/null || true)"
+  if [ -n "$project_branch" ]; then
+    if printf '%s\n' "$project_branch" | grep -Eq '[A-Z][A-Z0-9]+-[0-9]+'; then
+      pass "project branch contains issue key: $project_branch"
+    else
+      warn "project branch does not contain a generic issue key: $project_branch"
+    fi
+  else
+    warn "project branch could not be resolved"
+  fi
+  if [ -x "$project/mana" ] && "$project/mana" dependency-evidence --check >/dev/null 2>&1; then
+    pass "project dependency evidence candidates found"
+  elif [ -x "$project/mana" ]; then
+    warn "project dependency evidence candidates not found"
+  fi
+  if [ -x "$project/mana" ] && "$project/mana" evidence-index >/dev/null 2>&1; then
+    pass "project evidence index can be generated"
+  elif [ -x "$project/mana" ]; then
+    warn "project evidence index generation failed"
+  fi
   if [ -x "$project/mana" ] && "$project/mana" profile mana-help >/dev/null; then
     pass "project wrapper can load mana-help"
   elif [ -x "$project/mana" ]; then
     error "project wrapper failed to load mana-help"
   fi
+  for project_profile in story-start branch-ready requested-pr-review; do
+    if [ -x "$project/mana" ] && "$project/mana" profile "$project_profile" >/dev/null; then
+      pass "project wrapper can load $project_profile"
+    elif [ -x "$project/mana" ]; then
+      warn "project wrapper failed to load $project_profile"
+    fi
+  done
 fi
 
 if [ "$strict" = true ] && [ "$warnings" -gt 0 ]; then

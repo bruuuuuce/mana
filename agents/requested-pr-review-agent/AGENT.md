@@ -7,6 +7,10 @@ compatible_runners:
   - codex
   - claude
 skills_used:
+  - changed-files-risk-classifier
+  - architecture-guard-detector
+  - sonar-evidence-triage
+  - dependency-security-evidence
   - pre-review-defect
   - architecture-risk
   - cross-service-contract
@@ -79,13 +83,18 @@ Find open pull requests where the current user is a requested reviewer, or analy
 7. For each selected PR, load the PR diff and changed-file list. Exclude
    Mana/bootstrap noise from findings and evidence: `.mana/**`, `AGENTS.md`,
    `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or env ignore changes.
-8. Load existing `.mana/**/evidence/sonar/sonar-summary.md` evidence when
+8. Use `changed-files-risk-classifier` to classify the PR before deep-loading
+   specialist skills. Use `architecture-guard-detector` when engineering guards
+   are relevant to touched paths.
+9. Load existing `.mana/**/evidence/sonar/sonar-summary.md` evidence when
    present and relevant to the selected PR. Do not run `sonar-scanner` from this
    agent unless the human explicitly asks for fresh Sonar evidence.
-9. If a selected PR has more than roughly 80 changed files or 2,000 changed
+10. Use `sonar-evidence-triage` and `dependency-security-evidence` only when
+    existing evidence or changed files make those domains relevant.
+11. If a selected PR has more than roughly 80 changed files or 2,000 changed
    lines after filtering, stop that PR with `needs_human_decision` and ask for
    a narrower review scope.
-10. Load only skills relevant to the filtered PR diff:
+12. Load only skills relevant to the filtered PR diff:
    - `pre-review-defect` when application code changed.
    - `architecture-risk` when design boundaries, transactions, feature flags,
      concurrency, or forbidden zones are touched.
@@ -95,18 +104,22 @@ Find open pull requests where the current user is a requested reviewer, or analy
      changed.
    - `test-quality` when test files or CI/check evidence must be evaluated.
    - `regression-selection` when the reviewer needs targeted test suggestions.
-10. Produce review-ready findings with file/line or PR evidence, questions for
+13. Produce review-ready findings with file/line or PR evidence, questions for
    the author, suggested local checks, and suggested review comments.
-11. If `publish_high_risk_comments` is true, `pr_number` is provided, and the run
+14. If `publish_high_risk_comments` is true, `pr_number` is provided, and the run
    found blocker or high-criticality findings, publish exactly one PR comment
    with only those highest-criticality findings. Do not publish medium, low, or
    speculative findings. If no blocker or high-criticality findings exist, do
    not comment.
-12. Stop at human approval gates for any external write not explicitly covered
+15. Stop at human approval gates for any external write not explicitly covered
    by `publish_high_risk_comments`, destructive actions, or
    high-risk blocker conclusions.
 
 ## Skills Used And Why
+- `changed-files-risk-classifier`: classifies PR files before loading expensive specialist skills.
+- `architecture-guard-detector`: maps touched files to engineering guards and owner gates.
+- `sonar-evidence-triage`: reuses existing Sonar evidence to focus review on high-signal findings.
+- `dependency-security-evidence`: checks dependency evidence when manifests or lockfiles changed.
 - `pre-review-defect`: catches likely code defects and review churn before the reviewer spends time line-by-line.
 - `architecture-risk`: highlights design, transaction, boundary, idempotency, and forbidden-zone concerns.
 - `cross-service-contract`: checks API, event, payload, timeout, retry, error mapping, and idempotency completeness.

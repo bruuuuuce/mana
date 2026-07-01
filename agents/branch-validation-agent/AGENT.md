@@ -6,6 +6,11 @@ preferred_runner: codex
 compatible_runners:
   - codex
 skills_used:
+  - changed-files-risk-classifier
+  - jira-acceptance-criteria-normalizer
+  - architecture-guard-detector
+  - sonar-evidence-triage
+  - dependency-security-evidence
   - source-impact-map
   - technical-task-breakdown
   - green-border-plan
@@ -68,30 +73,44 @@ The central responsibility is plan-drift detection: compare approved planning ar
    reports, and existing `.mana/**/evidence/sonar/sonar-summary.md` evidence
    when present. Do not run `sonar-scanner` from this agent unless the human
    explicitly asks for fresh Sonar evidence.
-4. Compare branch changes against the story text and acceptance criteria:
+4. Load `.mana/**/evidence/index.md` when present, or generate it only when the
+   human asked for evidence indexing. Use `changed-files-risk-classifier` to
+   route the diff before deep-loading specialist skills.
+5. Use `jira-acceptance-criteria-normalizer` when Jira or story-pack acceptance
+   criteria are present and branch-vs-story traceability is needed.
+6. Use `architecture-guard-detector` when `engineering-guards.md` contains
+   protected paths, owner gates, or forbidden patterns relevant to the diff.
+7. Use `sonar-evidence-triage` and `dependency-security-evidence` only when
+   existing evidence or changed files make those domains relevant.
+8. Compare branch changes against the story text and acceptance criteria:
    identify requested behavior that is missing, implemented behavior that is not
    requested, contradicted acceptance criteria, and tests that do not prove the
    story.
-5. Use `source-impact-map` when planned files must be compared with modified
+9. Use `source-impact-map` when planned files must be compared with modified
    files or drift needs classification.
-6. Use `technical-task-breakdown` when planned tasks need implementation
+10. Use `technical-task-breakdown` when planned tasks need implementation
    evidence or explicit deferral checks.
-7. Use `green-border-plan`, `regression-selection`, and `test-quality` only
+11. Use `green-border-plan`, `regression-selection`, and `test-quality` only
    when required tests, selected regressions, or test evidence must be verified.
-8. Use `pre-review-defect` when application code changed and focused defect
+12. Use `pre-review-defect` when application code changed and focused defect
    screening is useful before human review.
-9. Use `developer-decision-review` when unexplained choices, plan drift, risky
+13. Use `developer-decision-review` when unexplained choices, plan drift, risky
    trade-offs, or missing rationale are present.
-10. Use `architecture-risk` and `cross-service-contract` only for design,
+14. Use `architecture-risk` and `cross-service-contract` only for design,
    boundary, API, event, message, or integration risks introduced by the actual
    diff.
-11. Use `liquibase-production-risk` only when database changelog or migration
+15. Use `liquibase-production-risk` only when database changelog or migration
    files changed.
-12. Aggregate blocker, warning, and info findings into the expected artifacts.
-13. Stop at human approval gates when blockers or out-of-policy actions are detected.
+16. Aggregate blocker, warning, and info findings into the expected artifacts.
+17. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Skills Used And Why
 - `source-impact-map`: detects unplanned files, missing planned files, and files that should not be touched without approval.
+- `changed-files-risk-classifier`: classifies the diff before loading expensive specialist skills.
+- `jira-acceptance-criteria-normalizer`: turns Jira or story-pack acceptance criteria into a traceable branch-validation checklist.
+- `architecture-guard-detector`: maps changed files to project engineering guards and owner gates.
+- `sonar-evidence-triage`: reuses existing Sonar evidence to focus validation on high-impact findings.
+- `dependency-security-evidence`: reuses dependency evidence when manifests or lockfiles changed.
 - `technical-task-breakdown`: confirms every approved subtask has implementation evidence, tests, or an explicit deferral.
 - `green-border-plan`: provides the expected minimal tests for old and new behavior.
 - `regression-selection`: verifies the branch ran a defensible targeted regression set.

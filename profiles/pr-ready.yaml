@@ -22,13 +22,18 @@ service_context:
 agents:
 - pr-readiness-agent
 skills:
+- architecture-guard-detector
 - architecture-risk
+- changed-files-risk-classifier
 - cross-service-contract
+- dependency-security-evidence
 - developer-decision-review
 - developer-handoff
 - development-summary
+- jira-acceptance-criteria-normalizer
 - liquibase-production-risk
 - pre-review-defect
+- sonar-evidence-triage
 - test-quality
 blocking_conditions:
   - unresolved blocker findings

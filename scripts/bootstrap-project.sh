@@ -152,6 +152,8 @@ Usage:
   ./mana workspace <cmd> [args...]      Resolve/init/status Mana workspace.
   ./mana jira-mcp [args...]             Run Jira MCP Docker wrapper.
   ./mana sonar [args...]                Configure/check/run local sonar-scanner.
+  ./mana dependency-evidence [args...]  Collect local dependency evidence inventory.
+  ./mana evidence-index [args...]       Build active workspace evidence index.
   ./mana validate-mana                  Validate the linked Mana repository.
   ./mana path                           Print linked Mana path.
 
@@ -168,6 +170,8 @@ Examples:
   ./mana jira-mcp --env-file .mana/jira-mcp.env --dry-run
   ./mana sonar --init-config
   ./mana sonar --check
+  ./mana dependency-evidence --collect
+  ./mana evidence-index
 USAGE
     ;;
   profile)
@@ -181,6 +185,12 @@ USAGE
     ;;
   sonar)
     exec "$MANA_HOME/scripts/run-sonar-scanner.sh" --project-root "$project_root" "$@"
+    ;;
+  dependency-evidence)
+    exec "$MANA_HOME/scripts/run-dependency-evidence.sh" --project-root "$project_root" "$@"
+    ;;
+  evidence-index)
+    exec "$MANA_HOME/scripts/run-evidence-index.sh" --project-root "$project_root" "$@"
     ;;
   validate-mana)
     exec "$MANA_HOME/scripts/validate-repo.sh"
@@ -249,6 +259,8 @@ Use the local wrapper:
 ./mana jira-mcp --env-file .mana/jira-mcp.env --dry-run
 ./mana sonar --init-config
 ./mana sonar --check
+./mana dependency-evidence --collect
+./mana evidence-index
 \`\`\`
 
 Project artifacts stay local under \`.mana/\`.
@@ -259,6 +271,8 @@ minimal shell setup is \`JIRA_URL\` plus \`JIRA_PERSONAL_TOKEN\`.
 For Sonar scanner, keep only \`SONAR_HOST_URL\` and \`SONAR_TOKEN\` in the
 environment. Project scanner properties live in
 \`.mana/global/sonar-project.properties\`.
+Use \`./mana evidence-index\` to refresh \`.mana/<workspace>/evidence/index.md\`
+after collecting Jira, Sonar, dependency, test, validation, or PR evidence.
 "
 
 write_file "$project_root/.mana/README.md" "$readme_content"
