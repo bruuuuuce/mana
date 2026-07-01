@@ -4,50 +4,129 @@
 
 # Mana
 
-Mana is a production-oriented, agent-ready delivery framework for enterprise software delivery. It turns uneven requirements, late architecture decisions, weak tests, database risk, and overloaded reviews into a governed workflow of reusable skills, orchestrating agents, MCP integrations, profiles, templates, and operating guides.
+Mana is an evidence-driven delivery framework for enterprise software delivery.
+It turns uneven requirements, late architecture decisions, weak tests, database
+risk, and overloaded reviews into governed technical workflows with traceable
+artifacts and explicit human approval gates.
+
+Mana helps teams answer concrete delivery questions:
+
+- Is this story clear, feasible, testable, and safe to start?
+- Which source areas, contracts, database changes, and tests are in scope?
+- Is this branch or PR consistent with the requested story?
+- What evidence does a Team Leader, reviewer, Architect, or AM need before the
+  next gate?
+
+## Run This First
+From the Mana repository:
+
+```bash
+scripts/validate-repo.sh
+scripts/mana-doctor.sh
+scripts/run-profile.sh mana-help
+scripts/run-profile.sh story-start --render-only
+```
+
+`scripts/run-profile.sh <profile>` validates Mana freshness and renders the
+profile. It does not execute the listed agents or skills by itself. Add a runner
+flag only when you want local runner-backed execution:
+
+```bash
+scripts/run-profile.sh story-start --codex
+scripts/run-profile.sh story-start --claude
+```
+
+To use Mana inside a target application repository:
+
+```bash
+/path/to/mana/scripts/bootstrap-project.sh --project-root /path/to/project
+cd /path/to/project
+./mana workspace status
+./mana profile mana-help
+./mana profile story-start --render-only
+./mana profile story-start --codex
+```
+
+The bootstrap creates a project-local `./mana` wrapper, `.mana/` evidence
+workspace, links to framework definitions, and `AGENTS.md` / `CLAUDE.md` runner
+instructions. Project artifacts stay under the target repository's `.mana/`
+workspace.
+
+## What Mana Is
+- An evidence-driven delivery framework.
+- A structured way to orchestrate AI-assisted technical workflows.
+- A repository of profiles, agents, skills, standards, bootstrap scripts, MCP
+  wrappers, templates, and workspace rules.
+- A way to support human decisions with traceable requirement, code, test,
+  architecture, release, and review evidence.
+
+## What Mana Is Not
+- A fully autonomous developer.
+- A replacement for human review or owner accountability.
+- A CI/CD platform.
+- A Jira, GitHub, or service-management replacement.
+- A system that should approve, merge, deploy, release, transition tickets, or
+  publish externally without explicit human control.
+
+## How The Pieces Relate
+- **Profiles** are runnable workflow definitions. They name the trigger, runner,
+  agents, skills, blocking conditions, warnings, duration, and approval rules.
+- **Agents** orchestrate a phase such as story planning, branch validation, PR
+  readiness, requested PR review, architecture review, or AM readiness.
+- **Skills** are atomic reusable checks that produce reports, plans, questions,
+  and recommendations.
+- **MCP wrappers** provide governed integrations such as read-only Jira access.
+- **Workspace rules** route generated artifacts into the project-local `.mana/`
+  evidence workspace.
+- **Runners** such as Codex or Claude interpret the rendered profile. Junie is
+  used inside the IDE for local implementation support.
+
+Codex is used for repository-level planning, validation, documentation, branch
+analysis, PR readiness, and learning. Junie is used inside the IDE for local
+code implementation, test generation, local fixes, green-border execution, and
+fast developer feedback. Claude Code is used as a CLI runner for repository-level
+analysis and local development support. Do not let two runners modify the same
+branch at the same time.
+
+## Role-Based Workflow Map
+| Role | When | Mana workflow/profile | Output | Decision supported |
+|---|---|---|---|---|
+| Team Leader / Tech Lead | Before assigning or sequencing work | `story-ready-for-dev`, `team-planning`, `team-coaching-review` | Readiness report, execution sequence, delivery risks, review-load plan, coaching report | Start/no-start, task split, ownership, reviewer focus, coaching priorities |
+| Developer | Before and during implementation | `story-start`, `dev-assist`, `pre-commit`, `.junie/profiles/technical-task-execution.md` | Story context, source impact map, implementation plan, test plan, development summary, handoff notes | What to build, what not to touch, which tests prove the change |
+| Reviewer | When review is requested or PR package is needed | `requested-pr-review`, `pr-ready`, `branch-ready` | PR risk report, reviewer focus, defect findings, test evidence, PR package | Which PR to review first, which findings block, what evidence is missing |
+| Architect | When design, boundary, NFR, trust, contract, or database risk is material | `architecture-review` | Architecture review report, ADR material, NFR and drift findings, approval questions | Approve, reject, or require mitigation for architectural trade-offs |
+| AM / Release Owner | Before release or go/no-go discussion | `am-release-ready` | Release impact, continuity, incident-risk, rollback, support, communication evidence | Release readiness, operational mitigations, stakeholder communication |
+| Delivery Manager / PM | During planning, dependency review, and delivery governance | `team-planning`, `story-ready-for-dev`, `mana-help` | Dependency map, delivery risk radar, open questions, readiness status | Scope clarity, escalation timing, delivery risk acceptance |
+
+## Golden Path
+This path shows how existing profiles fit together for a realistic enterprise
+change. Mana produces evidence for humans; it must not automatically code,
+approve, merge, release, transition Jira, or publish externally unless a profile
+explicitly allows a narrow action and the human enables it.
+
+| Step | Purpose | Profile or command | Expected output | Human decision supported | Mana must not do automatically |
+|---|---|---|---|---|---|
+| Jira story | Read the requested behavior and acceptance criteria | `./mana jira-mcp --get-issue PROJ-1234` when Jira is configured | Story JSON or reported access gap | Whether the available requirement evidence is enough | Update Jira, infer missing AC, expose credentials |
+| Story evidence / readiness | Check feasibility, scope, testability, dependencies, and approvals | `./mana profile story-start --codex` or `./mana profile story-ready-for-dev --codex` | Story context, readiness findings, open questions, risk register | Start, clarify, split, or block the story | Invent requirements or mark owner approval as complete |
+| Source impact analysis | Identify likely code, tests, contracts, database areas, and protected zones | `story-start` output, `team-planning`, or `dev-assist` | Source impact map and inspection scope | What can be changed and what requires approval | Modify files outside the approved scope without asking |
+| Developer assistance | Support bounded implementation work | `./mana profile dev-assist --codex` or Junie profile `.junie/profiles/technical-task-execution.md` | Change impact preview, pitfalls, test gaps, local task guidance | Whether the planned local change is still within scope | Run broad autonomous refactors |
+| Branch validation | Compare branch evidence against story, plan, tests, and risks | `./mana profile branch-ready --codex` | Branch validation report, plan-drift findings, missing-test evidence | Whether the branch is ready for PR | Pick an ambiguous base branch silently |
+| Requested PR review | Triage requested reviews or analyze one PR | `./mana profile requested-pr-review --pr <number> --codex` | PR risk summary, review focus, high-signal findings | What the reviewer should inspect or block | Approve, request changes, merge, label, or comment unless explicitly enabled |
+| Architecture review if needed | Review ADR, NFR, service boundary, trust, contract, or database concerns | `./mana profile architecture-review --codex` | Architecture report, drift and approval questions | Whether specialist owner approval is required | Treat architecture approval as implicit |
+| AM / release readiness | Translate technical change into release, rollback, continuity, and support evidence | `./mana profile am-release-ready --codex` | Release impact, incident-risk forecast, continuity and rollback findings | Go/no-go readiness and operational mitigations | Release, deploy, trigger CI, or accept operational risk |
+| Developer handoff / PR package | Prepare review and handoff artifacts | `./mana profile pr-ready --codex` and optionally `./mana profile pre-commit --codex` | PR description, reviewer focus, test evidence, development summary, handoff notes | Whether the PR package is understandable and reviewable | Hide unresolved blockers or replace reviewer judgement |
 
 ## Current Status
 Mana currently provides the framework structure, governance model, reusable
 skill/agent definitions, profile metadata, artifact templates, workspace
 management, Jira MCP wrapper, project bootstrap, and diagnostics.
 
-`scripts/run-profile.sh` is intentionally conservative by default: it validates
-Mana freshness and prints the configured profile. Add `--codex` or `--claude`
-to route the rendered profile to that local runner. Mana still treats profiles,
-agents, and skills as governed definitions; the selected runner interprets them
-and writes artifacts into the active project workspace.
-
 ## Why This Framework Exists
-Enterprise delivery churn usually starts before coding: stories are vague, cross-service contracts are implicit, database changes are reviewed late, and tests are selected by habit rather than risk. The framework reduces analysis, development, review, testing, database deployment, cross-service integration, and regression churn by making evidence explicit at each lifecycle gate.
-
-## Conceptual Model
-- **Skills** are atomic, reusable analysis units. They generate reports, plans, questions, and recommendations.
-- **Agents** orchestrate skills into delivery phases such as story planning, green-border testing, branch validation, PR readiness, and learning.
-- **MCP** is the governed integration layer for Jira, Git, Confluence, Jenkins, Liquibase, Postman/Newman, Playwright, logs, and architecture rules.
-- **Profiles** define when agents and skills run, what blocks delivery, what warns, expected duration, and approval requirements.
-
-## Runners: Codex, Junie, and Claude Code
-Codex is used for repository-level planning, validation, documentation, branch analysis, PR readiness, and learning. Junie is used inside the IDE for local code implementation, test generation, local fixes, green-border execution, and fast developer feedback. Claude Code is used as a CLI runner for both repository-level analysis and local development support; it is the preferred runner for the `dev-assist` profile. Do not let any two runners modify the same branch at the same time.
-
-## Quick Start
-1. Review `docs/architecture/overview.md`.
-2. Run `scripts/validate-repo.sh`.
-3. Run `scripts/mana-doctor.sh`.
-4. Link the framework into a target project with `scripts/bootstrap-project.sh --project-root /path/to/project`, or resolve/create the project-local workspace with `scripts/mana-workspace.sh init --root /path/to/project`.
-5. Start a story with `profiles/story-start.yaml`.
-6. Generate planning artifacts with `agents/story-implementation-planner/`.
-7. Use `profiles/team-planning.yaml` or `profiles/story-ready-for-dev.yaml` when a Team Leader needs start/no-start and sequencing evidence.
-8. Use `profiles/team-coaching-review.yaml` on any feature branch to identify recurring quality patterns per contributor and produce a confidential coaching report for the Team Leader.
-9. Use `profiles/architecture-review.yaml` when an Architect needs ADR, NFR, boundary, drift, contract, or trust-boundary evidence.
-10. Use `profiles/dev-assist.yaml` while implementing to get impact analysis, known pitfalls, concurrency risk, what-if change preview, and test gap planning before writing code.
-11. Implement one technical task at a time in Junie using `.junie/profiles/technical-task-execution.md`.
-12. Run a production pre-mortem with `profiles/jessica-fletcher.yaml`.
-13. Run green-border checks with `profiles/pre-push.yaml`.
-14. Validate the branch with `profiles/branch-ready.yaml`.
-15. Use `profiles/requested-pr-review.yaml` to triage open PRs where you are a requested reviewer.
-16. Use `profiles/am-release-ready.yaml` when an Application Manager needs release, continuity, rollback, and incident-risk evidence.
-17. Generate the PR package with `profiles/pr-ready.yaml`.
-18. Learn the framework interactively at any time with `profiles/tutorial.yaml` or by asking `scripts/run-profile.sh mana-help`.
+Enterprise delivery churn usually starts before coding: stories are vague,
+cross-service contracts are implicit, database changes are reviewed late, and
+tests are selected by habit rather than risk. The framework reduces analysis,
+development, review, testing, database deployment, cross-service integration,
+and regression churn by making evidence explicit at each lifecycle gate.
 
 ## Repository Structure
 ```text

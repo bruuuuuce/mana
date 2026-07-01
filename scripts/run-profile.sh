@@ -13,6 +13,23 @@ jira_env_file="${MANA_JIRA_MCP_ENV:-}"
 jira_mcp_configured=false
 jira_mcp_config_source=""
 
+usage() {
+  cat <<'USAGE'
+Usage:
+  scripts/run-profile.sh <profile-name> [options]
+
+Options:
+  --project-root <path>          Target project root. Defaults to current directory.
+  --render-only                  Render the profile and never start a runner.
+  --codex                        Execute the rendered profile through Codex.
+  --claude                       Execute the rendered profile through Claude Code.
+  --pr, --pr-number <value>      Pull request number or URL for requested-pr-review.
+  --jira-key, --jira-issue <KEY> Add an explicit Jira issue key.
+  --jira-key-regex <regex>       Override branch issue-key discovery.
+  --publish-high-risk-comments   Allow requested-pr-review to publish one high-risk PR comment.
+USAGE
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --project-root)
@@ -75,13 +92,16 @@ if [ -z "$profile" ]; then
     profile="$(tr -d '[:space:]' < "$active_file")"
     echo "Using active profile: $profile (from .mana/active-profile)"
   else
-    echo "Usage: scripts/run-profile.sh <profile-name> [--codex|--claude|--render-only] [--project-root <path>] [--pr <number-or-url>] [--jira-key <KEY>] [--jira-key-regex <regex>] [--publish-high-risk-comments]"
+    usage
     exit 2
   fi
 fi
 
 file="$root/profiles/${profile}.yaml"
-if [ ! -f "$file" ]; then echo "ERROR: profile not found: $profile"; exit 1; fi
+if [ ! -f "$file" ]; then
+  echo "ERROR: profile not found: $profile"
+  exit 1
+fi
 
 if [ "$publish_high_risk_comments" = true ] && [ "$profile" != "requested-pr-review" ]; then
   echo "ERROR: --publish-high-risk-comments is only supported by requested-pr-review" >&2
@@ -122,7 +142,11 @@ fi
 if [ -n "$jira_env_file" ]; then
   jira_mcp_configured=true
   jira_mcp_config_source="env_file"
-elif [ -n "${JIRA_URL:-}" ] && { [ -n "${JIRA_PERSONAL_TOKEN:-}" ] || { [ -n "${JIRA_USERNAME:-}" ] && [ -n "${JIRA_API_TOKEN:-}" ]; }; }; then
+elif [ -n "${JIRA_URL:-}" ] &&
+  {
+    [ -n "${JIRA_PERSONAL_TOKEN:-}" ] ||
+      { [ -n "${JIRA_USERNAME:-}" ] && [ -n "${JIRA_API_TOKEN:-}" ]; }
+  }; then
   jira_mcp_configured=true
   jira_mcp_config_source="environment"
 fi
@@ -258,6 +282,22 @@ Instructions:
 PROMPT
 )"
 
+run_codex() {
+  if [ "$jira_mcp_configured" = true ] && [ "$jira_mcp_config_source" = "env_file" ]; then
+    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write \
+      -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
+      -c "mcp_servers.jira.args=[\"--env-file\",\"$jira_env_file\"]" \
+      "$prompt"
+  elif [ "$jira_mcp_configured" = true ]; then
+    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write \
+      -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
+      -c "mcp_servers.jira.args=[]" \
+      "$prompt"
+  else
+    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write "$prompt"
+  fi
+}
+
 case "$runner" in
   codex)
     if ! command -v codex >/dev/null 2>&1; then
@@ -267,19 +307,7 @@ case "$runner" in
 
     echo
     echo "Starting Codex runner for profile: $profile"
-    if [ "$jira_mcp_configured" = true ] && [ "$jira_mcp_config_source" = "env_file" ]; then
-      MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write \
-        -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
-        -c "mcp_servers.jira.args=[\"--env-file\",\"$jira_env_file\"]" \
-        "$prompt"
-    elif [ "$jira_mcp_configured" = true ]; then
-      MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write \
-        -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
-        -c "mcp_servers.jira.args=[]" \
-        "$prompt"
-    else
-      MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write "$prompt"
-    fi
+    run_codex
     ;;
   claude)
     if ! command -v claude >/dev/null 2>&1; then
