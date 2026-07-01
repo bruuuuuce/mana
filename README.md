@@ -248,8 +248,14 @@ human approval sections.
 
 Internal working notes should use compact "caveman" mode: terse fragments,
 evidence-first notes, no long narrative, and no private chain-of-thought in
-final artifacts. Use `templates/standard-agent-skill-report.template.md` when a
-more specific artifact template does not exist.
+final artifacts.
+
+Long-running profiles should also maintain a context budget: keep a short
+working summary with objective, base branch or PR, issue keys, workspace path,
+checked evidence, open hypotheses, discarded hypotheses, and next checks instead
+of accumulating raw transcripts, full diffs, repeated file dumps, or copied tool
+output. Use `templates/standard-agent-skill-report.template.md` when a more
+specific artifact template does not exist.
 
 ## Example Workflows
 - **Get help choosing the next step:** run `scripts/run-profile.sh mana-help` or ask for the `mana-help-agent`.

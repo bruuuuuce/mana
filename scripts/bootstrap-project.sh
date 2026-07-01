@@ -322,8 +322,12 @@ export JIRA_PERSONAL_TOKEN=...
   publish flag is provided, and only for blocker/high-criticality findings.
 - Use compact caveman working notes while analyzing: terse fragments,
   evidence-first notes, no long narrative, and no private chain-of-thought in
-  final artifacts. Convert working notes into the structured sections required
-  by \`docs/standards/agent-skill-output-standard.md\`.
+  final artifacts. Maintain a context budget: keep a short working summary with
+  objective, base branch or PR, issue keys, workspace path, checked evidence,
+  open hypotheses, discarded hypotheses, and next checks instead of accumulating
+  raw transcripts, full diffs, repeated file dumps, or copied tool output.
+  Convert working notes into the structured sections required by
+  \`docs/standards/agent-skill-output-standard.md\`.
 "
 
 write_file "$project_root/CLAUDE.md" "$claude_md_content"
@@ -401,8 +405,12 @@ export JIRA_PERSONAL_TOKEN=...
   publish flag is provided, and only for blocker/high-criticality findings.
 - Use compact caveman working notes while analyzing: terse fragments,
   evidence-first notes, no long narrative, and no private chain-of-thought in
-  final artifacts. Convert working notes into the structured sections required
-  by \`docs/standards/agent-skill-output-standard.md\`.
+  final artifacts. Maintain a context budget: keep a short working summary with
+  objective, base branch or PR, issue keys, workspace path, checked evidence,
+  open hypotheses, discarded hypotheses, and next checks instead of accumulating
+  raw transcripts, full diffs, repeated file dumps, or copied tool output.
+  Convert working notes into the structured sections required by
+  \`docs/standards/agent-skill-output-standard.md\`.
 "
 
 write_file "$project_root/AGENTS.md" "$agents_md_content"

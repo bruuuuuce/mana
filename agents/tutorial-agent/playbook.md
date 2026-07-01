@@ -1,6 +1,6 @@
 # Tutorial Agent Playbook
 
-Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman working notes while analyzing; keep final artifacts structured and free of private chain-of-thought.
+Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman working notes while analyzing; maintain a context budget; keep final artifacts structured and free of private chain-of-thought.
 
 ## Preparation
 - Read `.mana/active-profile` if present and note the currently active profile.

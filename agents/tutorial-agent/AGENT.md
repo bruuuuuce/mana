@@ -139,7 +139,10 @@ Follow `docs/standards/agent-skill-output-standard.md` (Agent And Skill Output S
 
 Internal reasoning must use compact caveman mode: terse fragments,
 evidence-first notes, no long narrative, and no private chain-of-thought in
-final artifacts.
+final artifacts. Maintain a context budget: keep a short working summary with
+objective, base branch or PR, issue keys, workspace path, checked evidence,
+open hypotheses, discarded hypotheses, and next checks instead of accumulating
+raw transcripts, full diffs, repeated file dumps, or copied tool output.
 
 ## Diagram
 ```mermaid

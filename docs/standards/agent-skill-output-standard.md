@@ -17,6 +17,27 @@ Use compact "caveman" working notes while analyzing:
 Do not include internal working notes in final artifacts. Convert them into the
 standard sections below.
 
+## Context Budget Discipline
+
+Long-running profiles must actively protect the runner context window. Agents
+and skills should keep a compact working summary instead of accumulating raw
+transcripts, repeated file dumps, full diffs, or copied tool output.
+
+When the analysis grows beyond the immediate decision being made, refresh the
+working summary with only:
+
+- active objective and profile;
+- base branch, PR, issue keys, and workspace path;
+- changed files and risk domains already classified;
+- requirement, branch, test, and operational evidence already checked;
+- blocker or warning hypotheses still open;
+- discarded hypotheses with the evidence that closed them;
+- next concrete checks.
+
+The summary must preserve traceability through file paths, line numbers, issue
+keys, PR numbers, commands, and artifact paths. It must not replace required
+final evidence, decision tables, or approval gates.
+
 For story-specific continuity, agents must update or reference the canonical
 story trace described in `docs/standards/story-trace-standard.md`:
 `agent-memory/story-trace.md` inside the active Mana workspace. This stores

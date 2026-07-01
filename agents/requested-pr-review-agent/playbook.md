@@ -1,6 +1,6 @@
 # Requested PR Review Agent Playbook
 
-Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman working notes while analyzing; keep final artifacts structured and free of private chain-of-thought.
+Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman working notes while analyzing; maintain a context budget; keep final artifacts structured and free of private chain-of-thought.
 
 1. Confirm `gh` is available and authenticated. Use it only for read-only PR
    discovery and evidence collection.

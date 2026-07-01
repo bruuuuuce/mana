@@ -20,6 +20,10 @@ check_output_standard_reference() {
     echo "ERROR: $file does not reference compact caveman reasoning mode" >&2
     status=1
   fi
+  if ! grep -q "context budget" "$file"; then
+    echo "ERROR: $file does not reference context budget discipline" >&2
+    status=1
+  fi
 }
 
 for file in "$root"/skills/*/SKILL.md "$root"/agents/*/AGENT.md "$root"/agents/*/playbook.md; do
