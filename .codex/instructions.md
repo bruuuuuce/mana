@@ -9,6 +9,14 @@
 - Prefer reports, risk registers, and proposed patches over direct destructive edits.
 - Respect MCP least privilege, redaction, approval, and audit policies.
 - Stop on high-risk database, architecture, security, or cross-service blockers.
+- Follow `docs/standards/agent-skill-output-standard.md`. Instruction priority
+  is current human instruction, profile YAML, agent `AGENT.md`, playbook,
+  loaded skill `SKILL.md`, then global service context. Never weaken safety,
+  external-write, or human-approval rules.
+- Use the Mana operating loop: identify the human decision, resolve inputs,
+  workspace, requirement source, branch or PR target, and diff base; inventory
+  evidence; classify risk domains; load only needed skills; then report status,
+  findings, evidence, artifacts, and approvals.
 - `jira_read` is optional read-only Jira MCP access. If Jira issue keys are
   provided by the profile or discovered from the branch, read those issues as
   requirement context when the configured MCP server is available. Never expose
@@ -56,6 +64,7 @@
   final artifacts. Maintain a context budget: keep a short working summary with
   objective, base branch or PR, issue keys, workspace path, checked evidence,
   open hypotheses, discarded hypotheses, and next checks instead of accumulating
-  raw transcripts, full diffs, repeated file dumps, or copied tool output.
+  raw transcripts, full diffs, repeated file dumps, complete Jira payloads, full
+  PR threads, full skill files, or copied tool output.
   Convert working notes into the structured sections required by
   `docs/standards/agent-skill-output-standard.md`.

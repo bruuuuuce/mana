@@ -3,6 +3,42 @@
 Mana agents and skills must produce consistent, reviewable artifacts. Internal
 working notes must stay short; published output must stay structured.
 
+## Instruction Priority
+
+When instructions overlap, apply this priority order:
+
+1. Explicit human instruction for the current run.
+2. Profile YAML inputs, blocking conditions, and approval requirements.
+3. Agent `AGENT.md` mission, workflow, tools, and artifact routing.
+4. Agent `playbook.md` execution details.
+5. Loaded skill `SKILL.md` logic.
+6. Global service context and reusable standards.
+
+Safety, data handling, and human approval rules can only become stricter as the
+chain gets more specific. A lower-priority instruction must not weaken a higher
+priority approval gate, external-write restriction, or protected-area rule.
+
+## Operating Loop
+
+Use this loop for every profile run:
+
+1. Identify the decision being supported and the accountable human owner.
+2. Resolve inputs, workspace, requirement source, branch or PR target, and diff
+   base before drawing conclusions.
+3. Build a compact evidence inventory: requirement evidence, changed files,
+   tests, operational context, and known missing context.
+4. Classify risk domains from the evidence inventory.
+5. Load only the agent, playbook, primary skill, and specialist skills needed
+   for those confirmed domains.
+6. Produce findings only when there is a plausible failure path, requirement
+   mismatch, approval gap, or missing evidence that affects the decision.
+7. End with status, blockers, warnings, evidence, artifacts, and human approval
+   needed.
+
+Ask the user only when the missing answer changes the decision or blocks safe
+analysis. Combine related questions into one short checkpoint instead of
+interrupting repeatedly.
+
 ## Internal Reasoning Mode
 
 Use compact "caveman" working notes while analyzing:
@@ -37,6 +73,10 @@ working summary with only:
 The summary must preserve traceability through file paths, line numbers, issue
 keys, PR numbers, commands, and artifact paths. It must not replace required
 final evidence, decision tables, or approval gates.
+
+Do not paste full raw diffs, long command output, entire Jira payloads, full PR
+threads, or complete skill files into notes or reports. Summarize only the
+evidence used for a decision and keep exact references to the source.
 
 For story-specific continuity, agents must update or reference the canonical
 story trace described in `docs/standards/story-trace-standard.md`:
