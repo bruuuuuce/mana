@@ -132,6 +132,11 @@ single story read instead of constructing ad hoc REST commands.
 For epic/story slicing, prefer
 `./mana jira-mcp --fetch-epic-story-pack <KEY>` to cache the epic and sibling
 stories as Markdown under `.mana/features/<EPIC-ID>/evidence/jira/`.
+For local Sonar scanner setup, route users to `sonar-configuration-guide` and
+the `./mana sonar --init-config`, `./mana sonar --check`, and
+`./mana sonar --analyze` commands. Keep only `SONAR_HOST_URL` and `SONAR_TOKEN`
+in the environment; keep scanner project properties under
+`.mana/global/sonar-project.properties`.
 Writes, comments, transitions, or publication to external systems require human
 approval and audit logging.
 
@@ -146,6 +151,7 @@ approval and audit logging.
 - Ask how to prepare a branch for PR readiness.
 - Ask how to review PRs where the user is a requested reviewer.
 - Ask how to analyze one PR quickly by number.
+- Ask how to configure or run local Sonar scanner evidence for a branch or PR.
 
 ## Incorrect Usage Examples
 - Do not use this skill to approve a PR.

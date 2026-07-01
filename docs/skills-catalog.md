@@ -1,6 +1,6 @@
 # Skills Catalog
 
-Reference guide for all 47 skills in the Mana framework, grouped by the
+Reference guide for all 48 skills in the Mana framework, grouped by the
 profile in which they are recommended. Skills may appear in multiple profiles.
 
 Skills are ordered by delivery lifecycle: story intake → planning →
@@ -316,6 +316,7 @@ a custom profile.
 |---|---|---|---|---|
 | [`post-merge-incident-learning`](../skills/post-merge-incident-learning/SKILL.md) | Close the loop after incidents by identifying missed signals and updating future guardrails. | medium | Team Leader / Architect | `learning-agent` |
 | [`rule-update-suggestion`](../skills/rule-update-suggestion/SKILL.md) | Convert lessons into proposed governance updates without automatically changing enforced rules. | medium | Architect / Team Leader | `learning-agent` |
+| [`sonar-configuration-guide`](../skills/sonar-configuration-guide/SKILL.md) | Guide local Sonar scanner setup with env-only host/token and project properties under `.mana/global/sonar-project.properties`. | low | Developer / Team Leader | `mana-help-agent` |
 
 > `learning-agent` uses `post-merge-incident-learning`, `rule-update-suggestion`,
 > `known-pitfalls-extraction`, and `flaky-failure-classification` but no
@@ -380,6 +381,7 @@ a custom profile.
 | `profile-selector` | tutorial, mana-help |
 | `regression-selection` | jessica-fletcher, branch-ready, requested-pr-review, ci-validation, pre-push |
 | `review-load-balancing` | team-planning |
+| `sonar-configuration-guide` | — |
 | `story-consistency` | story-start |
 | `story-depth` | story-start |
 | `test-quality` | jessica-fletcher, branch-ready, pr-ready, requested-pr-review, ci-validation, pre-push, team-coaching-review |

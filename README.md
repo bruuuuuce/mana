@@ -320,6 +320,14 @@ artifact template does not exist.
   `profiles/story-ready-for-dev.yaml` with `epic-story-partitioning` to check
   whether sibling stories overlap, miss epic goals, hide dependencies, or need
   splitting before assignment.
+- **Configure local Sonar evidence:** keep only `SONAR_HOST_URL` and
+  `SONAR_TOKEN` in the environment, then run `./mana sonar --init-config` and
+  edit `.mana/global/sonar-project.properties`. Use `./mana sonar --check` to
+  validate scanner/runtime/config readiness.
+- **Run local Sonar before review:** after building the project, run
+  `./mana sonar --analyze`. Mana writes scanner logs and summary under
+  `.mana/<workspace>/evidence/sonar/` so review and validation agents can use
+  the evidence without rerunning the scanner.
 - **Use the story as evidence:** planning profiles use Jira story text and
   acceptance criteria to check feasibility, testability, scope, owners, and
   approvals. Review, validation, pre-mortem, and PR profiles compare branch/PR

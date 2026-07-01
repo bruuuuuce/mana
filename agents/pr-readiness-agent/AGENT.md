@@ -63,19 +63,22 @@ Builds the final pull request package for reviewers. The agent orchestrates skil
 3. Compare the branch/PR diff against the story text and acceptance criteria:
    report missing requested behavior, unrequested scope, contradicted
    acceptance criteria, and test evidence that does not prove the story.
-4. Load `development-summary` as the primary PR package skill.
-5. Load `developer-handoff` when the change needs maintainer context,
+4. Load existing `.mana/**/evidence/sonar/sonar-summary.md` evidence when
+   present. Do not run `sonar-scanner` from this agent unless the human
+   explicitly asks for fresh Sonar evidence.
+5. Load `development-summary` as the primary PR package skill.
+6. Load `developer-handoff` when the change needs maintainer context,
    diagrams, rationale, or non-obvious implementation notes.
-6. Load `developer-decision-review` when the diff shows unexplained choices,
+7. Load `developer-decision-review` when the diff shows unexplained choices,
    plan drift, risky trade-offs, or missing rationale.
-7. Load `pre-review-defect` when application code changed and focused defect
+8. Load `pre-review-defect` when application code changed and focused defect
    screening is useful before human review.
-8. Load `architecture-risk`, `cross-service-contract`, and
+9. Load `architecture-risk`, `cross-service-contract`, and
    `liquibase-production-risk` only when the filtered diff touches architecture
    boundaries, integrations/contracts, or database changes.
-9. Load `test-quality` only when test evidence exists and must be evaluated.
-10. Aggregate blocker, warning, and info findings into the expected artifacts.
-11. Stop at human approval gates when blockers or out-of-policy actions are detected.
+10. Load `test-quality` only when test evidence exists and must be evaluated.
+11. Aggregate blocker, warning, and info findings into the expected artifacts.
+12. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Skills Used And Why
 - `development-summary`: creates the delivery record with assumptions, decisions, implemented changes, tests, risks, and unresolved items.

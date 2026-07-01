@@ -88,26 +88,29 @@ actions before the branch is committed, pushed, or opened for review.
 6. Load active `.mana` planning artifacts when present: story context,
    source impact map, technical task breakdown, green-border plan, risk register,
    test evidence, and decision log.
-7. Load Jira story evidence when issue keys are available. Use story text,
+7. Load existing `.mana/**/evidence/sonar/sonar-summary.md` evidence when
+   present. Do not run `sonar-scanner` from Jessica unless the human explicitly
+   asks for fresh Sonar evidence.
+8. Load Jira story evidence when issue keys are available. Use story text,
    acceptance criteria, linked context, and relevant comments to check whether
    branch changes implement the requested behavior, add unrequested scope, miss
    critical constraints, or create production risk through requirement
    divergence.
-8. Load Service Context Layer files when present.
-9. Load and invoke `production-premortem` as the primary skill.
-10. Do not load every listed specialist skill up front. Load and invoke
+9. Load Service Context Layer files when present.
+10. Load and invoke `production-premortem` as the primary skill.
+11. Do not load every listed specialist skill up front. Load and invoke
    specialist skills only when relevant to the filtered diff:
    `liquibase-production-risk` and `rollback-safety` for DB changes,
    `cross-service-contract` for API/event/message changes,
    `architecture-risk` for boundary or pattern changes,
    `pre-review-defect` for code-level defects,
    `test-quality` and `regression-selection` for test evidence gaps.
-11. Read full file contents only where needed to validate plausible blocker or
+12. Read full file contents only where needed to validate plausible blocker or
    warning hypotheses. Prefer targeted searches from changed symbols, APIs,
    tables, events, routes, config keys, and tests over repository-wide scans.
-12. Rank findings by severity, plausibility, production blast radius, and evidence
+13. Rank findings by severity, plausibility, production blast radius, and evidence
    strength.
-13. Produce a stop/go recommendation with mitigation checklist.
+14. Produce a stop/go recommendation with mitigation checklist.
 
 ## Skills Used And Why
 - `production-premortem`: primary incident-hypothesis analysis.
