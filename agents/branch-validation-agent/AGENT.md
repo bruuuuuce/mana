@@ -64,7 +64,10 @@ The central responsibility is plan-drift detection: compare approved planning ar
    input, then `origin/HEAD`, then a single credible primary branch. If the base
    is missing or ambiguous, stop with `needs_human_decision` and ask which
    branch to compare against. Do not silently default to `main`.
-3. Load the current branch diff, test evidence, and any generated hook or green-border reports.
+3. Load the current branch diff, test evidence, generated hook or green-border
+   reports, and existing `.mana/**/evidence/sonar/sonar-summary.md` evidence
+   when present. Do not run `sonar-scanner` from this agent unless the human
+   explicitly asks for fresh Sonar evidence.
 4. Compare branch changes against the story text and acceptance criteria:
    identify requested behavior that is missing, implemented behavior that is not
    requested, contradicted acceptance criteria, and tests that do not prove the

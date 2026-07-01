@@ -41,8 +41,11 @@ After bootstrap, use:
 ./mana workspace status
 ./mana workspace init --feature PROJ-1234
 ./mana jira-mcp --get-issue PROJ-1234
+./mana jira-mcp --fetch-epic-story-pack PROJ-1234
 ./mana jira-mcp --env-file .mana/jira-mcp.env --check-access --issue PROJ-1234
 ./mana jira-mcp --env-file .mana/jira-mcp.env --dry-run
+./mana sonar --init-config
+./mana sonar --check
 ```
 
 For Jira Server/Data Center, you can skip the env file and launch the profile
@@ -57,6 +60,29 @@ export JIRA_PERSONAL_TOKEN=...
 Mana discovers generic Jira issue keys from the current branch name using a
 configurable pattern such as `PROJ-1234`. Pass `--jira-key <KEY>` when the
 branch name does not contain the issue key.
+
+## Sonar Scanner
+
+Sonar is optional local evidence for branch and PR review. Keep only host and
+token in the shell:
+
+```bash
+export SONAR_HOST_URL=http://localhost:9000
+export SONAR_TOKEN=...
+```
+
+Project scanner properties live in:
+
+```text
+.mana/global/sonar-project.properties
+```
+
+Initialize and validate them with:
+
+```bash
+./mana sonar --init-config
+./mana sonar --check
+```
 
 ## Git Ignore
 

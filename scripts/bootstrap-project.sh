@@ -151,6 +151,7 @@ Usage:
   ./mana profile <name> [args...]       Print/run a Mana profile.
   ./mana workspace <cmd> [args...]      Resolve/init/status Mana workspace.
   ./mana jira-mcp [args...]             Run Jira MCP Docker wrapper.
+  ./mana sonar [args...]                Configure/check/run local sonar-scanner.
   ./mana validate-mana                  Validate the linked Mana repository.
   ./mana path                           Print linked Mana path.
 
@@ -162,8 +163,11 @@ Examples:
   ./mana workspace status
   ./mana workspace init --feature PROJ-1234
   ./mana jira-mcp --get-issue PROJ-1234
+  ./mana jira-mcp --fetch-epic-story-pack PROJ-1234
   ./mana jira-mcp --env-file .mana/jira-mcp.env --check-access --issue PROJ-1234
   ./mana jira-mcp --env-file .mana/jira-mcp.env --dry-run
+  ./mana sonar --init-config
+  ./mana sonar --check
 USAGE
     ;;
   profile)
@@ -174,6 +178,9 @@ USAGE
     ;;
   jira-mcp)
     exec "$MANA_HOME/scripts/run-jira-mcp-docker.sh" "$@"
+    ;;
+  sonar)
+    exec "$MANA_HOME/scripts/run-sonar-scanner.sh" --project-root "$project_root" "$@"
     ;;
   validate-mana)
     exec "$MANA_HOME/scripts/validate-repo.sh"
@@ -237,8 +244,11 @@ Use the local wrapper:
 ./mana workspace status
 ./mana workspace init --feature <FEATURE-ID>
 ./mana jira-mcp --get-issue PROJ-1234
+./mana jira-mcp --fetch-epic-story-pack PROJ-1234
 ./mana jira-mcp --env-file .mana/jira-mcp.env --check-access --issue PROJ-1234
 ./mana jira-mcp --env-file .mana/jira-mcp.env --dry-run
+./mana sonar --init-config
+./mana sonar --check
 \`\`\`
 
 Project artifacts stay local under \`.mana/\`.
@@ -246,6 +256,9 @@ Project artifacts stay local under \`.mana/\`.
 Linked Mana folders are under \`.mana/links/\`.
 Do not put real Jira credentials in Git. For Jira Server/Data Center, the
 minimal shell setup is \`JIRA_URL\` plus \`JIRA_PERSONAL_TOKEN\`.
+For Sonar scanner, keep only \`SONAR_HOST_URL\` and \`SONAR_TOKEN\` in the
+environment. Project scanner properties live in
+\`.mana/global/sonar-project.properties\`.
 "
 
 write_file "$project_root/.mana/README.md" "$readme_content"
@@ -320,6 +333,10 @@ export JIRA_PERSONAL_TOKEN=...
   GitHub without explicit developer approval.
 - \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
   publish flag is provided, and only for blocker/high-criticality findings.
+- \`sonar-scanner\` is optional evidence. Keep \`SONAR_HOST_URL\` and
+  \`SONAR_TOKEN\` in the environment; keep project scanner properties in
+  \`.mana/global/sonar-project.properties\`; write scanner outputs under
+  \`.mana/<workspace>/evidence/sonar/\`.
 - Follow \`docs/standards/agent-skill-output-standard.md\`. Instruction priority
   is current human instruction, profile YAML, agent \`AGENT.md\`, playbook,
   loaded skill \`SKILL.md\`, then global service context. Never weaken safety,
@@ -417,6 +434,10 @@ export JIRA_PERSONAL_TOKEN=...
   GitHub without explicit developer approval.
 - \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
   publish flag is provided, and only for blocker/high-criticality findings.
+- \`sonar-scanner\` is optional evidence. Keep \`SONAR_HOST_URL\` and
+  \`SONAR_TOKEN\` in the environment; keep project scanner properties in
+  \`.mana/global/sonar-project.properties\`; write scanner outputs under
+  \`.mana/<workspace>/evidence/sonar/\`.
 - Follow \`docs/standards/agent-skill-output-standard.md\`. Instruction priority
   is current human instruction, profile YAML, agent \`AGENT.md\`, playbook,
   loaded skill \`SKILL.md\`, then global service context. Never weaken safety,

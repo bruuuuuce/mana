@@ -101,6 +101,7 @@ flowchart TD
 | Full local branch diff | Yes | `git diff <main-branch>...HEAD` plus uncommitted working-tree changes |
 | Story context | Recommended | `./mana jira-mcp --get-issue <KEY>` or `.mana/features/<FEATURE-ID>/context/` |
 | Source impact map | Recommended | `.mana/features/<FEATURE-ID>/planning/01-source-impact-map.md` |
+| Epic story pack | Recommended for planning | `./mana jira-mcp --fetch-epic-story-pack <KEY>` writes `.mana/features/<EPIC-ID>/evidence/jira/epic-story-pack.md` |
 | Green-border plan | Recommended | `.mana/features/<FEATURE-ID>/planning/05-green-border-plan.md` |
 | Risk register | Recommended | `.mana/features/<FEATURE-ID>/planning/06-risk-register.md` |
 | Service context | Recommended | `.mana/global/service-mission.md`, `architecture.md`, `engineering-guards.md` |

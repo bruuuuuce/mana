@@ -25,6 +25,7 @@ Checks:
   - Workspace initialization in a temporary project.
   - Linked project wrapper when --project is provided.
   - Jira MCP Docker wrapper dry-run.
+  - Sonar scanner wrapper and local config initialization.
   - Mana update-check script and no-fetch execution.
 USAGE
 }
@@ -130,6 +131,13 @@ has_jira_credentials_in_env() {
   return 1
 }
 
+has_sonar_credentials_in_env() {
+  if [ -n "${SONAR_HOST_URL:-}" ] && [ -n "${SONAR_TOKEN:-}" ]; then
+    return 0
+  fi
+  return 1
+}
+
 check_external_tools() {
   echo "External tool readiness:"
 
@@ -140,6 +148,23 @@ check_external_tools() {
   check_optional_tool curl "Jira REST access checks and issue reads"
   check_optional_tool base64 "Jira Cloud basic-auth header generation"
   check_optional_tool shellcheck "Mana script linting during framework development"
+  if check_optional_tool sonar-scanner "optional local code-quality evidence for branch and PR review"; then
+    if sonar-scanner --version >/dev/null 2>&1; then
+      pass "sonar-scanner command responds"
+    else
+      warn "sonar-scanner is installed but did not run; check Java version and scanner installation"
+    fi
+    sonar_project="${project:-$root}"
+    if has_sonar_credentials_in_env; then
+      if "$root/scripts/run-sonar-scanner.sh" --project-root "$sonar_project" --check >/dev/null 2>&1; then
+        pass "Sonar scanner configuration and server authentication check passed"
+      else
+        warn "Sonar env is present but scanner/config/server authentication check failed"
+      fi
+    else
+      warn "Sonar env not configured; set SONAR_HOST_URL and SONAR_TOKEN to enable Sonar evidence checks"
+    fi
+  fi
 
   if check_optional_tool docker "Jira MCP container runner"; then
     if docker info >/dev/null 2>&1; then
@@ -200,11 +225,11 @@ for dir in docs skills agents profiles mcp templates scripts hooks templates/man
   check_dir "$dir"
 done
 
-for file in README.md scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-profile.sh scripts/run-jira-mcp-docker.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh profiles/jessica-fletcher.yaml profiles/mana-help.yaml profiles/pre-commit.yaml profiles/am-release-ready.yaml profiles/architecture-review.yaml profiles/team-planning.yaml profiles/story-ready-for-dev.yaml agents/pre-commit-documentation-agent/AGENT.md docs/workflow/mana-workspace.md docs/standards/agent-skill-output-standard.md docs/standards/story-trace-standard.md docs/standards/developer-choice-log-standard.md templates/standard-agent-skill-report.template.md templates/mana-workspace/story-trace.template.md templates/mana-workspace/developer-choice-log.template.md templates/pre-commit-development-summary.template.md templates/knowledge-transfer-brief.template.md .codex/README.md .codex/instructions.md .junie/README.md .junie/guidelines.md .claude/README.md .claude/instructions.md; do
+for file in README.md scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-profile.sh scripts/run-jira-mcp-docker.sh scripts/run-sonar-scanner.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh profiles/jessica-fletcher.yaml profiles/mana-help.yaml profiles/pre-commit.yaml profiles/am-release-ready.yaml profiles/architecture-review.yaml profiles/team-planning.yaml profiles/story-ready-for-dev.yaml agents/pre-commit-documentation-agent/AGENT.md docs/workflow/mana-workspace.md docs/standards/agent-skill-output-standard.md docs/standards/story-trace-standard.md docs/standards/developer-choice-log-standard.md templates/standard-agent-skill-report.template.md templates/mana-workspace/story-trace.template.md templates/mana-workspace/developer-choice-log.template.md templates/mana-workspace/global/sonar-project.properties.template templates/pre-commit-development-summary.template.md templates/knowledge-transfer-brief.template.md .codex/README.md .codex/instructions.md .junie/README.md .junie/guidelines.md .claude/README.md .claude/instructions.md; do
   check_file "$file"
 done
 
-for file in scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-jira-mcp-docker.sh scripts/run-profile.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh; do
+for file in scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-jira-mcp-docker.sh scripts/run-sonar-scanner.sh scripts/run-profile.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh; do
   check_exec "$file"
 done
 
@@ -281,6 +306,20 @@ else
   error "Jira MCP wrapper dry-run failed"
 fi
 
+sonar_tmp="${TMPDIR:-/tmp}/mana-doctor-sonar-$$"
+rm -rf "$sonar_tmp"
+mkdir -p "$sonar_tmp"
+if "$root/scripts/run-sonar-scanner.sh" --project-root "$sonar_tmp" --init-config >/dev/null 2>&1; then
+  if [ -f "$sonar_tmp/.mana/global/sonar-project.properties" ]; then
+    pass "Sonar config initialization"
+  else
+    error "Sonar config initialization missing expected file"
+  fi
+else
+  error "Sonar config initialization failed"
+fi
+rm -rf "$sonar_tmp"
+
 if [ -n "$project" ]; then
   if [ -x "$project/mana" ]; then pass "project wrapper exists: mana"; else warn "project wrapper missing: mana"; fi
   if [ -f "$project/.mana/env" ]; then pass "project Mana env exists"; else warn "project .mana/env missing"; fi
@@ -289,6 +328,11 @@ if [ -n "$project" ]; then
     pass "project hooks-config.yaml exists"
   else
     warn "project .mana/global/hooks-config.yaml missing; run: scripts/mana-workspace.sh init --root $project"
+  fi
+  if [ -f "$project/.mana/global/sonar-project.properties" ]; then
+    pass "project sonar-project.properties exists"
+  else
+    warn "project .mana/global/sonar-project.properties missing; run: ./mana sonar --init-config"
   fi
   if [ -x "$project/mana" ] && "$project/mana" profile mana-help >/dev/null; then
     pass "project wrapper can load mana-help"

@@ -1,6 +1,7 @@
 # Mana local workspaces and credentials
 .mana/
 !.mana/README.md
+.omo/
 mcp/env/*.env
 !mcp/env/*.env.example
 

@@ -3,6 +3,23 @@
 When Jira MCP is unavailable, incomplete, or intentionally disabled, use a
 manual Markdown story pack as the source of requirement evidence.
 
+When Jira MCP is available, prefer the read-only Markdown cache command instead
+of hand-copying issue JSON:
+
+```bash
+./mana jira-mcp --fetch-epic-story-pack PROJ-1234
+```
+
+The command resolves the parent epic when possible, fetches sibling stories, and
+writes:
+
+```text
+.mana/features/<EPIC-ID>/evidence/jira/epic-story-pack.md
+```
+
+That generated pack is the default requirement evidence for epic/story slicing
+reviews. It avoids repeated Jira downloads and keeps agents out of raw Jira JSON.
+
 Template:
 
 ```text
@@ -23,6 +40,7 @@ For story-specific planning, copy or reference the same pack from:
 
 ## Rules
 
+- Prefer the generated Jira Markdown cache when Jira read access works.
 - Mark `Source mode` as `manual-md-fallback`.
 - Record why Jira was unavailable or intentionally skipped.
 - Include the epic and every story expected in the delivery slice.

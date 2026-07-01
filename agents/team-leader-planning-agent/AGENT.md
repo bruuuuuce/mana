@@ -7,6 +7,7 @@ compatible_runners:
   - codex
 skills_used:
   - developer-readiness-check
+  - epic-story-partitioning
   - team-execution-plan
   - delivery-risk-radar
   - review-load-balancing
@@ -55,20 +56,25 @@ Help Team Leaders convert requirements and technical analysis into a development
 1. Load epic, stories, planning artifacts, team constraints, repository snapshot, and service context.
 2. Use `developer-readiness-check` when deciding whether stories can start
    development.
-3. Use `source-impact-map`, `technical-task-breakdown`, and
+3. Use `epic-story-partitioning` when an epic story pack or Jira issue key is
+   available and story slicing, overlap, or missing epic coverage affects the
+   planning decision.
+4. Use `source-impact-map`, `technical-task-breakdown`, and
    `green-border-plan` only for stories whose scope, tasks, or test strategy
    need validation.
-4. Use `team-execution-plan` when sequencing, parallelization, ownership, or
+5. Use `team-execution-plan` when sequencing, parallelization, ownership, or
    dependency mapping is needed.
-5. Use `delivery-risk-radar` when escalation risks, missing decisions, plan
+6. Use `delivery-risk-radar` when escalation risks, missing decisions, plan
    drift, or bottlenecks are present.
-6. Use `review-load-balancing` when reviewer focus or specialist involvement
+7. Use `review-load-balancing` when reviewer focus or specialist involvement
    must be planned.
-7. Use `developer-handoff` only when work is ready to be assigned.
-8. Aggregate outputs into a Team Leader plan and explicit start/no-start decisions.
+8. Use `developer-handoff` only when work is ready to be assigned.
+9. Aggregate outputs into a Team Leader plan and explicit start/no-start decisions.
 
 ## Skills Used And Why
 - `developer-readiness-check`: decides whether development can start responsibly.
+- `epic-story-partitioning`: checks sibling stories for overlap, gaps,
+  hidden dependencies, oversized slices, and weak acceptance boundaries.
 - `team-execution-plan`: creates sequencing, ownership, and dependency plan.
 - `delivery-risk-radar`: identifies delivery risks and mitigations.
 - `review-load-balancing`: plans review load and specialist focus.
@@ -89,6 +95,11 @@ local Mana artifacts or explicit user-provided story context.
 Use the story text, acceptance criteria, linked context, and relevant comments
 to decide whether the story is ready to start, whether it is sliceable and
 testable, and whether ownership, dependencies, and approvals are sufficient.
+When the decision depends on epic-level slicing, prefer the normalized Markdown
+cache at `.mana/features/<EPIC-ID>/evidence/jira/epic-story-pack.md`. If it is
+missing and read-only Jira access is configured, request
+`./mana jira-mcp --fetch-epic-story-pack <STORY-KEY>` and use the generated
+pack as reusable evidence for `epic-story-partitioning`.
 
 ## Artifact Workspace
 Write outputs to the active Mana workspace:

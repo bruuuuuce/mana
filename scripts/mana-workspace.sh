@@ -170,6 +170,7 @@ mkdir -p \
   "$workspace_path/agent-memory" \
   "$workspace_path/skill-outputs" \
   "$workspace_path/decisions" \
+  "$workspace_path/evidence" \
   "$workspace_path/tests" \
   "$workspace_path/validation" \
   "$workspace_path/pr" \
@@ -206,6 +207,11 @@ $body"
 hooks_config_template="$framework_root/templates/mana-workspace/global/hooks-config.template.yaml"
 if [ -f "$hooks_config_template" ]; then
   write_if_missing "$root/.mana/global/hooks-config.yaml" "$(cat "$hooks_config_template")"
+fi
+
+sonar_config_template="$framework_root/templates/mana-workspace/global/sonar-project.properties.template"
+if [ -f "$sonar_config_template" ]; then
+  write_if_missing "$root/.mana/global/sonar-project.properties" "$(cat "$sonar_config_template")"
 fi
 
 write_global_file_if_missing "service-mission.md" "Service Mission" "Describe what this service does, why it exists, where it sits in the wider architecture, what it owns, what it must not do, and which business capability it supports."
@@ -261,6 +267,7 @@ index_content="# Mana Workspace Index
 - \`skill-outputs/\`: individual skill reports.
 - \`decisions/\`: decisions, clarifications and approvals.
 - \`decisions/developer-choice-log.md\`: developer-confirmed implementation choices and rationale.
+- \`evidence/\`: external and generated evidence such as Jira packs, Sonar summaries, CI logs, or tool reports.
 - \`tests/\`: green-border, regression and test evidence.
 - \`validation/\`: branch validation, drift, missing tests and risk status.
 - \`pr/\`: PR package, reviewer focus, development summary and developer handoff.

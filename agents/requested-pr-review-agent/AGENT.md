@@ -79,10 +79,13 @@ Find open pull requests where the current user is a requested reviewer, or analy
 7. For each selected PR, load the PR diff and changed-file list. Exclude
    Mana/bootstrap noise from findings and evidence: `.mana/**`, `AGENTS.md`,
    `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or env ignore changes.
-8. If a selected PR has more than roughly 80 changed files or 2,000 changed
+8. Load existing `.mana/**/evidence/sonar/sonar-summary.md` evidence when
+   present and relevant to the selected PR. Do not run `sonar-scanner` from this
+   agent unless the human explicitly asks for fresh Sonar evidence.
+9. If a selected PR has more than roughly 80 changed files or 2,000 changed
    lines after filtering, stop that PR with `needs_human_decision` and ask for
    a narrower review scope.
-9. Load only skills relevant to the filtered PR diff:
+10. Load only skills relevant to the filtered PR diff:
    - `pre-review-defect` when application code changed.
    - `architecture-risk` when design boundaries, transactions, feature flags,
      concurrency, or forbidden zones are touched.

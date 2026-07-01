@@ -1,0 +1,18 @@
+# Mana local Sonar project configuration.
+# Keep environment and secrets outside this file:
+#   export SONAR_HOST_URL=http://localhost:9000
+#   export SONAR_TOKEN=...
+#
+# Copy or initialize this as:
+#   .mana/global/sonar-project.properties
+
+sonar.projectKey=your-project-quality
+sonar.projectName=Your Project Quality
+sonar.sources=src
+sonar.sourceEncoding=UTF-8
+sonar.scm.provider=git
+sonar.exclusions=**/.git/**,**/.gradle/**,**/build/generated/**,**/build/resources/**,**/node_modules/**
+
+# Java projects should set this after the build creates classes.
+# Example:
+# sonar.java.binaries=build/classes/java/main
