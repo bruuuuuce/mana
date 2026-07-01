@@ -1,5 +1,7 @@
 # Tutorial Agent Playbook
 
+Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman working notes while analyzing; maintain a context budget; keep final artifacts structured and free of private chain-of-thought.
+
 ## Preparation
 - Read `.mana/active-profile` if present and note the currently active profile.
 - Read `profiles/*.yaml` to build the profile catalogue for Phase 1.
@@ -35,12 +37,15 @@
 - Read in order:
   1. The profile YAML.
   2. The AGENT.md of the primary agent listed in the profile.
-  3. The SKILL.md of each skill listed in the profile.
-  4. `examples/sample-output.md` for each skill (skip silently if missing).
+  3. The primary agent playbook.
+  4. For each listed skill, only the front matter plus Purpose, When To Use It,
+     When Not To Use It, Outputs, and Decision Rules sections.
+  5. Full SKILL.md files or examples only for the primary skill, for a user
+     requested skill, or when the concise sections do not explain the profile.
 - Produce the Mermaid flow before the skill list.
 - For each skill, write two sentences: what it does and why it is in this profile.
-- Show the annotated sample output in a fenced block with inline comments
-  explaining each section.
+- Show an annotated sample output only when an existing relevant example was
+  read; otherwise show the expected artifact names and approval gates.
 - List human approval gates explicitly: who approves and what evidence is needed.
 
 ### Phase 3 — Starter Checklist

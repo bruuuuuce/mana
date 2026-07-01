@@ -34,9 +34,9 @@ Guide a user through the Mana framework interactively via chat. The agent covers
 the full profile catalogue, explains each phase of the delivery lifecycle, and
 produces a personalized starter checklist for the selected profile.
 
-The tutorial uses only the framework's own files as source material — profiles,
-AGENT.md files, SKILL.md files, and examples directories. It does not access the
-user's repository and does not execute skills against real code.
+The tutorial uses only the framework's own files as source material: profiles,
+agent files, selected skill sections, and examples when needed. It does not
+access the user's repository and does not execute skills against real code.
 
 ## Trigger Points
 - onboarding
@@ -61,13 +61,17 @@ user's repository and does not execute skills against real code.
 ### Phase 2 — Deep-Dive
 8. Invoke `profile-selector` to confirm and optionally persist the selection.
 9. Read the selected profile YAML, the AGENT.md of its primary agent, and the
-   SKILL.md of each skill listed in the profile.
-10. Read `examples/sample-output.md` for each of those skills when available.
+   agent playbook.
+10. Build the skill explanation from the profile list plus each skill's front
+    matter, Purpose, When To Use It, When Not To Use It, Outputs, and Decision
+    Rules sections. Read full skill files or examples only for the primary
+    skill, for skills the user asks about, or when the requested explanation
+    cannot be answered from those sections.
 11. Produce:
     - A Mermaid flowchart of the profile execution.
     - A skill-by-skill explanation of what each skill does and why it is included.
     - The list of inputs the user must have ready before running the profile.
-    - An annotated sample output drawn from the existing `examples/` files.
+    - An annotated sample output when a relevant existing example was read.
     - The human approval gates: who must sign off and on what.
 
 ### Phase 3 — Starter Checklist
@@ -139,7 +143,10 @@ Follow `docs/standards/agent-skill-output-standard.md` (Agent And Skill Output S
 
 Internal reasoning must use compact caveman mode: terse fragments,
 evidence-first notes, no long narrative, and no private chain-of-thought in
-final artifacts.
+final artifacts. Maintain a context budget: keep a short working summary with
+objective, base branch or PR, issue keys, workspace path, checked evidence,
+open hypotheses, discarded hypotheses, and next checks instead of accumulating
+raw transcripts, full diffs, repeated file dumps, or copied tool output.
 
 ## Diagram
 ```mermaid

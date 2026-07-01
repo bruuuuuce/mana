@@ -1,5 +1,7 @@
 # Pr Readiness Agent Playbook
 
+Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman working notes while analyzing; maintain a context budget; keep final artifacts structured and free of private chain-of-thought.
+
 ## Preparation
 - Confirm the trigger point: `pr_ready, before_opening_pr, pull_request_update`.
 - Collect inputs: `branch_validation_report, code_diff, test_evidence, risk_register`.

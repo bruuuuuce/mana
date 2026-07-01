@@ -1,5 +1,7 @@
 # Pre-Commit Documentation Agent Playbook
 
+Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman working notes while analyzing; maintain a context budget; keep final artifacts structured and free of private chain-of-thought.
+
 ## Preparation
 - Confirm the trigger point: `pre_commit` or `before_commit`.
 - Confirm an active Mana workspace exists for the Jira story or feature.

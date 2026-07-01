@@ -1,5 +1,7 @@
 # Playbook: team-coaching-report-agent
 
+Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman working notes while analyzing; maintain a context budget; keep final artifacts structured and free of private chain-of-thought.
+
 ## Preparation
 
 Before starting:

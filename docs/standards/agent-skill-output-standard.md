@@ -3,6 +3,68 @@
 Mana agents and skills must produce consistent, reviewable artifacts. Internal
 working notes must stay short; published output must stay structured.
 
+## Instruction Priority
+
+When instructions overlap, apply this priority order:
+
+1. Explicit human instruction for the current run.
+2. Profile YAML inputs, blocking conditions, and approval requirements.
+3. Agent `AGENT.md` mission, workflow, tools, and artifact routing.
+4. Agent `playbook.md` execution details.
+5. Loaded skill `SKILL.md` logic.
+6. Global service context and reusable standards.
+
+Safety, data handling, and human approval rules can only become stricter as the
+chain gets more specific. A lower-priority instruction must not weaken a higher
+priority approval gate, external-write restriction, or protected-area rule.
+
+## Operating Loop
+
+Use this loop for every profile run:
+
+1. Identify the decision being supported and the accountable human owner.
+2. Resolve inputs, workspace, requirement source, branch or PR target, and diff
+   base before drawing conclusions.
+3. Build a compact evidence inventory: requirement evidence, changed files,
+   tests, operational context, and known missing context.
+4. Classify risk domains from the evidence inventory.
+5. Load only the agent, playbook, primary skill, and specialist skills needed
+   for those confirmed domains.
+6. Produce findings only when there is a plausible failure path, requirement
+   mismatch, approval gap, or missing evidence that affects the decision.
+7. End with status, blockers, warnings, evidence, artifacts, and human approval
+   needed.
+
+Ask the user only when the missing answer changes the decision or blocks safe
+analysis. Combine related questions into one short checkpoint instead of
+interrupting repeatedly.
+
+## Progressive Loading Discipline
+
+Mana instructions are designed for staged loading. Do not read every agent,
+playbook, skill, Jira payload, PR thread, or large artifact up front.
+
+Use this loading order:
+
+1. Read the selected profile YAML.
+2. Read only the selected agent `AGENT.md` and its `playbook.md`.
+3. For candidate skills, do a load-light pass first: front matter, title,
+   `Purpose`, `When To Use It`, `When Not To Use It`, `Inputs`, `Outputs`,
+   `Execution Logic`, and `Decision Rules`.
+4. Choose the primary skill needed to start the profile.
+5. Deep-load a skill only when it is primary for the decision, its risk domain
+   is touched by filtered evidence, or the load-light pass is insufficient to
+   make a safe finding.
+6. Do not read unrelated agent folders, all skills in a profile, all examples,
+   or full reference files unless a concrete hypothesis requires them.
+
+Prefer targeted reads such as section extraction or bounded line ranges over
+whole-file dumps. Reading the first 120 lines of a Mana `SKILL.md` is usually
+enough for triage because the operational sections are intentionally kept near
+the top. If a file does not follow that shape, treat the missing structure as a
+maintainability issue and read only the sections needed for the current
+decision.
+
 ## Internal Reasoning Mode
 
 Use compact "caveman" working notes while analyzing:
@@ -16,6 +78,31 @@ Use compact "caveman" working notes while analyzing:
 
 Do not include internal working notes in final artifacts. Convert them into the
 standard sections below.
+
+## Context Budget Discipline
+
+Long-running profiles must actively protect the runner context window. Agents
+and skills should keep a compact working summary instead of accumulating raw
+transcripts, repeated file dumps, full diffs, or copied tool output.
+
+When the analysis grows beyond the immediate decision being made, refresh the
+working summary with only:
+
+- active objective and profile;
+- base branch, PR, issue keys, and workspace path;
+- changed files and risk domains already classified;
+- requirement, branch, test, and operational evidence already checked;
+- blocker or warning hypotheses still open;
+- discarded hypotheses with the evidence that closed them;
+- next concrete checks.
+
+The summary must preserve traceability through file paths, line numbers, issue
+keys, PR numbers, commands, and artifact paths. It must not replace required
+final evidence, decision tables, or approval gates.
+
+Do not paste full raw diffs, long command output, entire Jira payloads, full PR
+threads, or complete skill files into notes or reports. Summarize only the
+evidence used for a decision and keep exact references to the source.
 
 For story-specific continuity, agents must update or reference the canonical
 story trace described in `docs/standards/story-trace-standard.md`:

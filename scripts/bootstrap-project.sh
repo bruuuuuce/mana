@@ -320,6 +320,28 @@ export JIRA_PERSONAL_TOKEN=...
   GitHub without explicit developer approval.
 - \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
   publish flag is provided, and only for blocker/high-criticality findings.
+- Follow \`docs/standards/agent-skill-output-standard.md\`. Instruction priority
+  is current human instruction, profile YAML, agent \`AGENT.md\`, playbook,
+  loaded skill \`SKILL.md\`, then global service context. Never weaken safety,
+  external-write, or human-approval rules.
+- Use the Mana operating loop: identify the human decision, resolve inputs,
+  workspace, requirement source, branch or PR target, and diff base; inventory
+  evidence; classify risk domains; load only needed skills; then report status,
+  findings, evidence, artifacts, and approvals.
+- Use progressive load-light reading for candidate skills: front matter, title,
+  \`Purpose\`, \`When To Use It\`, \`When Not To Use It\`, \`Inputs\`,
+  \`Outputs\`, \`Execution Logic\`, and \`Decision Rules\` before deciding
+  whether a deep read is needed. Do not read every skill, every example, or
+  unrelated agent folders up front.
+- Use compact caveman working notes while analyzing: terse fragments,
+  evidence-first notes, no long narrative, and no private chain-of-thought in
+  final artifacts. Maintain a context budget: keep a short working summary with
+  objective, base branch or PR, issue keys, workspace path, checked evidence,
+  open hypotheses, discarded hypotheses, and next checks instead of accumulating
+  raw transcripts, full diffs, repeated file dumps, complete Jira payloads, full
+  PR threads, full skill files, or copied tool output.
+  Convert working notes into the structured sections required by
+  \`docs/standards/agent-skill-output-standard.md\`.
 "
 
 write_file "$project_root/CLAUDE.md" "$claude_md_content"
@@ -395,6 +417,28 @@ export JIRA_PERSONAL_TOKEN=...
   GitHub without explicit developer approval.
 - \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
   publish flag is provided, and only for blocker/high-criticality findings.
+- Follow \`docs/standards/agent-skill-output-standard.md\`. Instruction priority
+  is current human instruction, profile YAML, agent \`AGENT.md\`, playbook,
+  loaded skill \`SKILL.md\`, then global service context. Never weaken safety,
+  external-write, or human-approval rules.
+- Use the Mana operating loop: identify the human decision, resolve inputs,
+  workspace, requirement source, branch or PR target, and diff base; inventory
+  evidence; classify risk domains; load only needed skills; then report status,
+  findings, evidence, artifacts, and approvals.
+- Use progressive load-light reading for candidate skills: front matter, title,
+  \`Purpose\`, \`When To Use It\`, \`When Not To Use It\`, \`Inputs\`,
+  \`Outputs\`, \`Execution Logic\`, and \`Decision Rules\` before deciding
+  whether a deep read is needed. Do not read every skill, every example, or
+  unrelated agent folders up front.
+- Use compact caveman working notes while analyzing: terse fragments,
+  evidence-first notes, no long narrative, and no private chain-of-thought in
+  final artifacts. Maintain a context budget: keep a short working summary with
+  objective, base branch or PR, issue keys, workspace path, checked evidence,
+  open hypotheses, discarded hypotheses, and next checks instead of accumulating
+  raw transcripts, full diffs, repeated file dumps, complete Jira payloads, full
+  PR threads, full skill files, or copied tool output.
+  Convert working notes into the structured sections required by
+  \`docs/standards/agent-skill-output-standard.md\`.
 "
 
 write_file "$project_root/AGENTS.md" "$agents_md_content"

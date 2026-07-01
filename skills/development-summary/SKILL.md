@@ -108,7 +108,7 @@ MCP access must be least-privilege. Read-only access is preferred. Writes, destr
 ## Output Standard
 Follow `docs/standards/agent-skill-output-standard.md` (Agent And Skill Output Standard) for all generated artifacts. Use `templates/standard-agent-skill-report.template.md` when no more specific template exists.
 
-Internal reasoning must use compact caveman mode: terse fragments, evidence-first notes, no long narrative, and no private chain-of-thought in final artifacts.
+Internal reasoning must use compact caveman mode: terse fragments, evidence-first notes, no long narrative, and no private chain-of-thought in final artifacts. Maintain a context budget: keep a short working summary with objective, base branch or PR, issue keys, workspace path, checked evidence, open hypotheses, discarded hypotheses, and next checks instead of accumulating raw transcripts, full diffs, repeated file dumps, or copied tool output.
 
 ## Developer Choice Log
 When summarizing implementation rationale or developer-confirmed decisions, reference `decisions/developer-choice-log.md` and follow `docs/standards/developer-choice-log-standard.md` (Developer Choice Log Standard). Do not present a choice as confirmed unless it appears in the log or the input includes explicit developer or owner confirmation.

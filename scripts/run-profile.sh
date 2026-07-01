@@ -13,6 +13,23 @@ jira_env_file="${MANA_JIRA_MCP_ENV:-}"
 jira_mcp_configured=false
 jira_mcp_config_source=""
 
+usage() {
+  cat <<'USAGE'
+Usage:
+  scripts/run-profile.sh <profile-name> [options]
+
+Options:
+  --project-root <path>          Target project root. Defaults to current directory.
+  --render-only                  Render the profile and never start a runner.
+  --codex                        Execute the rendered profile through Codex.
+  --claude                       Execute the rendered profile through Claude Code.
+  --pr, --pr-number <value>      Pull request number or URL for requested-pr-review.
+  --jira-key, --jira-issue <KEY> Add an explicit Jira issue key.
+  --jira-key-regex <regex>       Override branch issue-key discovery.
+  --publish-high-risk-comments   Allow requested-pr-review to publish one high-risk PR comment.
+USAGE
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --project-root)
@@ -75,13 +92,16 @@ if [ -z "$profile" ]; then
     profile="$(tr -d '[:space:]' < "$active_file")"
     echo "Using active profile: $profile (from .mana/active-profile)"
   else
-    echo "Usage: scripts/run-profile.sh <profile-name> [--codex|--claude|--render-only] [--project-root <path>] [--pr <number-or-url>] [--jira-key <KEY>] [--jira-key-regex <regex>] [--publish-high-risk-comments]"
+    usage
     exit 2
   fi
 fi
 
 file="$root/profiles/${profile}.yaml"
-if [ ! -f "$file" ]; then echo "ERROR: profile not found: $profile"; exit 1; fi
+if [ ! -f "$file" ]; then
+  echo "ERROR: profile not found: $profile"
+  exit 1
+fi
 
 if [ "$publish_high_risk_comments" = true ] && [ "$profile" != "requested-pr-review" ]; then
   echo "ERROR: --publish-high-risk-comments is only supported by requested-pr-review" >&2
@@ -122,7 +142,11 @@ fi
 if [ -n "$jira_env_file" ]; then
   jira_mcp_configured=true
   jira_mcp_config_source="env_file"
-elif [ -n "${JIRA_URL:-}" ] && { [ -n "${JIRA_PERSONAL_TOKEN:-}" ] || { [ -n "${JIRA_USERNAME:-}" ] && [ -n "${JIRA_API_TOKEN:-}" ]; }; }; then
+elif [ -n "${JIRA_URL:-}" ] &&
+  {
+    [ -n "${JIRA_PERSONAL_TOKEN:-}" ] ||
+      { [ -n "${JIRA_USERNAME:-}" ] && [ -n "${JIRA_API_TOKEN:-}" ]; }
+  }; then
   jira_mcp_configured=true
   jira_mcp_config_source="environment"
 fi
@@ -238,7 +262,10 @@ Profile input overrides:
 Instructions:
 - Do not run './mana profile $profile' or 'scripts/run-profile.sh $profile' again; this command already rendered the profile and would recurse.
 - Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'.
-- Read the listed agent AGENT.md and playbook.md. Load only the primary skill required to start the profile, then load specialist skills only when the filtered inputs show that their risk domain is relevant. Do not read every listed skill up front.
+- Follow docs/standards/agent-skill-output-standard.md. Instruction priority is: current human instruction, profile YAML, agent AGENT.md, playbook.md, loaded skill SKILL.md, then global service context. Never weaken safety, external-write, or human-approval rules.
+- Use the Mana operating loop: identify the human decision, resolve inputs/workspace/requirement source/branch or PR target/diff base, inventory evidence, classify risk domains, load only needed skills, then report status, findings, evidence, artifacts, and approvals.
+- Read only the selected agent AGENT.md and playbook.md. For candidate skills, use progressive load-light reading first: front matter, title, Purpose, When To Use It, When Not To Use It, Inputs, Outputs, Execution Logic, and Decision Rules. Load only the primary skill required to start the profile, then deep-load specialist skills only when the filtered inputs show that their risk domain is relevant or the load-light pass is insufficient. Do not read every listed skill, every example, or unrelated agent folders up front.
+- Use compact caveman working notes while analyzing: terse fragments, evidence-first notes, no long narrative, and no private chain-of-thought in final artifacts. Maintain a context budget: keep a short working summary with objective, base branch or PR, issue keys, workspace path, checked evidence, open hypotheses, discarded hypotheses, and next checks instead of accumulating raw transcripts, full diffs, repeated file dumps, complete Jira payloads, full PR threads, full skill files, or copied tool output. Convert working notes into the structured sections required by docs/standards/agent-skill-output-standard.md.
 - Resolve the active .mana workspace and write the profile artifacts there using the agent routing rules.
 - Load .mana/global/service-mission.md, architecture.md, and engineering-guards.md when present before analysis.
 - If the profile or agent allows jira_read and jira_issue_keys is non-empty, read those Jira issues as requirement context through the configured Jira MCP server before drawing requirement, plan-drift, risk, or review conclusions. Treat Jira as read-only. Do not expose tokens, transition issues, write comments, or update tickets.
@@ -258,6 +285,22 @@ Instructions:
 PROMPT
 )"
 
+run_codex() {
+  if [ "$jira_mcp_configured" = true ] && [ "$jira_mcp_config_source" = "env_file" ]; then
+    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write \
+      -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
+      -c "mcp_servers.jira.args=[\"--env-file\",\"$jira_env_file\"]" \
+      "$prompt"
+  elif [ "$jira_mcp_configured" = true ]; then
+    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write \
+      -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
+      -c "mcp_servers.jira.args=[]" \
+      "$prompt"
+  else
+    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write "$prompt"
+  fi
+}
+
 case "$runner" in
   codex)
     if ! command -v codex >/dev/null 2>&1; then
@@ -267,19 +310,7 @@ case "$runner" in
 
     echo
     echo "Starting Codex runner for profile: $profile"
-    if [ "$jira_mcp_configured" = true ] && [ "$jira_mcp_config_source" = "env_file" ]; then
-      MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write \
-        -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
-        -c "mcp_servers.jira.args=[\"--env-file\",\"$jira_env_file\"]" \
-        "$prompt"
-    elif [ "$jira_mcp_configured" = true ]; then
-      MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write \
-        -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
-        -c "mcp_servers.jira.args=[]" \
-        "$prompt"
-    else
-      MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write "$prompt"
-    fi
+    run_codex
     ;;
   claude)
     if ! command -v claude >/dev/null 2>&1; then
