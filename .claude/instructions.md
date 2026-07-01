@@ -59,9 +59,14 @@
   hypotheses. If the filtered diff is larger than roughly 80 files or 2,000
   changed lines, ask the user to choose a review scope instead of scanning the
   whole repository.
-- Do not read every skill listed in a profile up front. Read the agent and
-  playbook first, load the primary skill needed to start, then load specialist
-  skills only when the filtered inputs show their risk domain is relevant.
+- Do not read every skill listed in a profile up front. Read only the selected
+  agent and playbook first. For candidate skills, use progressive load-light
+  reading first: front matter, title, `Purpose`, `When To Use It`,
+  `When Not To Use It`, `Inputs`, `Outputs`, `Execution Logic`, and
+  `Decision Rules`. Load the primary skill needed to start, then deep-load
+  specialist skills only when filtered inputs show their risk domain is relevant
+  or the load-light pass is insufficient. Do not read every example or unrelated
+  agent folder up front.
 - Use compact caveman working notes while analyzing: terse fragments,
   evidence-first notes, no long narrative, and no private chain-of-thought in
   final artifacts. Maintain a context budget: keep a short working summary with

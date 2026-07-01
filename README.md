@@ -256,6 +256,15 @@ resolve workspace and requirement/branch/PR context, inventory evidence,
 classify risk domains, load only the needed skills, then report status,
 findings, evidence, artifacts, and approvals.
 
+Mana uses progressive loading to keep agent context small. A runner should read
+the selected profile, selected agent, and selected playbook, then inspect
+candidate skills with a load-light pass before deep-loading them. For Mana
+skills, that means front matter plus the top operational sections: `Purpose`,
+`When To Use It`, `When Not To Use It`, `Inputs`, `Outputs`, `Execution Logic`,
+and `Decision Rules`. Deep-load full skill guidance, examples, or references
+only when the skill is primary for the decision, the filtered evidence touches
+that risk domain, or the lightweight pass is not enough.
+
 Internal working notes should use compact "caveman" mode: terse fragments,
 evidence-first notes, no long narrative, and no private chain-of-thought in
 final artifacts.

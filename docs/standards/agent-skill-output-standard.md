@@ -39,6 +39,32 @@ Ask the user only when the missing answer changes the decision or blocks safe
 analysis. Combine related questions into one short checkpoint instead of
 interrupting repeatedly.
 
+## Progressive Loading Discipline
+
+Mana instructions are designed for staged loading. Do not read every agent,
+playbook, skill, Jira payload, PR thread, or large artifact up front.
+
+Use this loading order:
+
+1. Read the selected profile YAML.
+2. Read only the selected agent `AGENT.md` and its `playbook.md`.
+3. For candidate skills, do a load-light pass first: front matter, title,
+   `Purpose`, `When To Use It`, `When Not To Use It`, `Inputs`, `Outputs`,
+   `Execution Logic`, and `Decision Rules`.
+4. Choose the primary skill needed to start the profile.
+5. Deep-load a skill only when it is primary for the decision, its risk domain
+   is touched by filtered evidence, or the load-light pass is insufficient to
+   make a safe finding.
+6. Do not read unrelated agent folders, all skills in a profile, all examples,
+   or full reference files unless a concrete hypothesis requires them.
+
+Prefer targeted reads such as section extraction or bounded line ranges over
+whole-file dumps. Reading the first 120 lines of a Mana `SKILL.md` is usually
+enough for triage because the operational sections are intentionally kept near
+the top. If a file does not follow that shape, treat the missing structure as a
+maintainability issue and read only the sections needed for the current
+decision.
+
 ## Internal Reasoning Mode
 
 Use compact "caveman" working notes while analyzing:

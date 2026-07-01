@@ -17,6 +17,10 @@
   workspace, requirement source, branch or PR target, and diff base; inventory
   evidence; classify risk domains; load only needed skills; then report status,
   findings, evidence, artifacts, and approvals.
+- Use progressive load-light reading for candidate skills: front matter, title,
+  `Purpose`, `When To Use It`, `When Not To Use It`, `Inputs`, `Outputs`,
+  `Execution Logic`, and `Decision Rules` before deciding whether a deep read is
+  needed.
 - Exclude Mana framework/bootstrap noise from production findings and evidence:
   `.mana/**`, `AGENTS.md`, `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or
   env ignore changes. Mention them only as operational setup notes when relevant.
