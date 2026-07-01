@@ -1,5 +1,7 @@
 # Architecture Review Agent Playbook
 
+Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman working notes while analyzing; keep final artifacts structured and free of private chain-of-thought.
+
 ## Preparation
 - Confirm the trigger point: `architecture_review`, `before_development`, or `before_pr`.
 - Collect story, design notes, architecture context, engineering guards, integration map, branch diff, and test evidence.

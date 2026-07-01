@@ -320,6 +320,10 @@ export JIRA_PERSONAL_TOKEN=...
   GitHub without explicit developer approval.
 - \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
   publish flag is provided, and only for blocker/high-criticality findings.
+- Use compact caveman working notes while analyzing: terse fragments,
+  evidence-first notes, no long narrative, and no private chain-of-thought in
+  final artifacts. Convert working notes into the structured sections required
+  by \`docs/standards/agent-skill-output-standard.md\`.
 "
 
 write_file "$project_root/CLAUDE.md" "$claude_md_content"
@@ -395,6 +399,10 @@ export JIRA_PERSONAL_TOKEN=...
   GitHub without explicit developer approval.
 - \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
   publish flag is provided, and only for blocker/high-criticality findings.
+- Use compact caveman working notes while analyzing: terse fragments,
+  evidence-first notes, no long narrative, and no private chain-of-thought in
+  final artifacts. Convert working notes into the structured sections required
+  by \`docs/standards/agent-skill-output-standard.md\`.
 "
 
 write_file "$project_root/AGENTS.md" "$agents_md_content"

@@ -1,5 +1,7 @@
 # Team Leader Planning Agent Playbook
 
+Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman working notes while analyzing; keep final artifacts structured and free of private chain-of-thought.
+
 ## Preparation
 - Confirm the trigger point: `team_planning`, `story_ready_for_dev`, or `before_development`.
 - Collect epic, stories, planning artifacts, team constraints, source impact, technical breakdown, and test plan.

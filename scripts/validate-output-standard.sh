@@ -10,9 +10,9 @@ if [ ! -f "$root/$standard" ]; then
   exit 1
 fi
 
-for file in "$root"/skills/*/SKILL.md "$root"/agents/*/AGENT.md; do
-  [ -f "$file" ] || continue
-  if ! grep -q "Agent And Skill Output Standard" "$file"; then
+check_output_standard_reference() {
+  file="$1"
+  if ! grep -Eq "Agent And Skill Output Standard|agent-skill-output-standard\\.md" "$file"; then
     echo "ERROR: $file does not reference the output standard" >&2
     status=1
   fi
@@ -20,6 +20,21 @@ for file in "$root"/skills/*/SKILL.md "$root"/agents/*/AGENT.md; do
     echo "ERROR: $file does not reference compact caveman reasoning mode" >&2
     status=1
   fi
+}
+
+for file in "$root"/skills/*/SKILL.md "$root"/agents/*/AGENT.md "$root"/agents/*/playbook.md; do
+  [ -f "$file" ] || continue
+  check_output_standard_reference "$file"
+done
+
+for file in \
+  "$root/.codex/instructions.md" \
+  "$root/.claude/instructions.md" \
+  "$root/.junie/guidelines.md" \
+  "$root/scripts/run-profile.sh" \
+  "$root/scripts/bootstrap-project.sh"; do
+  [ -f "$file" ] || continue
+  check_output_standard_reference "$file"
 done
 
 if [ "$status" -eq 0 ]; then

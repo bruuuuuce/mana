@@ -51,3 +51,7 @@
 - Do not read every skill listed in a profile up front. Read the agent and
   playbook first, load the primary skill needed to start, then load specialist
   skills only when the filtered inputs show their risk domain is relevant.
+- Use compact caveman working notes while analyzing: terse fragments,
+  evidence-first notes, no long narrative, and no private chain-of-thought in
+  final artifacts. Convert working notes into the structured sections required
+  by `docs/standards/agent-skill-output-standard.md`.

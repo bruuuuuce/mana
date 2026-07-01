@@ -1,5 +1,7 @@
 # Liquibase Agent Playbook
 
+Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman working notes while analyzing; keep final artifacts structured and free of private chain-of-thought.
+
 ## Preparation
 - Confirm the trigger point: `db_change_detected, before_pr, ci_validation`.
 - Collect inputs: `changelog_files, schema_snapshots, database_metadata, traffic_characteristics`.

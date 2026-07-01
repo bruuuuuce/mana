@@ -1,5 +1,7 @@
 # Story Implementation Planner Agent Playbook
 
+Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman working notes while analyzing; keep final artifacts structured and free of private chain-of-thought.
+
 ## Preparation
 - Confirm the trigger point: `story_start, refinement, before_development`.
 - Collect inputs: `epic, story, acceptance_criteria, linked_docs, repository_snapshot`.

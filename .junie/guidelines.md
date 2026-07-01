@@ -12,3 +12,7 @@
 - Exclude Mana framework/bootstrap noise from production findings and evidence:
   `.mana/**`, `AGENTS.md`, `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or
   env ignore changes. Mention them only as operational setup notes when relevant.
+- Use compact caveman working notes while analyzing: terse fragments,
+  evidence-first notes, no long narrative, and no private chain-of-thought in
+  final artifacts. Convert working notes into the structured sections required
+  by `docs/standards/agent-skill-output-standard.md`.
