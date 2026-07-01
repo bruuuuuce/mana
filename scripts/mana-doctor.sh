@@ -15,6 +15,7 @@ Options:
   --help               Show this help.
 
 Checks:
+  - External tool availability and configuration for Mana capabilities.
   - Required Mana repository directories and scripts.
   - Skill and agent metadata validation.
   - Executable permissions.
@@ -25,7 +26,6 @@ Checks:
   - Linked project wrapper when --project is provided.
   - Jira MCP Docker wrapper dry-run.
   - Mana update-check script and no-fetch execution.
-  - Claude Code CLI availability (warn if not installed).
 USAGE
 }
 
@@ -102,9 +102,99 @@ check_exec() {
   if [ -x "$root/$file" ]; then pass "executable: $file"; else error "not executable: $file"; fi
 }
 
+check_required_tool() {
+  tool="$1"
+  purpose="$2"
+  if command -v "$tool" >/dev/null 2>&1; then
+    pass "tool available: $tool ($purpose)"
+  else
+    error "required tool missing: $tool ($purpose)"
+  fi
+}
+
+check_optional_tool() {
+  tool="$1"
+  purpose="$2"
+  if command -v "$tool" >/dev/null 2>&1; then
+    pass "tool available: $tool ($purpose)"
+    return 0
+  fi
+  warn "optional tool missing: $tool ($purpose)"
+  return 1
+}
+
+has_jira_credentials_in_env() {
+  if [ -n "${JIRA_URL:-}" ] && { [ -n "${JIRA_PERSONAL_TOKEN:-}" ] || [ -n "${JIRA_ACCESS_TOKEN:-}" ] || { [ -n "${JIRA_USERNAME:-}" ] && [ -n "${JIRA_API_TOKEN:-}" ]; }; }; then
+    return 0
+  fi
+  return 1
+}
+
+check_external_tools() {
+  echo "External tool readiness:"
+
+  check_required_tool bash "shell script execution"
+  check_required_tool git "repository state, diffs, update checks"
+  check_required_tool rg "repository search and diagnostics"
+
+  check_optional_tool curl "Jira REST access checks and issue reads"
+  check_optional_tool base64 "Jira Cloud basic-auth header generation"
+  check_optional_tool shellcheck "Mana script linting during framework development"
+
+  if check_optional_tool docker "Jira MCP container runner"; then
+    if docker info >/dev/null 2>&1; then
+      pass "docker daemon reachable"
+    else
+      warn "docker installed but daemon is not reachable; Jira MCP container execution may fail"
+    fi
+  fi
+
+  if check_optional_tool gh "GitHub PR discovery and requested-review workflows"; then
+    if gh auth status >/dev/null 2>&1; then
+      pass "gh authenticated"
+    else
+      warn "gh installed but not authenticated; requested-pr-review cannot read GitHub PRs through gh"
+    fi
+  fi
+
+  if check_optional_tool codex "Codex profile runner"; then
+    if codex --version >/dev/null 2>&1; then
+      pass "codex command responds"
+    else
+      warn "codex is installed but did not respond to --version"
+    fi
+  fi
+
+  if check_optional_tool claude "Claude Code profile runner"; then
+    if claude --version >/dev/null 2>&1; then
+      pass "claude command responds"
+    else
+      warn "claude is installed but did not respond to --version"
+    fi
+  fi
+
+  if has_jira_credentials_in_env; then
+    if "$root/scripts/run-jira-mcp-docker.sh" --check-access >/dev/null 2>&1; then
+      pass "Jira credentials from environment authenticated"
+    else
+      warn "Jira credentials are present in environment but access check failed"
+    fi
+  elif [ -n "$project" ] && [ -f "$project/.mana/jira-mcp.env" ]; then
+    if "$root/scripts/run-jira-mcp-docker.sh" --env-file "$project/.mana/jira-mcp.env" --check-access >/dev/null 2>&1; then
+      pass "project Jira credentials authenticated"
+    else
+      warn "project Jira credentials are present but access check failed"
+    fi
+  else
+    warn "Jira credentials not configured; Jira story access will be unavailable until JIRA_URL and credentials are set"
+  fi
+}
+
 echo "Mana doctor"
 echo "Root: $root"
 if [ -n "$project" ]; then echo "Project: $project"; fi
+
+check_external_tools
 
 for dir in docs skills agents profiles mcp templates scripts hooks templates/mana-workspace .codex .junie .claude; do
   check_dir "$dir"
@@ -189,12 +279,6 @@ if "$root/scripts/run-jira-mcp-docker.sh" --env-file "$root/mcp/env/jira-mcp.env
   pass "Jira MCP wrapper dry-run"
 else
   error "Jira MCP wrapper dry-run failed"
-fi
-
-if command -v claude >/dev/null 2>&1; then
-  pass "Claude CLI available"
-else
-  warn "Claude CLI not found; install Claude Code to use the claude runner (https://claude.ai/code)"
 fi
 
 if [ -n "$project" ]; then
