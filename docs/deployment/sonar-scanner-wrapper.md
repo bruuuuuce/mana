@@ -68,6 +68,32 @@ Default output:
   sonar-summary.md
 ```
 
+If `sonar-scanner` fails, Mana still writes the redacted log and summary, then
+prints a short failure reason at the end of the command output. For Java
+projects, the most common failure is missing compiled classes:
+
+```text
+please provide compiled classes with sonar.java.binaries property
+```
+
+Build the project first and set `sonar.java.binaries` in
+`.mana/global/sonar-project.properties`, for example:
+
+```properties
+sonar.java.binaries=build/classes/java/main
+```
+
+If you intentionally do not want Sonar to analyze Java source files, exclude
+them explicitly instead:
+
+```properties
+sonar.exclusions=**/*.java,**/.git/**,**/.gradle/**,**/build/generated/**,**/build/resources/**,**/node_modules/**,**/.mana/**
+```
+
+This avoids the compiled-classes requirement, but it also means Sonar will not
+produce Java bug, vulnerability, smell, or coverage findings for application
+code.
+
 ## Java Runtime
 
 If `sonar-scanner --version` fails with an unsupported class version, select a
