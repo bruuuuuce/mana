@@ -244,10 +244,33 @@ if [ -n "$get_issue" ]; then
   prepare_jira_curl_config
   fields="summary,description,issuetype,status,priority,assignee,reporter,labels,components,fixVersions,versions,comment,issuelinks,parent,subtasks,created,updated,resolution"
   issue_endpoint="$jira_url/rest/api/2/issue/$get_issue?fields=$fields&expand=renderedFields"
+  response_body="$(mktemp)"
+  trap 'rm -f "$curl_config" "$response_body"' EXIT
   echo "Jira issue read target: $jira_url" >&2
   echo "Jira issue read auth mode: $auth_mode" >&2
   echo "Jira issue read key: $get_issue" >&2
-  curl --config "$curl_config" "$issue_endpoint"
+  issue_status="$(curl --config "$curl_config" --output "$response_body" --write-out "%{http_code}" "$issue_endpoint" || true)"
+  case "$issue_status" in
+    200)
+      cat "$response_body"
+      ;;
+    401|403)
+      echo "ERROR: Jira issue read failed for $get_issue with HTTP $issue_status: insufficient permission" >&2
+      exit 1
+      ;;
+    404)
+      echo "ERROR: Jira issue read failed for $get_issue with HTTP 404: issue not found or not visible" >&2
+      exit 1
+      ;;
+    000)
+      echo "ERROR: Jira issue read failed: could not reach $jira_url" >&2
+      exit 1
+      ;;
+    *)
+      echo "ERROR: Jira issue read failed for $get_issue with HTTP $issue_status" >&2
+      exit 1
+      ;;
+  esac
   printf '\n'
   exit 0
 fi
