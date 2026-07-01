@@ -1,6 +1,6 @@
 # Skills Catalog
 
-Reference guide for all 46 skills in the Mana framework, grouped by the
+Reference guide for all 47 skills in the Mana framework, grouped by the
 profile in which they are recommended. Skills may appear in multiple profiles.
 
 Skills are ordered by delivery lifecycle: story intake → planning →
@@ -37,6 +37,7 @@ at the end under [Standalone Skills](#standalone-skills).
 |---|---|---|---|
 | [`acceptance-criteria-testability`](../skills/acceptance-criteria-testability/SKILL.md) | Ensure acceptance criteria can be translated into concrete tests with observable inputs, outputs, preconditions, and failure behavior. | low | BA / QA / Team Leader |
 | [`developer-readiness-check`](../skills/developer-readiness-check/SKILL.md) | Prevent developers from starting work on stories that are not implementable, testable, scoped, or approved enough. | medium | Team Leader / Developer |
+| [`epic-story-partitioning`](../skills/epic-story-partitioning/SKILL.md) | Review epic sibling stories for overlap, missing slices, hidden dependencies, oversized stories, and weak acceptance boundaries. | medium | BA / PO / Team Leader |
 | [`source-impact-map`](../skills/source-impact-map/SKILL.md) | Identify files and components to probably modify, inspect before deciding, and avoid unless approved. | medium | Team Leader / Developer |
 | [`technical-task-breakdown`](../skills/technical-task-breakdown/SKILL.md) | Create actionable tasks for developers and Junie, each with scope, candidate files, dependencies, tests, risks, and definition of done. | medium | Team Leader / Developer |
 | [`delivery-risk-radar`](../skills/delivery-risk-radar/SKILL.md) | Provide a concise risk radar before scope, schedule, or quality problems become late surprises. | medium | Team Leader / Application Manager |
@@ -50,6 +51,7 @@ at the end under [Standalone Skills](#standalone-skills).
 | Skill | Description | Risk | Owner |
 |---|---|---|---|
 | [`developer-readiness-check`](../skills/developer-readiness-check/SKILL.md) | Prevent developers from starting work on stories that are not implementable, testable, scoped, or approved enough. | medium | Team Leader / Developer |
+| [`epic-story-partitioning`](../skills/epic-story-partitioning/SKILL.md) | Review epic sibling stories for overlap, missing slices, hidden dependencies, oversized stories, and weak acceptance boundaries. | medium | BA / PO / Team Leader |
 | [`team-execution-plan`](../skills/team-execution-plan/SKILL.md) | Turn scope into a practical implementation sequence with owners, parallel work, dependencies, and review gates. | medium | Team Leader |
 | [`delivery-risk-radar`](../skills/delivery-risk-radar/SKILL.md) | Provide a concise risk radar before scope, schedule, or quality problems become late surprises. | medium | Team Leader / Application Manager |
 | [`review-load-balancing`](../skills/review-load-balancing/SKILL.md) | Help Team Leaders and reviewers spend review time on the riskiest areas first. | low | Team Leader |
@@ -344,6 +346,7 @@ a custom profile.
 | `delivery-risk-radar` | story-ready-for-dev, team-planning, am-release-ready |
 | `developer-decision-review` | dev-assist, pre-commit, branch-ready, pr-ready |
 | `developer-readiness-check` | story-ready-for-dev, team-planning |
+| `epic-story-partitioning` | story-ready-for-dev, team-planning |
 | `flaky-failure-classification` | pre-push |
 | `green-border-plan` | story-start, story-ready-for-dev, team-planning, pre-commit, branch-ready, ci-validation, pre-push |
 | `incident-risk-forecast` | am-release-ready |

@@ -129,11 +129,15 @@ MCP access must be read-only by default. If Jira MCP is unavailable, use
 `templates/epic-story-pack.template.md` as the manual requirement fallback.
 When Jira MCP is available, prefer `./mana jira-mcp --get-issue <KEY>` for a
 single story read instead of constructing ad hoc REST commands.
+For epic/story slicing, prefer
+`./mana jira-mcp --fetch-epic-story-pack <KEY>` to cache the epic and sibling
+stories as Markdown under `.mana/features/<EPIC-ID>/evidence/jira/`.
 Writes, comments, transitions, or publication to external systems require human
 approval and audit logging.
 
 ## Correct Usage Examples
 - Ask which profile to run for an epic with two stories.
+- Ask how to check whether stories under an epic are partitioned cleanly.
 - Ask what a Team Leader should run before assigning a story.
 - Ask what an Architect should run before approving a design or branch.
 - Ask what an Application Manager should run before release readiness.
@@ -174,13 +178,15 @@ status: ready
 next_step_recommendation: "Initialize the Mana workspace and run story-start for STORY-1."
 command_sequence:
   - "scripts/mana-workspace.sh init --root . --feature STORY-1"
+  - "./mana jira-mcp --fetch-epic-story-pack STORY-1"
   - "scripts/run-profile.sh story-start"
   - "scripts/run-profile.sh story-ready-for-dev"
 required_artifacts:
   - ".mana/global/service-mission.md"
+  - ".mana/features/EPIC-1/evidence/jira/epic-story-pack.md"
   - ".mana/features/STORY-1/context/story-context.md"
 missing_context:
-  - "Jira MCP unavailable; use templates/epic-story-pack.template.md."
+  - "If Jira MCP is unavailable, use templates/epic-story-pack.template.md."
 risk_notes:
   - "Do not proceed with implementation until acceptance criteria gaps are resolved or approved."
 human_review_required: false

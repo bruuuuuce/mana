@@ -162,6 +162,7 @@ Examples:
   ./mana workspace status
   ./mana workspace init --feature PROJ-1234
   ./mana jira-mcp --get-issue PROJ-1234
+  ./mana jira-mcp --fetch-epic-story-pack PROJ-1234
   ./mana jira-mcp --env-file .mana/jira-mcp.env --check-access --issue PROJ-1234
   ./mana jira-mcp --env-file .mana/jira-mcp.env --dry-run
 USAGE
@@ -237,6 +238,7 @@ Use the local wrapper:
 ./mana workspace status
 ./mana workspace init --feature <FEATURE-ID>
 ./mana jira-mcp --get-issue PROJ-1234
+./mana jira-mcp --fetch-epic-story-pack PROJ-1234
 ./mana jira-mcp --env-file .mana/jira-mcp.env --check-access --issue PROJ-1234
 ./mana jira-mcp --env-file .mana/jira-mcp.env --dry-run
 \`\`\`

@@ -108,6 +108,7 @@ explicitly allows a narrow action and the human enables it.
 |---|---|---|---|---|---|
 | Jira story | Read the requested behavior and acceptance criteria | `./mana jira-mcp --get-issue PROJ-1234` when Jira is configured | Story JSON or reported access gap | Whether the available requirement evidence is enough | Update Jira, infer missing AC, expose credentials |
 | Story evidence / readiness | Check feasibility, scope, testability, dependencies, and approvals | `./mana profile story-start --codex` or `./mana profile story-ready-for-dev --codex` | Story context, readiness findings, open questions, risk register | Start, clarify, split, or block the story | Invent requirements or mark owner approval as complete |
+| Epic story pack | Cache epic and sibling story evidence as Markdown | `./mana jira-mcp --fetch-epic-story-pack PROJ-1234` | `.mana/features/<EPIC-ID>/evidence/jira/epic-story-pack.md` | Whether stories are partitioned, overlapping, missing slices, or ready for planning | Edit Jira, store credentials, or treat cached evidence as permanent truth |
 | Source impact analysis | Identify likely code, tests, contracts, database areas, and protected zones | `story-start` output, `team-planning`, or `dev-assist` | Source impact map and inspection scope | What can be changed and what requires approval | Modify files outside the approved scope without asking |
 | Developer assistance | Support bounded implementation work | `./mana profile dev-assist --codex` or Junie profile `.junie/profiles/technical-task-execution.md` | Change impact preview, pitfalls, test gaps, local task guidance | Whether the planned local change is still within scope | Run broad autonomous refactors |
 | Branch validation | Compare branch evidence against story, plan, tests, and risks | `./mana profile branch-ready --codex` | Branch validation report, plan-drift findings, missing-test evidence | Whether the branch is ready for PR | Pick an ambiguous base branch silently |
@@ -310,6 +311,15 @@ artifact template does not exist.
   `./mana jira-mcp --get-issue PROJ-1234`. Use
   `./mana jira-mcp --check-access --issue PROJ-1234` only for credential or
   permission diagnostics.
+- **Cache epic and sibling stories as Markdown:** in a linked project, run
+  `./mana jira-mcp --fetch-epic-story-pack PROJ-1234`. Mana resolves the parent
+  epic when Jira exposes one and writes
+  `.mana/features/<EPIC-ID>/evidence/jira/epic-story-pack.md` for reuse by
+  planning agents.
+- **Review epic/story slicing:** use `profiles/team-planning.yaml` or
+  `profiles/story-ready-for-dev.yaml` with `epic-story-partitioning` to check
+  whether sibling stories overlap, miss epic goals, hide dependencies, or need
+  splitting before assignment.
 - **Use the story as evidence:** planning profiles use Jira story text and
   acceptance criteria to check feasibility, testability, scope, owners, and
   approvals. Review, validation, pre-mortem, and PR profiles compare branch/PR

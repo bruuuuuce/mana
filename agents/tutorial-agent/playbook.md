@@ -26,8 +26,10 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
   profile YAML.
 - When explaining profiles that use story context, show
   `./mana jira-mcp --get-issue <KEY>` as the fast read-only story command and
-  explain that planning checks feasibility while review/validation compares
-  branch or PR changes against the story.
+  `./mana jira-mcp --fetch-epic-story-pack <KEY>` as the reusable Markdown
+  cache for epic and sibling-story evidence. Explain that planning checks
+  feasibility and story partitioning while review/validation compares branch or
+  PR changes against the story.
 - After presenting the table, ask one question: "Which profile do you want to
   explore in depth?"
 

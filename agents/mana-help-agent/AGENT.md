@@ -157,12 +157,14 @@ flowchart TD
 ```yaml
 agent: mana-help-agent
 status: ready
-next_step: "Create the epic story pack fallback and run story-start."
+next_step: "Create or refresh the epic story pack and run story-start."
 commands:
   - "scripts/mana-workspace.sh init --root . --feature EPIC-123"
-  - "cp templates/epic-story-pack.template.md .mana/features/EPIC-123/context/epic-story-pack.md"
+  - "./mana jira-mcp --fetch-epic-story-pack STORY-123"
   - "scripts/run-profile.sh story-start"
+fallback_commands:
+  - "cp templates/epic-story-pack.template.md .mana/features/EPIC-123/context/epic-story-pack.md"
 warnings:
-  - "Jira MCP unavailable; manual story pack must preserve evidence gaps."
+  - "Use the manual story pack only when Jira MCP is unavailable; preserve evidence gaps."
 human_approval_required: false
 ```

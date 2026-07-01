@@ -103,6 +103,24 @@ In a linked project, use the wrapper:
 ./mana jira-mcp --get-issue PROJ-1234
 ```
 
+Fetch an epic-level Markdown story pack for planning and slicing reviews:
+
+```bash
+./mana jira-mcp --fetch-epic-story-pack PROJ-1234
+```
+
+The command resolves the parent epic when Jira exposes one, fetches sibling
+stories, and writes a normalized Markdown artifact:
+
+```text
+.mana/features/<EPIC-ID>/evidence/jira/epic-story-pack.md
+```
+
+Agents should read this Markdown pack before considering raw Jira JSON. The pack
+contains a fetch manifest, epic section, story sections, linked issues, subtasks,
+recent comments, and evidence gaps. Jira remains the source of truth; the pack
+is a reusable local evidence cache.
+
 The command prints a read-only JSON payload with summary, description,
 rendered fields, comments, links, parent/subtasks, and release metadata. It does
 not print credentials.

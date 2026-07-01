@@ -18,6 +18,10 @@ Options:
   --check-access       Verify Jira credentials with a read-only REST call, without Docker or agents.
   --issue <KEY>        With --check-access, also verify read access to a specific Jira issue.
   --get-issue <KEY>    Print a read-only Jira issue JSON payload for agent use.
+  --fetch-epic-story-pack <KEY>
+                       Resolve the issue's epic when possible, fetch sibling stories,
+                       and write a normalized Markdown pack under .mana/.
+  --output <path>      Output path for --fetch-epic-story-pack.
   --help               Show this help.
 
 Required Jira configuration:
@@ -46,6 +50,8 @@ dry_run=false
 check_access=false
 check_issue=""
 get_issue=""
+fetch_epic_story_pack=""
+epic_story_pack_output=""
 
 if [ -f "$root/mcp/env/jira-mcp.env" ]; then
   env_file="$root/mcp/env/jira-mcp.env"
@@ -85,6 +91,16 @@ while [ "$#" -gt 0 ]; do
       [ -n "$get_issue" ] || { echo "ERROR: $1 requires a Jira issue key" >&2; exit 2; }
       shift 2
       ;;
+    --fetch-epic-story-pack)
+      fetch_epic_story_pack="${2:-}"
+      [ -n "$fetch_epic_story_pack" ] || { echo "ERROR: $1 requires a Jira issue key" >&2; exit 2; }
+      shift 2
+      ;;
+    --output)
+      epic_story_pack_output="${2:-}"
+      [ -n "$epic_story_pack_output" ] || { echo "ERROR: --output requires a path" >&2; exit 2; }
+      shift 2
+      ;;
     --help|-h)
       usage
       exit 0
@@ -107,6 +123,18 @@ if [ -n "$check_issue" ] && [ "$check_access" != true ]; then
 fi
 if [ "$check_access" = true ] && [ -n "$get_issue" ]; then
   echo "ERROR: choose either --check-access or --get-issue, not both" >&2
+  exit 2
+fi
+if [ "$check_access" = true ] && [ -n "$fetch_epic_story_pack" ]; then
+  echo "ERROR: choose either --check-access or --fetch-epic-story-pack, not both" >&2
+  exit 2
+fi
+if [ -n "$get_issue" ] && [ -n "$fetch_epic_story_pack" ]; then
+  echo "ERROR: choose either --get-issue or --fetch-epic-story-pack, not both" >&2
+  exit 2
+fi
+if [ -n "$epic_story_pack_output" ] && [ -z "$fetch_epic_story_pack" ]; then
+  echo "ERROR: --output requires --fetch-epic-story-pack" >&2
   exit 2
 fi
 
@@ -272,6 +300,325 @@ if [ -n "$get_issue" ]; then
       ;;
   esac
   printf '\n'
+  exit 0
+fi
+
+if [ -n "$fetch_epic_story_pack" ]; then
+  load_jira_env
+  prepare_jira_curl_config
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "ERROR: python3 is required for --fetch-epic-story-pack Markdown normalization" >&2
+    exit 1
+  fi
+
+  JIRA_URL="$jira_url" python3 - "$fetch_epic_story_pack" "$epic_story_pack_output" <<'PY'
+import base64
+import datetime as dt
+import html
+import json
+import os
+import re
+import sys
+import textwrap
+import urllib.error
+import urllib.parse
+import urllib.request
+
+source_key = sys.argv[1].strip().upper()
+requested_output = sys.argv[2].strip()
+jira_url = os.environ["JIRA_URL"].rstrip("/")
+
+
+def auth_header():
+    if jira_url.endswith(".atlassian.net") and os.environ.get("JIRA_USERNAME") and os.environ.get("JIRA_API_TOKEN"):
+        token = base64.b64encode(
+            f"{os.environ['JIRA_USERNAME']}:{os.environ['JIRA_API_TOKEN']}".encode()
+        ).decode()
+        return "Basic " + token
+    personal = os.environ.get("JIRA_PERSONAL_TOKEN") or os.environ.get("JIRA_ACCESS_TOKEN")
+    if personal:
+        return "Bearer " + personal
+    if os.environ.get("JIRA_USERNAME") and os.environ.get("JIRA_API_TOKEN"):
+        token = base64.b64encode(
+            f"{os.environ['JIRA_USERNAME']}:{os.environ['JIRA_API_TOKEN']}".encode()
+        ).decode()
+        return "Basic " + token
+    raise SystemExit("ERROR: Jira credentials are required")
+
+
+AUTH = auth_header()
+FIELDS = ",".join(
+    [
+        "summary",
+        "description",
+        "issuetype",
+        "status",
+        "priority",
+        "assignee",
+        "reporter",
+        "labels",
+        "components",
+        "fixVersions",
+        "versions",
+        "comment",
+        "issuelinks",
+        "parent",
+        "subtasks",
+        "created",
+        "updated",
+        "resolution",
+    ]
+)
+
+
+def request_json(path, params=None):
+    query = ""
+    if params:
+        query = "?" + urllib.parse.urlencode(params)
+    req = urllib.request.Request(
+        jira_url + path + query,
+        headers={"Accept": "application/json", "Authorization": AUTH},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=45) as res:
+            return json.load(res)
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        raise SystemExit(f"ERROR: Jira request failed HTTP {exc.code}: {body[:500]}")
+    except urllib.error.URLError as exc:
+        raise SystemExit(f"ERROR: Jira request failed: {exc.reason}")
+
+
+def issue(key):
+    return request_json(
+        f"/rest/api/2/issue/{urllib.parse.quote(key)}",
+        {"fields": FIELDS, "expand": "renderedFields"},
+    )
+
+
+def search(jql):
+    return request_json(
+        "/rest/api/2/search",
+        {"jql": jql, "fields": FIELDS, "expand": "renderedFields", "maxResults": "100"},
+    )
+
+
+def field(data, name, default=None):
+    return (data.get("fields") or {}).get(name, default)
+
+
+def name(value):
+    if not value:
+        return ""
+    return value.get("displayName") or value.get("name") or value.get("key") or ""
+
+
+def issue_type(data):
+    return name(field(data, "issuetype")).lower()
+
+
+def text(value):
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        cleaned = html.unescape(re.sub(r"<[^>]+>", " ", value))
+        return re.sub(r"\n{3,}", "\n\n", cleaned).strip()
+    if isinstance(value, dict):
+        if value.get("type") == "doc" and "content" in value:
+            return "\n".join(filter(None, (text(item) for item in value.get("content", []))))
+        parts = []
+        for key in ("text", "content", "value", "name", "displayName"):
+            if key in value:
+                parts.append(text(value[key]))
+        return "\n".join(filter(None, parts)).strip()
+    if isinstance(value, list):
+        return "\n".join(filter(None, (text(item) for item in value))).strip()
+    return str(value)
+
+
+def wrapped(value):
+    value = text(value)
+    if not value:
+        return "_Not provided._"
+    paragraphs = []
+    for para in value.splitlines():
+        para = para.strip()
+        if not para:
+            paragraphs.append("")
+        elif para.startswith(("-", "*", "#", "|", ">")):
+            paragraphs.append(para)
+        else:
+            paragraphs.append(textwrap.fill(para, width=100))
+    return "\n".join(paragraphs).strip()
+
+
+def bullet_list(values):
+    values = [v for v in values if v]
+    if not values:
+        return "- _None recorded._"
+    return "\n".join(f"- {v}" for v in values)
+
+
+def story_block(data, heading_level=3):
+    f = data.get("fields") or {}
+    key = data.get("key", "")
+    summary = f.get("summary") or ""
+    parent = f.get("parent") or {}
+    comments = ((f.get("comment") or {}).get("comments") or [])[-3:]
+    links = []
+    for link in f.get("issuelinks") or []:
+        inward = (link.get("inwardIssue") or {}).get("key")
+        outward = (link.get("outwardIssue") or {}).get("key")
+        link_type = (link.get("type") or {}).get("name") or "link"
+        target = inward or outward
+        if target:
+            links.append(f"{link_type}: {target}")
+    rendered = data.get("renderedFields") or {}
+    desc = rendered.get("description") or f.get("description")
+    lines = [
+        f"{'#' * heading_level} {key} - {summary}".rstrip(),
+        "",
+        f"- Type: `{name(f.get('issuetype')) or 'unknown'}`",
+        f"- Status: `{name(f.get('status')) or 'unknown'}`",
+        f"- Priority: `{name(f.get('priority')) or 'unknown'}`",
+        f"- Assignee: `{name(f.get('assignee')) or 'unassigned'}`",
+        f"- Reporter: `{name(f.get('reporter')) or 'unknown'}`",
+        f"- Parent epic: `{parent.get('key') or 'not recorded'}`",
+        f"- Updated: `{f.get('updated') or 'unknown'}`",
+        f"- Components: `{', '.join(c.get('name', '') for c in f.get('components') or []) or 'none'}`",
+        f"- Labels: `{', '.join(f.get('labels') or []) or 'none'}`",
+        "",
+        "#### Description",
+        "",
+        wrapped(desc),
+        "",
+        "#### Linked Issues",
+        "",
+        bullet_list(links),
+        "",
+        "#### Subtasks",
+        "",
+        bullet_list(
+            f"{s.get('key')} - {(s.get('fields') or {}).get('summary', '')}"
+            for s in f.get("subtasks") or []
+        ),
+        "",
+        "#### Recent Comments",
+        "",
+    ]
+    if comments:
+        for comment in comments:
+            body = text(comment.get("body"))
+            lines.extend(
+                [
+                    f"- {name(comment.get('author')) or 'unknown'} at `{comment.get('updated') or comment.get('created')}`:",
+                    "",
+                    textwrap.indent(wrapped(body), "  "),
+                    "",
+                ]
+            )
+    else:
+        lines.append("- _None fetched._")
+    return "\n".join(lines).rstrip()
+
+
+source = issue(source_key)
+source_is_epic = issue_type(source) == "epic"
+parent = field(source, "parent") or {}
+epic_key = source_key if source_is_epic else (parent.get("key") or "")
+evidence_gaps = []
+
+if epic_key:
+    try:
+        results = search(
+            f'issuekey = {epic_key} OR parent = {epic_key} OR "Epic Link" = {epic_key} ORDER BY key ASC'
+        )
+    except SystemExit:
+        results = search(f"issuekey = {epic_key} OR parent = {epic_key} ORDER BY key ASC")
+    issues = results.get("issues") or []
+else:
+    issues = [source]
+    epic_key = source_key
+    evidence_gaps.append(
+        "Could not resolve parent epic from the source issue. Pack contains the source issue only."
+    )
+
+seen = {}
+for item in issues:
+    seen[item.get("key")] = item
+if source_key not in seen:
+    seen[source_key] = source
+issues = [seen[k] for k in sorted(seen)]
+epic = seen.get(epic_key)
+stories = [i for i in issues if i.get("key") != epic_key]
+
+if not stories:
+    evidence_gaps.append("No sibling stories were returned by Jira search for the resolved epic.")
+
+output = requested_output
+if not output:
+    output = os.path.join(
+        ".mana",
+        "features",
+        epic_key,
+        "evidence",
+        "jira",
+        "epic-story-pack.md",
+    )
+os.makedirs(os.path.dirname(output) or ".", exist_ok=True)
+
+fetched_at = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
+content = [
+    f"# Epic Story Pack: {epic_key}",
+    "",
+    "## Fetch Manifest",
+    "",
+    f"- Source mode: `jira-readonly-markdown-cache`",
+    f"- Fetched at: `{fetched_at}`",
+    f"- Jira base: `{jira_url}`",
+    f"- Source issue: `{source_key}`",
+    f"- Resolved epic: `{epic_key}`",
+    f"- Issues fetched: `{', '.join(i.get('key', '') for i in issues)}`",
+    f"- Raw JSON stored: `no`",
+    "",
+    "## Epic",
+    "",
+    story_block(epic or source, 3),
+    "",
+    "## Stories",
+    "",
+]
+if stories:
+    content.extend(story_block(story, 3) + "\n" for story in stories)
+else:
+    content.append("_No sibling stories fetched._\n")
+
+content.extend(
+    [
+        "## Partitioning Review Notes",
+        "",
+        "Use `epic-story-partitioning` to check:",
+        "",
+        "- whether each story owns one coherent business slice;",
+        "- whether stories overlap in behavior, data ownership, acceptance criteria, or delivery scope;",
+        "- whether the epic goal has uncovered gaps;",
+        "- whether dependencies or ordering constraints are explicit;",
+        "- whether any story is too large, too technical, or not independently testable.",
+        "",
+        "## Evidence Gaps",
+        "",
+        bullet_list(evidence_gaps),
+        "",
+    ]
+)
+
+with open(output, "w", encoding="utf-8") as fh:
+    fh.write("\n".join(content).rstrip() + "\n")
+
+print(f"Jira epic story pack written: {output}")
+print(f"Resolved epic: {epic_key}")
+print(f"Issues fetched: {len(issues)}")
+PY
   exit 0
 fi
 

@@ -75,12 +75,14 @@ to switch phase without looking up the profile catalogue manually.
 | Story ready for development, TL verification | Team Leader | `story-ready-for-dev` |
 | Architecture review, ADR, NFR, service boundary | Architect | `architecture-review` |
 | Team planning, sequencing, dependencies, review load | Team Leader | `team-planning` |
+| Epic/story partitioning, overlap, sibling-story gaps | BA / PO / Team Leader | `team-planning` or `story-ready-for-dev` plus `./mana jira-mcp --fetch-epic-story-pack <KEY>` |
 | Production pre-mortem before commit or push | Developer | `jessica-fletcher` |
 | Branch validation before PR | Developer / TL | `branch-ready` |
 | PR readiness, PR package, handoff | Developer | `pr-ready` |
 | Review PRs where I am requested reviewer | Reviewer / TL | `requested-pr-review` |
 | Review one PR by number | Reviewer / TL | `requested-pr-review --pr <number>` |
 | Read one Jira story quickly | Developer / TL / Reviewer | `./mana jira-mcp --get-issue <KEY>` |
+| Cache epic and sibling stories as Markdown | BA / PO / Team Leader | `./mana jira-mcp --fetch-epic-story-pack <KEY>` |
 | Release readiness, continuity, rollback | Application Manager | `am-release-ready` |
 | CI validation gate | CI / TL | `ci-validation` |
 | General framework question, onboarding, next step | Any | `mana-help` |
