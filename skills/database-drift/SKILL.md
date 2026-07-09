@@ -25,6 +25,8 @@ outputs:
   - drift_reconciliation_actions
 risk_level: medium
 owner_role: DBA / Operations
+stack:
+  - database
 tags:
   - database
   - drift

@@ -24,6 +24,8 @@ outputs:
   - idempotency_test_plan
 risk_level: high
 owner_role: Architect / Team Leader
+stack:
+  - any
 tags:
   - concurrency
   - idempotency

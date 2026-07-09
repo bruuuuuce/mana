@@ -26,6 +26,8 @@ outputs:
   - continuity_actions
 risk_level: high
 owner_role: Application Manager / Operations
+stack:
+  - any
 tags:
   - continuity
   - release

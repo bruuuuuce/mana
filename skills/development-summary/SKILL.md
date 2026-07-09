@@ -24,6 +24,8 @@ outputs:
   - development_summary
 risk_level: low
 owner_role: Developer / Team Leader
+stack:
+  - any
 tags:
   - documentation
   - review

@@ -30,6 +30,8 @@ outputs:
   - developer_choice_log_references
 risk_level: low
 owner_role: Developer / Team Leader
+stack:
+  - any
 tags:
   - documentation
   - handoff

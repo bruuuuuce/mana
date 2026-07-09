@@ -24,6 +24,8 @@ outputs:
   - quality_constraints
 risk_level: low
 owner_role: BA / PO
+stack:
+  - any
 tags:
   - requirements
   - epic

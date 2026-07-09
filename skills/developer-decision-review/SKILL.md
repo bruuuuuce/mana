@@ -31,6 +31,8 @@ outputs:
   - developer_choice_log_updates
 risk_level: medium
 owner_role: Developer / Team Leader
+stack:
+  - any
 tags:
   - review
   - decision-quality

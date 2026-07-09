@@ -23,6 +23,8 @@ outputs:
   - policy_change_requests
 risk_level: medium
 owner_role: Architect / Team Leader
+stack:
+  - any
 tags:
   - learning
   - rules

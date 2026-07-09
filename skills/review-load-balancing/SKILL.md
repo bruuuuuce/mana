@@ -24,6 +24,8 @@ outputs:
   - specialist_review_requests
 risk_level: low
 owner_role: Team Leader
+stack:
+  - any
 tags:
   - review
   - team-lead

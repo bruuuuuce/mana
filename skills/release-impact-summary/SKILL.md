@@ -26,6 +26,8 @@ outputs:
   - release_risk_items
 risk_level: medium
 owner_role: Application Manager / Team Leader
+stack:
+  - any
 tags:
   - release
   - operations

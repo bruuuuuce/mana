@@ -25,6 +25,8 @@ outputs:
   - review_checklist
 risk_level: medium
 owner_role: Team Leader / Developer
+stack:
+  - any
 tags:
   - review
   - defect

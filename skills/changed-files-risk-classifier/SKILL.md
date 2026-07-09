@@ -21,6 +21,8 @@ outputs:
   - review_focus
 risk_level: low
 owner_role: Developer / Reviewer / Team Leader
+stack:
+  - any
 tags:
   - diff
   - review

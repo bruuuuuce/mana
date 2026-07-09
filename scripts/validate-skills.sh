@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -u
 root="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
-required=(name version description compatibility preferred_runner allowed_tools inputs outputs risk_level owner_role tags)
+required=(name version description compatibility preferred_runner allowed_tools inputs outputs risk_level owner_role stack tags)
 status=0
 count=0
 for skill in "$root"/skills/*/SKILL.md; do

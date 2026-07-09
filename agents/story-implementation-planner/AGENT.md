@@ -6,9 +6,8 @@ preferred_runner: codex
 compatible_runners:
   - codex
 skills_used:
-  - story-depth
+  - story-quality
   - epic-goal-extraction
-  - story-consistency
   - acceptance-criteria-testability
   - source-impact-map
   - architecture-risk
@@ -65,9 +64,8 @@ Orchestrates requirement, architecture, source-impact, task-breakdown, and test-
    required owners, dependencies, data, mocks, approvals, and acceptance
    criteria. Stop with open questions instead of inventing missing requirements.
 3. Load only the planning skills needed for the available story inputs.
-4. Use `story-depth`, `story-consistency`, and
-   `acceptance-criteria-testability` when story text or acceptance criteria are
-   present.
+4. Use `story-quality` and `acceptance-criteria-testability` when story text or
+   acceptance criteria are present.
 5. Use `epic-goal-extraction` only when an epic, parent objective, or linked
    roadmap context is present.
 6. Use `source-impact-map` when repository areas, components, or likely changed
@@ -89,9 +87,8 @@ the generated story context. Missing Jira fields, links, or acceptance criteria
 must be reported as evidence gaps; do not infer them silently.
 
 ## Skills Used And Why
-- `story-depth`: contributes its atomic review to this workflow.
+- `story-quality`: contributes its atomic review to this workflow.
 - `epic-goal-extraction`: contributes its atomic review to this workflow.
-- `story-consistency`: contributes its atomic review to this workflow.
 - `acceptance-criteria-testability`: contributes its atomic review to this workflow.
 - `source-impact-map`: contributes its atomic review to this workflow.
 - `architecture-risk`: contributes its atomic review to this workflow.

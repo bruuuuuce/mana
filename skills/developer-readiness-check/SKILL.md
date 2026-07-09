@@ -26,6 +26,8 @@ outputs:
   - start_conditions
 risk_level: medium
 owner_role: Team Leader / Developer
+stack:
+  - any
 tags:
   - story-readiness
   - planning

@@ -23,6 +23,8 @@ outputs:
   - optimization_suggestions
 risk_level: medium
 owner_role: Team Leader / Developer
+stack:
+  - java
 tags:
   - java
   - performance

@@ -371,6 +371,13 @@ FIELDS = ",".join(
 )
 
 
+class JiraRequestError(Exception):
+    def __init__(self, code, body):
+        super().__init__(f"HTTP {code}: {body[:500]}")
+        self.code = code
+        self.body = body
+
+
 def request_json(path, params=None):
     query = ""
     if params:
@@ -384,23 +391,55 @@ def request_json(path, params=None):
             return json.load(res)
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
-        raise SystemExit(f"ERROR: Jira request failed HTTP {exc.code}: {body[:500]}")
+        raise JiraRequestError(exc.code, body)
     except urllib.error.URLError as exc:
         raise SystemExit(f"ERROR: Jira request failed: {exc.reason}")
 
 
 def issue(key):
-    return request_json(
-        f"/rest/api/2/issue/{urllib.parse.quote(key)}",
-        {"fields": FIELDS, "expand": "renderedFields"},
-    )
+    try:
+        return request_json(
+            f"/rest/api/2/issue/{urllib.parse.quote(key)}",
+            {"fields": FIELDS, "expand": "renderedFields"},
+        )
+    except JiraRequestError as exc:
+        raise SystemExit(f"ERROR: Jira issue read failed for {key} with HTTP {exc.code}: {exc.body[:500]}")
 
 
 def search(jql):
-    return request_json(
-        "/rest/api/2/search",
-        {"jql": jql, "fields": FIELDS, "expand": "renderedFields", "maxResults": "100"},
-    )
+    if jira_url.endswith(".atlassian.net"):
+        try:
+            issues = []
+            next_page_token = ""
+            while True:
+                params = {
+                    "jql": jql,
+                    "fields": FIELDS,
+                    "expand": "renderedFields",
+                    "maxResults": "100",
+                }
+                if next_page_token:
+                    params["nextPageToken"] = next_page_token
+                page = request_json("/rest/api/3/search/jql", params)
+                issues.extend(page.get("issues") or [])
+                next_page_token = page.get("nextPageToken") or ""
+                if not next_page_token:
+                    break
+            return {"issues": issues}
+        except JiraRequestError as exc:
+            if exc.code not in (404, 410):
+                raise SystemExit(f"ERROR: Jira enhanced JQL search failed HTTP {exc.code}: {exc.body[:500]}")
+            print(
+                f"WARN: Jira enhanced JQL search unavailable with HTTP {exc.code}; falling back to legacy search.",
+                file=sys.stderr,
+            )
+    try:
+        return request_json(
+            "/rest/api/2/search",
+            {"jql": jql, "fields": FIELDS, "expand": "renderedFields", "maxResults": "100"},
+        )
+    except JiraRequestError as exc:
+        raise SystemExit(f"ERROR: Jira JQL search failed HTTP {exc.code}: {exc.body[:500]}")
 
 
 def field(data, name, default=None):

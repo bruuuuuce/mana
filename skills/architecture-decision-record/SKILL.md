@@ -25,6 +25,8 @@ outputs:
   - tradeoff_summary
 risk_level: medium
 owner_role: Architect
+stack:
+  - any
 tags:
   - architecture
   - decision-record

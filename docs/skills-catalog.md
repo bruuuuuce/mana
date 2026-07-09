@@ -1,6 +1,6 @@
 # Skills Catalog
 
-Reference guide for all 55 skills in the Mana framework, grouped by the
+Reference guide for all 52 skills in the Mana framework, grouped by the
 profile in which they are recommended. Skills may appear in multiple profiles.
 
 Skills are ordered by delivery lifecycle: story intake → planning →
@@ -18,8 +18,7 @@ at the end under [Standalone Skills](#standalone-skills).
 | Skill | Description | Risk | Owner |
 |---|---|---|---|
 | [`epic-goal-extraction`](../skills/epic-goal-extraction/SKILL.md) | Convert vague epic language into a structured contract: business goal, expected outcome, in/out-of-scope, architectural and quality constraints. | low | BA / PO |
-| [`story-depth`](../skills/story-depth/SKILL.md) | Detect incomplete or uneven analysis across functional goal, data requirements, validations, external calls, error behavior, and acceptance criteria. | low | BA / Team Leader |
-| [`story-consistency`](../skills/story-consistency/SKILL.md) | Find conflicting rules, duplicated scope, incompatible acceptance criteria, inconsistent terminology, and mismatched assumptions across related stories. | low | BA / Team Leader |
+| [`story-quality`](../skills/story-quality/SKILL.md) | Detect incomplete or uneven analysis depth and find conflicting rules, duplicated scope, incompatible acceptance criteria, and mismatched assumptions across related stories. | low | BA / Team Leader |
 | [`acceptance-criteria-testability`](../skills/acceptance-criteria-testability/SKILL.md) | Ensure acceptance criteria can be translated into concrete tests with observable inputs, outputs, preconditions, and failure behavior. | low | BA / QA / Team Leader |
 | [`jira-acceptance-criteria-normalizer`](../skills/jira-acceptance-criteria-normalizer/SKILL.md) | Convert Jira or story-pack acceptance criteria into a traceable behavior, implementation, and test checklist. | low | BA / QA / Team Leader |
 | [`source-impact-map`](../skills/source-impact-map/SKILL.md) | Identify files and components to probably modify, inspect before deciding, and avoid unless approved. | medium | Team Leader / Developer |
@@ -113,8 +112,7 @@ Supports the developer while writing code — before any diff exists. Organized 
 
 | Skill | Description | Risk | Owner |
 |---|---|---|---|
-| [`unit-test-gap`](../skills/unit-test-gap/SKILL.md) | Plan which unit tests are needed while still implementing, not after. | low | Developer |
-| [`integration-test-gap`](../skills/integration-test-gap/SKILL.md) | Identify integration test needs early to avoid rework of the implementation. | medium | Developer / QA |
+| [`test-gap`](../skills/test-gap/SKILL.md) | Plan which unit and integration tests are needed while still implementing, not after. | medium | Developer / QA |
 
 ---
 
@@ -125,7 +123,7 @@ Supports the developer while writing code — before any diff exists. Organized 
 |---|---|---|---|
 | [`liquibase-syntax`](../skills/liquibase-syntax/SKILL.md) | Catch malformed changelogs, duplicate identifiers, missing author/id fields, invalid include paths, and obvious structural issues before deeper review. | low | Developer |
 | [`null-safety-risk`](../skills/null-safety-risk/SKILL.md) | Detect unsafe null/nil/undefined dereferences, missing null guards, optional misuse, incomplete validation, and mapper assumptions. | medium | Developer |
-| [`unit-test-gap`](../skills/unit-test-gap/SKILL.md) | Verify changed branches, validators, mappers, error paths, and null handling have meaningful unit tests. | low | Developer |
+| [`test-gap`](../skills/test-gap/SKILL.md) | Verify changed branches, validators, mappers, error paths, and null handling have meaningful unit tests (unit level only in this profile). | medium | Developer / QA |
 | [`pre-review-defect`](../skills/pre-review-defect/SKILL.md) | Catch possible NPEs, bad error handling, missing validations, hidden side effects, suspicious mapping, and poor readability. | medium | Team Leader / Developer |
 | [`liquibase-production-risk`](../skills/liquibase-production-risk/SKILL.md) | Detect lock risks, missing rollback, unsafe index operations, large table updates, destructive DDL, and traffic-aware ordering issues. | high | DBA / Team Leader |
 | [`green-border-plan`](../skills/green-border-plan/SKILL.md) | Plan unit, integration, contract, regression, and legacy characterization tests needed before and during implementation. | medium | Team Leader / QA |
@@ -143,8 +141,7 @@ Supports the developer while writing code — before any diff exists. Organized 
 |---|---|---|---|
 | [`liquibase-syntax`](../skills/liquibase-syntax/SKILL.md) | Catch malformed changelogs, duplicate identifiers, missing author/id fields, and invalid include paths before deeper review. | low | Developer |
 | [`null-safety-risk`](../skills/null-safety-risk/SKILL.md) | Detect unsafe null/nil/undefined dereferences, missing null guards, optional misuse, incomplete validation, and mapper assumptions. | medium | Developer |
-| [`unit-test-gap`](../skills/unit-test-gap/SKILL.md) | Verify changed branches, validators, mappers, error paths, and null handling have meaningful unit tests. | low | Developer |
-| [`integration-test-gap`](../skills/integration-test-gap/SKILL.md) | Ensure persistence, transaction boundaries, messaging, HTTP clients, and external failures are validated beyond unit tests. | medium | Developer / QA |
+| [`test-gap`](../skills/test-gap/SKILL.md) | Verify changed code has meaningful unit tests and that persistence, messaging, HTTP clients, and external failures are validated beyond unit tests. | medium | Developer / QA |
 | [`legacy-characterization`](../skills/legacy-characterization/SKILL.md) | Capture current behavior before refactoring or modifying legacy code so regressions are visible. | medium | Developer |
 | [`flaky-failure-classification`](../skills/flaky-failure-classification/SKILL.md) | Reduce testing churn by distinguishing real failures from environment, data, timing, and setup problems. | low | Developer / QA |
 | [`pre-review-defect`](../skills/pre-review-defect/SKILL.md) | Catch possible NPEs, bad error handling, missing validations, hidden side effects, suspicious mapping, and poor readability. | medium | Team Leader / Developer |
@@ -334,7 +331,10 @@ a custom profile.
 |---|---|---|---|---|
 | [`post-merge-incident-learning`](../skills/post-merge-incident-learning/SKILL.md) | Close the loop after incidents by identifying missed signals and updating future guardrails. | medium | Team Leader / Architect | `learning-agent` |
 | [`rule-update-suggestion`](../skills/rule-update-suggestion/SKILL.md) | Convert lessons into proposed governance updates without automatically changing enforced rules. | medium | Architect / Team Leader | `learning-agent` |
-| [`sonar-configuration-guide`](../skills/sonar-configuration-guide/SKILL.md) | Guide local Sonar scanner setup with env-only host/token and project properties under `.mana/global/sonar-project.properties`. | low | Developer / Team Leader | `mana-help-agent` |
+
+> Local Sonar scanner setup is documented in
+> [`docs/deployment/sonar-scanner-wrapper.md`](deployment/sonar-scanner-wrapper.md);
+> it no longer requires a dedicated skill.
 
 > `learning-agent` uses `post-merge-incident-learning`, `rule-update-suggestion`,
 > `known-pitfalls-extraction`, and `flaky-failure-classification` but no
@@ -371,7 +371,6 @@ a custom profile.
 | `flaky-failure-classification` | pre-push |
 | `green-border-plan` | story-start, story-ready-for-dev, team-planning, pre-commit, branch-ready, ci-validation, pre-push |
 | `incident-risk-forecast` | am-release-ready |
-| `integration-test-gap` | dev-assist, pre-push |
 | `java-performance-smell` | dev-assist, team-coaching-review |
 | `legacy-characterization` | dev-assist, pre-push |
 | `non-functional-requirements-review` | architecture-review |
@@ -386,6 +385,7 @@ a custom profile.
 | `source-impact-map` | story-start, story-ready-for-dev, team-planning, dev-assist, branch-ready, ci-validation |
 | `team-execution-plan` | team-planning |
 | `technical-task-breakdown` | story-start, story-ready-for-dev, team-planning, branch-ready, ci-validation |
+| `test-gap` | dev-assist, pre-commit, pre-push |
 
 ### Low Risk
 | Skill | Profiles |
@@ -405,8 +405,5 @@ a custom profile.
 | `profile-selector` | tutorial, mana-help |
 | `regression-selection` | jessica-fletcher, branch-ready, requested-pr-review, ci-validation, pre-push |
 | `review-load-balancing` | team-planning |
-| `sonar-configuration-guide` | — |
-| `story-consistency` | story-start |
-| `story-depth` | story-start |
+| `story-quality` | story-start |
 | `test-quality` | jessica-fletcher, branch-ready, pr-ready, requested-pr-review, ci-validation, pre-push, team-coaching-review |
-| `unit-test-gap` | dev-assist, pre-commit, pre-push |

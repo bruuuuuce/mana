@@ -27,6 +27,8 @@ outputs:
   - deep_dive_questions
 risk_level: low
 owner_role: Developer / Team Leader
+stack:
+  - any
 tags:
   - documentation
   - knowledge-transfer

@@ -27,6 +27,8 @@ outputs:
   - slicing_questions
 risk_level: medium
 owner_role: BA / PO / Team Leader
+stack:
+  - any
 tags:
   - requirements
   - epic

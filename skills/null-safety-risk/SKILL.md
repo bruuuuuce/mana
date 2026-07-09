@@ -24,6 +24,8 @@ outputs:
   - npe_risk_findings
 risk_level: medium
 owner_role: Developer
+stack:
+  - any
 tags:
   - nullability
   - null-safety

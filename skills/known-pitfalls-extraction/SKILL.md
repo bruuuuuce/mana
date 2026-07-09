@@ -24,6 +24,8 @@ outputs:
   - pattern_summary
 risk_level: low
 owner_role: Team Leader / Architect
+stack:
+  - any
 tags:
   - learning
   - pitfalls

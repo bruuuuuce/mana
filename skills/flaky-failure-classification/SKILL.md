@@ -26,6 +26,8 @@ outputs:
   - recommended_next_action
 risk_level: low
 owner_role: Developer / QA
+stack:
+  - any
 tags:
   - testing
   - flaky

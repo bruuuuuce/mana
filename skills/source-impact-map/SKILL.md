@@ -25,6 +25,8 @@ outputs:
   - inspection_scope
 risk_level: medium
 owner_role: Team Leader / Developer
+stack:
+  - any
 tags:
   - planning
   - code-search

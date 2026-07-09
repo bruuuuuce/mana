@@ -23,6 +23,8 @@ outputs:
   - dependency_followups
 risk_level: medium
 owner_role: Developer / Security / Team Leader
+stack:
+  - dependency
 tags:
   - dependencies
   - security
