@@ -36,6 +36,13 @@ scripts/run-profile.sh story-start --codex
 scripts/run-profile.sh story-start --claude
 ```
 
+Codex runs start on the cost-saving model configured by
+`MANA_CODEX_MODEL` or `--codex-model` (default: `gpt-5-mini`). Mana also passes
+an escalation target from `MANA_CODEX_FULL_MODEL` or `--codex-full-model`
+(default: `gpt-5`). If a run needs a high-risk or explicitly full-model skill,
+the agent must stop with `needs_model_escalation` and ask you to rerun the same
+profile with the full model instead of spending deep-analysis tokens blindly.
+
 To use Mana inside a target application repository:
 
 ```bash

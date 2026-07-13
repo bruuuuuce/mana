@@ -23,6 +23,7 @@ outputs:
   - contract_gap_report
   - required_contract_tests
 risk_level: medium
+model_tier: full
 owner_role: Team Leader / Architect
 stack:
   - api

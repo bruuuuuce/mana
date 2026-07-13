@@ -24,6 +24,7 @@ outputs:
   - ownership_questions
   - boundary_risk_items
 risk_level: medium
+model_tier: full
 owner_role: Architect / Team Leader
 stack:
   - any
