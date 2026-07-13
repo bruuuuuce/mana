@@ -12,6 +12,9 @@ jira_key_regex="${MANA_JIRA_KEY_REGEX:-[A-Z][A-Z0-9]+-[0-9]+}"
 jira_env_file="${MANA_JIRA_MCP_ENV:-}"
 jira_mcp_configured=false
 jira_mcp_config_source=""
+codex_model="${MANA_CODEX_MODEL:-gpt-5-mini}"
+codex_full_model="${MANA_CODEX_FULL_MODEL:-gpt-5}"
+codex_model_policy="${MANA_CODEX_MODEL_POLICY:-economy-first}"
 
 usage() {
   cat <<'USAGE'
@@ -23,6 +26,9 @@ Options:
   --render-only                  Render the profile and never start a runner.
   --codex                        Execute the rendered profile through Codex.
   --claude                       Execute the rendered profile through Claude Code.
+  --codex-model <model>          Codex model for the initial run. Defaults to MANA_CODEX_MODEL or gpt-5-mini.
+  --codex-full-model <model>     Codex model to recommend for escalation. Defaults to MANA_CODEX_FULL_MODEL or gpt-5.
+  --codex-model-policy <policy>  Model policy note passed to Codex. Defaults to economy-first.
   --pr, --pr-number <value>      Pull request number or URL for requested-pr-review.
   --jira-key, --jira-issue <KEY> Add an explicit Jira issue key.
   --jira-key-regex <regex>       Override branch issue-key discovery.
@@ -50,6 +56,21 @@ while [ "$#" -gt 0 ]; do
       [ -z "$runner" ] || { echo "ERROR: choose only one runner flag" >&2; exit 2; }
       runner="claude"
       shift
+      ;;
+    --codex-model)
+      codex_model="${2:-}"
+      [ -n "$codex_model" ] || { echo "ERROR: --codex-model requires a model name" >&2; exit 2; }
+      shift 2
+      ;;
+    --codex-full-model)
+      codex_full_model="${2:-}"
+      [ -n "$codex_full_model" ] || { echo "ERROR: --codex-full-model requires a model name" >&2; exit 2; }
+      shift 2
+      ;;
+    --codex-model-policy)
+      codex_model_policy="${2:-}"
+      [ -n "$codex_model_policy" ] || { echo "ERROR: --codex-model-policy requires a policy name" >&2; exit 2; }
+      shift 2
       ;;
     --pr|--pr-number)
       pr_number="${2:-}"
@@ -158,9 +179,41 @@ fi
 
 "$root/scripts/mana-update-check.sh" --root "$root" --profile "$profile" || exit 1
 
+profile_skills="$(awk '
+  /^skills:/ { in_skills=1; next }
+  in_skills && /^- / { sub(/^- /, ""); print; next }
+  in_skills && /^  - / { sub(/^  - /, ""); print; next }
+  in_skills && /^[^[:space:]-]/ { in_skills=0 }
+' "$file")"
+
+codex_escalation_skills=""
+if [ -n "$profile_skills" ]; then
+  while IFS= read -r skill; do
+    [ -n "$skill" ] || continue
+    skill_file="$root/skills/$skill/SKILL.md"
+    [ -f "$skill_file" ] || continue
+    if grep -q '^model_tier:[[:space:]]*full' "$skill_file" ||
+      grep -q '^risk_level:[[:space:]]*high' "$skill_file"; then
+      codex_escalation_skills="${codex_escalation_skills}${codex_escalation_skills:+ }$skill"
+    fi
+  done <<EOF
+$profile_skills
+EOF
+fi
+
 echo "Profile: $profile"
 echo "This profile renderer validates Mana freshness and prints the configured profile."
 echo "Use --codex or --claude to execute the profile through a runner."
+if [ "$runner" = "codex" ]; then
+  echo "Codex model: $codex_model"
+  echo "Codex full-model escalation target: $codex_full_model"
+  echo "Codex model policy: $codex_model_policy"
+  if [ -n "$codex_escalation_skills" ]; then
+    echo "Codex escalation candidate skills: $codex_escalation_skills"
+  else
+    echo "Codex escalation candidate skills: none"
+  fi
+fi
 sed -n '1,220p' "$file"
 echo
 if [ -n "$pr_number" ] || [ "$publish_high_risk_comments" = true ] || [ -n "$jira_keys" ]; then
@@ -250,6 +303,10 @@ Run the Mana profile '$profile' in this repository.
 Repository root: $project_root
 Mana framework root: $root
 Selected runner: $runner
+Codex initial model: $codex_model
+Codex full model: $codex_full_model
+Codex model policy: $codex_model_policy
+Codex escalation candidate skills: ${codex_escalation_skills:-none}
 Profile input overrides:
 - pr_number: ${pr_number:-}
 - publish_high_risk_comments: $publish_high_risk_comments
@@ -262,6 +319,8 @@ Profile input overrides:
 Instructions:
 - Do not run './mana profile $profile' or 'scripts/run-profile.sh $profile' again; this command already rendered the profile and would recurse.
 - Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'.
+- If the selected runner is Codex, assume the initial run may use a cost-saving model. Use the initial model for routing, evidence inventory, low-risk checks, and load-light skill inspection. Treat the listed Codex escalation candidate skills as full-model candidates, not mandatory work.
+- If a full-model candidate skill is actually required by the evidence, or if the current model cannot confidently judge architecture, security, database, concurrency, cross-service, production, or large-diff risk, stop before deep analysis with status `needs_model_escalation`. Preserve a concise handoff artifact in the workspace when possible and tell the user to rerun the same profile with `MANA_CODEX_MODEL=$codex_full_model` or `--codex-model $codex_full_model`. Do not silently continue a high-risk judgement on the economy model.
 - Follow docs/standards/agent-skill-output-standard.md. Instruction priority is: current human instruction, profile YAML, agent AGENT.md, playbook.md, loaded skill SKILL.md, then global service context. Never weaken safety, external-write, or human-approval rules.
 - Use the Mana operating loop: identify the human decision, resolve inputs/workspace/requirement source/branch or PR target/diff base, inventory evidence, classify risk domains, load only needed skills, then report status, findings, evidence, artifacts, and approvals.
 - Read only the selected agent AGENT.md and playbook.md. For candidate skills, use progressive load-light reading first: front matter, title, Purpose, When To Use It, When Not To Use It, Inputs, Outputs, Execution Logic, and Decision Rules. Load only the primary skill required to start the profile, then deep-load specialist skills only when the filtered inputs show that their risk domain is relevant or the load-light pass is insufficient. Do not read every listed skill, every example, or unrelated agent folders up front.
@@ -287,17 +346,17 @@ PROMPT
 
 run_codex() {
   if [ "$jira_mcp_configured" = true ] && [ "$jira_mcp_config_source" = "env_file" ]; then
-    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write \
+    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --model "$codex_model" --cd "$project_root" --sandbox workspace-write \
       -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
       -c "mcp_servers.jira.args=[\"--env-file\",\"$jira_env_file\"]" \
       "$prompt"
   elif [ "$jira_mcp_configured" = true ]; then
-    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write \
+    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --model "$codex_model" --cd "$project_root" --sandbox workspace-write \
       -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
       -c "mcp_servers.jira.args=[]" \
       "$prompt"
   else
-    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --cd "$project_root" --sandbox workspace-write "$prompt"
+    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --model "$codex_model" --cd "$project_root" --sandbox workspace-write "$prompt"
   fi
 }
 

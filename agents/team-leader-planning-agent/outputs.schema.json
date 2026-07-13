@@ -7,6 +7,7 @@
     "team_leader_plan": { "type": "string" },
     "story_readiness_report": { "type": "string" },
     "execution_sequence": { "type": "string" },
+    "story_effort_estimate": { "type": "string" },
     "delivery_risk_radar": { "type": "string" },
     "review_load_plan": { "type": "string" }
   }

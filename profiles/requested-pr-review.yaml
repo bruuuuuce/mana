@@ -45,5 +45,6 @@ warning_conditions:
   - CI/check status unavailable from GitHub CLI
   - incomplete test evidence
   - medium-risk PR finding needs author clarification
+  - active workspace already contains requested-pr-review artifacts from another PR
 expected_max_duration: 30 minutes
 human_approval_requirement: true

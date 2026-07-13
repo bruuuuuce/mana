@@ -36,6 +36,13 @@ scripts/run-profile.sh story-start --codex
 scripts/run-profile.sh story-start --claude
 ```
 
+Codex runs start on the cost-saving model configured by
+`MANA_CODEX_MODEL` or `--codex-model` (default: `gpt-5-mini`). Mana also passes
+an escalation target from `MANA_CODEX_FULL_MODEL` or `--codex-full-model`
+(default: `gpt-5`). If a run needs a high-risk or explicitly full-model skill,
+the agent must stop with `needs_model_escalation` and ask you to rerun the same
+profile with the full model instead of spending deep-analysis tokens blindly.
+
 To use Mana inside a target application repository:
 
 ```bash
@@ -93,7 +100,7 @@ branch at the same time.
 ## Role-Based Workflow Map
 | Role | When | Mana workflow/profile | Output | Decision supported |
 |---|---|---|---|---|
-| Team Leader / Tech Lead | Before assigning or sequencing work | `story-ready-for-dev`, `team-planning`, `team-coaching-review` | Readiness report, execution sequence, delivery risks, review-load plan, coaching report | Start/no-start, task split, ownership, reviewer focus, coaching priorities |
+| Team Leader / Tech Lead | Before assigning or sequencing work | `story-ready-for-dev`, `team-planning`, `team-coaching-review` | Readiness report, story effort estimate, execution sequence, delivery risks, review-load plan, coaching report | Start/no-start, task split, sizing, ownership, reviewer focus, coaching priorities |
 | Developer | Before and during implementation | `story-start`, `dev-assist`, `pre-commit`, `.junie/profiles/technical-task-execution.md` | Story context, source impact map, implementation plan, test plan, development summary, handoff notes | What to build, what not to touch, which tests prove the change |
 | Reviewer | When review is requested or PR package is needed | `requested-pr-review`, `pr-ready`, `branch-ready` | PR risk report, reviewer focus, defect findings, test evidence, PR package | Which PR to review first, which findings block, what evidence is missing |
 | Architect | When design, boundary, NFR, trust, contract, or database risk is material | `architecture-review` | Architecture review report, ADR material, NFR and drift findings, approval questions | Approve, reject, or require mitigation for architectural trade-offs |
@@ -109,7 +116,7 @@ explicitly allows a narrow action and the human enables it.
 | Step | Purpose | Profile or command | Expected output | Human decision supported | Mana must not do automatically |
 |---|---|---|---|---|---|
 | Jira story | Read the requested behavior and acceptance criteria | `./mana jira-mcp --get-issue PROJ-1234` when Jira is configured | Story JSON or reported access gap | Whether the available requirement evidence is enough | Update Jira, infer missing AC, expose credentials |
-| Story evidence / readiness | Check feasibility, scope, testability, dependencies, and approvals | `./mana profile story-start --codex` or `./mana profile story-ready-for-dev --codex` | Story context, readiness findings, open questions, risk register | Start, clarify, split, or block the story | Invent requirements or mark owner approval as complete |
+| Story evidence / readiness | Check feasibility, scope, testability, dependencies, approvals, and estimate | `./mana profile story-start --codex` or `./mana profile story-ready-for-dev --codex` | Story context, readiness findings, effort estimate, open questions, risk register | Start, clarify, split, size, or block the story | Invent requirements or mark owner approval as complete |
 | Epic story pack | Cache epic and sibling story evidence as Markdown | `./mana jira-mcp --fetch-epic-story-pack PROJ-1234` | `.mana/features/<EPIC-ID>/evidence/jira/epic-story-pack.md` | Whether stories are partitioned, overlapping, missing slices, or ready for planning | Edit Jira, store credentials, or treat cached evidence as permanent truth |
 | Local evidence index | Build a compact map of available evidence before deep analysis | `./mana evidence-index` after Jira, Sonar, dependency, test, validation, or PR evidence exists | `.mana/<workspace>/evidence/index.md` | Which evidence to inspect first and which gaps remain | Treat missing evidence as proof of safety |
 | Source impact analysis | Identify likely code, tests, contracts, database areas, and protected zones | `story-start` output, `team-planning`, or `dev-assist` | Source impact map and inspection scope | What can be changed and what requires approval | Modify files outside the approved scope without asking |

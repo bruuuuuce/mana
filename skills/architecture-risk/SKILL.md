@@ -25,6 +25,7 @@ outputs:
   - architect_questions
   - recommended_actions
 risk_level: medium
+model_tier: full
 owner_role: Architect / Team Leader
 stack:
   - any

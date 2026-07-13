@@ -26,6 +26,7 @@ outputs:
   - nfr_questions
   - required_evidence
 risk_level: medium
+model_tier: full
 owner_role: Architect / Team Leader / Security
 stack:
   - any

@@ -111,6 +111,7 @@ Each feature or session workspace should use this internal layout:
     source-impact-map.md
     implementation-plan.md
     technical-task-breakdown.md
+    story-effort-estimate.md
     risk-register.md
   agent-memory/
     story-trace.md

@@ -12,4 +12,5 @@ artifacts:
 - 04-technical-task-breakdown.md
 - 05-green-border-plan.md
 - 06-risk-register.md
+- 07-story-effort-estimate.md
 ```
