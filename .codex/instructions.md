@@ -9,6 +9,24 @@
 - Prefer reports, risk registers, and proposed patches over direct destructive edits.
 - Respect MCP least privilege, redaction, approval, and audit policies.
 - Stop on high-risk database, architecture, security, or cross-service blockers.
+- Use the root Codex model for routing, light evidence inventory, low-risk
+  checks, delegation, aggregation, and final synthesis. Delegate bounded
+  high-risk, explicitly full-tier, noisy, or beyond-root-confidence work to
+  Mana Codex custom agents when available.
+- Mana Codex custom agents are runtime capability classes only:
+  `mana_explorer`, `mana_full_specialist`, and `mana_worker`. Mana semantic
+  agents remain under `agents/`; Mana skills remain under `skills/`.
+- Do not create one Codex subagent per Mana skill. Group related skills by risk
+  domain or execution phase and spawn at most three direct child agents.
+  Child agents must not delegate further.
+- Use `mana_explorer` for read-heavy evidence discovery. Use
+  `mana_full_specialist` for architecture, security, database, concurrency,
+  cross-service, production, transactional, large-diff, or `model_tier: full`
+  judgment. Use `mana_worker` only when the selected profile explicitly permits
+  source modification; never run parallel writers.
+- If subagents are disabled, missing, fail, or return insufficient evidence for
+  a high-risk judgment, preserve a concise handoff artifact and return
+  `needs_model_escalation`.
 - Follow `docs/standards/agent-skill-output-standard.md`. Instruction priority
   is current human instruction, profile YAML, agent `AGENT.md`, playbook,
   loaded skill `SKILL.md`, then global service context. Never weaken safety,

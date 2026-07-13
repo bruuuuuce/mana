@@ -24,6 +24,7 @@ Created in the target project:
   .mana/env                   Mana path configuration.
   .mana/README.md             Local usage notes.
   .mana/links/*               Symlinks to framework skills, agents, profiles, docs, templates, mcp.
+  .codex/agents/mana-*.toml    Mana-managed Codex runtime subagents.
   .mana/jira-mcp.env          Local Jira MCP env template, ignored by Git.
   mana                        Local command wrapper for common Mana commands.
   AGENTS.md                   Codex auto-loaded runner instructions.
@@ -122,6 +123,72 @@ write_file() {
 
 write_file "$project_root/.mana/env" "MANA_HOME=\"$framework_root\"
 MANA_PROJECT_ROOT=\"$project_root\""
+
+is_mana_managed_file() {
+  file="$1"
+  [ -f "$file" ] && grep -q 'Mana-managed' "$file" 2>/dev/null
+}
+
+install_managed_file_or_link() {
+  source_file="$1"
+  target_file="$2"
+  mode="$3"
+
+  if [ -e "$target_file" ] || [ -L "$target_file" ]; then
+    if [ -L "$target_file" ]; then
+      if [ "$force" = true ]; then
+        rm "$target_file"
+      else
+        return 0
+      fi
+    elif is_mana_managed_file "$target_file"; then
+      if [ "$force" = true ]; then
+        rm "$target_file"
+      else
+        return 0
+      fi
+    else
+      echo "WARNING: not replacing existing non-managed file $target_file" >&2
+      return 0
+    fi
+  fi
+
+  mkdir -p "$(dirname "$target_file")"
+  if [ "$mode" = "link" ]; then
+    ln -s "$source_file" "$target_file"
+  else
+    cp "$source_file" "$target_file"
+  fi
+}
+
+install_codex_agents() {
+  source_agents_dir="$framework_root/.codex/agents"
+  target_agents_dir="$project_root/.codex/agents"
+  [ -d "$source_agents_dir" ] || return 0
+  mkdir -p "$target_agents_dir"
+
+  mode="copy"
+  if [ "$create_links" = true ]; then
+    mode="link"
+  fi
+
+  for agent_file in mana-explorer.toml mana-full-specialist.toml mana-worker.toml; do
+    [ -f "$source_agents_dir/$agent_file" ] || continue
+    install_managed_file_or_link "$source_agents_dir/$agent_file" "$target_agents_dir/$agent_file" "$mode"
+  done
+
+  config_file="$project_root/.codex/config.toml"
+  if [ ! -e "$config_file" ]; then
+    cat > "$config_file" <<'CONFIG'
+# Mana-managed minimal Codex project configuration.
+# Existing user-owned .codex/config.toml files are never replaced by bootstrap.
+[agents]
+max_threads = 3
+max_depth = 1
+interrupt_message = false
+CONFIG
+  fi
+}
 
 # The wrapper body is intentionally single-quoted so variables expand in the
 # generated project wrapper, not while bootstrap-project.sh is running.
@@ -227,6 +294,8 @@ if [ "$create_links" = true ]; then
   done
 fi
 
+install_codex_agents
+
 if [ "$create_jira_env" = true ]; then
   jira_example="$framework_root/mcp/env/jira-mcp.env.example"
   jira_target="$project_root/.mana/jira-mcp.env"
@@ -266,6 +335,11 @@ Use the local wrapper:
 Project artifacts stay local under \`.mana/\`.
 
 Linked Mana folders are under \`.mana/links/\`.
+Codex runtime agents are installed under \`.codex/agents/\` as
+Mana-managed files or symlinks. Existing user-owned Codex agents and
+\`.codex/config.toml\` are preserved. Mana still enforces Codex agent
+\`max_threads=3\`, \`max_depth=1\`, and \`interrupt_message=false\` at runner
+startup with CLI configuration.
 Do not put real Jira credentials in Git. For Jira Server/Data Center, the
 minimal shell setup is \`JIRA_URL\` plus \`JIRA_PERSONAL_TOKEN\`.
 For Sonar scanner, keep only \`SONAR_HOST_URL\` and \`SONAR_TOKEN\` in the
@@ -405,7 +479,12 @@ When asked to run a profile, Codex:
 2. Reads \`.mana/links/agents/<agent>/AGENT.md\` and \`playbook.md\`
 3. Loads only the primary or conditionally relevant skills via
    \`.mana/links/skills/<skill>/SKILL.md\`
-4. Writes outputs to the active \`.mana/\` workspace
+4. Uses the small root model for routing, evidence inventory, low-risk checks,
+   delegation, aggregation, and final synthesis
+5. Delegates bounded read-heavy evidence work to \`mana_explorer\` and bounded
+   high-risk judgment to \`mana_full_specialist\` when those custom agents are
+   available
+6. Writes outputs to the active \`.mana/\` workspace
 
 Run: \`./mana profile jessica-fletcher --codex\` — Codex follows the full chain.
 
@@ -460,6 +539,17 @@ export JIRA_PERSONAL_TOKEN=...
   workspace, requirement source, branch or PR target, and diff base; inventory
   evidence; classify risk domains; load only needed skills; then report status,
   findings, evidence, artifacts, and approvals.
+- Codex subagents are runtime capability classes only. Mana semantic agents
+  stay under \`.mana/links/agents/\`, and Mana skills stay under
+  \`.mana/links/skills/\`. Do not create one Codex subagent per Mana skill.
+- Codex may spawn at most three direct subagents and child agents must not
+  spawn further agents. Parallel delegation is for independent read-heavy work.
+  Write-heavy work is serialized and requires a profile that explicitly permits
+  source modification.
+- If Codex custom agents are unavailable, disabled, fail, or return
+  insufficient evidence for a high-risk judgment, preserve a concise handoff
+  artifact and return \`needs_model_escalation\` instead of performing that
+  judgment on the small root model.
 - Use progressive load-light reading for candidate skills: front matter, title,
   \`Purpose\`, \`When To Use It\`, \`When Not To Use It\`, \`Inputs\`,
   \`Outputs\`, \`Execution Logic\`, and \`Decision Rules\` before deciding
@@ -510,6 +600,7 @@ Created:
   $project_root/.mana/env
   $project_root/.mana/README.md
   $project_root/.mana/links/
+  $project_root/.codex/agents/
   $project_root/.mana/
 
 Try:

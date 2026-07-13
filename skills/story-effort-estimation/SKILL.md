@@ -26,6 +26,10 @@ outputs:
   - estimation_rationale
   - estimation_risks
 risk_level: medium
+model_tier: economy
+execution_mode: read
+delegation_group: requirements
+parallel_safe: false
 owner_role: Team Leader
 stack:
   - any

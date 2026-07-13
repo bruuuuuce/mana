@@ -36,12 +36,25 @@ scripts/run-profile.sh story-start --codex
 scripts/run-profile.sh story-start --claude
 ```
 
-Codex runs start on the cost-saving model configured by
-`MANA_CODEX_MODEL` or `--codex-model` (default: `gpt-5-mini`). Mana also passes
-an escalation target from `MANA_CODEX_FULL_MODEL` or `--codex-full-model`
-(default: `gpt-5`). If a run needs a high-risk or explicitly full-model skill,
-the agent must stop with `needs_model_escalation` and ask you to rerun the same
-profile with the full model instead of spending deep-analysis tokens blindly.
+Codex runs start with a small root orchestrator model configured by
+`MANA_CODEX_MODEL` or `--codex-model` (default: `gpt-5.4-mini`). The root model
+handles routing, light evidence inventory, low-risk checks, delegation,
+aggregation, and synthesis. Bounded high-risk work is delegated in the same run
+to Mana Codex custom agents when available:
+
+- `mana_explorer`: read-only evidence discovery on `gpt-5.6-terra` by default.
+- `mana_full_specialist`: read-only architecture, security, database,
+  concurrency, contract, production, and `model_tier: full` judgment on
+  `gpt-5.6-sol` by default.
+- `mana_worker`: serialized bounded writes on `gpt-5.6-terra` by default, only
+  when a selected profile explicitly permits source modification.
+
+Override them with `MANA_CODEX_EXPLORER_MODEL`, `MANA_CODEX_FULL_MODEL`,
+`MANA_CODEX_WORKER_MODEL`, `--codex-explorer-model`, `--codex-full-model`, and
+`--codex-worker-model`. Disable subagents with `MANA_CODEX_SUBAGENTS=false` or
+`--no-codex-subagents`. Mana still returns `needs_model_escalation` as a
+compatibility fallback when subagents are disabled, unavailable, fail, or leave
+a high-risk judgment unsupported.
 
 To use Mana inside a target application repository:
 
@@ -57,8 +70,9 @@ cd /path/to/project
 ```
 
 The bootstrap creates a project-local `./mana` wrapper, `.mana/` evidence
-workspace, links to framework definitions, and `AGENTS.md` / `CLAUDE.md` runner
-instructions. Project artifacts stay under the target repository's `.mana/`
+workspace, links to framework definitions, `AGENTS.md` / `CLAUDE.md` runner
+instructions, and Mana-managed `.codex/agents/mana-*.toml` custom agents for
+Codex delegation. Project artifacts stay under the target repository's `.mana/`
 workspace.
 
 ## What Mana Is
@@ -89,6 +103,11 @@ workspace.
   evidence workspace.
 - **Runners** such as Codex or Claude interpret the rendered profile. Junie is
   used inside the IDE for local implementation support.
+- **Codex runtime agents** are only execution capability classes. They are not
+  Mana semantic agents and are not mapped one-to-one to Mana skills. The root
+  orchestrator may spawn at most three direct child agents with depth one, and
+  related skills are batched by risk domain instead of spawning one child per
+  skill.
 
 Codex is used for repository-level planning, validation, documentation, branch
 analysis, PR readiness, and learning. Junie is used inside the IDE for local
@@ -96,6 +115,10 @@ code implementation, test generation, local fixes, green-border execution, and
 fast developer feedback. Claude Code is used as a CLI runner for repository-level
 analysis and local development support. Do not let two runners modify the same
 branch at the same time.
+
+Codex subagents can increase total token usage. The intended optimization is to
+reduce expensive-model scope and keep the root context compact, not to guarantee
+lower total tokens.
 
 ## Role-Based Workflow Map
 | Role | When | Mana workflow/profile | Output | Decision supported |

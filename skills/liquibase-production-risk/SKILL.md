@@ -26,6 +26,10 @@ outputs:
   - rollback_findings
   - deployment_recommendations
 risk_level: high
+model_tier: full
+execution_mode: read
+delegation_group: database
+parallel_safe: true
 owner_role: DBA / Team Leader
 stack:
   - liquibase

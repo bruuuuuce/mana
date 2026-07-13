@@ -65,6 +65,28 @@ the top. If a file does not follow that shape, treat the missing structure as a
 maintainability issue and read only the sections needed for the current
 decision.
 
+## Runner Routing Metadata
+
+Skills may declare optional runner-neutral routing metadata in front matter:
+
+```yaml
+model_tier: economy | full
+execution_mode: read | write
+delegation_group: requirements | source | tests | architecture | contracts | database | security | operations | documentation | implementation
+parallel_safe: true | false
+```
+
+These fields guide runners such as Codex without embedding provider-specific
+model names in skill files. Missing fields are allowed. Runners fall back to
+existing evidence such as `risk_level`, `allowed_tools`, skill purpose, profile
+and agent context, and whether the work is read-heavy or write-heavy.
+
+`model_tier: full`, high `risk_level`, or domains such as architecture,
+security, database, concurrency, cross-service contracts, transaction semantics,
+and production behavior must route conservatively. A small root orchestrator
+may inventory evidence and delegate, but it must not silently perform deep
+high-risk judgment that was intended for a stronger specialist.
+
 ## Internal Reasoning Mode
 
 Use compact "caveman" working notes while analyzing:

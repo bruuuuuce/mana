@@ -28,6 +28,10 @@ outputs:
   - missing_details
   - clarification_questions
 risk_level: low
+model_tier: economy
+execution_mode: read
+delegation_group: requirements
+parallel_safe: true
 owner_role: BA / Team Leader
 stack:
   - any

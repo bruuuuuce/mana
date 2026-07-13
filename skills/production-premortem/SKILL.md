@@ -32,6 +32,10 @@ outputs:
   - missing_detection_signals
   - mitigation_checklist
 risk_level: high
+model_tier: full
+execution_mode: read
+delegation_group: operations
+parallel_safe: false
 owner_role: Team Leader / Architect / Developer
 stack:
   - any

@@ -27,6 +27,9 @@ outputs:
   - required_evidence
 risk_level: medium
 model_tier: full
+execution_mode: read
+delegation_group: architecture
+parallel_safe: true
 owner_role: Architect / Team Leader / Security
 stack:
   - any

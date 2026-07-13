@@ -22,12 +22,17 @@ mana
 .mana/env
 .mana/README.md
 .mana/links/
+.codex/agents/mana-*.toml
 .mana/jira-mcp.env
 .mana/
 ```
 
 The framework remains in one shared filesystem location. Project-specific
 artifacts remain in the target project under `.mana/`.
+Mana-managed Codex custom agents are installed under `.codex/agents/` so
+`./mana profile story-start --codex` can discover `mana_explorer`,
+`mana_full_specialist`, and `mana_worker` while running with the application
+repository as `--cd`.
 
 ## Local Wrapper
 
@@ -121,6 +126,18 @@ artifacts intentionally.
 ## Notes
 
 - `.mana/links/` contains symlinks to framework folders for discoverability.
+- `.codex/agents/mana-*.toml` are Mana-managed. Bootstrap creates
+  `.codex/agents` when needed, preserves unrelated custom agents, warns and
+  skips same-name non-managed collisions, and with `--force` replaces only
+  Mana-managed files or symlinks.
+- Existing `.codex/config.toml` is never replaced. If no config exists,
+  bootstrap writes a minimal Mana-managed config with Codex agent limits.
+  `scripts/run-profile.sh` still enforces `agents.max_threads=3`,
+  `agents.max_depth=1`, and `agents.interrupt_message=false` through Codex CLI
+  runtime overrides.
+- Use `MANA_CODEX_SUBAGENTS=false ./mana profile story-start --codex` or
+  `./mana profile story-start --codex --no-codex-subagents` to use the legacy
+  manual escalation fallback.
 - Real Jira credentials should stay in `.mana/jira-mcp.env`, another ignored
   env file, or shell environment variables. They must not be committed.
 - Re-run with `--force` to refresh generated wrapper files and managed symlinks.

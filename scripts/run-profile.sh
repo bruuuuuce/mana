@@ -12,9 +12,15 @@ jira_key_regex="${MANA_JIRA_KEY_REGEX:-[A-Z][A-Z0-9]+-[0-9]+}"
 jira_env_file="${MANA_JIRA_MCP_ENV:-}"
 jira_mcp_configured=false
 jira_mcp_config_source=""
-codex_model="${MANA_CODEX_MODEL:-gpt-5-mini}"
-codex_full_model="${MANA_CODEX_FULL_MODEL:-gpt-5}"
+codex_model="${MANA_CODEX_MODEL:-gpt-5.4-mini}"
+codex_full_model="${MANA_CODEX_FULL_MODEL:-gpt-5.6-sol}"
+codex_explorer_model="${MANA_CODEX_EXPLORER_MODEL:-gpt-5.6-terra}"
+codex_worker_model="${MANA_CODEX_WORKER_MODEL:-gpt-5.6-terra}"
 codex_model_policy="${MANA_CODEX_MODEL_POLICY:-economy-first}"
+codex_subagents="${MANA_CODEX_SUBAGENTS:-true}"
+codex_max_threads="${MANA_CODEX_MAX_THREADS:-3}"
+codex_max_depth=1
+codex_agent_install_warnings=""
 
 usage() {
   cat <<'USAGE'
@@ -26,9 +32,12 @@ Options:
   --render-only                  Render the profile and never start a runner.
   --codex                        Execute the rendered profile through Codex.
   --claude                       Execute the rendered profile through Claude Code.
-  --codex-model <model>          Codex model for the initial run. Defaults to MANA_CODEX_MODEL or gpt-5-mini.
-  --codex-full-model <model>     Codex model to recommend for escalation. Defaults to MANA_CODEX_FULL_MODEL or gpt-5.
+  --codex-model <model>          Codex model for the root orchestrator. Defaults to MANA_CODEX_MODEL or gpt-5.4-mini.
+  --codex-full-model <model>     Codex model for mana_full_specialist. Defaults to MANA_CODEX_FULL_MODEL or gpt-5.6-sol.
+  --codex-explorer-model <model> Codex model for mana_explorer. Defaults to MANA_CODEX_EXPLORER_MODEL or gpt-5.6-terra.
+  --codex-worker-model <model>   Codex model for mana_worker. Defaults to MANA_CODEX_WORKER_MODEL or gpt-5.6-terra.
   --codex-model-policy <policy>  Model policy note passed to Codex. Defaults to economy-first.
+  --no-codex-subagents           Disable Codex subagent orchestration and use legacy manual escalation.
   --pr, --pr-number <value>      Pull request number or URL for requested-pr-review.
   --jira-key, --jira-issue <KEY> Add an explicit Jira issue key.
   --jira-key-regex <regex>       Override branch issue-key discovery.
@@ -67,10 +76,24 @@ while [ "$#" -gt 0 ]; do
       [ -n "$codex_full_model" ] || { echo "ERROR: --codex-full-model requires a model name" >&2; exit 2; }
       shift 2
       ;;
+    --codex-explorer-model)
+      codex_explorer_model="${2:-}"
+      [ -n "$codex_explorer_model" ] || { echo "ERROR: --codex-explorer-model requires a model name" >&2; exit 2; }
+      shift 2
+      ;;
+    --codex-worker-model)
+      codex_worker_model="${2:-}"
+      [ -n "$codex_worker_model" ] || { echo "ERROR: --codex-worker-model requires a model name" >&2; exit 2; }
+      shift 2
+      ;;
     --codex-model-policy)
       codex_model_policy="${2:-}"
       [ -n "$codex_model_policy" ] || { echo "ERROR: --codex-model-policy requires a policy name" >&2; exit 2; }
       shift 2
+      ;;
+    --no-codex-subagents)
+      codex_subagents=false
+      shift
       ;;
     --pr|--pr-number)
       pr_number="${2:-}"
@@ -138,6 +161,24 @@ if [ -z "$project_root" ]; then
   project_root="$(pwd)"
 fi
 
+case "$codex_subagents" in
+  true|TRUE|True|1|yes|YES|on|ON)
+    codex_subagents=true
+    ;;
+  false|FALSE|False|0|no|NO|off|OFF)
+    codex_subagents=false
+    ;;
+  *)
+    echo "ERROR: MANA_CODEX_SUBAGENTS must be true or false" >&2
+    exit 2
+    ;;
+esac
+
+if ! printf '%s\n' "$codex_max_threads" | grep -Eq '^[0-9]+$' || [ "$codex_max_threads" -lt 1 ] || [ "$codex_max_threads" -gt 3 ]; then
+  echo "ERROR: MANA_CODEX_MAX_THREADS must be a positive integer no greater than 3" >&2
+  exit 2
+fi
+
 current_branch=""
 if git -C "$project_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   current_branch="$(git -C "$project_root" branch --show-current 2>/dev/null || true)"
@@ -201,17 +242,108 @@ $profile_skills
 EOF
 fi
 
+render_codex_agent() {
+  agent_name="$1"
+  model="$2"
+  effort="$3"
+  sandbox="$4"
+  description="$5"
+  instructions="$6"
+
+  cat <<AGENT
+# Mana-managed Codex custom agent.
+# Source: Mana scripts/run-profile.sh and scripts/bootstrap-project.sh.
+# Safe to replace with --force or during a Mana profile run.
+name = "$agent_name"
+description = "$description"
+model = "$model"
+model_reasoning_effort = "$effort"
+sandbox_mode = "$sandbox"
+developer_instructions = """
+$instructions
+"""
+AGENT
+}
+
+codex_agent_instructions() {
+  case "$1" in
+    mana_explorer)
+      cat <<'TEXT'
+You are mana_explorer, a Mana runtime Codex agent for bounded repository evidence discovery.
+Remain read-only. Use targeted search rather than broad repository dumping. Do not redesign the solution, make high-risk architecture judgments, edit source, or spawn other agents.
+Return a compact structured summary with: status, assigned_goal, skills_considered, evidence_inspected, relevant_files_and_symbols, findings, evidence_gaps, confidence, artifact_paths.
+Use exact file and symbol references. Explicitly report evidence gaps. Do not copy large diffs, raw logs, or full file bodies.
+TEXT
+      ;;
+    mana_full_specialist)
+      cat <<'TEXT'
+You are mana_full_specialist, a Mana runtime Codex agent for bounded high-risk judgment.
+Remain read-only. Execute only the bounded task and Mana skills assigned by the parent. Do not broaden scope, edit source, or spawn other agents.
+Use this role for architecture, security, trust boundaries, concurrency, transaction semantics, database and Liquibase production risk, cross-service contracts, backwards compatibility, production behavior, large or ambiguous diffs, and model_tier: full work.
+Inspect the minimum sufficient evidence. Distinguish facts, inferences, uncertainty, and missing evidence. Return actionable findings by severity.
+Return a compact structured summary with: status, assigned_goal, skills_executed, risk_domains, evidence_inspected, findings_by_severity, assumptions, evidence_gaps, confidence, required_human_approvals, artifact_paths.
+Do not copy raw logs, entire diffs, full Jira payloads, PR threads, or large file bodies.
+TEXT
+      ;;
+    mana_worker)
+      cat <<'TEXT'
+You are mana_worker, a Mana runtime Codex agent for narrowly bounded implementation or artifact-writing work.
+Run only when the selected Mana profile explicitly permits source modification. Never infer write permission from sandbox access. Do not run for analysis-only profiles.
+Use one writer at a time; never run parallel writers against the same working tree. Make the smallest defensible change and avoid unrelated cleanup.
+Do not commit, push, merge, publish, deploy, trigger CI, write to external systems, or spawn other agents.
+Report files changed and validation performed.
+TEXT
+      ;;
+  esac
+}
+
+install_codex_agent_file() {
+  target="$1"
+  content="$2"
+  if [ -e "$target" ] && [ ! -L "$target" ] && ! grep -q 'Mana-managed Codex custom agent' "$target" 2>/dev/null; then
+    codex_agent_install_warnings="${codex_agent_install_warnings}${codex_agent_install_warnings:+
+}WARNING: not replacing non-managed Codex agent $target"
+    return 1
+  fi
+  if [ -L "$target" ]; then
+    rm "$target"
+  fi
+  printf '%s\n' "$content" > "$target"
+}
+
+ensure_codex_agents() {
+  [ "$codex_subagents" = true ] || return 0
+  agents_dir="$project_root/.codex/agents"
+  if ! mkdir -p "$agents_dir" 2>/dev/null; then
+    codex_agent_install_warnings="${codex_agent_install_warnings}${codex_agent_install_warnings:+
+}WARNING: could not create $agents_dir; Codex subagent delegation must fall back if agents are unavailable"
+    return 0
+  fi
+
+  explorer_content="$(render_codex_agent "mana_explorer" "$codex_explorer_model" "medium" "read-only" "Mana read-only repository evidence discovery and inventory." "$(codex_agent_instructions mana_explorer)")"
+  full_content="$(render_codex_agent "mana_full_specialist" "$codex_full_model" "high" "read-only" "Mana high-risk full-model specialist for bounded architecture, database, security, contract, concurrency, and production judgments." "$(codex_agent_instructions mana_full_specialist)")"
+  worker_content="$(render_codex_agent "mana_worker" "$codex_worker_model" "medium" "workspace-write" "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks." "$(codex_agent_instructions mana_worker)")"
+
+  install_codex_agent_file "$agents_dir/mana-explorer.toml" "$explorer_content" || true
+  install_codex_agent_file "$agents_dir/mana-full-specialist.toml" "$full_content" || true
+  install_codex_agent_file "$agents_dir/mana-worker.toml" "$worker_content" || true
+}
+
 echo "Profile: $profile"
 echo "This profile renderer validates Mana freshness and prints the configured profile."
 echo "Use --codex or --claude to execute the profile through a runner."
 if [ "$runner" = "codex" ]; then
   echo "Codex model: $codex_model"
-  echo "Codex full-model escalation target: $codex_full_model"
+  echo "Codex explorer model: $codex_explorer_model"
+  echo "Codex full specialist model: $codex_full_model"
+  echo "Codex worker model: $codex_worker_model"
   echo "Codex model policy: $codex_model_policy"
+  echo "Codex subagents: $codex_subagents"
+  echo "Codex agent limits: max_threads=$codex_max_threads max_depth=$codex_max_depth interrupt_message=false"
   if [ -n "$codex_escalation_skills" ]; then
-    echo "Codex escalation candidate skills: $codex_escalation_skills"
+    echo "Codex delegation/escalation candidate skills: $codex_escalation_skills"
   else
-    echo "Codex escalation candidate skills: none"
+    echo "Codex delegation/escalation candidate skills: none"
   fi
 fi
 sed -n '1,220p' "$file"
@@ -305,8 +437,12 @@ Mana framework root: $root
 Selected runner: $runner
 Codex initial model: $codex_model
 Codex full model: $codex_full_model
+Codex explorer model: $codex_explorer_model
+Codex worker model: $codex_worker_model
 Codex model policy: $codex_model_policy
-Codex escalation candidate skills: ${codex_escalation_skills:-none}
+Codex subagents enabled: $codex_subagents
+Codex agent runtime limits: max_threads=$codex_max_threads, max_depth=$codex_max_depth, interrupt_message=false
+Codex delegation/escalation candidate skills: ${codex_escalation_skills:-none}
 Profile input overrides:
 - pr_number: ${pr_number:-}
 - publish_high_risk_comments: $publish_high_risk_comments
@@ -319,8 +455,17 @@ Profile input overrides:
 Instructions:
 - Do not run './mana profile $profile' or 'scripts/run-profile.sh $profile' again; this command already rendered the profile and would recurse.
 - Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'.
-- If the selected runner is Codex, assume the initial run may use a cost-saving model. Use the initial model for routing, evidence inventory, low-risk checks, and load-light skill inspection. Treat the listed Codex escalation candidate skills as full-model candidates, not mandatory work.
-- If a full-model candidate skill is actually required by the evidence, or if the current model cannot confidently judge architecture, security, database, concurrency, cross-service, production, or large-diff risk, stop before deep analysis with status `needs_model_escalation`. Preserve a concise handoff artifact in the workspace when possible and tell the user to rerun the same profile with `MANA_CODEX_MODEL=$codex_full_model` or `--codex-model $codex_full_model`. Do not silently continue a high-risk judgement on the economy model.
+- If the selected runner is Codex, use the economy root model for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed Codex delegation/escalation candidate skills as full-model candidates, not mandatory work.
+- Codex runtime agents are capability classes only. Mana agents under agents/ remain semantic workflow orchestrators, and Mana skills under skills/ remain reusable domain capabilities. Do not map every Mana agent or every Mana skill to a separate Codex subagent.
+- Codex subagent orchestration is enabled: $codex_subagents. When enabled and available, delegate required high-risk, explicitly full-tier, noisy, or beyond-root-confidence work to project-scoped custom agents: mana_explorer, mana_full_specialist, and mana_worker. Child agents must not delegate further.
+- Inspect candidate skill metadata using progressive loading, determine which skills are truly required by current evidence, group related work by risk domain or execution phase, spawn no more than $codex_max_threads direct subagents, avoid one subagent per skill, prefer parallel delegation only for independent read-heavy work, wait for delegated work to finish, collect compact structured summaries, and synthesize the final Mana output.
+- Delegation grouping policy is bounded and deterministic: requirements (story quality, epic/story goal extraction, acceptance-criteria testability), source (source impact, symbol and call-path mapping, technical task decomposition), tests (test inventory, green-border planning, missing-test analysis), architecture (architecture risk, NFR impact, transaction and concurrency review), contracts (API/event contracts and cross-service compatibility), database (schema and Liquibase production risk), security (trust boundaries, secrets, authorization, dependency-security evidence), operations (release, rollback, continuity, incident and production risk), documentation, and implementation.
+- Use mana_explorer for read-heavy evidence discovery, source impact mapping, symbol/call-path discovery, test inventory, contract inventory, dependency evidence, diff classification, and locating relevant Mana or project files.
+- Use mana_full_specialist for architecture, security, database, concurrency, cross-service, production, transactional, backwards-compatibility, model_tier: full, or large/ambiguous diff judgment. The root orchestrator must not directly perform deep high-risk analysis in those domains.
+- Use mana_worker only when the selected Mana profile explicitly permits source modification. Never infer write permission from a writable sandbox. Do not run mana_worker for analysis-only profiles, and never run parallel writers against the same working tree.
+- Wait for delegated work and aggregate only compact summaries and artifact paths. Do not import raw tool transcripts into the root context.
+- If Codex subagents are disabled, the installed Codex runtime cannot discover custom agents, spawning fails, a specialist returns insufficient evidence, or a high-risk judgment remains unsupported, preserve a concise handoff artifact in the workspace when possible and return status \`needs_model_escalation\`. Tell the user to rerun the same profile with \`MANA_CODEX_MODEL=$codex_full_model\` or \`--codex-model $codex_full_model\`. Do not silently continue a high-risk judgment on the economy model.
+- When Codex subagents are disabled, preserve the legacy economy-first/manual-escalation behavior: do not pretend a specialist ran, and stop with \`needs_model_escalation\` before deep analysis of required full-tier or high-risk work.
 - Follow docs/standards/agent-skill-output-standard.md. Instruction priority is: current human instruction, profile YAML, agent AGENT.md, playbook.md, loaded skill SKILL.md, then global service context. Never weaken safety, external-write, or human-approval rules.
 - Use the Mana operating loop: identify the human decision, resolve inputs/workspace/requirement source/branch or PR target/diff base, inventory evidence, classify risk domains, load only needed skills, then report status, findings, evidence, artifacts, and approvals.
 - Read only the selected agent AGENT.md and playbook.md. For candidate skills, use progressive load-light reading first: front matter, title, Purpose, When To Use It, When Not To Use It, Inputs, Outputs, Execution Logic, and Decision Rules. Load only the primary skill required to start the profile, then deep-load specialist skills only when the filtered inputs show that their risk domain is relevant or the load-light pass is insufficient. Do not read every listed skill, every example, or unrelated agent folders up front.
@@ -345,19 +490,35 @@ PROMPT
 )"
 
 run_codex() {
-  if [ "$jira_mcp_configured" = true ] && [ "$jira_mcp_config_source" = "env_file" ]; then
-    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --model "$codex_model" --cd "$project_root" --sandbox workspace-write \
-      -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
-      -c "mcp_servers.jira.args=[\"--env-file\",\"$jira_env_file\"]" \
-      "$prompt"
-  elif [ "$jira_mcp_configured" = true ]; then
-    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --model "$codex_model" --cd "$project_root" --sandbox workspace-write \
-      -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\"" \
-      -c "mcp_servers.jira.args=[]" \
-      "$prompt"
-  else
-    MANA_PROFILE_RUNNING=1 codex --ask-for-approval on-request exec --model "$codex_model" --cd "$project_root" --sandbox workspace-write "$prompt"
+  ensure_codex_agents
+  if [ -n "$codex_agent_install_warnings" ]; then
+    printf '%s\n' "$codex_agent_install_warnings" >&2
   fi
+
+  codex_args=(
+    --ask-for-approval on-request
+    exec
+    --model "$codex_model"
+    --cd "$project_root"
+    --sandbox workspace-write
+    -c "agents.max_threads=$codex_max_threads"
+    -c "agents.max_depth=$codex_max_depth"
+    -c "agents.interrupt_message=false"
+  )
+
+  if [ "$jira_mcp_configured" = true ] && [ "$jira_mcp_config_source" = "env_file" ]; then
+    codex_args+=(
+      -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\""
+      -c "mcp_servers.jira.args=[\"--env-file\",\"$jira_env_file\"]"
+    )
+  elif [ "$jira_mcp_configured" = true ]; then
+    codex_args+=(
+      -c "mcp_servers.jira.command=\"$root/scripts/run-jira-mcp-docker.sh\""
+      -c "mcp_servers.jira.args=[]"
+    )
+  fi
+
+  MANA_PROFILE_RUNNING=1 codex "${codex_args[@]}" "$prompt"
 }
 
 case "$runner" in

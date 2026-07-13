@@ -24,6 +24,10 @@ outputs:
   - security_questions
   - mitigation_actions
 risk_level: high
+model_tier: full
+execution_mode: read
+delegation_group: security
+parallel_safe: true
 owner_role: Security / Architect
 stack:
   - security

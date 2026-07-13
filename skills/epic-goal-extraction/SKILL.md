@@ -23,6 +23,10 @@ outputs:
   - scope_boundaries
   - quality_constraints
 risk_level: low
+model_tier: economy
+execution_mode: read
+delegation_group: requirements
+parallel_safe: true
 owner_role: BA / PO
 stack:
   - any
