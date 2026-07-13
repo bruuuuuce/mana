@@ -41,6 +41,23 @@ STUB
   chmod +x "$bin_dir/codex"
 }
 
+make_fake_opencode() {
+  bin_dir="$1"
+  mkdir -p "$bin_dir"
+  cat > "$bin_dir/opencode" <<'STUB'
+#!/usr/bin/env bash
+if [ "${1:-}" = "--version" ]; then
+  echo "opencode fake"
+  exit 0
+fi
+printf '%s\n' "$@" > "$MANA_TEST_OPENCODE_ARGS"
+last=""
+for arg in "$@"; do last="$arg"; done
+printf '%s\n' "$last" > "$MANA_TEST_OPENCODE_PROMPT"
+STUB
+  chmod +x "$bin_dir/opencode"
+}
+
 run_profile_with_stub() {
   project="$1"
   shift
@@ -51,7 +68,18 @@ run_profile_with_stub() {
     "$root/scripts/run-profile.sh" story-start --project-root "$project" --codex "$@" > "$tmp/run.out" 2> "$tmp/run.err"
 }
 
+run_opencode_profile_with_stub() {
+  project="$1"
+  shift
+  mkdir -p "$project"
+  MANA_TEST_OPENCODE_ARGS="$tmp/opencode.args" \
+    MANA_TEST_OPENCODE_PROMPT="$tmp/opencode.prompt" \
+    PATH="$tmp/bin:$PATH" \
+    "$root/scripts/run-profile.sh" story-start --project-root "$project" --opencode "$@" > "$tmp/opencode-run.out" 2> "$tmp/opencode-run.err"
+}
+
 make_fake_codex "$tmp/bin"
+make_fake_opencode "$tmp/bin"
 
 project_with_spaces="$tmp/project with spaces"
 run_profile_with_stub "$project_with_spaces"
@@ -125,6 +153,59 @@ mkdir -p "$nolinks_project"
 "$root/scripts/bootstrap-project.sh" --project-root "$nolinks_project" --mana-root "$root" --no-links --no-jira-env > "$tmp/bootstrap-nolinks.out" 2> "$tmp/bootstrap-nolinks.err"
 [ ! -L "$nolinks_project/.codex/agents/mana-explorer.toml" ] || fail "--no-links should copy Codex agents, not symlink them"
 assert_file_contains "$nolinks_project/.codex/agents/mana-explorer.toml" 'name = "mana_explorer"'
+
+opencode_project="$tmp/opencode project with spaces"
+run_opencode_profile_with_stub "$opencode_project"
+assert_file_contains "$tmp/opencode.args" "run"
+assert_file_contains "$tmp/opencode.args" "--dir"
+assert_file_contains "$tmp/opencode.args" "$opencode_project"
+assert_file_contains "$tmp/opencode.args" "--model"
+assert_file_contains "$tmp/opencode.args" "opencode/gpt-5.1-codex"
+assert_file_contains "$tmp/opencode.args" "--agent"
+assert_file_contains "$tmp/opencode.args" "mana_orchestrator"
+assert_file_contains "$tmp/opencode.prompt" "OpenCode subagent orchestration is enabled: true"
+assert_file_contains "$tmp/opencode.prompt" "Do not map every Mana agent or every Mana skill to a separate OpenCode subagent"
+assert_file_contains "$tmp/opencode.prompt" "Child agents must not delegate further"
+assert_file_contains "$tmp/opencode.prompt" "needs_model_escalation"
+assert_file_contains "$opencode_project/.opencode/agents/mana_orchestrator.md" "mode: primary"
+assert_file_contains "$opencode_project/.opencode/agents/mana_explorer.md" "mode: subagent"
+assert_file_contains "$opencode_project/.opencode/agents/mana_full_specialist.md" "model: opencode/gpt-5.1-codex"
+
+opencode_override_project="$tmp/opencode override project"
+run_opencode_profile_with_stub "$opencode_override_project" \
+  --opencode-model openai/root-mini \
+  --opencode-full-model openai/full-sol \
+  --opencode-explorer-model openai/explorer-terra \
+  --opencode-worker-model openai/worker-terra
+assert_file_contains "$tmp/opencode.args" "openai/root-mini"
+assert_file_contains "$opencode_override_project/.opencode/agents/mana_orchestrator.md" "model: openai/root-mini"
+assert_file_contains "$opencode_override_project/.opencode/agents/mana_full_specialist.md" "model: openai/full-sol"
+assert_file_contains "$opencode_override_project/.opencode/agents/mana_explorer.md" "model: openai/explorer-terra"
+assert_file_contains "$opencode_override_project/.opencode/agents/mana_worker.md" "model: openai/worker-terra"
+
+opencode_root_only_project="$tmp/opencode root only project"
+run_opencode_profile_with_stub "$opencode_root_only_project" --opencode-model openai/root-only
+assert_file_contains "$opencode_root_only_project/.opencode/agents/mana_orchestrator.md" "model: openai/root-only"
+assert_file_contains "$opencode_root_only_project/.opencode/agents/mana_full_specialist.md" "model: openai/root-only"
+assert_file_contains "$opencode_root_only_project/.opencode/agents/mana_explorer.md" "model: openai/root-only"
+assert_file_contains "$opencode_root_only_project/.opencode/agents/mana_worker.md" "model: openai/root-only"
+
+opencode_disabled_project="$tmp/opencode disabled project"
+run_opencode_profile_with_stub "$opencode_disabled_project" --no-opencode-subagents
+assert_file_contains "$tmp/opencode.prompt" "OpenCode subagents enabled: false"
+assert_file_contains "$opencode_disabled_project/.opencode/agents/mana_orchestrator.md" "mode: primary"
+[ ! -e "$opencode_disabled_project/.opencode/agents/mana_full_specialist.md" ] || fail "--no-opencode-subagents should not install OpenCode subagents"
+
+assert_file_contains "$bootstrap_project/.opencode/agents/mana_orchestrator.md" "Mana-managed OpenCode agent"
+assert_file_contains "$bootstrap_project/.opencode/agents/mana_full_specialist.md" "mode: subagent"
+assert_file_contains "$bootstrap_project/AGENTS.md" "OpenCode follows the same Mana chain"
+
+opencode_collision_project="$tmp/opencode collision project"
+mkdir -p "$opencode_collision_project/.opencode/agents"
+printf '# user-owned collision\nmode: subagent\n' > "$opencode_collision_project/.opencode/agents/mana_explorer.md"
+"$root/scripts/bootstrap-project.sh" --project-root "$opencode_collision_project" --mana-root "$root" --no-jira-env > "$tmp/bootstrap-opencode-collision.out" 2> "$tmp/bootstrap-opencode-collision.err"
+assert_file_contains "$opencode_collision_project/.opencode/agents/mana_explorer.md" "user-owned collision"
+assert_file_contains "$tmp/bootstrap-opencode-collision.err" "not replacing existing non-managed file"
 
 metadata_root="$tmp/metadata-root"
 mkdir -p "$metadata_root/skills/valid" "$metadata_root/skills/invalid-model" "$metadata_root/skills/invalid-mode" "$metadata_root/skills/invalid-group" "$metadata_root/skills/invalid-parallel" "$metadata_root/skills/legacy"

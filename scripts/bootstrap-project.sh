@@ -25,6 +25,7 @@ Created in the target project:
   .mana/README.md             Local usage notes.
   .mana/links/*               Symlinks to framework skills, agents, profiles, docs, templates, mcp.
   .codex/agents/mana-*.toml    Mana-managed Codex runtime subagents.
+  .opencode/agents/mana_*.md   Mana-managed OpenCode runtime agents.
   .mana/jira-mcp.env          Local Jira MCP env template, ignored by Git.
   mana                        Local command wrapper for common Mana commands.
   AGENTS.md                   Codex auto-loaded runner instructions.
@@ -190,6 +191,23 @@ CONFIG
   fi
 }
 
+install_opencode_agents() {
+  source_agents_dir="$framework_root/.opencode/agents"
+  target_agents_dir="$project_root/.opencode/agents"
+  [ -d "$source_agents_dir" ] || return 0
+  mkdir -p "$target_agents_dir"
+
+  mode="copy"
+  if [ "$create_links" = true ]; then
+    mode="link"
+  fi
+
+  for agent_file in mana_orchestrator.md mana_explorer.md mana_full_specialist.md mana_worker.md; do
+    [ -f "$source_agents_dir/$agent_file" ] || continue
+    install_managed_file_or_link "$source_agents_dir/$agent_file" "$target_agents_dir/$agent_file" "$mode"
+  done
+}
+
 # The wrapper body is intentionally single-quoted so variables expand in the
 # generated project wrapper, not while bootstrap-project.sh is running.
 # shellcheck disable=SC2016
@@ -228,6 +246,7 @@ Examples:
   ./mana profile story-start
   ./mana profile jessica-fletcher --codex
   ./mana profile jessica-fletcher --claude
+  ./mana profile jessica-fletcher --opencode
   ./mana profile jessica-fletcher --jira-key PROJ-1234 --codex
   ./mana workspace status
   ./mana workspace init --feature PROJ-1234
@@ -276,7 +295,7 @@ write_file "$project_root/mana" "$wrapper_content"
 chmod +x "$project_root/mana"
 
 if [ "$create_links" = true ]; then
-  for name in skills agents profiles docs templates mcp .codex .junie .claude; do
+  for name in skills agents profiles docs templates mcp .codex .opencode .junie .claude; do
     source_path="$framework_root/$name"
     target_path="$project_root/.mana/links/$name"
     [ -e "$source_path" ] || continue
@@ -295,6 +314,7 @@ if [ "$create_links" = true ]; then
 fi
 
 install_codex_agents
+install_opencode_agents
 
 if [ "$create_jira_env" = true ]; then
   jira_example="$framework_root/mcp/env/jira-mcp.env.example"
@@ -335,11 +355,13 @@ Use the local wrapper:
 Project artifacts stay local under \`.mana/\`.
 
 Linked Mana folders are under \`.mana/links/\`.
-Codex runtime agents are installed under \`.codex/agents/\` as
-Mana-managed files or symlinks. Existing user-owned Codex agents and
-\`.codex/config.toml\` are preserved. Mana still enforces Codex agent
-\`max_threads=3\`, \`max_depth=1\`, and \`interrupt_message=false\` at runner
-startup with CLI configuration.
+Codex runtime agents are installed under \`.codex/agents/\` and OpenCode
+runtime agents are installed under \`.opencode/agents/\` as Mana-managed files
+or symlinks. Existing user-owned Codex/OpenCode agents and \`.codex/config.toml\`
+are preserved. Mana still enforces Codex agent \`max_threads=3\`,
+\`max_depth=1\`, and \`interrupt_message=false\` at runner startup with CLI
+configuration. OpenCode receives equivalent bounded-delegation instructions
+through the \`mana_orchestrator\` primary agent and the three Mana subagents.
 Do not put real Jira credentials in Git. For Jira Server/Data Center, the
 minimal shell setup is \`JIRA_URL\` plus \`JIRA_PERSONAL_TOKEN\`.
 For Sonar scanner, keep only \`SONAR_HOST_URL\` and \`SONAR_TOKEN\` in the
@@ -362,6 +384,7 @@ See \`.mana/links/.claude/instructions.md\` for full runner governance.
 ./mana profile <name>                # render profile
 ./mana profile <name> --codex        # run via Codex
 ./mana profile <name> --claude       # run via Claude Code
+./mana profile <name> --opencode     # run via OpenCode
 \`\`\`
 
 Key profiles:
@@ -488,6 +511,10 @@ When asked to run a profile, Codex:
 
 Run: \`./mana profile jessica-fletcher --codex\` — Codex follows the full chain.
 
+OpenCode follows the same Mana chain through \`.opencode/agents/mana_orchestrator.md\`
+and the Mana-managed \`mana_explorer\`, \`mana_full_specialist\`, and
+\`mana_worker\` subagents. Run: \`./mana profile jessica-fletcher --opencode\`.
+
 ## Workspace
 
 Active workspace:  \`.mana/\`
@@ -550,6 +577,10 @@ export JIRA_PERSONAL_TOKEN=...
   insufficient evidence for a high-risk judgment, preserve a concise handoff
   artifact and return \`needs_model_escalation\` instead of performing that
   judgment on the small root model.
+- OpenCode uses the same bounded delegation model: \`mana_orchestrator\` is the
+  primary agent, and \`mana_explorer\`, \`mana_full_specialist\`, and
+  \`mana_worker\` are runtime subagents. Do not create one OpenCode subagent per
+  Mana skill; use at most three direct subagents and no recursive delegation.
 - Use progressive load-light reading for candidate skills: front matter, title,
   \`Purpose\`, \`When To Use It\`, \`When Not To Use It\`, \`Inputs\`,
   \`Outputs\`, \`Execution Logic\`, and \`Decision Rules\` before deciding
@@ -601,6 +632,7 @@ Created:
   $project_root/.mana/README.md
   $project_root/.mana/links/
   $project_root/.codex/agents/
+  $project_root/.opencode/agents/
   $project_root/.mana/
 
 Try:

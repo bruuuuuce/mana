@@ -21,6 +21,13 @@ codex_subagents="${MANA_CODEX_SUBAGENTS:-true}"
 codex_max_threads="${MANA_CODEX_MAX_THREADS:-3}"
 codex_max_depth=1
 codex_agent_install_warnings=""
+opencode_model="${MANA_OPENCODE_MODEL:-opencode/gpt-5.1-codex}"
+opencode_full_model="${MANA_OPENCODE_FULL_MODEL:-}"
+opencode_explorer_model="${MANA_OPENCODE_EXPLORER_MODEL:-}"
+opencode_worker_model="${MANA_OPENCODE_WORKER_MODEL:-}"
+opencode_subagents="${MANA_OPENCODE_SUBAGENTS:-true}"
+opencode_max_threads="${MANA_OPENCODE_MAX_THREADS:-3}"
+opencode_agent_install_warnings=""
 
 usage() {
   cat <<'USAGE'
@@ -32,12 +39,18 @@ Options:
   --render-only                  Render the profile and never start a runner.
   --codex                        Execute the rendered profile through Codex.
   --claude                       Execute the rendered profile through Claude Code.
+  --opencode                     Execute the rendered profile through OpenCode.
   --codex-model <model>          Codex model for the root orchestrator. Defaults to MANA_CODEX_MODEL or gpt-5.4-mini.
   --codex-full-model <model>     Codex model for mana_full_specialist. Defaults to MANA_CODEX_FULL_MODEL or gpt-5.6-sol.
   --codex-explorer-model <model> Codex model for mana_explorer. Defaults to MANA_CODEX_EXPLORER_MODEL or gpt-5.6-terra.
   --codex-worker-model <model>   Codex model for mana_worker. Defaults to MANA_CODEX_WORKER_MODEL or gpt-5.6-terra.
   --codex-model-policy <policy>  Model policy note passed to Codex. Defaults to economy-first.
   --no-codex-subagents           Disable Codex subagent orchestration and use legacy manual escalation.
+  --opencode-model <model>       OpenCode model for the primary orchestrator. Defaults to MANA_OPENCODE_MODEL or opencode/gpt-5.1-codex.
+  --opencode-full-model <model>  OpenCode model for mana_full_specialist. Defaults to MANA_OPENCODE_FULL_MODEL or the root OpenCode model.
+  --opencode-explorer-model <m>  OpenCode model for mana_explorer. Defaults to MANA_OPENCODE_EXPLORER_MODEL or the root OpenCode model.
+  --opencode-worker-model <m>    OpenCode model for mana_worker. Defaults to MANA_OPENCODE_WORKER_MODEL or the root OpenCode model.
+  --no-opencode-subagents        Disable OpenCode subagent orchestration and use manual escalation.
   --pr, --pr-number <value>      Pull request number or URL for requested-pr-review.
   --jira-key, --jira-issue <KEY> Add an explicit Jira issue key.
   --jira-key-regex <regex>       Override branch issue-key discovery.
@@ -64,6 +77,11 @@ while [ "$#" -gt 0 ]; do
     --claude)
       [ -z "$runner" ] || { echo "ERROR: choose only one runner flag" >&2; exit 2; }
       runner="claude"
+      shift
+      ;;
+    --opencode)
+      [ -z "$runner" ] || { echo "ERROR: choose only one runner flag" >&2; exit 2; }
+      runner="opencode"
       shift
       ;;
     --codex-model)
@@ -93,6 +111,30 @@ while [ "$#" -gt 0 ]; do
       ;;
     --no-codex-subagents)
       codex_subagents=false
+      shift
+      ;;
+    --opencode-model)
+      opencode_model="${2:-}"
+      [ -n "$opencode_model" ] || { echo "ERROR: --opencode-model requires a model name" >&2; exit 2; }
+      shift 2
+      ;;
+    --opencode-full-model)
+      opencode_full_model="${2:-}"
+      [ -n "$opencode_full_model" ] || { echo "ERROR: --opencode-full-model requires a model name" >&2; exit 2; }
+      shift 2
+      ;;
+    --opencode-explorer-model)
+      opencode_explorer_model="${2:-}"
+      [ -n "$opencode_explorer_model" ] || { echo "ERROR: --opencode-explorer-model requires a model name" >&2; exit 2; }
+      shift 2
+      ;;
+    --opencode-worker-model)
+      opencode_worker_model="${2:-}"
+      [ -n "$opencode_worker_model" ] || { echo "ERROR: --opencode-worker-model requires a model name" >&2; exit 2; }
+      shift 2
+      ;;
+    --no-opencode-subagents)
+      opencode_subagents=false
       shift
       ;;
     --pr|--pr-number)
@@ -178,6 +220,28 @@ if ! printf '%s\n' "$codex_max_threads" | grep -Eq '^[0-9]+$' || [ "$codex_max_t
   echo "ERROR: MANA_CODEX_MAX_THREADS must be a positive integer no greater than 3" >&2
   exit 2
 fi
+
+case "$opencode_subagents" in
+  true|TRUE|True|1|yes|YES|on|ON)
+    opencode_subagents=true
+    ;;
+  false|FALSE|False|0|no|NO|off|OFF)
+    opencode_subagents=false
+    ;;
+  *)
+    echo "ERROR: MANA_OPENCODE_SUBAGENTS must be true or false" >&2
+    exit 2
+    ;;
+esac
+
+if ! printf '%s\n' "$opencode_max_threads" | grep -Eq '^[0-9]+$' || [ "$opencode_max_threads" -lt 1 ] || [ "$opencode_max_threads" -gt 3 ]; then
+  echo "ERROR: MANA_OPENCODE_MAX_THREADS must be a positive integer no greater than 3" >&2
+  exit 2
+fi
+
+: "${opencode_full_model:=$opencode_model}"
+: "${opencode_explorer_model:=$opencode_model}"
+: "${opencode_worker_model:=$opencode_model}"
 
 current_branch=""
 if git -C "$project_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -311,6 +375,118 @@ install_codex_agent_file() {
   printf '%s\n' "$content" > "$target"
 }
 
+render_opencode_agent() {
+  agent_name="$1"
+  mode="$2"
+  model="$3"
+  description="$4"
+  permission_block="$5"
+  instructions="$6"
+
+  cat <<AGENT
+---
+# Mana-managed OpenCode agent.
+# Source: Mana scripts/run-profile.sh and scripts/bootstrap-project.sh.
+# Safe to replace with --force or during a Mana profile run.
+description: "$description"
+mode: $mode
+model: $model
+temperature: 0.1
+permission:
+$permission_block
+---
+$instructions
+AGENT
+}
+
+opencode_agent_instructions() {
+  case "$1" in
+    mana_orchestrator)
+      cat <<'TEXT'
+You are mana_orchestrator, the OpenCode primary runtime agent for Mana profile execution.
+
+Use the primary model for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Mana semantic agents remain under agents/ and Mana skills remain under skills/. Do not map every Mana agent or every Mana skill to a separate OpenCode subagent.
+
+When required work is high-risk, explicitly full-tier, noisy, or beyond primary-model confidence, delegate it to the appropriate Mana OpenCode subagent. Batch related Mana skills into one delegation by risk domain. Do not spawn one subagent per skill. Spawn at most three direct subagents. Child agents must not delegate further.
+
+Use mana_explorer for read-heavy evidence discovery. Use mana_full_specialist for architecture, security, database, concurrency, cross-service, production, transactional, backwards-compatibility, model_tier: full, or large/ambiguous diff judgment. Use mana_worker only when the selected Mana profile explicitly permits source modification, and never run parallel writers.
+
+If subagents are disabled, missing, fail, or return insufficient evidence for a high-risk judgment, preserve a concise handoff artifact and return needs_model_escalation instead of performing that judgment on the primary model.
+TEXT
+      ;;
+    mana_explorer|mana_full_specialist|mana_worker)
+      codex_agent_instructions "$1" | sed 's/Codex/OpenCode/g'
+      ;;
+  esac
+}
+
+install_opencode_agent_file() {
+  target="$1"
+  content="$2"
+  if [ -e "$target" ] && [ ! -L "$target" ] && ! grep -q 'Mana-managed OpenCode agent' "$target" 2>/dev/null; then
+    opencode_agent_install_warnings="${opencode_agent_install_warnings}${opencode_agent_install_warnings:+
+}WARNING: not replacing non-managed OpenCode agent $target"
+    return 1
+  fi
+  if [ -L "$target" ]; then
+    rm "$target"
+  fi
+  printf '%s\n' "$content" > "$target"
+}
+
+ensure_opencode_agents() {
+  agents_dir="$project_root/.opencode/agents"
+  if ! mkdir -p "$agents_dir" 2>/dev/null; then
+    opencode_agent_install_warnings="${opencode_agent_install_warnings}${opencode_agent_install_warnings:+
+}WARNING: could not create $agents_dir; OpenCode delegation must fall back if agents are unavailable"
+    return 0
+  fi
+
+  orchestrator_permissions="  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+  bash: ask
+  edit: ask
+  task: allow
+  webfetch: ask
+  websearch: ask
+  external_directory: ask"
+  readonly_permissions="  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+  bash: ask
+  edit: deny
+  task: deny
+  webfetch: ask
+  websearch: ask
+  external_directory: ask"
+  worker_permissions="  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+  bash: ask
+  edit: ask
+  task: deny
+  webfetch: ask
+  websearch: ask
+  external_directory: ask"
+
+  orchestrator_content="$(render_opencode_agent "mana_orchestrator" "primary" "$opencode_model" "Mana primary orchestrator for profile routing, light evidence inventory, bounded delegation, and final synthesis." "$orchestrator_permissions" "$(opencode_agent_instructions mana_orchestrator)")"
+  install_opencode_agent_file "$agents_dir/mana_orchestrator.md" "$orchestrator_content" || true
+
+  [ "$opencode_subagents" = true ] || return 0
+
+  explorer_content="$(render_opencode_agent "mana_explorer" "subagent" "$opencode_explorer_model" "Mana read-only repository evidence discovery and inventory." "$readonly_permissions" "$(opencode_agent_instructions mana_explorer)")"
+  full_content="$(render_opencode_agent "mana_full_specialist" "subagent" "$opencode_full_model" "Mana high-risk full-model specialist for bounded architecture, database, security, contract, concurrency, and production judgments." "$readonly_permissions" "$(opencode_agent_instructions mana_full_specialist)")"
+  worker_content="$(render_opencode_agent "mana_worker" "subagent" "$opencode_worker_model" "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks." "$worker_permissions" "$(opencode_agent_instructions mana_worker)")"
+
+  install_opencode_agent_file "$agents_dir/mana_explorer.md" "$explorer_content" || true
+  install_opencode_agent_file "$agents_dir/mana_full_specialist.md" "$full_content" || true
+  install_opencode_agent_file "$agents_dir/mana_worker.md" "$worker_content" || true
+}
+
 ensure_codex_agents() {
   [ "$codex_subagents" = true ] || return 0
   agents_dir="$project_root/.codex/agents"
@@ -331,7 +507,7 @@ ensure_codex_agents() {
 
 echo "Profile: $profile"
 echo "This profile renderer validates Mana freshness and prints the configured profile."
-echo "Use --codex or --claude to execute the profile through a runner."
+echo "Use --codex, --claude, or --opencode to execute the profile through a runner."
 if [ "$runner" = "codex" ]; then
   echo "Codex model: $codex_model"
   echo "Codex explorer model: $codex_explorer_model"
@@ -344,6 +520,19 @@ if [ "$runner" = "codex" ]; then
     echo "Codex delegation/escalation candidate skills: $codex_escalation_skills"
   else
     echo "Codex delegation/escalation candidate skills: none"
+  fi
+fi
+if [ "$runner" = "opencode" ]; then
+  echo "OpenCode model: $opencode_model"
+  echo "OpenCode explorer model: $opencode_explorer_model"
+  echo "OpenCode full specialist model: $opencode_full_model"
+  echo "OpenCode worker model: $opencode_worker_model"
+  echo "OpenCode subagents: $opencode_subagents"
+  echo "OpenCode agent limits: max_threads=$opencode_max_threads max_depth=1"
+  if [ -n "$codex_escalation_skills" ]; then
+    echo "OpenCode delegation/escalation candidate skills: $codex_escalation_skills"
+  else
+    echo "OpenCode delegation/escalation candidate skills: none"
   fi
 fi
 sed -n '1,220p' "$file"
@@ -424,7 +613,7 @@ if [ "$render_only" = true ] || [ "${MANA_PROFILE_RUNNING:-}" = "1" ] || [ -z "$
   else
     echo
     echo "Execution note: no runner flag was provided, so no runner was started."
-    echo "Run with --codex or --claude to execute the profile through that runner."
+    echo "Run with --codex, --claude, or --opencode to execute the profile through that runner."
   fi
   exit 0
 fi
@@ -443,6 +632,12 @@ Codex model policy: $codex_model_policy
 Codex subagents enabled: $codex_subagents
 Codex agent runtime limits: max_threads=$codex_max_threads, max_depth=$codex_max_depth, interrupt_message=false
 Codex delegation/escalation candidate skills: ${codex_escalation_skills:-none}
+OpenCode initial model: $opencode_model
+OpenCode full model: $opencode_full_model
+OpenCode explorer model: $opencode_explorer_model
+OpenCode worker model: $opencode_worker_model
+OpenCode subagents enabled: $opencode_subagents
+OpenCode agent runtime limits: max_threads=$opencode_max_threads, max_depth=1
 Profile input overrides:
 - pr_number: ${pr_number:-}
 - publish_high_risk_comments: $publish_high_risk_comments
@@ -466,6 +661,12 @@ Instructions:
 - Wait for delegated work and aggregate only compact summaries and artifact paths. Do not import raw tool transcripts into the root context.
 - If Codex subagents are disabled, the installed Codex runtime cannot discover custom agents, spawning fails, a specialist returns insufficient evidence, or a high-risk judgment remains unsupported, preserve a concise handoff artifact in the workspace when possible and return status \`needs_model_escalation\`. Tell the user to rerun the same profile with \`MANA_CODEX_MODEL=$codex_full_model\` or \`--codex-model $codex_full_model\`. Do not silently continue a high-risk judgment on the economy model.
 - When Codex subagents are disabled, preserve the legacy economy-first/manual-escalation behavior: do not pretend a specialist ran, and stop with \`needs_model_escalation\` before deep analysis of required full-tier or high-risk work.
+- If the selected runner is OpenCode, use the mana_orchestrator primary agent for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed delegation/escalation candidate skills as full-model candidates, not mandatory work.
+- OpenCode runtime agents are capability classes only. Mana agents under agents/ remain semantic workflow orchestrators, and Mana skills under skills/ remain reusable domain capabilities. Do not map every Mana agent or every Mana skill to a separate OpenCode subagent.
+- OpenCode subagent orchestration is enabled: $opencode_subagents. When enabled and available, delegate required high-risk, explicitly full-tier, noisy, or beyond-primary-confidence work to project-scoped agents: mana_explorer, mana_full_specialist, and mana_worker. Child agents must not delegate further.
+- For OpenCode, spawn no more than $opencode_max_threads direct subagents, avoid one subagent per skill, prefer parallel delegation only for independent read-heavy work, wait for delegated work to finish, collect compact structured summaries, and synthesize the final Mana output.
+- If OpenCode subagents are disabled, the installed OpenCode runtime cannot discover custom agents, spawning fails, a specialist returns insufficient evidence, or a high-risk judgment remains unsupported, preserve a concise handoff artifact in the workspace when possible and return status \`needs_model_escalation\`. Tell the user to rerun the same profile with \`MANA_OPENCODE_MODEL=$opencode_full_model\` or \`--opencode-model $opencode_full_model\`. Do not silently continue a high-risk judgment on the primary model.
+- When OpenCode subagents are disabled, preserve manual-escalation behavior: do not pretend a specialist ran, and stop with \`needs_model_escalation\` before deep analysis of required full-tier or high-risk work.
 - Follow docs/standards/agent-skill-output-standard.md. Instruction priority is: current human instruction, profile YAML, agent AGENT.md, playbook.md, loaded skill SKILL.md, then global service context. Never weaken safety, external-write, or human-approval rules.
 - Use the Mana operating loop: identify the human decision, resolve inputs/workspace/requirement source/branch or PR target/diff base, inventory evidence, classify risk domains, load only needed skills, then report status, findings, evidence, artifacts, and approvals.
 - Read only the selected agent AGENT.md and playbook.md. For candidate skills, use progressive load-light reading first: front matter, title, Purpose, When To Use It, When Not To Use It, Inputs, Outputs, Execution Logic, and Decision Rules. Load only the primary skill required to start the profile, then deep-load specialist skills only when the filtered inputs show that their risk domain is relevant or the load-light pass is insufficient. Do not read every listed skill, every example, or unrelated agent folders up front.
@@ -521,6 +722,22 @@ run_codex() {
   MANA_PROFILE_RUNNING=1 codex "${codex_args[@]}" "$prompt"
 }
 
+run_opencode() {
+  ensure_opencode_agents
+  if [ -n "$opencode_agent_install_warnings" ]; then
+    printf '%s\n' "$opencode_agent_install_warnings" >&2
+  fi
+
+  opencode_args=(
+    run
+    --dir "$project_root"
+    --model "$opencode_model"
+    --agent mana_orchestrator
+  )
+
+  MANA_PROFILE_RUNNING=1 opencode "${opencode_args[@]}" "$prompt"
+}
+
 case "$runner" in
   codex)
     if ! command -v codex >/dev/null 2>&1; then
@@ -542,6 +759,16 @@ case "$runner" in
     echo "Starting Claude runner for profile: $profile"
     cd "$project_root" || exit 1
     MANA_PROFILE_RUNNING=1 claude -p --permission-mode default "$prompt"
+    ;;
+  opencode)
+    if ! command -v opencode >/dev/null 2>&1; then
+      echo "ERROR: --opencode requested, but opencode was not found in PATH" >&2
+      exit 1
+    fi
+
+    echo
+    echo "Starting OpenCode runner for profile: $profile"
+    run_opencode
     ;;
   *)
     echo "ERROR: unsupported runner: $runner" >&2

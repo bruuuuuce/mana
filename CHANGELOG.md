@@ -10,6 +10,9 @@
   `execution_mode`, `delegation_group`, and `parallel_safe`.
 - Updated project bootstrap to install Mana custom agents while preserving
   target `.codex/config.toml` and unrelated custom agents.
+- Added OpenCode project-scoped agent configuration and `--opencode` runner
+  support using `mana_orchestrator`, `mana_explorer`, `mana_full_specialist`,
+  and `mana_worker` with configurable `provider/model` overrides.
 
 ## 1.0.0
 - Initial Mana framework repository with skills, agents, profiles, workspace tooling, Jira MCP wrapper, project bootstrap, pre-commit development summary and knowledge-transfer artifacts, Jessica Fletcher pre-mortem agent, Application Manager readiness, architecture review, Team Leader planning, standardized agent/skill outputs with compact internal reasoning guidance, story-specific trace files and developer choice logs for Jira workspaces, diagnostics, GitHub templates, and end-to-end Codex flow documentation.

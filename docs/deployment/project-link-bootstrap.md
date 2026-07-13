@@ -23,6 +23,7 @@ mana
 .mana/README.md
 .mana/links/
 .codex/agents/mana-*.toml
+.opencode/agents/mana_*.md
 .mana/jira-mcp.env
 .mana/
 ```
@@ -33,6 +34,10 @@ Mana-managed Codex custom agents are installed under `.codex/agents/` so
 `./mana profile story-start --codex` can discover `mana_explorer`,
 `mana_full_specialist`, and `mana_worker` while running with the application
 repository as `--cd`.
+Mana-managed OpenCode agents are installed under `.opencode/agents/` so
+`./mana profile story-start --opencode` can discover `mana_orchestrator`,
+`mana_explorer`, `mana_full_specialist`, and `mana_worker` from the target
+project.
 
 ## Local Wrapper
 
@@ -43,6 +48,7 @@ After bootstrap, use:
 ./mana profile story-start
 ./mana profile jessica-fletcher
 ./mana profile jessica-fletcher --jira-key PROJ-1234 --codex
+./mana profile jessica-fletcher --jira-key PROJ-1234 --opencode
 ./mana workspace status
 ./mana workspace init --feature PROJ-1234
 ./mana jira-mcp --get-issue PROJ-1234
@@ -130,6 +136,10 @@ artifacts intentionally.
   `.codex/agents` when needed, preserves unrelated custom agents, warns and
   skips same-name non-managed collisions, and with `--force` replaces only
   Mana-managed files or symlinks.
+- `.opencode/agents/mana_*.md` are Mana-managed. Bootstrap creates
+  `.opencode/agents` when needed, preserves unrelated OpenCode agents, warns and
+  skips same-name non-managed collisions, and with `--force` replaces only
+  Mana-managed files or symlinks.
 - Existing `.codex/config.toml` is never replaced. If no config exists,
   bootstrap writes a minimal Mana-managed config with Codex agent limits.
   `scripts/run-profile.sh` still enforces `agents.max_threads=3`,
@@ -138,6 +148,9 @@ artifacts intentionally.
 - Use `MANA_CODEX_SUBAGENTS=false ./mana profile story-start --codex` or
   `./mana profile story-start --codex --no-codex-subagents` to use the legacy
   manual escalation fallback.
+- Use `MANA_OPENCODE_SUBAGENTS=false ./mana profile story-start --opencode` or
+  `./mana profile story-start --opencode --no-opencode-subagents` to disable
+  OpenCode subagent delegation.
 - Real Jira credentials should stay in `.mana/jira-mcp.env`, another ignored
   env file, or shell environment variables. They must not be committed.
 - Re-run with `--force` to refresh generated wrapper files and managed symlinks.
