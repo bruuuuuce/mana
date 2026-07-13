@@ -59,42 +59,53 @@ Find open pull requests where the current user is a requested reviewer, or analy
    `gh auth status`. If unavailable or unauthenticated, stop with
    `needs_human_decision` and ask the user to provide PR URLs or authenticate
    `gh`. Do not fail the whole Mana workflow for a missing optional tool.
-2. If `pr_number` is provided, analyze that PR directly with `gh pr view`,
+2. Resolve the active Mana workspace and inspect `pr-review/` before reading
+   any PR diff. If the current run targets one explicit `pr_number` and
+   `pr-review/` already contains artifacts or metadata for a different PR,
+   stop with `needs_human_decision`: warn that the current session/workspace
+   already analyzed another PR, recommend starting a clean runner session
+   (`clear`/new chat) or creating a fresh Mana workspace, and ask for explicit
+   confirmation before continuing in the same context. If the user confirms,
+   continue only inside the target PR or ticket directory with a new run
+   subdirectory; do not overwrite the previous PR's artifacts. If the existing
+   artifacts are for the same PR, reuse the same PR directory and create a new
+   run subdirectory.
+3. If `pr_number` is provided, analyze that PR directly with `gh pr view`,
    `gh pr diff`, and `gh pr checks`; do not discover the whole requested-review
    inbox. If `pr_number` is omitted, discover open pull requests where the user
    is a requested reviewer. Prefer `gh pr list --review-requested @me --state
    open` in the active repository. If the repository cannot be inferred, ask the
    user for the target repo.
-3. For each candidate or selected PR, read metadata only: number, title, author,
+4. For each candidate or selected PR, read metadata only: number, title, author,
    head branch, base branch, review requests, labels, changed file count,
    additions, deletions, checks status, and PR URL.
-4. Extract generic Jira issue keys from PR head branch names and titles when
+5. Extract generic Jira issue keys from PR head branch names and titles when
    available, or use issue keys provided by the profile. If `jira_read` is
    configured, read those issues as requirement context before ranking review
    risk. Do not assume a fixed project prefix. If Jira is unavailable, report
    the access gap and continue with PR evidence.
-5. Compare selected PR changes against Jira story text and acceptance criteria
+6. Compare selected PR changes against Jira story text and acceptance criteria
    when story evidence is available. Report missing requested behavior,
    unrequested scope, contradicted acceptance criteria, and tests that do not
    prove the story.
-6. Rank PRs by review risk before reading large diffs. Prioritize production
+7. Rank PRs by review risk before reading large diffs. Prioritize production
    paths, database changes, public APIs, cross-service contracts, auth/security,
    concurrency, large diffs, failing checks, missing tests, and stale PRs.
-7. For each selected PR, load the PR diff and changed-file list. Exclude
+8. For each selected PR, load the PR diff and changed-file list. Exclude
    Mana/bootstrap noise from findings and evidence: `.mana/**`, `AGENTS.md`,
    `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or env ignore changes.
-8. Use `changed-files-risk-classifier` to classify the PR before deep-loading
+9. Use `changed-files-risk-classifier` to classify the PR before deep-loading
    specialist skills. Use `architecture-guard-detector` when engineering guards
    are relevant to touched paths.
-9. Load existing `.mana/**/evidence/sonar/sonar-summary.md` evidence when
+10. Load existing `.mana/**/evidence/sonar/sonar-summary.md` evidence when
    present and relevant to the selected PR. Do not run `sonar-scanner` from this
    agent unless the human explicitly asks for fresh Sonar evidence.
-10. Use `sonar-evidence-triage` and `dependency-security-evidence` only when
+11. Use `sonar-evidence-triage` and `dependency-security-evidence` only when
     existing evidence or changed files make those domains relevant.
-11. If a selected PR has more than roughly 80 changed files or 2,000 changed
+12. If a selected PR has more than roughly 80 changed files or 2,000 changed
    lines after filtering, stop that PR with `needs_human_decision` and ask for
    a narrower review scope.
-12. Load only skills relevant to the filtered PR diff:
+13. Load only skills relevant to the filtered PR diff:
    - `pre-review-defect` when application code changed.
    - `architecture-risk` when design boundaries, transactions, feature flags,
      concurrency, or forbidden zones are touched.
@@ -104,14 +115,14 @@ Find open pull requests where the current user is a requested reviewer, or analy
      changed.
    - `test-quality` when test files or CI/check evidence must be evaluated.
    - `regression-selection` when the reviewer needs targeted test suggestions.
-13. Produce review-ready findings with file/line or PR evidence, questions for
+14. Produce review-ready findings with file/line or PR evidence, questions for
    the author, suggested local checks, and suggested review comments.
-14. If `publish_high_risk_comments` is true, `pr_number` is provided, and the run
+15. If `publish_high_risk_comments` is true, `pr_number` is provided, and the run
    found blocker or high-criticality findings, publish exactly one PR comment
    with only those highest-criticality findings. Do not publish medium, low, or
    speculative findings. If no blocker or high-criticality findings exist, do
    not comment.
-15. Stop at human approval gates for any external write not explicitly covered
+16. Stop at human approval gates for any external write not explicitly covered
    by `publish_high_risk_comments`, destructive actions, or
    high-risk blocker conclusions.
 
@@ -155,12 +166,41 @@ Missing service context files should be reported as warnings unless the active p
 
 ## Artifact Workspace
 Use the active Mana workspace. Write review inbox outputs under `pr-review/`.
+Do not write PR review artifacts directly at the root of `pr-review/`.
+
+Before writing, create or reuse a target-specific directory, then create a
+run-specific child directory:
+
+- explicit PR: `pr-review/pr-<number>/runs/<YYYYMMDDTHHMMSSZ>/`
+- ticket without PR: `pr-review/ticket-<issue-key>/runs/<YYYYMMDDTHHMMSSZ>/`
+- review inbox / multiple PRs: `pr-review/inbox/runs/<YYYYMMDDTHHMMSSZ>/`
+
+The target directory may also contain stable summaries such as
+`latest-summary.md`, but generated review artifacts for a run must live under
+`runs/<timestamp>/`.
+
+Each run directory must include `run-metadata.yaml` with at least:
+
+```yaml
+profile: requested-pr-review
+pr_number: "<number-or-null>"
+repository: "<owner/name-or-local-repo>"
+started_at: "<UTC timestamp>"
+runner: "<codex|claude|other>"
+```
+
+If `pr-review/` already contains a `run-metadata.yaml` for a different
+`pr_number` than the requested PR, warn before analysis and recommend a clean
+runner session (`clear`/new chat) or a fresh Mana workspace to avoid mixing
+review context. Continue in the same workspace only after explicit human
+confirmation, and always write to the requested PR or ticket directory with a
+new run subdirectory.
 
 Default output routing:
-- `requested-pr-review-report.md` -> `pr-review/requested-pr-review-report.md`
-- `pr-review-focus.md` -> `pr-review/pr-review-focus.md`
-- `pr-risk-summary.md` -> `pr-review/pr-risk-summary.md`
-- per-PR notes -> `pr-review/pr-<number>-review-notes.md`
+- `requested-pr-review-report.md` -> `<run-dir>/requested-pr-review-report.md`
+- `pr-review-focus.md` -> `<run-dir>/pr-review-focus.md`
+- `pr-risk-summary.md` -> `<run-dir>/pr-risk-summary.md`
+- per-PR notes -> `<run-dir>/pr-<number>-review-notes.md`
 
 ## MCP Tools Required
 - Optional read-only GitHub CLI access through `github_read`.
@@ -190,6 +230,8 @@ Claude Code can run this agent when it has shell access to `gh` and the reposito
 ## Blocking Conditions
 - GitHub CLI is unavailable or unauthenticated and no PR URLs were provided.
 - Repository cannot be inferred and no target repository was provided.
+- The active workspace already contains artifacts for a different explicit PR
+  and the user has not confirmed continuing in the same context.
 - `publish_high_risk_comments=true` was requested without a specific PR number
   or URL.
 - PR diff cannot be read.
@@ -200,6 +242,8 @@ Claude Code can run this agent when it has shell access to `gh` and the reposito
 - Missing optional service context.
 - CI/check status unavailable from GitHub CLI.
 - PR has incomplete test evidence.
+- Active workspace contains earlier requested-pr-review artifacts; use the
+  warning to prevent cross-PR context contamination.
 - Medium-risk finding needs author clarification.
 
 ## Expected Artifacts
@@ -224,7 +268,7 @@ Claude Code can run this agent when it has shell access to `gh` and the reposito
 - Do not treat missing `gh` as permission to guess PR metadata.
 
 ## Story Trace
-For every PR run, update or reference `agent-memory/story-trace.md` in the active Mana workspace when a story workspace is available. Follow `docs/standards/story-trace-standard.md` (Story Trace Standard). Otherwise record concise review inbox notes under `pr-review/`. Do not write private chain-of-thought.
+For every PR run, update or reference `agent-memory/story-trace.md` in the active Mana workspace when a story workspace is available. Follow `docs/standards/story-trace-standard.md` (Story Trace Standard). Otherwise record concise review inbox notes under the run-specific `pr-review/` subdirectory. Do not write private chain-of-thought.
 
 ## Output Standard
 Follow `docs/standards/agent-skill-output-standard.md` (Agent And Skill Output Standard) for all generated artifacts. Use `templates/standard-agent-skill-report.template.md` when no more specific template exists.

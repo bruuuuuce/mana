@@ -6,20 +6,37 @@
   "properties": {
     "requested_pr_review_report": {
       "type": "string",
-      "description": "Path to requested-pr-review-report.md in the active workspace"
+      "description": "Path to requested-pr-review-report.md in the run-specific pr-review subdirectory"
     },
     "pr_review_focus": {
       "type": "string",
-      "description": "Path to pr-review-focus.md in the active workspace"
+      "description": "Path to pr-review-focus.md in the run-specific pr-review subdirectory"
     },
     "pr_risk_summary": {
       "type": "string",
-      "description": "Path to pr-risk-summary.md in the active workspace"
+      "description": "Path to pr-risk-summary.md in the run-specific pr-review subdirectory"
+    },
+    "run_directory": {
+      "type": "string",
+      "description": "Run-specific output directory under the target pr-review directory"
+    },
+    "target_directory": {
+      "type": "string",
+      "description": "Stable PR, ticket, or inbox directory under pr-review/"
+    },
+    "run_metadata": {
+      "type": "string",
+      "description": "Path to run-metadata.yaml for this review run"
+    },
+    "cross_pr_context_warning": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Warning emitted when the active workspace already contains artifacts for a different PR"
     },
     "per_pr_notes": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "Paths to per-PR review notes"
+      "description": "Paths to per-PR review notes in the run-specific pr-review subdirectory"
     },
     "published_comment": {
       "type": "object",
