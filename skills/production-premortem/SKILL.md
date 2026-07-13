@@ -33,6 +33,8 @@ outputs:
   - mitigation_checklist
 risk_level: high
 owner_role: Team Leader / Architect / Developer
+stack:
+  - any
 tags:
   - premortem
   - production-risk

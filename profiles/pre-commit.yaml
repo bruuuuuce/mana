@@ -32,7 +32,7 @@ skills:
 - liquibase-syntax
 - null-safety-risk
 - pre-review-defect
-- unit-test-gap
+- test-gap
 blocking_conditions:
   - unresolved blocker findings
   - missing required artifacts

@@ -25,6 +25,8 @@ outputs:
   - skill_update_candidates
 risk_level: medium
 owner_role: Team Leader / Architect
+stack:
+  - any
 tags:
   - learning
   - post-merge

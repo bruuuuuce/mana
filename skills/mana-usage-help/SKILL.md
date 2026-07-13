@@ -24,6 +24,8 @@ outputs:
   - risk_notes
 risk_level: low
 owner_role: Developer / Team Leader
+stack:
+  - any
 tags:
   - help
   - onboarding
@@ -134,7 +136,8 @@ single story read instead of constructing ad hoc REST commands.
 For epic/story slicing, prefer
 `./mana jira-mcp --fetch-epic-story-pack <KEY>` to cache the epic and sibling
 stories as Markdown under `.mana/features/<EPIC-ID>/evidence/jira/`.
-For local Sonar scanner setup, route users to `sonar-configuration-guide` and
+For local Sonar scanner setup, route users to
+`docs/deployment/sonar-scanner-wrapper.md` and
 the `./mana sonar --init-config`, `./mana sonar --check`, and
 `./mana sonar --analyze` commands. Keep only `SONAR_HOST_URL` and `SONAR_TOKEN`
 in the environment; keep scanner project properties under

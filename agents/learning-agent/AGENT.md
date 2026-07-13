@@ -31,6 +31,7 @@ outputs:
   - known-pitfalls.md
   - rule-update-suggestions.md
   - incident-learning-report.md
+  - delivery-metrics-update.md
 human_approval_required: true
 risk_level: medium
 ---
@@ -54,8 +55,13 @@ Updates knowledge after merges, incidents, review comments, or recurring failure
    checklist, standard, or automation change.
 4. Load `flaky-failure-classification` only when test history includes flaky,
    intermittent, timeout, ordering, or environment-sensitive failures.
-5. Aggregate blocker, warning, and info findings into the expected artifacts.
-6. Stop at human approval gates when blockers or out-of-policy actions are detected.
+5. Aggregate `metrics-events.md` rows from the involved feature workspaces
+   into a proposed `delivery-metrics-update.md` following
+   `docs/standards/delivery-metrics-standard.md`: story rework rate, finding
+   hit/miss rate, and open question answer rate. Name the skill behind each
+   miss or false positive so tuning work is actionable.
+6. Aggregate blocker, warning, and info findings into the expected artifacts.
+7. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Skills Used And Why
 - `known-pitfalls-extraction`: contributes its atomic review to this workflow.
@@ -75,6 +81,7 @@ Default output routing:
 - `known-pitfalls.md` -> `learning/known-pitfalls.md` or `.mana/global/known-pitfalls/` when approved
 - `rule-update-suggestions.md` -> `learning/rule-update-suggestions.md`
 - `incident-learning-report.md` -> `learning/incident-learning-report.md`
+- `delivery-metrics-update.md` -> `learning/delivery-metrics-update.md`, merged into `.mana/global/metrics/delivery-metrics.md` when approved
 
 ## MCP Tools Required
 - Read-only Jira, Confluence, Git, architecture rules, and repository search where applicable.
@@ -117,6 +124,7 @@ Junie is preferred for IDE-local implementation, local test generation, local te
 - known-pitfalls.md
 - rule-update-suggestions.md
 - incident-learning-report.md
+- delivery-metrics-update.md
 
 ## Correct Usage Examples
 - Run the agent at its documented trigger point with complete planning or branch artifacts.
@@ -161,5 +169,6 @@ artifacts:
   - known-pitfalls.md
   - rule-update-suggestions.md
   - incident-learning-report.md
+  - delivery-metrics-update.md
 human_approval_required: true
 ```

@@ -118,7 +118,7 @@ Each feature or session workspace should use this internal layout:
     story-implementation-planner-notes.md
     branch-validation-notes.md
   skill-outputs/
-    story-depth-report.md
+    story-quality-report.md
     architecture-risk-report.md
     liquibase-risk-report.md
     pre-review-defect-report.md

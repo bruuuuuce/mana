@@ -15,7 +15,7 @@ hooks:
       # - development-summary        # disable if team prefers manual summaries
       # - developer-handoff          # disable if no handoff workflow
       # - developer-decision-review  # disable if no developer choice log workflow
-      # - unit-test-gap              # disable if unit-test coverage is enforced by CI only
+      # - test-gap                   # disable if test coverage is enforced by CI only
       # - pre-review-defect          # disable if team runs full defect review in CI
     disabled_agents:
       # - pre-commit-documentation-agent  # disable if documentation artifacts are not needed at commit time
@@ -24,11 +24,10 @@ hooks:
       # - liquibase-syntax           # disable if project has no Liquibase changesets
       # - liquibase-production-risk  # disable if project has no database changes
       # - flaky-failure-classification
-      # - integration-test-gap
       # - legacy-characterization
       # - regression-selection
+      # - test-gap
       # - test-quality
-      # - unit-test-gap
       # - null-safety-risk           # disable if project enforces null safety at compile time (e.g. strict TypeScript)
       # - pre-review-defect
     disabled_agents:

@@ -22,6 +22,8 @@ outputs:
   - active_profile_written
 risk_level: low
 owner_role: Developer / Team Leader / Architect / Application Manager
+stack:
+  - any
 tags:
   - help
   - onboarding

@@ -25,6 +25,8 @@ outputs:
   - rewritten_criteria_suggestions
 risk_level: low
 owner_role: BA / QA / Team Leader
+stack:
+  - any
 tags:
   - requirements
   - testing

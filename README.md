@@ -163,75 +163,28 @@ For a complete Jira-free flow from epic input to PR readiness, see
 `docs/examples/end-to-end-codex-flow.md`.
 
 ## Mana Project Workspace
-Projects using this framework should create a `.mana/` directory at repository
-root. This is where Codex, Junie, agents, and skills store planning files,
-partial agent memory, skill outputs, decisions, test evidence, validation
-reports, PR material, developer handoff, and learning artifacts.
+Projects using this framework keep a `.mana/` directory at repository root.
+This is where runners, agents, and skills store planning files, agent memory,
+skill outputs, decisions, test evidence, validation reports, PR material, and
+learning artifacts.
 
-The framework does not initialize Git branches. It resolves an evidence
-workspace for the current branch, feature id, or canonical-branch session.
-Use `./mana evidence-index` after collecting Jira, Sonar, dependency, test,
-validation, or PR artifacts so agents can read a compact index before
-deep-loading only the evidence relevant to the current task.
+- `.mana/global/` is the Service Context Layer: service mission, architecture,
+  engineering guards, glossary, integration map, and testing/database policy.
+  `engineering-guards.md` holds the "must not do" rules; violations block or
+  require explicit owner approval.
+- Feature work goes under `.mana/features/<FEATURE-ID>/`, with a canonical
+  `agent-memory/story-trace.md` per story
+  (`docs/standards/story-trace-standard.md`) and a
+  `decisions/developer-choice-log.md` for developer-confirmed choices
+  (`docs/standards/developer-choice-log-standard.md`).
+- Canonical branches (`main`, `develop`, `release/*`, …) use session
+  workspaces under `.mana/sessions/`.
 
-`.mana/global/` is the Service Context Layer. Agents and skills use it to keep
-decisions aligned with the service mission, architecture and engineering guards:
-
-```text
-.mana/global/
-  service-mission.md
-  architecture.md
-  engineering-guards.md
-  domain-glossary.md
-  integration-map.md
-  testing-policy.md
-  database-policy.md
-```
-
-`engineering-guards.md` is the place for "must not do" rules. Violations should block or require explicit owner approval.
-
-Feature branches use ticket or branch-derived workspaces:
-
-```text
-.mana/features/PROJ-24342/
-```
-
-Each story or feature workspace contains a canonical trace file:
-
-```text
-.mana/features/<FEATURE-ID>/agent-memory/story-trace.md
-```
-
-Agents use this file for concise reasoning summaries, assumptions, decisions,
-approval gates, and handoffs for that specific Jira story. It is not a private
-chain-of-thought log. See `docs/standards/story-trace-standard.md`.
-
-Developer-confirmed implementation choices are tracked separately:
-
-```text
-.mana/features/<FEATURE-ID>/decisions/developer-choice-log.md
-```
-
-Use it for developer questions, developer answers, confirmed implementation
-choices, rejected alternatives, owner acceptance, and follow-ups. See
-`docs/standards/developer-choice-log-standard.md`.
-
-Canonical branches such as `main`, `master`, `develop`, `dev`, `release/*`, and `hotfix/*` use session workspaces because the branch itself is not a single feature:
-
-```text
-.mana/sessions/2026-05-30T101500Z-main-repo-audit/
-```
-
-Routing rules:
-
-- If `--feature` is provided, use `.mana/features/<feature-id>/`.
-- Else if the branch contains a ticket pattern such as `PROJ-24342`, use `.mana/features/PROJ-24342/`.
-- Else if the branch is canonical, use `.mana/sessions/<timestamp>-<branch>-<purpose>/`.
-- Else slugify the branch name under `.mana/features/`.
-- Shared durable knowledge belongs under `.mana/global/`.
-
-See `docs/workflow/mana-workspace.md`.
-See also `docs/workflow/service-context-layer.md`.
+Workspace resolution and routing rules are defined in
+`docs/workflow/mana-workspace.md`; the Service Context Layer is described in
+`docs/workflow/service-context-layer.md`. Use `./mana evidence-index` after
+collecting Jira, Sonar, dependency, test, validation, or PR artifacts so
+agents read a compact index before deep-loading evidence.
 
 ## Lifecycle Flow
 ```mermaid
@@ -248,7 +201,11 @@ flowchart TD
 
 ## How To Install Or Use Skills
 Skills are plain directories under `skills/`. Each `SKILL.md` declares inputs,
-outputs, allowed tools, preferred runner, owner role, risk level, and examples.
+outputs, allowed tools, preferred runner, owner role, risk level, stack
+applicability, and examples. The `stack` front matter field names the
+technology or tooling the target project must use for the skill to apply
+(for example `java`, `liquibase`, `sonar`) or `any`; runners and the profile
+selector use it to discard non-applicable skills without deep-loading them.
 Import only the skills needed by a profile or agent. Skills should analyze,
 report, and suggest; they should not perform broad autonomous changes.
 
@@ -260,156 +217,27 @@ Agent outputs should be routed into the active `.mana/<workspace>/` directory.
 
 ## Output Standard
 All skills and agents follow `docs/standards/agent-skill-output-standard.md`.
-Generated artifacts should use consistent Markdown sections, decision tables,
-findings tables, evidence bullets, Mermaid diagrams by default, optional
-PlantUML when requested, open-question tables, action checklists, and explicit
-human approval sections.
-
-When instructions overlap, Mana applies a fixed priority: current human
-instruction, profile YAML, agent `AGENT.md`, agent `playbook.md`, loaded
-`SKILL.md`, then global service context. Safety, external-write, and human
-approval rules can only become stricter down that chain.
-
-Profile runs should follow the same operating loop: identify the human decision,
-resolve workspace and requirement/branch/PR context, inventory evidence,
-classify risk domains, load only the needed skills, then report status,
-findings, evidence, artifacts, and approvals.
-
-Mana uses progressive loading to keep agent context small. A runner should read
-the selected profile, selected agent, and selected playbook, then inspect
-candidate skills with a load-light pass before deep-loading them. For Mana
-skills, that means front matter plus the top operational sections: `Purpose`,
-`When To Use It`, `When Not To Use It`, `Inputs`, `Outputs`, `Execution Logic`,
-and `Decision Rules`. Deep-load full skill guidance, examples, or references
-only when the skill is primary for the decision, the filtered evidence touches
-that risk domain, or the lightweight pass is not enough.
-
-Internal working notes should use compact "caveman" mode: terse fragments,
-evidence-first notes, no long narrative, and no private chain-of-thought in
-final artifacts.
-
-Long-running profiles should also maintain a context budget: keep a short
-working summary with objective, base branch or PR, issue keys, workspace path,
-checked evidence, open hypotheses, discarded hypotheses, and next checks instead
-of accumulating raw transcripts, full diffs, repeated file dumps, complete Jira
-payloads, full PR threads, full skill files, or copied tool output. Use
+It defines the required artifact sections, the fixed instruction priority
+(human instruction → profile YAML → `AGENT.md` → `playbook.md` → `SKILL.md` →
+global service context, with safety and approval rules only getting stricter
+down the chain), the operating loop for profile runs, progressive skill
+loading, compact "caveman" working notes, and the context budget for
+long-running profiles. Use
 `templates/standard-agent-skill-report.template.md` when a more specific
 artifact template does not exist.
 
-## Example Workflows
-- **Get help choosing the next step:** run `scripts/run-profile.sh mana-help` or
-  ask for the `mana-help-agent`.
-- **Learn the framework interactively:** run `scripts/run-profile.sh tutorial`
-  to start a conversational walkthrough of profiles, agents, and skills tailored
-  to your role and current delivery phase.
-- **Review team code quality for coaching:** run
-  `scripts/run-profile.sh team-coaching-review` on a feature branch to identify
-  recurring quality patterns per contributor. The
-  `team-coaching-report-agent` produces a confidential report for the Team
-  Leader with a per-contributor growth analysis and a prioritised coaching
-  action plan.
-- **Start a story:** run the story-start profile to produce story context,
-  impact map, technical breakdown, risk register, and green-border plan.
-- **Read Jira context from a branch:** configure `JIRA_URL` plus
-  `JIRA_PERSONAL_TOKEN` for Jira Server/Data Center, or use
-  `.mana/jira-mcp.env`. Profiles discover generic issue keys such as
-  `PROJ-1234` from the branch, or accept `--jira-key <KEY>`.
-- **Read one Jira story quickly:** in a linked project, run
-  `./mana jira-mcp --get-issue PROJ-1234`. Use
-  `./mana jira-mcp --check-access --issue PROJ-1234` only for credential or
-  permission diagnostics.
-- **Cache epic and sibling stories as Markdown:** in a linked project, run
-  `./mana jira-mcp --fetch-epic-story-pack PROJ-1234`. Mana resolves the parent
-  epic when Jira exposes one and writes
-  `.mana/features/<EPIC-ID>/evidence/jira/epic-story-pack.md` for reuse by
-  planning agents.
-- **Review epic/story slicing:** use `profiles/team-planning.yaml` or
-  `profiles/story-ready-for-dev.yaml` with `epic-story-partitioning` to check
-  whether sibling stories overlap, miss epic goals, hide dependencies, or need
-  splitting before assignment.
-- **Configure local Sonar evidence:** keep only `SONAR_HOST_URL` and
-  `SONAR_TOKEN` in the environment, then run `./mana sonar --init-config` and
-  edit `.mana/global/sonar-project.properties`. Use `./mana sonar --check` to
-  validate scanner/runtime/config readiness.
-- **Run local Sonar before review:** after building the project, run
-  `./mana sonar --analyze`. Mana writes scanner logs and summary under
-  `.mana/<workspace>/evidence/sonar/` so review and validation agents can use
-  the evidence without rerunning the scanner.
-- **Estimate class change risk:** use `profiles/dev-assist.yaml` with
-  `sonar-change-risk` before modifying a fragile class. The skill combines
-  Sonar evidence, git churn, tests, story scope, and engineering guards to
-  recommend a safe change strategy.
-- **Use the story as evidence:** planning profiles use Jira story text and
-  acceptance criteria to check feasibility, testability, scope, owners, and
-  approvals. Review, validation, pre-mortem, and PR profiles compare branch/PR
-  changes against the story and flag missing requested behavior, unrequested
-  scope, contradicted acceptance criteria, and weak tests.
-- **Work without Jira MCP:** create
-  `.mana/features/<EPIC-ID>/context/epic-story-pack.md` from
-  `templates/epic-story-pack.template.md` and use it as the requirement source.
-- **Create workspace:** run `scripts/mana-workspace.sh init`; feature work goes
-  under `.mana/features/<feature-id>/`, canonical branch work goes under
-  `.mana/sessions/<timestamp>-<branch>-<purpose>/`.
-- **Generate a plan:** use the Story Implementation Planner Agent and route open
-  questions to BA/PO, Team Leader, Architect, or DBA.
-- **Prepare Team Leader planning:** run `profiles/team-planning.yaml` to produce
-  execution sequence, owner/dependency map, delivery risks, and review-load plan.
-- **Check story readiness for development:** run
-  `profiles/story-ready-for-dev.yaml` before assigning work to a developer.
-- **Run architecture review:** use `profiles/architecture-review.yaml` for ADR,
-  NFR, service-boundary, architecture-drift, trust-boundary, contract, and
-  database-risk evidence.
-- **Get development support before writing code:** use `profiles/dev-assist.yaml`
-  to ask what-if questions about planned changes (`change-impact-preview`),
-  identify concurrency risks, surface known pitfalls, characterize legacy code
-  before refactoring, and plan unit and integration tests.
-- **Implement a task in Junie:** open the approved technical task, restrict edits
-  to the approved source-impact map, and run local tests after each change.
-- **Run green border:** use the Green Border Test Agent to generate or run
-  focused unit, integration, contract, regression, and legacy tests.
-- **Generate pre-commit development notes:** use `profiles/pre-commit.yaml` and
-  `pre-commit-documentation-agent` to create
-  `pr/pre-commit-development-summary.md` and
-  `pr/knowledge-transfer-brief.md`.
-- **Run a production pre-mortem:** use `profiles/jessica-fletcher.yaml` or
-  `jessica-fletcher-agent` before commit/push to ask why the branch would fail
-  in production.
-- **Validate branch:** run the Branch Validation Agent to detect plan drift,
-  unplanned files, missing tests, unresolved risks, and unsafe DB changes.
-- **Triage requested reviews:** use `profiles/requested-pr-review.yaml` to read
-  open GitHub PRs where you are a requested reviewer, rank them by risk, and
-  produce draft review findings. The agent may use authenticated `gh` for
-  read-only evidence and must not post comments or reviews without approval.
-- **Review one PR quickly:** run
-  `scripts/run-profile.sh requested-pr-review --pr <number> --codex`. Add
-  `--publish-high-risk-comments` only when you want one PR comment with blocker
-  or high-criticality findings from that run.
-- **Prepare AM release readiness:** use `profiles/am-release-ready.yaml` for
-  release impact, continuity, incident-risk, rollback, support, and communication
-  evidence.
-- **Generate PR package:** run the PR Readiness Agent to create the PR
-  description, reviewer focus, test evidence, risk report, and development
-  summary.
-- **Create developer handoff:** use `skills/developer-handoff` through PR
-  Readiness to generate a developer-facing reading guide with diagrams, code
-  references, short snippets, tests to read first, and intentional non-changes.
-- **Challenge implementation choices:** use `skills/developer-decision-review`
-  to ask targeted questions about non-obvious decisions, plan drift, missing
-  rationale, protected-area changes, and risky trade-offs.
+## Workflow Cookbook
+Task-oriented recipes — which profile, skill, or command to use for a given
+situation (story intake, Jira evidence, Sonar, dev assist, branch validation,
+PR review, release readiness, coaching, freshness check) — live in
+`docs/workflow/cookbook.md`. A few common entry points:
 
-## Mana Freshness Check
-Every profile/mode change through `scripts/run-profile.sh` runs
-`scripts/mana-update-check.sh` before printing/executing the profile.
-
-The check never updates files. It warns when the Mana checkout is dirty, has no
-upstream, cannot reach the remote, or is behind/ahead of upstream. Configure it
-with:
-
-```bash
-MANA_UPDATE_CHECK=off scripts/run-profile.sh pre-commit
-MANA_UPDATE_CHECK=warn scripts/run-profile.sh jessica-fletcher
-MANA_UPDATE_CHECK=strict scripts/run-profile.sh branch-ready
-```
+- **Not sure what to run:** `scripts/run-profile.sh mana-help`, or
+  `scripts/run-profile.sh tutorial` for an interactive walkthrough.
+- **Start a story:** `./mana profile story-start --codex` (or `--claude`).
+- **Validate a branch before PR:** `./mana profile branch-ready --codex`.
+- **Review a PR you were asked to review:**
+  `scripts/run-profile.sh requested-pr-review --pr <number> --codex`.
 
 ## Governance And Human Approval
 AI supports, analyzes, documents, suggests, and validates. It does not replace

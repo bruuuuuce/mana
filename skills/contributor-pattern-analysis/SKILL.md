@@ -21,6 +21,8 @@ outputs:
   - contributor_pattern_report
 risk_level: low
 owner_role: Team Leader
+stack:
+  - any
 tags:
   - coaching
   - quality

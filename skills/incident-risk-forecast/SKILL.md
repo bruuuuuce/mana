@@ -27,6 +27,8 @@ outputs:
   - mitigation_actions
 risk_level: medium
 owner_role: Application Manager / Team Leader / SRE
+stack:
+  - any
 tags:
   - incident
   - operations

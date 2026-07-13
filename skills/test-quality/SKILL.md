@@ -25,6 +25,8 @@ outputs:
   - improvement_suggestions
 risk_level: low
 owner_role: QA / Team Leader
+stack:
+  - any
 tags:
   - testing
   - quality

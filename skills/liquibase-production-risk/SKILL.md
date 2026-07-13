@@ -27,6 +27,8 @@ outputs:
   - deployment_recommendations
 risk_level: high
 owner_role: DBA / Team Leader
+stack:
+  - liquibase
 tags:
   - database
   - liquibase

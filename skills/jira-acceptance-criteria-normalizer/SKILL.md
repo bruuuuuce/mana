@@ -23,6 +23,8 @@ outputs:
   - missing_test_evidence
 risk_level: low
 owner_role: BA / QA / Team Leader
+stack:
+  - any
 tags:
   - jira
   - acceptance-criteria

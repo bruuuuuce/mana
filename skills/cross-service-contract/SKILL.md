@@ -24,6 +24,9 @@ outputs:
   - required_contract_tests
 risk_level: medium
 owner_role: Team Leader / Architect
+stack:
+  - api
+  - messaging
 tags:
   - integration
   - contract

@@ -12,6 +12,9 @@
     },
     "incident_learning_report": {
       "type": "string"
+    },
+    "delivery_metrics_update": {
+      "type": "string"
     }
   }
 }

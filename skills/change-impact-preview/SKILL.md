@@ -24,6 +24,8 @@ outputs:
   - suggested_approach
 risk_level: low
 owner_role: Developer
+stack:
+  - any
 tags:
   - development
   - what-if

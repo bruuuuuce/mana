@@ -26,6 +26,8 @@ outputs:
   - test_run_plan
 risk_level: low
 owner_role: Developer / QA
+stack:
+  - any
 tags:
   - testing
   - regression

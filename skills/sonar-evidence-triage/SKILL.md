@@ -22,6 +22,8 @@ outputs:
   - ignored_sonar_noise
 risk_level: medium
 owner_role: Reviewer / Team Leader
+stack:
+  - sonar
 tags:
   - sonar
   - review

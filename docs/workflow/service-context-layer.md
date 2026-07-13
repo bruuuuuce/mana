@@ -56,9 +56,8 @@ Agents should load the Service Context Layer before executing skills:
 
 | Skill | Context Files |
 |---|---|
-| `story-depth` | `service-mission.md`, `domain-glossary.md` |
+| `story-quality` | `service-mission.md`, `domain-glossary.md` |
 | `epic-goal-extraction` | `service-mission.md`, `architecture.md` |
-| `story-consistency` | `domain-glossary.md`, `service-mission.md` |
 | `source-impact-map` | `architecture.md`, `integration-map.md`, `engineering-guards.md` |
 | `architecture-risk` | `architecture.md`, `engineering-guards.md`, `integration-map.md` |
 | `cross-service-contract` | `integration-map.md`, `engineering-guards.md` |

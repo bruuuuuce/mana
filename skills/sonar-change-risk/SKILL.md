@@ -26,6 +26,8 @@ outputs:
   - characterization_test_recommendations
 risk_level: medium
 owner_role: Developer / Team Leader
+stack:
+  - sonar
 tags:
   - sonar
   - change-risk
