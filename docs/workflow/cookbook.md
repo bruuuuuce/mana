@@ -20,12 +20,13 @@ README and `docs/examples/end-to-end-codex-flow.md` /
 ## Requirements And Planning
 
 - **Start a story:** run the `story-start` profile to produce story context,
-  impact map, technical breakdown, risk register, and green-border plan.
+  impact map, technical breakdown, effort estimate, risk register, and
+  green-border plan.
 - **Check story readiness for development:** run
   `profiles/story-ready-for-dev.yaml` before assigning work to a developer.
 - **Prepare Team Leader planning:** run `profiles/team-planning.yaml` to
-  produce execution sequence, owner/dependency map, delivery risks, and
-  review-load plan.
+  produce execution sequence, owner/dependency map, story effort estimate,
+  delivery risks, and review-load plan.
 - **Review epic/story slicing:** use `profiles/team-planning.yaml` or
   `profiles/story-ready-for-dev.yaml` with `epic-story-partitioning` to check
   whether sibling stories overlap, miss epic goals, hide dependencies, or need

@@ -30,6 +30,7 @@ skills:
 - liquibase-production-risk
 - jira-acceptance-criteria-normalizer
 - source-impact-map
+- story-effort-estimation
 - story-quality
 - technical-task-breakdown
 blocking_conditions:

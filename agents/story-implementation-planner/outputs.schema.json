@@ -24,6 +24,9 @@
     },
     "06_risk_register": {
       "type": "string"
+    },
+    "07_story_effort_estimate": {
+      "type": "string"
     }
   }
 }

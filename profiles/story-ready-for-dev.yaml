@@ -29,6 +29,7 @@ skills:
 - green-border-plan
 - jira-acceptance-criteria-normalizer
 - source-impact-map
+- story-effort-estimation
 - technical-task-breakdown
 blocking_conditions:
   - missing or untestable acceptance criteria

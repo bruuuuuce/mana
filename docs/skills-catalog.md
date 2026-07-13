@@ -1,6 +1,6 @@
 # Skills Catalog
 
-Reference guide for all 52 skills in the Mana framework, grouped by the
+Reference guide for all 53 skills in the Mana framework, grouped by the
 profile in which they are recommended. Skills may appear in multiple profiles.
 
 Skills are ordered by delivery lifecycle: story intake → planning →
@@ -23,6 +23,7 @@ at the end under [Standalone Skills](#standalone-skills).
 | [`jira-acceptance-criteria-normalizer`](../skills/jira-acceptance-criteria-normalizer/SKILL.md) | Convert Jira or story-pack acceptance criteria into a traceable behavior, implementation, and test checklist. | low | BA / QA / Team Leader |
 | [`source-impact-map`](../skills/source-impact-map/SKILL.md) | Identify files and components to probably modify, inspect before deciding, and avoid unless approved. | medium | Team Leader / Developer |
 | [`technical-task-breakdown`](../skills/technical-task-breakdown/SKILL.md) | Create actionable tasks for developers and Junie, each with scope, candidate files, dependencies, tests, risks, and definition of done. | medium | Team Leader / Developer |
+| [`story-effort-estimation`](../skills/story-effort-estimation/SKILL.md) | Estimate Agile story points and time ranges for stories and split technical tasks. | medium | Team Leader |
 | [`architecture-risk`](../skills/architecture-risk/SKILL.md) | Review transaction boundaries, sync/async flows, idempotency, retries, feature flags, bounded contexts, and forbidden zones. | medium | Architect / Team Leader |
 | [`cross-service-contract`](../skills/cross-service-contract/SKILL.md) | Check payloads, schemas, Kafka topics, error mapping, retry policy, timeout, idempotency, versioning, and ownership. | medium | Team Leader / Architect |
 | [`liquibase-production-risk`](../skills/liquibase-production-risk/SKILL.md) | Detect lock risks, missing rollback, unsafe index operations, large table updates, destructive DDL, drift concerns, and traffic-aware ordering issues. | high | DBA / Team Leader |
@@ -46,6 +47,7 @@ at the end under [Standalone Skills](#standalone-skills).
 | [`sonar-evidence-triage`](../skills/sonar-evidence-triage/SKILL.md) | Reuse existing Sonar evidence and separate changed/touched findings from unrelated noise. | medium | Reviewer / Team Leader |
 | [`dependency-security-evidence`](../skills/dependency-security-evidence/SKILL.md) | Collect and triage dependency manifest, lockfile, and scanner-report evidence for changed dependency surfaces. | medium | Developer / Security / Team Leader |
 | [`technical-task-breakdown`](../skills/technical-task-breakdown/SKILL.md) | Create actionable tasks for developers and Junie, each with scope, candidate files, dependencies, tests, risks, and definition of done. | medium | Team Leader / Developer |
+| [`story-effort-estimation`](../skills/story-effort-estimation/SKILL.md) | Estimate Agile story points and time ranges for stories and split technical tasks. | medium | Team Leader |
 | [`delivery-risk-radar`](../skills/delivery-risk-radar/SKILL.md) | Provide a concise risk radar before scope, schedule, or quality problems become late surprises. | medium | Team Leader / Application Manager |
 | [`green-border-plan`](../skills/green-border-plan/SKILL.md) | Plan unit, integration, contract, regression, and legacy characterization tests needed before and during implementation. | medium | Team Leader / QA |
 
@@ -63,6 +65,7 @@ at the end under [Standalone Skills](#standalone-skills).
 | [`review-load-balancing`](../skills/review-load-balancing/SKILL.md) | Help Team Leaders and reviewers spend review time on the riskiest areas first. | low | Team Leader |
 | [`source-impact-map`](../skills/source-impact-map/SKILL.md) | Identify files and components to probably modify, inspect before deciding, and avoid unless approved. | medium | Team Leader / Developer |
 | [`technical-task-breakdown`](../skills/technical-task-breakdown/SKILL.md) | Create actionable tasks for developers and Junie, each with scope, candidate files, dependencies, tests, risks, and definition of done. | medium | Team Leader / Developer |
+| [`story-effort-estimation`](../skills/story-effort-estimation/SKILL.md) | Estimate Agile story points and time ranges for stories and split technical tasks. | medium | Team Leader |
 | [`green-border-plan`](../skills/green-border-plan/SKILL.md) | Plan unit, integration, contract, regression, and legacy characterization tests needed before and during implementation. | medium | Team Leader / QA |
 | [`developer-handoff`](../skills/developer-handoff/SKILL.md) | Generate a practical handoff document explaining what was developed, why, how to read the change, and what future developers must know. | low | Developer / Team Leader |
 
@@ -383,6 +386,7 @@ a custom profile.
 | `sonar-change-risk` | dev-assist |
 | `sonar-evidence-triage` | branch-ready, pr-ready, requested-pr-review |
 | `source-impact-map` | story-start, story-ready-for-dev, team-planning, dev-assist, branch-ready, ci-validation |
+| `story-effort-estimation` | story-start, story-ready-for-dev, team-planning |
 | `team-execution-plan` | team-planning |
 | `technical-task-breakdown` | story-start, story-ready-for-dev, team-planning, branch-ready, ci-validation |
 | `test-gap` | dev-assist, pre-commit, pre-push |

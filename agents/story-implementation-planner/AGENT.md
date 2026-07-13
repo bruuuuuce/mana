@@ -13,6 +13,7 @@ skills_used:
   - architecture-risk
   - cross-service-contract
   - liquibase-production-risk
+  - story-effort-estimation
   - technical-task-breakdown
   - green-border-plan
 allowed_tools:
@@ -42,6 +43,7 @@ outputs:
   - 04-technical-task-breakdown.md
   - 05-green-border-plan.md
   - 06-risk-register.md
+  - 07-story-effort-estimate.md
 human_approval_required: true
 risk_level: medium
 ---
@@ -72,11 +74,13 @@ Orchestrates requirement, architecture, source-impact, task-breakdown, and test-
    files must be identified.
 7. Use `technical-task-breakdown` and `green-border-plan` after scope is clear
    enough to plan implementation tasks and tests.
-8. Use `architecture-risk`, `cross-service-contract`, and
+8. Use `story-effort-estimation` after `technical-task-breakdown` when the
+   story or split tasks need story points, time ranges, or split-size warnings.
+9. Use `architecture-risk`, `cross-service-contract`, and
    `liquibase-production-risk` only when the planned scope touches architecture
    boundaries, integrations/contracts, or database changes.
-9. Aggregate blocker, warning, and info findings into the expected artifacts.
-10. Stop at human approval gates when blockers or out-of-policy actions are detected.
+10. Aggregate blocker, warning, and info findings into the expected artifacts.
+11. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Jira Fallback
 When Jira MCP access is unavailable, incomplete, or intentionally disabled, load
@@ -94,6 +98,8 @@ must be reported as evidence gaps; do not infer them silently.
 - `architecture-risk`: contributes its atomic review to this workflow.
 - `cross-service-contract`: contributes its atomic review to this workflow.
 - `liquibase-production-risk`: contributes its atomic review to this workflow.
+- `story-effort-estimation`: contributes story point, time range, and task
+  estimate guidance when planning or split tasks require sizing.
 - `technical-task-breakdown`: contributes its atomic review to this workflow.
 - `green-border-plan`: contributes its atomic review to this workflow.
 
@@ -113,6 +119,7 @@ Default output routing:
 - `04-technical-task-breakdown.md` -> `planning/technical-task-breakdown.md`
 - `05-green-border-plan.md` -> `tests/green-border-plan.md`
 - `06-risk-register.md` -> `planning/risk-register.md`
+- `07-story-effort-estimate.md` -> `planning/story-effort-estimate.md`
 - partial reasoning and resumable notes -> `agent-memory/`
 - owner decisions and approvals -> `decisions/decision-log.md`
 
@@ -162,6 +169,7 @@ Junie is preferred for IDE-local implementation, local test generation, local te
 - 04-technical-task-breakdown.md
 - 05-green-border-plan.md
 - 06-risk-register.md
+- 07-story-effort-estimate.md
 
 ## Correct Usage Examples
 - Run the agent at its documented trigger point with complete planning or branch artifacts.
@@ -210,5 +218,6 @@ artifacts:
   - 04-technical-task-breakdown.md
   - 05-green-border-plan.md
   - 06-risk-register.md
+  - 07-story-effort-estimate.md
 human_approval_required: true
 ```

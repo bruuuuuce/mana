@@ -5,6 +5,7 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
 ## Preparation
 - Confirm the trigger point: `team_planning`, `story_ready_for_dev`, or `before_development`.
 - Collect epic, stories, planning artifacts, team constraints, source impact, technical breakdown, and test plan.
+- Collect any local estimation scale, historical examples, capacity constraints, or team-specific point conventions when available.
 - Confirm whether Jira MCP or Markdown story-pack fallback is the requirement source.
 
 ## Execution
@@ -21,6 +22,7 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
 
 ## Completion Criteria
 - Each story has a start/no-start status.
+- Story points, time range, confidence, and split recommendation are explicit when estimation was requested or needed for assignment.
 - Task sequence and parallelization are explicit.
 - Owners, blockers, dependencies, review focus, and test expectations are visible.
 - Developer handoff exists for work ready to start.

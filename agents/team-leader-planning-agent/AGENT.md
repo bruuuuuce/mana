@@ -12,6 +12,7 @@ skills_used:
   - delivery-risk-radar
   - review-load-balancing
   - source-impact-map
+  - story-effort-estimation
   - technical-task-breakdown
   - green-border-plan
   - developer-handoff
@@ -36,6 +37,7 @@ outputs:
   - team-leader-plan.md
   - story-readiness-report.md
   - execution-sequence.md
+  - story-effort-estimate.md
   - delivery-risk-radar.md
   - review-load-plan.md
 human_approval_required: true
@@ -62,14 +64,17 @@ Help Team Leaders convert requirements and technical analysis into a development
 4. Use `source-impact-map`, `technical-task-breakdown`, and
    `green-border-plan` only for stories whose scope, tasks, or test strategy
    need validation.
-5. Use `team-execution-plan` when sequencing, parallelization, ownership, or
+5. Use `story-effort-estimation` when a Team Leader needs story points, time
+   ranges, split recommendations, or task-level estimates after a story is
+   broken down.
+6. Use `team-execution-plan` when sequencing, parallelization, ownership, or
    dependency mapping is needed.
-6. Use `delivery-risk-radar` when escalation risks, missing decisions, plan
+7. Use `delivery-risk-radar` when escalation risks, missing decisions, plan
    drift, or bottlenecks are present.
-7. Use `review-load-balancing` when reviewer focus or specialist involvement
+8. Use `review-load-balancing` when reviewer focus or specialist involvement
    must be planned.
-8. Use `developer-handoff` only when work is ready to be assigned.
-9. Aggregate outputs into a Team Leader plan and explicit start/no-start decisions.
+9. Use `developer-handoff` only when work is ready to be assigned.
+10. Aggregate outputs into a Team Leader plan and explicit start/no-start decisions.
 
 ## Skills Used And Why
 - `developer-readiness-check`: decides whether development can start responsibly.
@@ -79,6 +84,8 @@ Help Team Leaders convert requirements and technical analysis into a development
 - `delivery-risk-radar`: identifies delivery risks and mitigations.
 - `review-load-balancing`: plans review load and specialist focus.
 - `source-impact-map`: verifies implementation scope.
+- `story-effort-estimation`: estimates story points, time ranges, and task-level
+  effort after story slicing.
 - `technical-task-breakdown`: ensures tasks are bounded and assignable.
 - `green-border-plan`: confirms test strategy before implementation.
 - `developer-handoff`: prepares implementation context for developers.
@@ -106,6 +113,7 @@ Write outputs to the active Mana workspace:
 - `team-leader-plan.md` -> `planning/team-leader-plan.md`
 - `story-readiness-report.md` -> `planning/story-readiness-report.md`
 - `execution-sequence.md` -> `planning/execution-sequence.md`
+- `story-effort-estimate.md` -> `planning/story-effort-estimate.md`
 - `delivery-risk-radar.md` -> `planning/delivery-risk-radar.md`
 - `review-load-plan.md` -> `planning/review-load-plan.md`
 - developer choice log updates -> `decisions/developer-choice-log.md`
@@ -142,5 +150,6 @@ artifacts:
   - team-leader-plan.md
   - story-readiness-report.md
   - execution-sequence.md
+  - story-effort-estimate.md
 human_approval_required: true
 ```
