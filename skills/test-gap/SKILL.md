@@ -1,0 +1,153 @@
+---
+name: test-gap
+version: 1.0.0
+description: Detects missing unit and integration tests for changed branches, edge cases, and DB, service, messaging, and external client interactions.
+compatibility:
+  - codex
+  - junie
+  - claude
+preferred_runner: junie
+allowed_tools:
+  - read_files
+  - code_search
+  - git_read
+  - jira_read
+  - confluence_read
+  - architecture_rules_read
+  - test_runner_read
+  - test_runner_execute_local
+inputs:
+  - code_diff
+  - green_border_plan
+  - existing_tests
+  - test_levels
+outputs:
+  - test_gap_report
+risk_level: medium
+owner_role: Developer / QA
+stack:
+  - any
+tags:
+  - testing
+  - unit
+  - integration
+  - gap
+---
+
+# Test Gap
+
+## Purpose
+Detect missing test coverage for a change at two levels:
+
+- **Unit:** verify changed branches, validators, mappers, error paths, and null
+  handling have meaningful unit tests.
+- **Integration:** ensure persistence, transaction boundaries, messaging, HTTP
+  clients, and external failures are validated beyond unit tests.
+
+This skill exists to reduce delivery churn by making a narrow, reusable judgement explicit. It produces structured artifacts and recommendations; it does not perform broad autonomous actions.
+
+## When To Use It
+- During the lifecycle phase indicated by the tags and preferred runner.
+- When the required inputs are available and the team needs a repeatable review.
+- Before a human approval gate where missing evidence would slow the team down.
+- When a related agent invokes it as one step in a larger workflow.
+- Use `test_levels` to restrict the analysis: `unit` for fast local loops such
+  as pre-commit, `integration` when the diff touches persistence, messaging, or
+  external clients, both when unrestricted.
+
+## When Not To Use It
+- Do not use it as a replacement for the accountable human owner.
+- Do not use it for unrelated files, binary artifacts, or systems outside the approved MCP policy.
+- Do not use it after the decision point if the finding can no longer influence the design without rework.
+- Do not use it to justify unsafe shortcuts against project rules.
+
+## Inputs
+- code_diff
+- green_border_plan
+- existing_tests
+- test_levels
+
+## Outputs
+- test_gap_report
+
+## Execution Logic
+1. Resolve requested `test_levels`; default to both when the caller does not
+   restrict scope.
+2. **Unit:** map changed methods to existing test methods; identify new
+   branches without assertions; check negative paths and boundary values;
+   suggest test names and scenarios.
+3. **Integration:** find changed integration seams; check matching IT,
+   contract, or component tests; flag missing DB rollback or messaging
+   scenarios; suggest fixtures or stubs.
+4. Report gaps by level and severity in a single `test_gap_report`.
+
+## Decision Rules
+- `blocker`: unresolved high-risk issue, missing critical input, unsafe database/security/architecture condition, or untestable requirement that prevents responsible delivery.
+- `warning`: incomplete evidence, medium-risk design concern, missing non-critical test, or ambiguity that can be accepted by the owner.
+- `info`: observation useful for reviewers, implementation, or future learning.
+- A level skipped because of `test_levels` must be listed as out of scope, not silently omitted.
+
+## Failure Modes
+- Missing or stale input artifacts can produce false negatives.
+- Repository search can miss dynamically configured flows or generated code.
+- MCP access restrictions can prevent full validation; report the access gap explicitly.
+- AI output can be incomplete; human review remains mandatory.
+
+## Required Human Review
+The owner role `Developer / QA` reviews blocker and warning findings. High-risk security, database, concurrency, or architecture findings require explicit approval before implementation or merge.
+
+## Service Context Layer
+Read `testing-policy.md` to identify required unit-level protection for changed branches, and `integration-map.md` to identify missing integration coverage.
+
+Missing context files should be reported as warnings. A violation of `.mana/global/engineering-guards.md` must be treated as a blocker or routed to the accountable owner for explicit approval.
+
+## Interaction With Codex
+Codex should run this skill for repository-level analysis, planning, validation, documentation, and report generation. Codex should prefer proposed patches and written findings over destructive edits.
+
+## Interaction With Junie
+Junie may use the output inside the IDE to implement one approved task at a time, generate local tests, or apply local fixes. Junie must not change files outside the approved impact map without asking.
+
+## Interaction With MCP
+MCP access must be least-privilege. Read-only access is preferred. Writes, destructive operations, external comments, database execution, or ticket updates require human approval and audit logging.
+
+## Correct Usage Examples
+- Run during the intended lifecycle phase with the full story, context, and linked artifacts available.
+- Use the output as evidence for refinement, planning, review, or local implementation decisions.
+- Escalate blocker findings to the named human owner before continuing.
+- Store the generated report with the story or branch artifacts so later agents can reuse it.
+
+## Incorrect Usage Examples
+- Do not use this skill as an autonomous code-changing tool.
+- Do not run it with only a title or vague one-line request and treat the result as complete.
+- Do not ignore high-severity findings because the output is advisory.
+- Do not use it to bypass team, architecture, DBA, security, or reviewer approval.
+
+## Output Standard
+Follow `docs/standards/agent-skill-output-standard.md` (Agent And Skill Output Standard) for all generated artifacts. Use `templates/standard-agent-skill-report.template.md` when no more specific template exists.
+
+Internal reasoning must use compact caveman mode: terse fragments, evidence-first notes, no long narrative, and no private chain-of-thought in final artifacts. Maintain a context budget: keep a short working summary with objective, base branch or PR, issue keys, workspace path, checked evidence, open hypotheses, discarded hypotheses, and next checks instead of accumulating raw transcripts, full diffs, repeated file dumps, or copied tool output.
+
+## Diagram
+```mermaid
+flowchart TD
+    Inputs[Required inputs] --> Skill[test-gap]
+    Skill --> Findings[Findings by severity]
+    Skill --> Artifacts[Structured outputs]
+    Findings --> HumanGate[Human review gate]
+    Artifacts --> NextAgent[Downstream agent or workflow]
+```
+
+## Example Output
+```yaml
+skill: test-gap
+status: warning
+summary: "Analysis completed with one blocker candidate and two warnings."
+findings:
+  - severity: warning
+    area: "example"
+    message: "A required detail or verification point is incomplete."
+    recommended_action: "Clarify with the owner and update the related artifact."
+outputs:
+  - test_gap_report
+human_review_required: true
+```

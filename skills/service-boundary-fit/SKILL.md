@@ -25,6 +25,8 @@ outputs:
   - boundary_risk_items
 risk_level: medium
 owner_role: Architect / Team Leader
+stack:
+  - any
 tags:
   - architecture
   - service-boundary

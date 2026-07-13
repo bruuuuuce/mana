@@ -293,6 +293,49 @@ redact_log_file() {
   mv "$tmp" "$file"
 }
 
+sonar_failure_reason() {
+  log="$1"
+  [ -f "$log" ] || return 0
+
+  if grep -q "please provide compiled classes with sonar.java.binaries property" "$log" 2>/dev/null; then
+    cat <<'REASON'
+Sonar Java analysis failed because the project contains .java files but compiled classes were not provided.
+Fix: build the project first and set sonar.java.binaries in .mana/global/sonar-project.properties, for example:
+  sonar.java.binaries=build/classes/java/main
+If Java analysis is not wanted, exclude Java sources explicitly:
+  sonar.exclusions=**/*.java,**/.git/**,**/.gradle/**,**/build/generated/**,**/build/resources/**,**/node_modules/**,**/.mana/**
+REASON
+    return 0
+  fi
+
+  if grep -q "UnsupportedClassVersionError" "$log" 2>/dev/null; then
+    cat <<'REASON'
+sonar-scanner failed because the active Java runtime is too old for this scanner or plugin.
+Fix: select a supported JDK, usually Java 17 or 21, then rerun ./mana sonar --check.
+REASON
+    return 0
+  fi
+
+  awk '
+    /EXECUTION FAILURE/ { print; found=1; next }
+    /(^|[[:space:]])ERROR([[:space:]]|:)/ { print; found=1; next }
+    /Exception:/ { print; found=1; next }
+    found && printed < 6 {
+      if ($0 !~ /^[[:space:]]+at / && $0 !~ /^[[:space:]]*$/) {
+        print
+        printed++
+      }
+    }
+  ' "$log" | sed -n '1,12p'
+}
+
+print_failure_summary() {
+  log="$1"
+  echo "ERROR: sonar-scanner failed. Key failure reason:" >&2
+  sonar_failure_reason "$log" >&2
+  echo "Full redacted log: $log" >&2
+}
+
 write_summary() {
   summary="$1"
   log="$2"
@@ -317,6 +360,15 @@ write_summary() {
       echo "- Scanner reported execution failure."
     else
       echo "- Scanner did not emit a recognized success/failure marker."
+    fi
+    if [ "$status" != "success" ]; then
+      reason="$(sonar_failure_reason "$log")"
+      if [ -n "$reason" ]; then
+        echo
+        echo "## Failure Reason"
+        echo
+        printf '%s\n' "$reason" | sed 's/^/- /'
+      fi
     fi
     echo
     echo "## Review Guidance"
@@ -377,6 +429,9 @@ case "$mode" in
     redact_log_file "$log"
     write_summary "$summary" "$log" "$status"
     echo "Sonar summary written: $summary"
+    if [ "$status" != "success" ]; then
+      print_failure_summary "$log"
+    fi
     [ "$status" = "success" ]
     ;;
   *)

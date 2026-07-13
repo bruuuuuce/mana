@@ -33,8 +33,7 @@ skills:
   - change-impact-preview
   - sonar-change-risk
   - java-performance-smell
-  - unit-test-gap
-  - integration-test-gap
+  - test-gap
 blocking_conditions:
   - engineering guard violation without explicit owner approval
   - blocker-severity concurrency risk in planned change

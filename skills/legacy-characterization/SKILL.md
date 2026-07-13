@@ -23,6 +23,8 @@ outputs:
   - candidate_tests
 risk_level: medium
 owner_role: Developer
+stack:
+  - any
 tags:
   - testing
   - legacy

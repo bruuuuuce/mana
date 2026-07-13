@@ -14,6 +14,10 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
 - Load and run only the learning skills whose conditions in `AGENT.md` match the
   incidents, review comments, bug tickets, rules, pitfalls, or test history.
 - Stop immediately on missing inputs or blocker findings.
+- Aggregate `metrics-events.md` rows from involved feature workspaces into a
+  proposed `delivery-metrics-update.md` per
+  `docs/standards/delivery-metrics-standard.md`. Missing metrics events are a
+  warning, not a blocker.
 - Aggregate findings into the expected outputs.
 - Write outputs to the workspace folders defined by `AGENT.md`.
 - Route approval requests to the accountable owner.

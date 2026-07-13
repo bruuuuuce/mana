@@ -25,6 +25,8 @@ outputs:
   - dependency_and_owner_map
 risk_level: medium
 owner_role: Team Leader
+stack:
+  - any
 tags:
   - planning
   - team-lead

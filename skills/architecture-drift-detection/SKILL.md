@@ -23,6 +23,8 @@ outputs:
   - approval_requests
 risk_level: high
 owner_role: Architect / Team Leader
+stack:
+  - any
 tags:
   - architecture
   - drift

@@ -16,3 +16,9 @@ sonar.exclusions=**/.git/**,**/.gradle/**,**/build/generated/**,**/build/resourc
 # Java projects should set this after the build creates classes.
 # Example:
 # sonar.java.binaries=build/classes/java/main
+#
+# If you intentionally do not want Java source analysis, exclude Java files
+# instead of setting sonar.java.binaries. This makes Sonar skip Java code, so
+# use it only for non-Java evidence or configuration/dependency checks.
+# Example:
+# sonar.exclusions=**/*.java,**/.git/**,**/.gradle/**,**/build/generated/**,**/build/resources/**,**/node_modules/**,**/.mana/**

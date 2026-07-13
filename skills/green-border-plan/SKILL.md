@@ -28,6 +28,8 @@ outputs:
   - test_skeleton_suggestions
 risk_level: medium
 owner_role: Team Leader / QA
+stack:
+  - any
 tags:
   - testing
   - green-border

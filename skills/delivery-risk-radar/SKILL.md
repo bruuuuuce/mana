@@ -25,6 +25,8 @@ outputs:
   - mitigation_plan
 risk_level: medium
 owner_role: Team Leader / Application Manager
+stack:
+  - any
 tags:
   - delivery-risk
   - planning

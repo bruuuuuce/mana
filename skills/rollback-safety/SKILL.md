@@ -25,6 +25,8 @@ outputs:
   - rollback_test_plan
 risk_level: high
 owner_role: DBA / Developer
+stack:
+  - any
 tags:
   - database
   - rollback

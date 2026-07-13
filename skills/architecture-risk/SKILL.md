@@ -26,6 +26,8 @@ outputs:
   - recommended_actions
 risk_level: medium
 owner_role: Architect / Team Leader
+stack:
+  - any
 tags:
   - architecture
   - risk

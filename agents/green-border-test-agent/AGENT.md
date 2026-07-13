@@ -8,8 +8,7 @@ compatible_runners:
 skills_used:
   - green-border-plan
   - sonar-change-risk
-  - unit-test-gap
-  - integration-test-gap
+  - test-gap
   - legacy-characterization
   - regression-selection
   - test-quality
@@ -55,26 +54,25 @@ Generates, selects, runs, and evaluates green-border tests during local developm
 2. Load `sonar-change-risk` only when the user asks how risky it is to modify a
    specific class/file or when Sonar evidence indicates the target file is
    fragile. Use it before suggesting test strategy for risky files.
-3. Load `unit-test-gap` only for changed code paths that should have focused
-   unit coverage.
-4. Load `integration-test-gap` only for persistence, external dependency,
-   messaging, API, configuration, or cross-component behavior.
-5. Load `legacy-characterization` only when changed behavior touches legacy or
+3. Load `test-gap` for changed code paths that should have focused unit
+   coverage; include its integration level only when the diff touches
+   persistence, external dependency, messaging, API, configuration, or
+   cross-component behavior.
+4. Load `legacy-characterization` only when changed behavior touches legacy or
    poorly specified paths.
-6. Load `regression-selection` only when a regression set must be chosen or
+5. Load `regression-selection` only when a regression set must be chosen or
    justified.
-7. Load `test-quality` only when test evidence exists and must be evaluated.
-8. Load `flaky-failure-classification` only when test logs include flaky,
+6. Load `test-quality` only when test evidence exists and must be evaluated.
+7. Load `flaky-failure-classification` only when test logs include flaky,
    intermittent, timeout, ordering, or environment-sensitive failures.
-9. Aggregate blocker, warning, and info findings into the expected artifacts.
-10. Stop at human approval gates when blockers or out-of-policy actions are detected.
+8. Aggregate blocker, warning, and info findings into the expected artifacts.
+9. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Skills Used And Why
 - `green-border-plan`: contributes its atomic review to this workflow.
 - `sonar-change-risk`: estimates target-file change risk from Sonar evidence,
   git churn, test evidence, story scope, and engineering guards.
-- `unit-test-gap`: contributes its atomic review to this workflow.
-- `integration-test-gap`: contributes its atomic review to this workflow.
+- `test-gap`: contributes its atomic review to this workflow at unit and integration level.
 - `legacy-characterization`: contributes its atomic review to this workflow.
 - `regression-selection`: contributes its atomic review to this workflow.
 - `test-quality`: contributes its atomic review to this workflow.

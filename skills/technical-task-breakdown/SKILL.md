@@ -24,6 +24,8 @@ outputs:
   - implementation_plan
 risk_level: medium
 owner_role: Team Leader / Developer
+stack:
+  - any
 tags:
   - planning
   - technical-slicing

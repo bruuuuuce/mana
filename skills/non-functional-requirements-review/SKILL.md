@@ -27,6 +27,8 @@ outputs:
   - required_evidence
 risk_level: medium
 owner_role: Architect / Team Leader / Security
+stack:
+  - any
 tags:
   - architecture
   - nfr

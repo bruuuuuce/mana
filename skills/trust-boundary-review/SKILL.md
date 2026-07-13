@@ -25,6 +25,8 @@ outputs:
   - mitigation_actions
 risk_level: high
 owner_role: Security / Architect
+stack:
+  - security
 tags:
   - security
   - trust-boundary

@@ -9,7 +9,7 @@ skills_used:
   - liquibase-syntax
   - null-safety-risk
   - green-border-plan
-  - unit-test-gap
+  - test-gap
   - pre-review-defect
   - liquibase-production-risk
 allowed_tools:
@@ -46,7 +46,7 @@ The hook must be deterministic, local-first, and fast. It should block only clea
 ## Workflow
 1. Detect mode from the Git hook entrypoint: `pre_commit` or `pre_push`.
 2. In `pre_commit`, run only fast local checks when a local runner is configured: `liquibase-syntax`, `null-safety-risk` light, secret scan, and formatting/lint.
-3. In `pre_push`, run deeper-but-still-local checks when a local runner is configured: greenFast, `liquibase-production-risk` medium, `unit-test-gap`, and `pre-review-defect` light.
+3. In `pre_push`, run deeper-but-still-local checks when a local runner is configured: greenFast, `liquibase-production-risk` medium, `test-gap` restricted to unit level, and `pre-review-defect` light.
 4. Aggregate blocker, warning, and info findings into the console report and optional `hook-report.md`.
 5. Block only on deterministic local failures such as invalid Liquibase syntax, detected secrets, failed fast tests, or clear nullability blockers.
 6. Print warnings for checks that require Codex, MCP, CI, DBA, architect, or reviewer follow-up.
@@ -55,7 +55,7 @@ The hook must be deterministic, local-first, and fast. It should block only clea
 - `liquibase-syntax`: catches malformed changelog files before they enter the branch history.
 - `null-safety-risk`: performs a lightweight local scan for obvious unsafe dereferences in staged or outgoing changes.
 - `green-border-plan`: provides the expected local test boundary for pre-push validation.
-- `unit-test-gap`: flags changed branches that still lack focused unit tests.
+- `test-gap`: flags changed branches that still lack focused unit tests; hooks restrict it to the unit level.
 - `pre-review-defect`: catches common review churn issues before the PR is opened.
 - `liquibase-production-risk`: runs in medium mode during pre-push when database changes are present; high-risk findings are escalated to the Liquibase Agent.
 

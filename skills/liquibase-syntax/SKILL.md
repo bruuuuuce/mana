@@ -22,6 +22,8 @@ outputs:
   - liquibase_syntax_report
 risk_level: low
 owner_role: Developer
+stack:
+  - liquibase
 tags:
   - database
   - liquibase

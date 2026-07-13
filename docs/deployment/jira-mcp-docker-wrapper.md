@@ -121,6 +121,10 @@ contains a fetch manifest, epic section, story sections, linked issues, subtasks
 recent comments, and evidence gaps. Jira remains the source of truth; the pack
 is a reusable local evidence cache.
 
+For Jira Cloud, Mana uses the enhanced read-only JQL search endpoint
+`/rest/api/3/search/jql` for story-pack sibling discovery. Jira Server/Data
+Center and older compatible installations use the legacy search endpoint.
+
 The command prints a read-only JSON payload with summary, description,
 rendered fields, comments, links, parent/subtasks, and release metadata. It does
 not print credentials.
