@@ -4,7 +4,7 @@
 # Safe to replace with --force or during a Mana profile run.
 description: "Mana high-risk specialist for bounded architecture, database, security, contract, concurrency, and production judgments."
 mode: subagent
-model: opencode/gpt-5.1-codex
+model: github-copilot/claude-sonnet-5
 temperature: 0.1
 permission:
   read: allow

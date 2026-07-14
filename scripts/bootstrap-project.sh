@@ -25,6 +25,7 @@ Created in the target project:
   .mana/README.md             Local usage notes.
   .mana/links/*               Symlinks to framework skills, agents, profiles, docs, templates, mcp.
   .codex/agents/mana-*.toml    Mana-managed Codex runtime subagents.
+  .claude/agents/mana-*.md     Mana-managed Claude Code runtime agents.
   .opencode/agents/mana_*.md   Mana-managed OpenCode runtime agents.
   .mana/jira-mcp.env          Local Jira MCP env template, ignored by Git.
   mana                        Local command wrapper for common Mana commands.
@@ -191,6 +192,23 @@ CONFIG
   fi
 }
 
+install_claude_agents() {
+  source_agents_dir="$framework_root/.claude/agents"
+  target_agents_dir="$project_root/.claude/agents"
+  [ -d "$source_agents_dir" ] || return 0
+  mkdir -p "$target_agents_dir"
+
+  mode="copy"
+  if [ "$create_links" = true ]; then
+    mode="link"
+  fi
+
+  for agent_file in mana-orchestrator.md mana-explorer.md mana-full-specialist.md mana-worker.md; do
+    [ -f "$source_agents_dir/$agent_file" ] || continue
+    install_managed_file_or_link "$source_agents_dir/$agent_file" "$target_agents_dir/$agent_file" "$mode"
+  done
+}
+
 install_opencode_agents() {
   source_agents_dir="$framework_root/.opencode/agents"
   target_agents_dir="$project_root/.opencode/agents"
@@ -314,6 +332,7 @@ if [ "$create_links" = true ]; then
 fi
 
 install_codex_agents
+install_claude_agents
 install_opencode_agents
 
 if [ "$create_jira_env" = true ]; then
@@ -470,6 +489,23 @@ export JIRA_PERSONAL_TOKEN=...
   PR threads, full skill files, or copied tool output.
   Convert working notes into the structured sections required by
   \`docs/standards/agent-skill-output-standard.md\`.
+
+## Claude Runtime Delegation
+
+Claude Code uses project-scoped Mana agents in \`.claude/agents/\`:
+- \`mana-orchestrator\` is the economy root for routing, evidence inventory,
+  low-risk checks, delegation, aggregation, and synthesis.
+- \`mana-explorer\` is a read-only evidence subagent.
+- \`mana-full-specialist\` is a read-only high-risk/full-tier subagent.
+- \`mana-worker\` is a serialized writer only when the selected profile
+  explicitly permits source modification.
+
+These are runtime capability classes, not Mana semantic agents. Batch related
+skills by risk domain; do not create one Claude Code subagent per Mana skill.
+The root may request at most three direct subagents, one per capability class;
+child agents cannot delegate. Parallelism is only for independent read-heavy
+work. If delegation is unavailable or insufficient for high-risk work, preserve
+a concise handoff artifact and return \`needs_model_escalation\`.
 "
 
 write_file "$project_root/CLAUDE.md" "$claude_md_content"
@@ -485,6 +521,7 @@ See \`.mana/links/.codex/instructions.md\` for full runner governance.
 ./mana profile <name>                # render profile
 ./mana profile <name> --codex        # run via Codex
 ./mana profile <name> --claude       # run via Claude Code
+./mana profile <name> --opencode     # run via OpenCode
 \`\`\`
 
 Key profiles:
@@ -510,6 +547,11 @@ When asked to run a profile, Codex:
 6. Writes outputs to the active \`.mana/\` workspace
 
 Run: \`./mana profile jessica-fletcher --codex\` — Codex follows the full chain.
+
+Claude Code follows the same bounded delegation chain through
+\`.claude/agents/mana-orchestrator.md\` and the Mana-managed
+\`mana-explorer\`, \`mana-full-specialist\`, and \`mana-worker\` subagents.
+Run: \`./mana profile jessica-fletcher --claude\`.
 
 OpenCode follows the same Mana chain through \`.opencode/agents/mana_orchestrator.md\`
 and the Mana-managed \`mana_explorer\`, \`mana_full_specialist\`, and
@@ -577,6 +619,13 @@ export JIRA_PERSONAL_TOKEN=...
   insufficient evidence for a high-risk judgment, preserve a concise handoff
   artifact and return \`needs_model_escalation\` instead of performing that
   judgment on the small root model.
+- Claude Code uses the same bounded delegation model: \`mana-orchestrator\` is
+  the primary agent, and \`mana-explorer\`, \`mana-full-specialist\`, and
+  \`mana-worker\` are runtime subagents. Do not create one Claude Code
+  subagent per Mana skill; use at most three direct subagents and no recursive
+  delegation. If they are unavailable or insufficient for high-risk work,
+  return \`needs_model_escalation\` rather than letting the economy root make
+  the judgment.
 - OpenCode uses the same bounded delegation model: \`mana_orchestrator\` is the
   primary agent, and \`mana_explorer\`, \`mana_full_specialist\`, and
   \`mana_worker\` are runtime subagents. Do not create one OpenCode subagent per
@@ -632,6 +681,7 @@ Created:
   $project_root/.mana/README.md
   $project_root/.mana/links/
   $project_root/.codex/agents/
+  $project_root/.claude/agents/
   $project_root/.opencode/agents/
   $project_root/.mana/
 

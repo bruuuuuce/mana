@@ -145,12 +145,23 @@ artifacts intentionally.
   `scripts/run-profile.sh` still enforces `agents.max_threads=3`,
   `agents.max_depth=1`, and `agents.interrupt_message=false` through Codex CLI
   runtime overrides.
+- `.claude/agents/mana-*.md` are Mana-managed project subagents. Bootstrap
+  creates the directory when needed, preserves unrelated Claude Code agents,
+  warns and skips same-name non-managed collisions, and with `--force`
+  replaces only Mana-managed files or symlinks. It never writes to
+  `~/.claude`. `mana-orchestrator` runs the economy root and can invoke the
+  read-only `mana-explorer` / `mana-full-specialist` or serialized
+  `mana-worker`; child definitions have no `Agent` tool, preventing recursive
+  delegation.
 - Use `MANA_CODEX_SUBAGENTS=false ./mana profile story-start --codex` or
   `./mana profile story-start --codex --no-codex-subagents` to use the legacy
   manual escalation fallback.
 - Use `MANA_OPENCODE_SUBAGENTS=false ./mana profile story-start --opencode` or
   `./mana profile story-start --opencode --no-opencode-subagents` to disable
   OpenCode subagent delegation.
+- Use `MANA_CLAUDE_SUBAGENTS=false ./mana profile story-start --claude` or
+  `./mana profile story-start --claude --no-claude-subagents` to disable
+  Claude Code subagent delegation and retain the manual escalation fallback.
 - Real Jira credentials should stay in `.mana/jira-mcp.env`, another ignored
   env file, or shell environment variables. They must not be committed.
 - Re-run with `--force` to refresh generated wrapper files and managed symlinks.

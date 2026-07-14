@@ -1,5 +1,17 @@
 # Claude Code Instructions
 
+## Runtime Delegation
+
+When Mana installs `.claude/agents/`, start profiles through the
+`mana-orchestrator` project agent. It is the economy root for routing, light
+evidence inventory, low-risk checks, delegation, aggregation, and synthesis.
+Use at most three direct capability-class subagents: `mana-explorer` for
+read-heavy evidence, `mana-full-specialist` for high-risk/full-tier judgment,
+and `mana-worker` only for a profile that explicitly permits serialized writes.
+Do not create one subagent per Mana skill. Child agents have no `Agent` tool and
+must not delegate further. If high-risk work cannot be safely delegated, retain
+`needs_model_escalation` with a concise handoff artifact.
+
 ## Governance Rules
 
 - Read planning artifacts before analysis.

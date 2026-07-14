@@ -67,6 +67,17 @@ fall back to the root OpenCode model unless overridden. Use `--opencode-model`,
 or disable subagents with `MANA_OPENCODE_SUBAGENTS=false` /
 `--no-opencode-subagents`.
 
+Claude Code now uses the same project-scoped runtime shape under
+`.claude/agents/`: `mana-orchestrator` is the `haiku` economy root by default,
+`mana-explorer` and `mana-worker` default to `sonnet`, and
+`mana-full-specialist` defaults to `opus`. Use `MANA_CLAUDE_MODEL`,
+`MANA_CLAUDE_EXPLORER_MODEL`, `MANA_CLAUDE_FULL_MODEL`,
+`MANA_CLAUDE_WORKER_MODEL`, or `--claude-model`, `--claude-explorer-model`,
+`--claude-full-model`, and `--claude-worker-model` for a single run. Disable
+delegation with `MANA_CLAUDE_SUBAGENTS=false` or `--no-claude-subagents`.
+Bootstrap installs these files only in the target repository; it never changes
+`~/.claude` or the local user installation.
+
 To use Mana inside a target application repository:
 
 ```bash
@@ -83,10 +94,10 @@ cd /path/to/project
 
 The bootstrap creates a project-local `./mana` wrapper, `.mana/` evidence
 workspace, links to framework definitions, `AGENTS.md` / `CLAUDE.md` runner
-instructions, and Mana-managed `.codex/agents/mana-*.toml` custom agents for
-Codex delegation plus `.opencode/agents/mana_*.md` agents for OpenCode
-delegation. Project artifacts stay under the target repository's `.mana/`
-workspace.
+instructions, Mana-managed `.codex/agents/mana-*.toml` agents for Codex,
+`.claude/agents/mana-*.md` agents for Claude Code, and
+`.opencode/agents/mana_*.md` agents for OpenCode delegation. Project artifacts
+stay under the target repository's `.mana/` workspace.
 
 ## What Mana Is
 - An evidence-driven delivery framework.
@@ -124,6 +135,10 @@ workspace.
 - **OpenCode runtime agents** mirror the same capability classes:
   `mana_orchestrator`, `mana_explorer`, `mana_full_specialist`, and
   `mana_worker`. They also must not be mapped one-to-one to Mana skills.
+- **Claude Code runtime agents** mirror the same capability classes with
+  hyphenated names: `mana-orchestrator`, `mana-explorer`,
+  `mana-full-specialist`, and `mana-worker`. Claude Code subagents cannot
+  recursively delegate because their local definitions do not grant `Agent`.
 
 Codex is used for repository-level planning, validation, documentation, branch
 analysis, PR readiness, and learning. Junie is used inside the IDE for local

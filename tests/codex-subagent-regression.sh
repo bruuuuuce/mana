@@ -58,6 +58,23 @@ STUB
   chmod +x "$bin_dir/opencode"
 }
 
+make_fake_claude() {
+  bin_dir="$1"
+  mkdir -p "$bin_dir"
+  cat > "$bin_dir/claude" <<'STUB'
+#!/usr/bin/env bash
+if [ "${1:-}" = "--version" ]; then
+  echo "claude fake"
+  exit 0
+fi
+printf '%s\n' "$@" > "$MANA_TEST_CLAUDE_ARGS"
+last=""
+for arg in "$@"; do last="$arg"; done
+printf '%s\n' "$last" > "$MANA_TEST_CLAUDE_PROMPT"
+STUB
+  chmod +x "$bin_dir/claude"
+}
+
 run_profile_with_stub() {
   project="$1"
   shift
@@ -78,8 +95,19 @@ run_opencode_profile_with_stub() {
     "$root/scripts/run-profile.sh" story-start --project-root "$project" --opencode "$@" > "$tmp/opencode-run.out" 2> "$tmp/opencode-run.err"
 }
 
+run_claude_profile_with_stub() {
+  project="$1"
+  shift
+  mkdir -p "$project"
+  MANA_TEST_CLAUDE_ARGS="$tmp/claude.args" \
+    MANA_TEST_CLAUDE_PROMPT="$tmp/claude.prompt" \
+    PATH="$tmp/bin:$PATH" \
+    "$root/scripts/run-profile.sh" story-start --project-root "$project" --claude "$@" > "$tmp/claude-run.out" 2> "$tmp/claude-run.err"
+}
+
 make_fake_codex "$tmp/bin"
 make_fake_opencode "$tmp/bin"
+make_fake_claude "$tmp/bin"
 
 project_with_spaces="$tmp/project with spaces"
 run_profile_with_stub "$project_with_spaces"
@@ -113,6 +141,39 @@ disabled_project="$tmp/disabled project"
 run_profile_with_stub "$disabled_project" --no-codex-subagents
 assert_file_contains "$tmp/codex.prompt" "Codex subagents enabled: false"
 assert_file_contains "$tmp/codex.prompt" "legacy economy-first/manual-escalation behavior"
+
+claude_project="$tmp/claude project with spaces"
+run_claude_profile_with_stub "$claude_project"
+assert_file_contains "$tmp/claude.args" "--agent"
+assert_file_contains "$tmp/claude.args" "mana-orchestrator"
+assert_file_contains "$tmp/claude.args" "--model"
+assert_file_contains "$tmp/claude.args" "haiku"
+assert_file_contains "$tmp/claude.prompt" "Claude Code subagent orchestration is enabled: true"
+assert_file_contains "$tmp/claude.prompt" "Do not map every Mana agent or every Mana skill to a separate Claude Code subagent"
+assert_file_contains "$tmp/claude.prompt" "Child agents do not have the Agent tool"
+assert_file_contains "$tmp/claude.prompt" "needs_model_escalation"
+assert_file_contains "$claude_project/.claude/agents/mana-orchestrator.md" "Agent(mana-explorer, mana-full-specialist, mana-worker)"
+assert_file_contains "$claude_project/.claude/agents/mana-explorer.md" "model: sonnet"
+assert_file_contains "$claude_project/.claude/agents/mana-full-specialist.md" "model: opus"
+assert_file_contains "$claude_project/.claude/agents/mana-worker.md" "model: sonnet"
+
+claude_override_project="$tmp/claude override project"
+run_claude_profile_with_stub "$claude_override_project" \
+  --claude-model root-haiku \
+  --claude-full-model full-opus \
+  --claude-explorer-model explorer-sonnet \
+  --claude-worker-model worker-sonnet
+assert_file_contains "$tmp/claude.args" "root-haiku"
+assert_file_contains "$claude_override_project/.claude/agents/mana-orchestrator.md" "model: root-haiku"
+assert_file_contains "$claude_override_project/.claude/agents/mana-full-specialist.md" "model: full-opus"
+assert_file_contains "$claude_override_project/.claude/agents/mana-explorer.md" "model: explorer-sonnet"
+assert_file_contains "$claude_override_project/.claude/agents/mana-worker.md" "model: worker-sonnet"
+
+claude_disabled_project="$tmp/claude disabled project"
+run_claude_profile_with_stub "$claude_disabled_project" --no-claude-subagents
+assert_file_contains "$tmp/claude.prompt" "Claude subagents enabled: false"
+assert_file_contains "$tmp/claude.prompt" "preserve manual-escalation behavior"
+[ ! -e "$claude_disabled_project/.claude/agents/mana-full-specialist.md" ] || fail "--no-claude-subagents should not install Claude Code subagents"
 
 jira_project="$tmp/jira project"
 mkdir -p "$jira_project/.mana"
@@ -199,6 +260,16 @@ assert_file_contains "$opencode_disabled_project/.opencode/agents/mana_orchestra
 assert_file_contains "$bootstrap_project/.opencode/agents/mana_orchestrator.md" "Mana-managed OpenCode agent"
 assert_file_contains "$bootstrap_project/.opencode/agents/mana_full_specialist.md" "mode: subagent"
 assert_file_contains "$bootstrap_project/AGENTS.md" "OpenCode follows the same Mana chain"
+assert_file_contains "$bootstrap_project/.claude/agents/mana-orchestrator.md" "Mana-managed Claude Code subagent"
+assert_file_contains "$bootstrap_project/.claude/agents/mana-full-specialist.md" "model: opus"
+assert_file_contains "$bootstrap_project/AGENTS.md" "Claude Code follows the same bounded delegation chain"
+
+claude_collision_project="$tmp/claude collision project"
+mkdir -p "$claude_collision_project/.claude/agents"
+printf '# user-owned collision\nname: mana-explorer\n' > "$claude_collision_project/.claude/agents/mana-explorer.md"
+"$root/scripts/bootstrap-project.sh" --project-root "$claude_collision_project" --mana-root "$root" --no-jira-env > "$tmp/bootstrap-claude-collision.out" 2> "$tmp/bootstrap-claude-collision.err"
+assert_file_contains "$claude_collision_project/.claude/agents/mana-explorer.md" "user-owned collision"
+assert_file_contains "$tmp/bootstrap-claude-collision.err" "not replacing existing non-managed file"
 
 opencode_collision_project="$tmp/opencode collision project"
 mkdir -p "$opencode_collision_project/.opencode/agents"

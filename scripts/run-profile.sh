@@ -21,6 +21,13 @@ codex_subagents="${MANA_CODEX_SUBAGENTS:-true}"
 codex_max_threads="${MANA_CODEX_MAX_THREADS:-3}"
 codex_max_depth=1
 codex_agent_install_warnings=""
+claude_model="${MANA_CLAUDE_MODEL:-haiku}"
+claude_full_model="${MANA_CLAUDE_FULL_MODEL:-opus}"
+claude_explorer_model="${MANA_CLAUDE_EXPLORER_MODEL:-sonnet}"
+claude_worker_model="${MANA_CLAUDE_WORKER_MODEL:-sonnet}"
+claude_subagents="${MANA_CLAUDE_SUBAGENTS:-true}"
+claude_max_threads="${MANA_CLAUDE_MAX_THREADS:-3}"
+claude_agent_install_warnings=""
 opencode_model="${MANA_OPENCODE_MODEL:-opencode/gpt-5.1-codex}"
 opencode_full_model="${MANA_OPENCODE_FULL_MODEL:-}"
 opencode_explorer_model="${MANA_OPENCODE_EXPLORER_MODEL:-}"
@@ -46,6 +53,11 @@ Options:
   --codex-worker-model <model>   Codex model for mana_worker. Defaults to MANA_CODEX_WORKER_MODEL or gpt-5.6-terra.
   --codex-model-policy <policy>  Model policy note passed to Codex. Defaults to economy-first.
   --no-codex-subagents           Disable Codex subagent orchestration and use legacy manual escalation.
+  --claude-model <model>         Claude model for the root orchestrator. Defaults to MANA_CLAUDE_MODEL or haiku.
+  --claude-full-model <model>    Claude model for mana-full-specialist. Defaults to MANA_CLAUDE_FULL_MODEL or opus.
+  --claude-explorer-model <m>    Claude model for mana-explorer. Defaults to MANA_CLAUDE_EXPLORER_MODEL or sonnet.
+  --claude-worker-model <model>  Claude model for mana-worker. Defaults to MANA_CLAUDE_WORKER_MODEL or sonnet.
+  --no-claude-subagents          Disable Claude subagent orchestration and use manual escalation.
   --opencode-model <model>       OpenCode model for the primary orchestrator. Defaults to MANA_OPENCODE_MODEL or opencode/gpt-5.1-codex.
   --opencode-full-model <model>  OpenCode model for mana_full_specialist. Defaults to MANA_OPENCODE_FULL_MODEL or the root OpenCode model.
   --opencode-explorer-model <m>  OpenCode model for mana_explorer. Defaults to MANA_OPENCODE_EXPLORER_MODEL or the root OpenCode model.
@@ -111,6 +123,30 @@ while [ "$#" -gt 0 ]; do
       ;;
     --no-codex-subagents)
       codex_subagents=false
+      shift
+      ;;
+    --claude-model)
+      claude_model="${2:-}"
+      [ -n "$claude_model" ] || { echo "ERROR: --claude-model requires a model name" >&2; exit 2; }
+      shift 2
+      ;;
+    --claude-full-model)
+      claude_full_model="${2:-}"
+      [ -n "$claude_full_model" ] || { echo "ERROR: --claude-full-model requires a model name" >&2; exit 2; }
+      shift 2
+      ;;
+    --claude-explorer-model)
+      claude_explorer_model="${2:-}"
+      [ -n "$claude_explorer_model" ] || { echo "ERROR: --claude-explorer-model requires a model name" >&2; exit 2; }
+      shift 2
+      ;;
+    --claude-worker-model)
+      claude_worker_model="${2:-}"
+      [ -n "$claude_worker_model" ] || { echo "ERROR: --claude-worker-model requires a model name" >&2; exit 2; }
+      shift 2
+      ;;
+    --no-claude-subagents)
+      claude_subagents=false
       shift
       ;;
     --opencode-model)
@@ -216,8 +252,26 @@ case "$codex_subagents" in
     ;;
 esac
 
+case "$claude_subagents" in
+  true|TRUE|True|1|yes|YES|on|ON)
+    claude_subagents=true
+    ;;
+  false|FALSE|False|0|no|NO|off|OFF)
+    claude_subagents=false
+    ;;
+  *)
+    echo "ERROR: MANA_CLAUDE_SUBAGENTS must be true or false" >&2
+    exit 2
+    ;;
+esac
+
 if ! printf '%s\n' "$codex_max_threads" | grep -Eq '^[0-9]+$' || [ "$codex_max_threads" -lt 1 ] || [ "$codex_max_threads" -gt 3 ]; then
   echo "ERROR: MANA_CODEX_MAX_THREADS must be a positive integer no greater than 3" >&2
+  exit 2
+fi
+
+if ! printf '%s\n' "$claude_max_threads" | grep -Eq '^[0-9]+$' || [ "$claude_max_threads" -lt 1 ] || [ "$claude_max_threads" -gt 3 ]; then
+  echo "ERROR: MANA_CLAUDE_MAX_THREADS must be a positive integer no greater than 3" >&2
   exit 2
 fi
 
@@ -375,6 +429,95 @@ install_codex_agent_file() {
   printf '%s\n' "$content" > "$target"
 }
 
+render_claude_agent() {
+  agent_name="$1"
+  description="$2"
+  tools="$3"
+  model="$4"
+  permission_mode="$5"
+  effort="$6"
+  instructions="$7"
+
+  cat <<AGENT
+---
+# Mana-managed Claude Code subagent.
+# Source: Mana scripts/run-profile.sh and scripts/bootstrap-project.sh.
+# Safe to replace with --force or during a Mana profile run.
+name: $agent_name
+description: "$description"
+tools: $tools
+model: $model
+permissionMode: $permission_mode
+effort: $effort
+---
+$instructions
+AGENT
+}
+
+claude_agent_instructions() {
+  case "$1" in
+    mana-orchestrator)
+      cat <<'TEXT'
+You are mana-orchestrator, the Claude Code primary runtime agent for Mana profile execution.
+
+Use the economy root model for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Mana semantic agents remain under agents/ and Mana skills remain under skills/. Do not map every Mana agent or every Mana skill to a separate Claude subagent.
+
+When required work is high-risk, explicitly full-tier, noisy, or beyond root-model confidence, delegate it to the appropriate Mana Claude subagent. Batch related Mana skills into one delegation by risk domain. Do not spawn one subagent per skill. Spawn at most three direct subagents in total, never more than one per capability class, and delegate parallel work only when it is independent and read-heavy.
+
+Use mana-explorer for read-heavy evidence discovery. Use mana-full-specialist for architecture, security, database, concurrency, cross-service, production, transactional, backwards-compatibility, model_tier: full, or large/ambiguous diff judgment. Use mana-worker only when the selected Mana profile explicitly permits source modification, and never run parallel writers.
+
+Wait for delegated work and aggregate compact structured summaries and artifact paths only. Do not import raw tool transcripts into the root context. If subagents are disabled, missing, fail, or return insufficient evidence for a high-risk judgment, preserve a concise handoff artifact and return needs_model_escalation instead of performing that judgment on the economy model.
+TEXT
+      ;;
+    mana-explorer)
+      codex_agent_instructions mana_explorer | sed 's/Mana runtime Codex agent/Mana runtime Claude Code subagent/; s/Codex/Claude Code/g'
+      ;;
+    mana-full-specialist)
+      codex_agent_instructions mana_full_specialist | sed 's/Mana runtime Codex agent/Mana runtime Claude Code subagent/; s/Codex/Claude Code/g'
+      ;;
+    mana-worker)
+      codex_agent_instructions mana_worker | sed 's/Mana runtime Codex agent/Mana runtime Claude Code subagent/; s/Codex/Claude Code/g'
+      ;;
+  esac
+}
+
+install_claude_agent_file() {
+  target="$1"
+  content="$2"
+  if [ -e "$target" ] && [ ! -L "$target" ] && ! grep -q 'Mana-managed Claude Code subagent' "$target" 2>/dev/null; then
+    claude_agent_install_warnings="${claude_agent_install_warnings}${claude_agent_install_warnings:+
+}WARNING: not replacing non-managed Claude Code subagent $target"
+    return 1
+  fi
+  if [ -L "$target" ]; then
+    rm "$target"
+  fi
+  printf '%s\n' "$content" > "$target"
+}
+
+ensure_claude_agents() {
+  agents_dir="$project_root/.claude/agents"
+  if ! mkdir -p "$agents_dir" 2>/dev/null; then
+    claude_agent_install_warnings="${claude_agent_install_warnings}${claude_agent_install_warnings:+
+}WARNING: could not create $agents_dir; Claude Code delegation must fall back if agents are unavailable"
+    return 0
+  fi
+
+  orchestrator_content="$(render_claude_agent "mana-orchestrator" "Mana primary orchestrator for profile routing, light evidence inventory, bounded delegation, and final synthesis." "Agent(mana-explorer, mana-full-specialist, mana-worker), Read, Glob, Grep, Bash, Write, Edit" "$claude_model" "default" "low" "$(claude_agent_instructions mana-orchestrator)")"
+  install_claude_agent_file "$agents_dir/mana-orchestrator.md" "$orchestrator_content" || true
+
+  [ "$claude_subagents" = true ] || return 0
+
+  readonly_claude_tools="Read, Glob, Grep, Bash(git diff:*), Bash(git status:*), Bash(git log:*), Bash(git show:*), Bash(rg:*), Bash(find:*)"
+  explorer_content="$(render_claude_agent "mana-explorer" "Mana read-only repository evidence discovery and inventory." "$readonly_claude_tools" "$claude_explorer_model" "default" "medium" "$(claude_agent_instructions mana-explorer)")"
+  full_content="$(render_claude_agent "mana-full-specialist" "Mana high-risk full-model specialist for bounded architecture, database, security, contract, concurrency, and production judgments." "$readonly_claude_tools" "$claude_full_model" "default" "high" "$(claude_agent_instructions mana-full-specialist)")"
+  worker_content="$(render_claude_agent "mana-worker" "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks." "Read, Glob, Grep, Bash, Write, Edit" "$claude_worker_model" "default" "medium" "$(claude_agent_instructions mana-worker)")"
+
+  install_claude_agent_file "$agents_dir/mana-explorer.md" "$explorer_content" || true
+  install_claude_agent_file "$agents_dir/mana-full-specialist.md" "$full_content" || true
+  install_claude_agent_file "$agents_dir/mana-worker.md" "$worker_content" || true
+}
+
 render_opencode_agent() {
   agent_name="$1"
   mode="$2"
@@ -522,6 +665,19 @@ if [ "$runner" = "codex" ]; then
     echo "Codex delegation/escalation candidate skills: none"
   fi
 fi
+if [ "$runner" = "claude" ]; then
+  echo "Claude model: $claude_model"
+  echo "Claude explorer model: $claude_explorer_model"
+  echo "Claude full specialist model: $claude_full_model"
+  echo "Claude worker model: $claude_worker_model"
+  echo "Claude subagents: $claude_subagents"
+  echo "Claude delegation limit: max_direct_subagents=$claude_max_threads, max_depth=1"
+  if [ -n "$codex_escalation_skills" ]; then
+    echo "Claude delegation/escalation candidate skills: $codex_escalation_skills"
+  else
+    echo "Claude delegation/escalation candidate skills: none"
+  fi
+fi
 if [ "$runner" = "opencode" ]; then
   echo "OpenCode model: $opencode_model"
   echo "OpenCode explorer model: $opencode_explorer_model"
@@ -632,6 +788,12 @@ Codex model policy: $codex_model_policy
 Codex subagents enabled: $codex_subagents
 Codex agent runtime limits: max_threads=$codex_max_threads, max_depth=$codex_max_depth, interrupt_message=false
 Codex delegation/escalation candidate skills: ${codex_escalation_skills:-none}
+Claude initial model: $claude_model
+Claude full model: $claude_full_model
+Claude explorer model: $claude_explorer_model
+Claude worker model: $claude_worker_model
+Claude subagents enabled: $claude_subagents
+Claude delegation limits: max_direct_subagents=$claude_max_threads, max_depth=1
 OpenCode initial model: $opencode_model
 OpenCode full model: $opencode_full_model
 OpenCode explorer model: $opencode_explorer_model
@@ -661,6 +823,15 @@ Instructions:
 - Wait for delegated work and aggregate only compact summaries and artifact paths. Do not import raw tool transcripts into the root context.
 - If Codex subagents are disabled, the installed Codex runtime cannot discover custom agents, spawning fails, a specialist returns insufficient evidence, or a high-risk judgment remains unsupported, preserve a concise handoff artifact in the workspace when possible and return status \`needs_model_escalation\`. Tell the user to rerun the same profile with \`MANA_CODEX_MODEL=$codex_full_model\` or \`--codex-model $codex_full_model\`. Do not silently continue a high-risk judgment on the economy model.
 - When Codex subagents are disabled, preserve the legacy economy-first/manual-escalation behavior: do not pretend a specialist ran, and stop with \`needs_model_escalation\` before deep analysis of required full-tier or high-risk work.
+- If the selected runner is Claude Code, use the mana-orchestrator economy root agent for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed delegation/escalation candidate skills as full-model candidates, not mandatory work.
+- Claude Code runtime agents are capability classes only. Mana agents under agents/ remain semantic workflow orchestrators, and Mana skills under skills/ remain reusable domain capabilities. Do not map every Mana agent or every Mana skill to a separate Claude Code subagent.
+- Claude Code subagent orchestration is enabled: $claude_subagents. When enabled and available, delegate required high-risk, explicitly full-tier, noisy, or beyond-root-confidence work to project-scoped agents: mana-explorer, mana-full-specialist, and mana-worker. Child agents do not have the Agent tool and must not delegate further.
+- For Claude Code, spawn no more than $claude_max_threads direct subagents in total, no more than one per capability class, avoid one subagent per skill, prefer parallel delegation only for independent read-heavy work, wait for delegated work to finish, collect compact structured summaries, and synthesize the final Mana output.
+- Use mana-explorer for read-heavy evidence discovery, source impact mapping, symbol/call-path discovery, test inventory, contract inventory, dependency evidence, diff classification, and locating relevant Mana or project files.
+- Use mana-full-specialist for architecture, security, database, concurrency, cross-service, production, transactional, backwards-compatibility, model_tier: full, or large/ambiguous diff judgment. The root orchestrator must not directly perform deep high-risk analysis in those domains.
+- Use mana-worker only when the selected Mana profile explicitly permits source modification. Never infer write permission from tool access. Do not run mana-worker for analysis-only profiles, and never run parallel writers against the same working tree.
+- If Claude Code subagents are disabled, the installed Claude Code runtime cannot discover custom agents, spawning fails, a specialist returns insufficient evidence, or a high-risk judgment remains unsupported, preserve a concise handoff artifact in the workspace when possible and return status \`needs_model_escalation\`. Tell the user to rerun the same profile with \`MANA_CLAUDE_MODEL=$claude_full_model\` or \`--claude-model $claude_full_model\`. Do not silently continue a high-risk judgment on the economy model.
+- When Claude Code subagents are disabled, preserve manual-escalation behavior: do not pretend a specialist ran, and stop with \`needs_model_escalation\` before deep analysis of required full-tier or high-risk work.
 - If the selected runner is OpenCode, use the mana_orchestrator primary agent for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed delegation/escalation candidate skills as full-model candidates, not mandatory work.
 - OpenCode runtime agents are capability classes only. Mana agents under agents/ remain semantic workflow orchestrators, and Mana skills under skills/ remain reusable domain capabilities. Do not map every Mana agent or every Mana skill to a separate OpenCode subagent.
 - OpenCode subagent orchestration is enabled: $opencode_subagents. When enabled and available, delegate required high-risk, explicitly full-tier, noisy, or beyond-primary-confidence work to project-scoped agents: mana_explorer, mana_full_specialist, and mana_worker. Child agents must not delegate further.
@@ -722,6 +893,22 @@ run_codex() {
   MANA_PROFILE_RUNNING=1 codex "${codex_args[@]}" "$prompt"
 }
 
+run_claude() {
+  ensure_claude_agents
+  if [ -n "$claude_agent_install_warnings" ]; then
+    printf '%s\n' "$claude_agent_install_warnings" >&2
+  fi
+
+  claude_args=(
+    -p
+    --agent mana-orchestrator
+    --model "$claude_model"
+    --permission-mode default
+  )
+
+  MANA_PROFILE_RUNNING=1 claude "${claude_args[@]}" "$prompt"
+}
+
 run_opencode() {
   ensure_opencode_agents
   if [ -n "$opencode_agent_install_warnings" ]; then
@@ -758,7 +945,7 @@ case "$runner" in
     echo
     echo "Starting Claude runner for profile: $profile"
     cd "$project_root" || exit 1
-    MANA_PROFILE_RUNNING=1 claude -p --permission-mode default "$prompt"
+    run_claude
     ;;
   opencode)
     if ! command -v opencode >/dev/null 2>&1; then
