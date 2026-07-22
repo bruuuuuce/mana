@@ -84,6 +84,7 @@ to switch phase without looking up the profile catalogue manually.
 | Review PRs where I am requested reviewer | Reviewer / TL | `requested-pr-review` |
 | Review one PR by number | Reviewer / TL | `requested-pr-review --pr <number>` |
 | Read one Jira story quickly | Developer / TL / Reviewer | `./mana jira-mcp --get-issue <KEY>` |
+| Audit Jira state against Git/PR/release evidence | Developer / TL / Release Owner | `jira-state-audit` |
 | Cache epic and sibling stories as Markdown | BA / PO / Team Leader | `./mana jira-mcp --fetch-epic-story-pack <KEY>` |
 | Configure local Sonar scanner evidence | Developer / TL | `./mana sonar --init-config` then `./mana sonar --check` |
 | Run local Sonar evidence before branch or PR review | Developer / Reviewer / TL | `./mana sonar --analyze` |
@@ -166,6 +167,9 @@ to help agents load summaries first and deep-load only relevant evidence.
   `scripts/run-profile.sh requested-pr-review --pr 123 --project-root .`.
 - User says "read Jira story PROJ-1234" → recommend
   `./mana jira-mcp --get-issue PROJ-1234` in a linked project.
+- User says "is PROJ-1234 correctly Done/Released?" → selects
+  `jira-state-audit` with command
+  `scripts/run-profile.sh jira-state-audit --jira-key PROJ-1234 --project-root .`.
 - User says "I collected Sonar and dependency evidence" → recommend
   `./mana evidence-index` before `branch-ready` or `requested-pr-review`.
 - User says "I just started this story" → selects `story-start`.

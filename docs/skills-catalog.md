@@ -1,11 +1,12 @@
 # Skills Catalog
 
-Reference guide for all 53 skills in the Mana framework, grouped by the
+Reference guide for all 54 skills in the Mana framework, grouped by the
 profile in which they are recommended. Skills may appear in multiple profiles.
 
 Skills are ordered by delivery lifecycle: story intake → planning →
 architecture → **development (dev-assist)** → pre-commit → pre-push →
-branch validation → PR → release → team coaching → framework help.
+branch validation → PR → release state audit → release → team coaching →
+framework help.
 
 Skills that exist in the framework but are not yet wired into a profile appear
 at the end under [Standalone Skills](#standalone-skills).
@@ -290,6 +291,15 @@ run.
 
 ---
 
+## jira-state-audit
+**Trigger:** `jira_state_audit` · **Owner:** Developer / Team Leader / Release Owner · **Duration:** 5 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`jira-release-state-evidence`](../skills/jira-release-state-evidence/SKILL.md) | Collect read-only Jira, Git, GitHub, branch, tag, and release evidence to audit whether Jira issue state is coherent. | low | Developer / Team Leader / Release Owner |
+
+---
+
 ## team-coaching-review
 **Trigger:** `coaching_review` · **Owner:** Team Leader · **Duration:** 30 min
 
@@ -404,6 +414,7 @@ a custom profile.
 | `knowledge-transfer-brief` | pre-commit |
 | `known-pitfalls-extraction` | dev-assist, am-release-ready, team-coaching-review |
 | `jira-acceptance-criteria-normalizer` | story-start, story-ready-for-dev, branch-ready, pr-ready, requested-pr-review |
+| `jira-release-state-evidence` | jira-state-audit |
 | `liquibase-syntax` | pre-commit, branch-ready, ci-validation, pre-push |
 | `mana-usage-help` | tutorial, mana-help |
 | `profile-selector` | tutorial, mana-help |

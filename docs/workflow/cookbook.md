@@ -49,6 +49,11 @@ README and `docs/examples/end-to-end-codex-flow.md` /
   `./mana jira-mcp --get-issue PROJ-1234`. Use
   `./mana jira-mcp --check-access --issue PROJ-1234` only for credential or
   permission diagnostics.
+- **Audit whether Jira state matches technical evidence:** run
+  `scripts/run-profile.sh jira-state-audit --jira-key PROJ-1234 --codex`.
+  The audit is read-only and compares Jira state, fixVersion, comments, PRs,
+  merges, release branches, tags, and releases against
+  `docs/policies/jira-state-consistency-policy.md`.
 - **Cache epic and sibling stories as Markdown:** in a linked project, run
   `./mana jira-mcp --fetch-epic-story-pack PROJ-1234`. Mana resolves the
   parent epic when Jira exposes one and writes
@@ -118,6 +123,9 @@ README and `docs/examples/end-to-end-codex-flow.md` /
 - **Prepare AM release readiness:** use `profiles/am-release-ready.yaml` for
   release impact, continuity, incident-risk, rollback, support, and
   communication evidence.
+- **Check Jira state before release governance:** use
+  `profiles/jira-state-audit.yaml` when the question is narrowly whether one
+  issue's Jira state is coherent with Git, PR, branch, tag, or release evidence.
 - **Generate PR package:** run the PR Readiness Agent to create the PR
   description, reviewer focus, test evidence, risk report, and development
   summary.
