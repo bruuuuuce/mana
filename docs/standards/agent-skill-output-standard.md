@@ -87,6 +87,11 @@ and production behavior must route conservatively. A small root orchestrator
 may inventory evidence and delegate, but it must not silently perform deep
 high-risk judgment that was intended for a stronger specialist.
 
+For detailed routing semantics, provider mapping, and downgrade behavior, follow
+`docs/policies/model-tier-routing-policy.md`. Skill and agent metadata remains
+provider-neutral: do not put concrete GPT, Claude, or OpenCode model names in
+front matter.
+
 ## Internal Reasoning Mode
 
 Use compact "caveman" working notes while analyzing:

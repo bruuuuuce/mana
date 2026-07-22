@@ -345,7 +345,7 @@ profile_skills="$(awk '
   in_skills && /^[^[:space:]-]/ { in_skills=0 }
 ' "$file")"
 
-codex_escalation_skills=""
+model_escalation_skills=""
 if [ -n "$profile_skills" ]; then
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
@@ -353,11 +353,16 @@ if [ -n "$profile_skills" ]; then
     [ -f "$skill_file" ] || continue
     if grep -q '^model_tier:[[:space:]]*full' "$skill_file" ||
       grep -q '^risk_level:[[:space:]]*high' "$skill_file"; then
-      codex_escalation_skills="${codex_escalation_skills}${codex_escalation_skills:+ }$skill"
+      model_escalation_skills="${model_escalation_skills}${model_escalation_skills:+ }$skill"
     fi
   done <<EOF
 $profile_skills
 EOF
+fi
+
+model_routing_warning=""
+if [ -n "$model_escalation_skills" ]; then
+  model_routing_warning="This profile includes full-tier or high-risk skill candidates. The root model is for routing, evidence inventory, low-risk checks, and synthesis only; delegate deep judgment to the configured full specialist or stop with needs_model_escalation if escalation is unavailable."
 fi
 
 render_codex_agent() {
@@ -659,8 +664,9 @@ if [ "$runner" = "codex" ]; then
   echo "Codex model policy: $codex_model_policy"
   echo "Codex subagents: $codex_subagents"
   echo "Codex agent limits: max_threads=$codex_max_threads max_depth=$codex_max_depth interrupt_message=false"
-  if [ -n "$codex_escalation_skills" ]; then
-    echo "Codex delegation/escalation candidate skills: $codex_escalation_skills"
+  if [ -n "$model_escalation_skills" ]; then
+    echo "Codex delegation/escalation candidate skills: $model_escalation_skills"
+    echo "Model routing warning: $model_routing_warning"
   else
     echo "Codex delegation/escalation candidate skills: none"
   fi
@@ -672,8 +678,9 @@ if [ "$runner" = "claude" ]; then
   echo "Claude worker model: $claude_worker_model"
   echo "Claude subagents: $claude_subagents"
   echo "Claude delegation limit: max_direct_subagents=$claude_max_threads, max_depth=1"
-  if [ -n "$codex_escalation_skills" ]; then
-    echo "Claude delegation/escalation candidate skills: $codex_escalation_skills"
+  if [ -n "$model_escalation_skills" ]; then
+    echo "Claude delegation/escalation candidate skills: $model_escalation_skills"
+    echo "Model routing warning: $model_routing_warning"
   else
     echo "Claude delegation/escalation candidate skills: none"
   fi
@@ -685,8 +692,9 @@ if [ "$runner" = "opencode" ]; then
   echo "OpenCode worker model: $opencode_worker_model"
   echo "OpenCode subagents: $opencode_subagents"
   echo "OpenCode agent limits: max_threads=$opencode_max_threads max_depth=1"
-  if [ -n "$codex_escalation_skills" ]; then
-    echo "OpenCode delegation/escalation candidate skills: $codex_escalation_skills"
+  if [ -n "$model_escalation_skills" ]; then
+    echo "OpenCode delegation/escalation candidate skills: $model_escalation_skills"
+    echo "Model routing warning: $model_routing_warning"
   else
     echo "OpenCode delegation/escalation candidate skills: none"
   fi
@@ -787,7 +795,8 @@ Codex worker model: $codex_worker_model
 Codex model policy: $codex_model_policy
 Codex subagents enabled: $codex_subagents
 Codex agent runtime limits: max_threads=$codex_max_threads, max_depth=$codex_max_depth, interrupt_message=false
-Codex delegation/escalation candidate skills: ${codex_escalation_skills:-none}
+Model delegation/escalation candidate skills: ${model_escalation_skills:-none}
+Model routing warning: ${model_routing_warning:-none}
 Claude initial model: $claude_model
 Claude full model: $claude_full_model
 Claude explorer model: $claude_explorer_model
@@ -812,6 +821,7 @@ Profile input overrides:
 Instructions:
 - Do not run './mana profile $profile' or 'scripts/run-profile.sh $profile' again; this command already rendered the profile and would recurse.
 - Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'.
+- Follow docs/policies/model-tier-routing-policy.md for provider-neutral economy/full routing, downgrade behavior, and Jira/tool access treatment.
 - If the selected runner is Codex, use the economy root model for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed Codex delegation/escalation candidate skills as full-model candidates, not mandatory work.
 - Codex runtime agents are capability classes only. Mana agents under agents/ remain semantic workflow orchestrators, and Mana skills under skills/ remain reusable domain capabilities. Do not map every Mana agent or every Mana skill to a separate Codex subagent.
 - Codex subagent orchestration is enabled: $codex_subagents. When enabled and available, delegate required high-risk, explicitly full-tier, noisy, or beyond-root-confidence work to project-scoped custom agents: mana_explorer, mana_full_specialist, and mana_worker. Child agents must not delegate further.
