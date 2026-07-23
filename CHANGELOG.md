@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- Added a generated skill routing index, conditional profile skill activation,
+  and a compact runtime/output contract to reduce repeated model context.
+- Added database, contract, and dependency-security activation eval fixtures
+  for the conditional PR-review skill routing policy.
 - Added progressive-load service knowledge capture with evidence-backed cards,
   candidate promotion gates, and a compact global retrieval index.
 - Added provider-neutral testbook discovery and controlled local execution for

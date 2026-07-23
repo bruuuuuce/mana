@@ -344,17 +344,35 @@ profile_skills="$(awk '
   in_skills && /^  - / { sub(/^  - /, ""); print; next }
   in_skills && /^[^[:space:]-]/ { in_skills=0 }
 ' "$file")"
+skill_index="$root/skills/index.yaml"
+
+skill_metadata() {
+  skill_id="$1"
+  awk -v target="$skill_id" '
+    $1 == "-" && $2 == "id:" {
+      if (found) { print risk "|" tier "|" mode "|" group; active = 0; exit }
+      active = ($3 == target)
+      found = active
+      next
+    }
+    active && $1 == "risk_level:" { risk = $2 }
+    active && $1 == "model_tier:" { tier = $2 }
+    active && $1 == "execution_mode:" { mode = $2 }
+    active && $1 == "delegation_group:" { group = $2 }
+    END { if (found && active) print risk "|" tier "|" mode "|" group }
+  ' "$skill_index"
+}
 
 model_escalation_skills=""
 if [ -n "$profile_skills" ]; then
   while IFS= read -r skill; do
     [ -n "$skill" ] || continue
-    skill_file="$root/skills/$skill/SKILL.md"
-    [ -f "$skill_file" ] || continue
-    if grep -q '^model_tier:[[:space:]]*full' "$skill_file" ||
-      grep -q '^risk_level:[[:space:]]*high' "$skill_file"; then
+    metadata="$(skill_metadata "$skill")"
+    case "$metadata" in
+      *'|full|'*|high'|'*)
       model_escalation_skills="${model_escalation_skills}${model_escalation_skills:+ }$skill"
-    fi
+        ;;
+    esac
   done <<EOF
 $profile_skills
 EOF
@@ -782,7 +800,7 @@ if [ "$render_only" = true ] || [ "${MANA_PROFILE_RUNNING:-}" = "1" ] || [ -z "$
   exit 0
 fi
 
-prompt="$(cat <<PROMPT
+legacy_prompt="$(cat <<PROMPT
 Run the Mana profile '$profile' in this repository.
 
 Repository root: $project_root
@@ -868,6 +886,26 @@ Instructions:
 - If the selected profile is requested-pr-review and publish_high_risk_comments is true, this flag is explicit human approval to publish exactly one gh PR comment on the selected PR containing only blocker or high-criticality findings found by this run. Do not publish medium/low findings. Do not approve, request changes, merge, edit, label, assign, push, or trigger CI.
 - Do not commit, push, deploy, trigger CI, write to external systems, or make destructive changes, except for the limited requested-pr-review high-risk PR comment explicitly allowed above.
 - Final response must summarize status, blockers, warnings, artifact paths, and any required human approval.
+PROMPT
+)"
+
+prompt="$(cat <<PROMPT
+Run Mana profile '$profile' in this repository.
+
+Repository root: $project_root
+Framework root: $root
+Runner: $runner
+Profile inputs: pr_number=${pr_number:-none}; jira_issue_keys=${jira_keys:-none}; current_branch=${current_branch:-detached}; jira_mcp_configured=$jira_mcp_configured; publish_high_risk_comments=$publish_high_risk_comments.
+Model routing: root=economy; full-tier candidates=${model_escalation_skills:-none}; escalation warning=${model_routing_warning:-none}.
+Runtime limits: Codex subagents=$codex_subagents/$codex_max_threads; Claude subagents=$claude_subagents/$claude_max_threads; OpenCode subagents=$opencode_subagents/$opencode_max_threads.
+
+Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'. Follow docs/policies/runtime-execution-contract.md and docs/standards/output-contract.md. The profile's skill_activation block is authoritative: begin with baseline skills, then load a conditional skill only after filtered evidence matches its signal. Use skills/index.yaml for metadata; read only the selected skill bodies.
+
+Read only the selected agent AGENT.md and playbook, core service-context files, and evidence required for a concrete hypothesis. Do not recursively invoke Mana. Keep evidence compact and return artifact paths rather than transcripts.
+
+The root model may route, inventory, perform low-risk checks, and synthesize. It must delegate required high-risk or full-tier work only when relevant and bounded. If needed escalation is unavailable or insufficient, return needs_model_escalation rather than guessing. Do not write source or external systems unless the profile explicitly permits it; do not commit, push, deploy, trigger CI, or change Jira/GitHub state except the narrowly approved requested-pr-review comment.
+
+For Jira, use read-only access when issue keys are available; report an access gap if unavailable. For PR or diff work, resolve the comparison base, exclude Mana bootstrap noise, and request scope if the filtered diff exceeds 80 files or 2,000 lines. Final output: status, blockers, warnings, evidence/artifact paths, and required approvals.
 PROMPT
 )"
 

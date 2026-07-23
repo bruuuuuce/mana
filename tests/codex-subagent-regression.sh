@@ -119,8 +119,8 @@ assert_file_contains "$tmp/codex.args" "agents.max_threads=3"
 assert_file_contains "$tmp/codex.args" "agents.max_depth=1"
 assert_file_contains "$tmp/codex.args" "agents.interrupt_message=false"
 assert_file_contains "$tmp/codex.prompt" "delegate required high-risk"
-assert_file_contains "$tmp/codex.prompt" "avoid one subagent per skill"
-assert_file_contains "$tmp/codex.prompt" "Child agents must not delegate further"
+assert_file_contains "$tmp/codex.prompt" "skill_activation block is authoritative"
+assert_file_contains "$tmp/codex.prompt" "skills/index.yaml"
 assert_file_contains "$tmp/codex.prompt" "needs_model_escalation"
 assert_file_contains "$project_with_spaces/.codex/agents/mana-full-specialist.toml" 'model = "gpt-5.6-sol"'
 assert_file_contains "$project_with_spaces/.codex/agents/mana-explorer.toml" 'model = "gpt-5.6-terra"'
@@ -139,8 +139,8 @@ assert_file_contains "$override_project/.codex/agents/mana-worker.toml" 'model =
 
 disabled_project="$tmp/disabled project"
 run_profile_with_stub "$disabled_project" --no-codex-subagents
-assert_file_contains "$tmp/codex.prompt" "Codex subagents enabled: false"
-assert_file_contains "$tmp/codex.prompt" "legacy economy-first/manual-escalation behavior"
+assert_file_contains "$tmp/codex.prompt" "Codex subagents=false/3"
+assert_file_contains "$tmp/codex.prompt" "needs_model_escalation"
 
 claude_project="$tmp/claude project with spaces"
 run_claude_profile_with_stub "$claude_project"
@@ -148,9 +148,8 @@ assert_file_contains "$tmp/claude.args" "--agent"
 assert_file_contains "$tmp/claude.args" "mana-orchestrator"
 assert_file_contains "$tmp/claude.args" "--model"
 assert_file_contains "$tmp/claude.args" "haiku"
-assert_file_contains "$tmp/claude.prompt" "Claude Code subagent orchestration is enabled: true"
-assert_file_contains "$tmp/claude.prompt" "Do not map every Mana agent or every Mana skill to a separate Claude Code subagent"
-assert_file_contains "$tmp/claude.prompt" "Child agents do not have the Agent tool"
+assert_file_contains "$tmp/claude.prompt" "Claude subagents=true/3"
+assert_file_contains "$tmp/claude.prompt" "skill_activation block is authoritative"
 assert_file_contains "$tmp/claude.prompt" "needs_model_escalation"
 assert_file_contains "$claude_project/.claude/agents/mana-orchestrator.md" "Agent(mana-explorer, mana-full-specialist, mana-worker)"
 assert_file_contains "$claude_project/.claude/agents/mana-explorer.md" "model: sonnet"
@@ -171,8 +170,8 @@ assert_file_contains "$claude_override_project/.claude/agents/mana-worker.md" "m
 
 claude_disabled_project="$tmp/claude disabled project"
 run_claude_profile_with_stub "$claude_disabled_project" --no-claude-subagents
-assert_file_contains "$tmp/claude.prompt" "Claude subagents enabled: false"
-assert_file_contains "$tmp/claude.prompt" "preserve manual-escalation behavior"
+assert_file_contains "$tmp/claude.prompt" "Claude subagents=false/3"
+assert_file_contains "$tmp/claude.prompt" "needs_model_escalation"
 [ ! -e "$claude_disabled_project/.claude/agents/mana-full-specialist.md" ] || fail "--no-claude-subagents should not install Claude Code subagents"
 
 jira_project="$tmp/jira project"
@@ -224,9 +223,8 @@ assert_file_contains "$tmp/opencode.args" "--model"
 assert_file_contains "$tmp/opencode.args" "opencode/gpt-5.1-codex"
 assert_file_contains "$tmp/opencode.args" "--agent"
 assert_file_contains "$tmp/opencode.args" "mana_orchestrator"
-assert_file_contains "$tmp/opencode.prompt" "OpenCode subagent orchestration is enabled: true"
-assert_file_contains "$tmp/opencode.prompt" "Do not map every Mana agent or every Mana skill to a separate OpenCode subagent"
-assert_file_contains "$tmp/opencode.prompt" "Child agents must not delegate further"
+assert_file_contains "$tmp/opencode.prompt" "OpenCode subagents=true/3"
+assert_file_contains "$tmp/opencode.prompt" "skills/index.yaml"
 assert_file_contains "$tmp/opencode.prompt" "needs_model_escalation"
 assert_file_contains "$opencode_project/.opencode/agents/mana_orchestrator.md" "mode: primary"
 assert_file_contains "$opencode_project/.opencode/agents/mana_explorer.md" "mode: subagent"
@@ -253,7 +251,7 @@ assert_file_contains "$opencode_root_only_project/.opencode/agents/mana_worker.m
 
 opencode_disabled_project="$tmp/opencode disabled project"
 run_opencode_profile_with_stub "$opencode_disabled_project" --no-opencode-subagents
-assert_file_contains "$tmp/opencode.prompt" "OpenCode subagents enabled: false"
+assert_file_contains "$tmp/opencode.prompt" "OpenCode subagents=false/3"
 assert_file_contains "$opencode_disabled_project/.opencode/agents/mana_orchestrator.md" "mode: primary"
 [ ! -e "$opencode_disabled_project/.opencode/agents/mana_full_specialist.md" ] || fail "--no-opencode-subagents should not install OpenCode subagents"
 

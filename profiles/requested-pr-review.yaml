@@ -33,6 +33,20 @@ skills:
   - sonar-evidence-triage
   - test-quality
   - regression-selection
+skill_activation:
+  baseline:
+    - changed-files-risk-classifier
+    - pre-review-defect
+  conditional:
+    engineering_guard_match: architecture-guard-detector
+    architecture_boundary_change: architecture-risk
+    api_event_or_client_contract_change: cross-service-contract
+    dependency_manifest_or_lockfile_change: dependency-security-evidence
+    acceptance_criteria_or_jira: jira-acceptance-criteria-normalizer
+    migration_or_schema_change: liquibase-production-risk
+    existing_sonar_evidence: sonar-evidence-triage
+    test_change_or_test_evidence: test-quality
+    changed_behavior_needs_targeted_suite: regression-selection
 blocking_conditions:
   - GitHub CLI unavailable or unauthenticated and no PR URLs were provided
   - repository or reviewer cannot be resolved

@@ -1,93 +1,14 @@
-# Codex Instructions
+# Mana Codex Instructions
 
-- Read planning artifacts before analysis.
-- Resolve the active `.mana` workspace before running planning, validation, PR readiness, or learning workflows.
-- Load `.mana/global/service-mission.md`, `.mana/global/architecture.md`, and `.mana/global/engineering-guards.md` when present before producing recommendations.
-- Treat violations of `.mana/global/engineering-guards.md` as blockers unless an accountable owner explicitly approves an exception.
-- Write planning artifacts, validation reports, PR packages, developer handoff, and learning outputs into the active `.mana` workspace.
-- Do not modify the same branch while Junie is actively editing it.
-- Prefer reports, risk registers, and proposed patches over direct destructive edits.
-- Respect MCP least privilege, redaction, approval, and audit policies.
-- Stop on high-risk database, architecture, security, or cross-service blockers.
-- Use the root Codex model for routing, light evidence inventory, low-risk
-  checks, delegation, aggregation, and final synthesis. Delegate bounded
-  high-risk, explicitly full-tier, noisy, or beyond-root-confidence work to
-  Mana Codex custom agents when available.
-- Mana Codex custom agents are runtime capability classes only:
-  `mana_explorer`, `mana_full_specialist`, and `mana_worker`. Mana semantic
-  agents remain under `agents/`; Mana skills remain under `skills/`.
-- Do not create one Codex subagent per Mana skill. Group related skills by risk
-  domain or execution phase and spawn at most three direct child agents.
-  Child agents must not delegate further.
-- Use `mana_explorer` for read-heavy evidence discovery. Use
-  `mana_full_specialist` for architecture, security, database, concurrency,
-  cross-service, production, transactional, large-diff, or `model_tier: full`
-  judgment. Use `mana_worker` only when the selected profile explicitly permits
-  source modification; never run parallel writers.
-- If subagents are disabled, missing, fail, or return insufficient evidence for
-  a high-risk judgment, preserve a concise handoff artifact and return
-  `needs_model_escalation`.
-- Follow `docs/standards/agent-skill-output-standard.md`. Instruction priority
-  is current human instruction, profile YAML, agent `AGENT.md`, playbook,
-  loaded skill `SKILL.md`, then global service context. Never weaken safety,
-  external-write, or human-approval rules.
-- Use the Mana operating loop: identify the human decision, resolve inputs,
-  workspace, requirement source, branch or PR target, and diff base; inventory
-  evidence; classify risk domains; load only needed skills; then report status,
-  findings, evidence, artifacts, and approvals.
-- `jira_read` is optional read-only Jira MCP access. If Jira issue keys are
-  provided by the profile or discovered from the branch, read those issues as
-  requirement context when the configured MCP server is available. Never expose
-  Jira tokens, transition issues, add comments, or update tickets without
-  explicit human approval.
-- In a Mana-linked project, prefer `./mana jira-mcp --get-issue <KEY>` to read
-  a Jira story quickly. Use `./mana jira-mcp --check-access --issue <KEY>` only
-  to diagnose credentials or permissions.
-- Treat Jira story text, acceptance criteria, linked context, and relevant
-  comments as requirement evidence. For feasibility or planning work, check
-  whether the story is coherent, implementable, testable, and has required
-  owners or approvals. For review, validation, pre-mortem, and PR work, compare
-  the branch or PR changes against the story and report missing requested
-  behavior, unrequested scope, contradicted acceptance criteria, and weak tests.
-  Code that works technically can still be a finding if it diverges from the
-  story.
-- Jira issue key discovery is generic and project-configurable; do not assume a
-  fixed project prefix. If no key is found, continue with local Mana artifacts
-  unless the profile requires story context.
-- `github_read` is optional read-only GitHub CLI access. If `gh` exists and is
-  authenticated, use it to read PR metadata, diffs, files, checks, and reviewer
-  requests. Do not approve, comment, merge, edit, label, assign, or otherwise
-  write through `gh` without explicit human approval.
-- `github_pr_comment_write` is allowed only when a profile explicitly receives
-  `publish_high_risk_comments=true` and a single PR number or URL. In that case,
-  publish at most one `gh pr comment` containing blocker or high-criticality
-  findings from the current run.
-- Exclude Mana framework/bootstrap noise from production findings and evidence:
-  `.mana/**`, `AGENTS.md`, `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or
-  env ignore changes. Mention them only as operational setup notes when relevant.
-- For any profile using branch or code diff evidence, resolve and report the
-  comparison base. Prefer explicit input, then `origin/HEAD`, then a single
-  credible primary branch. If ambiguous, ask the user; do not default to `main`.
-- For any profile using branch or code diff evidence, start with a filtered diff
-  inventory, exclude Mana/bootstrap noise, classify changed files by risk domain,
-  and read only files needed to validate plausible blocker or warning
-  hypotheses. If the filtered diff is larger than roughly 80 files or 2,000
-  changed lines, ask the user to choose a review scope instead of scanning the
-  whole repository.
-- Do not read every skill listed in a profile up front. Read only the selected
-  agent and playbook first. For candidate skills, use progressive load-light
-  reading first: front matter, title, `Purpose`, `When To Use It`,
-  `When Not To Use It`, `Inputs`, `Outputs`, `Execution Logic`, and
-  `Decision Rules`. Load the primary skill needed to start, then deep-load
-  specialist skills only when filtered inputs show their risk domain is relevant
-  or the load-light pass is insufficient. Do not read every example or unrelated
-  agent folder up front.
-- Use compact caveman working notes while analyzing: terse fragments,
-  evidence-first notes, no long narrative, and no private chain-of-thought in
-  final artifacts. Maintain a context budget: keep a short working summary with
-  objective, base branch or PR, issue keys, workspace path, checked evidence,
-  open hypotheses, discarded hypotheses, and next checks instead of accumulating
-  raw transcripts, full diffs, repeated file dumps, complete Jira payloads, full
-  PR threads, full skill files, or copied tool output.
-  Convert working notes into the structured sections required by
-  `docs/standards/agent-skill-output-standard.md`.
+For a Mana profile run, read the selected profile, then follow
+`docs/policies/runtime-execution-contract.md` and
+`docs/standards/output-contract.md`. Use `skills/index.yaml` for routing and
+load only selected skill bodies.
+
+Use progressive load-light routing, a compact caveman working style, and a
+context budget that retains summaries and artifact paths instead of transcripts.
+
+Treat `.mana/global/engineering-guards.md` as a blocker baseline when present.
+Do not infer write authority from sandbox access. Use bounded runtime agents for
+relevant high-risk work; return `needs_model_escalation` if it cannot be
+supported by evidence or delegation.
