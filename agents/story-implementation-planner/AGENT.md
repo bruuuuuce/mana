@@ -76,6 +76,8 @@ Orchestrates requirement, architecture, source-impact, task-breakdown, and test-
    enough to plan implementation tasks and tests.
 8. Use `story-effort-estimation` after `technical-task-breakdown` when the
    story or split tasks need story points, time ranges, or split-size warnings.
+   Use current-story evidence by default; request explicit user approval before
+   reading historical delivery evidence for calibration.
 9. Use `architecture-risk`, `cross-service-contract`, and
    `liquibase-production-risk` only when the planned scope touches architecture
    boundaries, integrations/contracts, or database changes.
@@ -99,7 +101,8 @@ must be reported as evidence gaps; do not infer them silently.
 - `cross-service-contract`: contributes its atomic review to this workflow.
 - `liquibase-production-risk`: contributes its atomic review to this workflow.
 - `story-effort-estimation`: contributes story point, time range, and task
-  estimate guidance when planning or split tasks require sizing.
+  estimate guidance when planning or split tasks require sizing. Historical
+  team-level calibration is opt-in.
 - `technical-task-breakdown`: contributes its atomic review to this workflow.
 - `green-border-plan`: contributes its atomic review to this workflow.
 

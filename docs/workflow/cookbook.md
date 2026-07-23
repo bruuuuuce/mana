@@ -27,6 +27,10 @@ README and `docs/examples/end-to-end-codex-flow.md` /
 - **Prepare Team Leader planning:** run `profiles/team-planning.yaml` to
   produce execution sequence, owner/dependency map, story effort estimate,
   delivery risks, and review-load plan.
+- **Calibrate a story estimate from delivery history:** ask explicitly for
+  historical calibration after receiving the base estimate. Mana then uses
+  read-only, team-level comparable-story evidence; it never runs this deeper
+  analysis by default or derives individual productivity metrics.
 - **Review epic/story slicing:** use `profiles/team-planning.yaml` or
   `profiles/story-ready-for-dev.yaml` with `epic-story-partitioning` to check
   whether sibling stories overlap, miss epic goals, hide dependencies, or need
