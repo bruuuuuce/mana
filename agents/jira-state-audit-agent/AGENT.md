@@ -57,9 +57,11 @@ high-impact ambiguity.
 2. Read `docs/policies/jira-state-consistency-policy.md`.
 3. Invoke `jira-release-state-evidence` using read-only Jira, Git, GitHub/GHE,
    repository search, and local artifact access.
-4. Build a timestamped timeline from Jira transitions/comments, PR events,
-   commits, merges, release branch containment, tags, releases, and deployment
-   evidence when available.
+4. Build a timestamped timeline from Jira transitions, all readable Jira
+   comments, visible custom fields/properties, PR events, reviews, review
+   threads, commits, merges, release branch containment, tags, releases, and
+   deployment evidence when available. Do not treat a truncated payload as a
+   complete ticket.
 5. Apply the policy mechanically. Prefer `ambiguous` over speculative
    interpretation when evidence is incomplete or workflow semantics are unclear.
 6. Produce the expected artifacts under the active Mana workspace.
@@ -123,6 +125,7 @@ required before acting on:
 - Local clone lacks PR refs, remote branches, tags, or full history.
 - fixVersion to branch/tag mapping is not configured.
 - Jira comments and technical evidence disagree.
+- PR has unresolved review threads, or their resolution state cannot be read.
 - Cherry-pick, hotfix, backport, revert, or parallel release path exists.
 
 ## Expected Artifacts

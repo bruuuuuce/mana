@@ -17,16 +17,23 @@ structured and free of private chain-of-thought.
 1. Resolve the issue key. Stop with `needs_human_decision` if multiple keys are
    plausible.
 2. Run `jira-release-state-evidence`.
-3. Build `validation/jira-state-evidence-timeline.md` with timestamp, source,
+3. Confirm Jira collection includes all readable comments, visible custom
+   fields, properties, and standard fields. Record unavailable data as an
+   access gap.
+4. Collect PR reviews, general/inline comments, and review threads. For each
+   thread, record its platform resolution state and whether the current diff
+   addresses it; general comments remain `resolution_unknown` unless linked to
+   a resolved thread.
+5. Build `validation/jira-state-evidence-timeline.md` with timestamp, source,
    event type, evidence strength, and reference.
-4. Apply the policy using only recorded evidence.
-5. Build `validation/jira-state-audit-report.md` with status, executive summary,
+6. Apply the policy using only recorded evidence.
+7. Build `validation/jira-state-audit-report.md` with status, executive summary,
    decision table, findings, evidence, open questions, actions, and human
    approval.
-6. Prefer `ambiguous` when release topology, fixVersion mapping, branch target,
+8. Prefer `ambiguous` when release topology, fixVersion mapping, branch target,
    cherry-pick, hotfix, revert, or access gaps prevent a mechanical decision.
-7. Never perform external writes or repository mutation.
-8. Update or reference `agent-memory/story-trace.md` with concise evidence,
+9. Never perform external writes or repository mutation.
+10. Update or reference `agent-memory/story-trace.md` with concise evidence,
    assumptions, decisions, approval gates, handoffs, and generated artifact
    links for the active Jira story or feature.
 

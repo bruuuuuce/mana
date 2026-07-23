@@ -79,33 +79,44 @@ Find open pull requests where the current user is a requested reviewer, or analy
 4. For each candidate or selected PR, read metadata only: number, title, author,
    head branch, base branch, review requests, labels, changed file count,
    additions, deletions, checks status, and PR URL.
-5. Extract generic Jira issue keys from PR head branch names and titles when
+5. Before reviewing a selected PR diff, collect all readable review evidence:
+   reviews, general PR comments, inline review comments, and review threads.
+   Use paginated `gh api` calls and GitHub GraphQL `reviewThreads` where
+   available. Record platform thread state as `resolved`, `unresolved`, or
+   `unknown`; do not infer `resolved` from a follow-up comment, a green check,
+   or an approval.
+6. Extract generic Jira issue keys from PR head branch names and titles when
    available, or use issue keys provided by the profile. If `jira_read` is
    configured, read those issues as requirement context before ranking review
    risk. Do not assume a fixed project prefix. If Jira is unavailable, report
    the access gap and continue with PR evidence.
-6. Compare selected PR changes against Jira story text and acceptance criteria
+7. Compare selected PR changes against Jira story text and acceptance criteria
    when story evidence is available. Report missing requested behavior,
    unrequested scope, contradicted acceptance criteria, and tests that do not
    prove the story.
-7. Rank PRs by review risk before reading large diffs. Prioritize production
+8. Rank PRs by review risk before reading large diffs. Prioritize production
    paths, database changes, public APIs, cross-service contracts, auth/security,
    concurrency, large diffs, failing checks, missing tests, and stale PRs.
-8. For each selected PR, load the PR diff and changed-file list. Exclude
+9. For each selected PR, load the PR diff and changed-file list. Exclude
    Mana/bootstrap noise from findings and evidence: `.mana/**`, `AGENTS.md`,
    `CLAUDE.md`, `mana`, and Mana-only `.gitignore` or env ignore changes.
-9. Use `changed-files-risk-classifier` to classify the PR before deep-loading
+10. Validate every unresolved or unknown review thread against the current diff,
+    code, tests, and subsequent discussion. Classify it as `addressed`,
+    `unresolved`, `obsolete`, or `unverifiable`; retain the platform state
+    separately. An unresolved high-risk thread is a review finding, while a
+    missing thread API is a warning rather than proof of resolution.
+11. Use `changed-files-risk-classifier` to classify the PR before deep-loading
    specialist skills. Use `architecture-guard-detector` when engineering guards
    are relevant to touched paths.
-10. Load existing `.mana/**/evidence/sonar/sonar-summary.md` evidence when
+12. Load existing `.mana/**/evidence/sonar/sonar-summary.md` evidence when
    present and relevant to the selected PR. Do not run `sonar-scanner` from this
    agent unless the human explicitly asks for fresh Sonar evidence.
-11. Use `sonar-evidence-triage` and `dependency-security-evidence` only when
+13. Use `sonar-evidence-triage` and `dependency-security-evidence` only when
     existing evidence or changed files make those domains relevant.
-12. If a selected PR has more than roughly 80 changed files or 2,000 changed
+14. If a selected PR has more than roughly 80 changed files or 2,000 changed
    lines after filtering, stop that PR with `needs_human_decision` and ask for
    a narrower review scope.
-13. Load only skills relevant to the filtered PR diff:
+15. Load only skills relevant to the filtered PR diff:
    - `pre-review-defect` when application code changed.
    - `architecture-risk` when design boundaries, transactions, feature flags,
      concurrency, or forbidden zones are touched.
@@ -115,14 +126,16 @@ Find open pull requests where the current user is a requested reviewer, or analy
      changed.
    - `test-quality` when test files or CI/check evidence must be evaluated.
    - `regression-selection` when the reviewer needs targeted test suggestions.
-14. Produce review-ready findings with file/line or PR evidence, questions for
-   the author, suggested local checks, and suggested review comments.
-15. If `publish_high_risk_comments` is true, `pr_number` is provided, and the run
+16. Produce review-ready findings with file/line or PR evidence, questions for
+   the author, suggested local checks, suggested review comments, and a review
+   conversation table containing source, URL, platform state, validation, and
+   rationale.
+17. If `publish_high_risk_comments` is true, `pr_number` is provided, and the run
    found blocker or high-criticality findings, publish exactly one PR comment
    with only those highest-criticality findings. Do not publish medium, low, or
    speculative findings. If no blocker or high-criticality findings exist, do
    not comment.
-16. Stop at human approval gates for any external write not explicitly covered
+18. Stop at human approval gates for any external write not explicitly covered
    by `publish_high_risk_comments`, destructive actions, or
    high-risk blocker conclusions.
 
@@ -146,6 +159,9 @@ authenticated by the developer. Allowed examples:
 - `gh pr view <number-or-url> --json ...`
 - `gh pr diff <number-or-url>`
 - `gh pr checks <number-or-url>`
+- `gh api --paginate repos/<owner>/<repo>/issues/<pr>/comments?per_page=100`
+- `gh api --paginate repos/<owner>/<repo>/pulls/<pr>/comments?per_page=100`
+- `gh api graphql` for `pullRequest.reviewThreads` resolution state
 
 With explicit runner input `publish_high_risk_comments=true` and a specific
 `pr_number`, the agent may call `gh pr comment <number-or-url> --body-file ...`
@@ -242,6 +258,8 @@ Claude Code can run this agent when it has shell access to `gh` and the reposito
 - Missing optional service context.
 - CI/check status unavailable from GitHub CLI.
 - PR has incomplete test evidence.
+- PR review-thread state is unavailable; general comments cannot be proven
+  resolved.
 - Active workspace contains earlier requested-pr-review artifacts; use the
   warning to prevent cross-PR context contamination.
 - Medium-risk finding needs author clarification.

@@ -81,23 +81,32 @@ external systems.
 1. Resolve the Jira issue key from explicit input, branch name, PR title, commit
    messages, or local Mana artifacts. If multiple issue keys are plausible,
    report ambiguity instead of choosing silently.
-2. Read the Jira issue with read-only access. Extract status, resolution,
-   fixVersion, affectedVersion when relevant, labels, linked issues, issue
-   links, development links, comments that mention PRs, branches, releases,
-   deployments, rollback, or manual transitions, and timestamps.
+2. Read the complete Jira issue with read-only access. Extract summary,
+   description, status, resolution, standard attributes, all visible custom
+   fields with their names/schema, fixVersion, affectedVersion when relevant,
+   labels, linked issues, issue links, development links, and all readable issue
+   properties. Read every accessible comment page, preserving author and
+   timestamps; classify comments that mention PRs, branches, releases,
+   deployments, rollback, or manual transitions. Report unavailable fields,
+   properties, or comment pages as access gaps, never as empty evidence.
 3. Search Git history for the issue key in commit subjects, bodies, branch
    names, merge commits, tags, and release branches. Record commit SHAs, authors
    when available, commit dates, containing branches, and tag containment.
 4. Search GitHub or GHE read-only metadata when available: PRs mentioning the
    issue key, linked branches, target branch, merge status, merge commit,
-   review/check status when already present, releases, tags, and PR timestamps.
+   reviews, general comments, inline comments, review-thread resolution state,
+   check status, releases, tags, and PR timestamps. Validate each readable
+   unresolved thread against the current diff and report it as addressed,
+   unresolved, obsolete, or unverifiable. General PR comments without a thread
+   resolution state must remain `resolution_unknown`.
 5. Build a single timeline ordered by timestamp. Mark each event as `fact`,
    `inference`, or `gap`. Facts need a concrete source reference.
 6. Normalize evidence into policy-friendly fields: `jira_status`,
    `jira_resolution`, `fix_versions`, `prs`, `commits`, `merged_to_mainline`,
    `merged_to_release_branch`, `tag_contains_commit`, `release_mentions_issue`,
-   `deployment_evidence`, `comments_override_or_explain_state`, and
-   `access_gaps`.
+   `deployment_evidence`, `jira_comments`, `jira_custom_fields`,
+   `jira_properties`, `pr_review_threads`, `unresolved_pr_threads`,
+   `comments_override_or_explain_state`, and `access_gaps`.
 7. Return `blocked` only when the issue cannot be read and no fallback evidence
    exists. Return evidence gaps for missing PR refs, unavailable remote, missing
    GitHub auth, or incomplete clone.
@@ -120,6 +129,8 @@ external systems.
   branches can make branch containment non-1:1 with Jira fixVersion.
 - Commit messages without issue keys can hide implementation evidence.
 - Jira comments may describe intent rather than completed technical state.
+- GitHub/GHE may not expose review-thread resolution through REST or GraphQL;
+  general comments and reviews do not themselves prove a thread was resolved.
 
 ## Required Human Review
 Team Leader or Release Owner reviews `non_coherent`, `ambiguous`, and

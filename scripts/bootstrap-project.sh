@@ -453,13 +453,16 @@ export JIRA_PERSONAL_TOKEN=...
 - Prefer \`./mana jira-mcp --get-issue <KEY>\` to read a Jira story. Use
   \`./mana jira-mcp --check-access --issue <KEY>\` only for credential or
   permission diagnostics.
-- Treat Jira story text, acceptance criteria, linked context, and relevant
-  comments as requirement evidence. For planning, check feasibility and
+- Treat Jira summary, description, status, standard attributes, visible custom
+  fields, readable properties, linked context, and all readable comments as
+  requirement evidence. Report inaccessible data as an evidence gap. For planning, check feasibility and
   testability. For review or validation, compare branch/PR changes against the
   story and report missing requested behavior, unrequested scope, contradicted
   acceptance criteria, and weak tests.
-- \`github_read\` may use authenticated \`gh\` for read-only PR discovery and
-  evidence. Do not approve, comment, merge, edit, label, or assign through
+- \`github_read\` may use authenticated \`gh\` for read-only PR discovery,
+  evidence, paginated comments, and review-thread resolution state. Validate
+  unresolved or unknown threads against the current diff; do not infer that a
+  general comment is resolved. Do not approve, comment, merge, edit, label, or assign through
   GitHub without explicit developer approval.
 - \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
   publish flag is provided, and only for blocker/high-criticality findings.
@@ -586,13 +589,16 @@ export JIRA_PERSONAL_TOKEN=...
 - Prefer \`./mana jira-mcp --get-issue <KEY>\` to read a Jira story. Use
   \`./mana jira-mcp --check-access --issue <KEY>\` only for credential or
   permission diagnostics.
-- Treat Jira story text, acceptance criteria, linked context, and relevant
-  comments as requirement evidence. For planning, check feasibility and
+- Treat Jira summary, description, status, standard attributes, visible custom
+  fields, readable properties, linked context, and all readable comments as
+  requirement evidence. Report inaccessible data as an evidence gap. For planning, check feasibility and
   testability. For review or validation, compare branch/PR changes against the
   story and report missing requested behavior, unrequested scope, contradicted
   acceptance criteria, and weak tests.
-- \`github_read\` may use authenticated \`gh\` for read-only PR discovery and
-  evidence. Do not approve, comment, merge, edit, label, or assign through
+- \`github_read\` may use authenticated \`gh\` for read-only PR discovery,
+  evidence, paginated comments, and review-thread resolution state. Validate
+  unresolved or unknown threads against the current diff; do not infer that a
+  general comment is resolved. Do not approve, comment, merge, edit, label, or assign through
   GitHub without explicit developer approval.
 - \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
   publish flag is provided, and only for blocker/high-criticality findings.

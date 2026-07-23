@@ -270,17 +270,120 @@ fi
 if [ -n "$get_issue" ]; then
   load_jira_env
   prepare_jira_curl_config
-  fields="summary,description,issuetype,status,priority,assignee,reporter,labels,components,fixVersions,versions,comment,issuelinks,parent,subtasks,created,updated,resolution"
-  issue_endpoint="$jira_url/rest/api/2/issue/$get_issue?fields=$fields&expand=renderedFields"
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "ERROR: python3 is required to assemble complete Jira issue evidence" >&2
+    exit 1
+  fi
+  # *all includes visible custom fields. Names and schema make customfield_*
+  # values interpretable without hard-coding a project-specific field map.
+  issue_endpoint="$jira_url/rest/api/2/issue/$get_issue?fields=*all&expand=renderedFields,names,schema"
   response_body="$(mktemp)"
-  trap 'rm -f "$curl_config" "$response_body"' EXIT
+  comments_body="$(mktemp)"
+  properties_body="$(mktemp)"
+  property_values_body="$(mktemp)"
+  trap 'rm -f "$curl_config" "$response_body" "$comments_body" "$properties_body" "$property_values_body"' EXIT
   echo "Jira issue read target: $jira_url" >&2
   echo "Jira issue read auth mode: $auth_mode" >&2
   echo "Jira issue read key: $get_issue" >&2
   issue_status="$(curl --config "$curl_config" --output "$response_body" --write-out "%{http_code}" "$issue_endpoint" || true)"
   case "$issue_status" in
     200)
-      cat "$response_body"
+      # The issue response can truncate comments. Fetch all readable pages and
+      # retain access gaps rather than silently treating them as no comments.
+      start_at=0
+      comments_status=200
+      : > "$comments_body"
+      while :; do
+        page_body="$(mktemp)"
+        comment_status="$(curl --config "$curl_config" --output "$page_body" --write-out "%{http_code}" "$jira_url/rest/api/2/issue/$get_issue/comment?startAt=$start_at&maxResults=100" || true)"
+        if [ "$comment_status" != 200 ]; then
+          comments_status="$comment_status"
+          rm -f "$page_body"
+          break
+        fi
+        python3 - "$page_body" <<'PY' >> "$comments_body"
+import json
+import sys
+print(json.dumps(json.load(open(sys.argv[1])), separators=(",", ":")))
+PY
+        page_info="$(python3 - "$page_body" <<'PY'
+import json
+import sys
+data = json.load(open(sys.argv[1]))
+start = int(data.get("startAt") or 0)
+size = len(data.get("comments") or [])
+total = int(data.get("total") or size)
+print(f"{start + size} {total}")
+PY
+)"
+        rm -f "$page_body"
+        set -- $page_info
+        [ "$1" -lt "$2" ] || break
+        start_at="$1"
+      done
+
+      # Issue properties use a separate Jira resource. Permission failures are
+      # a declared evidence gap, not a failure to read the issue itself.
+      properties_status="$(curl --config "$curl_config" --output "$properties_body" --write-out "%{http_code}" "$jira_url/rest/api/2/issue/$get_issue/properties" || true)"
+      : > "$property_values_body"
+      if [ "$properties_status" = 200 ]; then
+        while IFS= read -r property_key; do
+          [ -n "$property_key" ] || continue
+          property_body="$(mktemp)"
+          property_status="$(curl --config "$curl_config" --output "$property_body" --write-out "%{http_code}" "$jira_url/rest/api/2/issue/$get_issue/properties/$property_key" || true)"
+          if [ "$property_status" = 200 ]; then
+            python3 - "$property_body" <<'PY' >> "$property_values_body"
+import json
+import sys
+print(json.dumps(json.load(open(sys.argv[1])), separators=(",", ":")))
+PY
+          fi
+          rm -f "$property_body"
+        done <<EOF
+$(python3 - "$properties_body" <<'PY'
+import json
+import sys
+for item in json.load(open(sys.argv[1])).get("keys") or []:
+    print(item.get("key") or "")
+PY
+)
+EOF
+      fi
+
+      python3 - "$response_body" "$comments_body" "$property_values_body" "$comments_status" "$properties_status" <<'PY'
+import json
+import sys
+
+issue_path, comments_path, values_path, comments_status, properties_status = sys.argv[1:]
+issue = json.load(open(issue_path))
+comments = []
+with open(comments_path) as source:
+    for line in source:
+        if line.strip():
+            comments.extend(json.loads(line).get("comments") or [])
+properties = {}
+with open(values_path) as source:
+    for line in source:
+        if line.strip():
+            item = json.loads(line)
+            if item.get("key"):
+                properties[item["key"]] = item.get("value")
+issue["mana_evidence"] = {
+    "read_scope": "all_visible_fields_and_paginated_comments",
+    "all_comments": comments,
+    "comment_count": len(comments),
+    "issue_properties": properties,
+    "access_gaps": [
+        *([] if comments_status == "200" else [
+            f"Issue comments could not be fully read (HTTP {comments_status or 'unknown'})."
+        ]),
+        *([] if properties_status == "200" else [
+            f"Issue properties could not be read (HTTP {properties_status or 'unknown'})."
+        ]),
+    ],
+}
+print(json.dumps(issue, ensure_ascii=False))
+PY
       ;;
     401|403)
       echo "ERROR: Jira issue read failed for $get_issue with HTTP $issue_status: insufficient permission" >&2
