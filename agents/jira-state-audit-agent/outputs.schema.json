@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "jira-state-audit-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "jira_state_audit_report": {
+      "type": "string"
+    },
+    "jira_state_evidence_timeline": {
+      "type": "string"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "coherent",
+        "non_coherent",
+        "ambiguous",
+        "blocked"
+      ]
+    }
+  }
+}

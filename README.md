@@ -34,14 +34,49 @@ flag only when you want local runner-backed execution:
 ```bash
 scripts/run-profile.sh story-start --codex
 scripts/run-profile.sh story-start --claude
+scripts/run-profile.sh story-start --opencode
 ```
 
-Codex runs start on the cost-saving model configured by
-`MANA_CODEX_MODEL` or `--codex-model` (default: `gpt-5-mini`). Mana also passes
-an escalation target from `MANA_CODEX_FULL_MODEL` or `--codex-full-model`
-(default: `gpt-5`). If a run needs a high-risk or explicitly full-model skill,
-the agent must stop with `needs_model_escalation` and ask you to rerun the same
-profile with the full model instead of spending deep-analysis tokens blindly.
+Codex runs start with a small root orchestrator model configured by
+`MANA_CODEX_MODEL` or `--codex-model` (default: `gpt-5.4-mini`). The root model
+handles routing, light evidence inventory, low-risk checks, delegation,
+aggregation, and synthesis. Bounded high-risk work is delegated in the same run
+to Mana Codex custom agents when available:
+
+- `mana_explorer`: read-only evidence discovery on `gpt-5.6-terra` by default.
+- `mana_full_specialist`: read-only architecture, security, database,
+  concurrency, contract, production, and `model_tier: full` judgment on
+  `gpt-5.6-sol` by default.
+- `mana_worker`: serialized bounded writes on `gpt-5.6-terra` by default, only
+  when a selected profile explicitly permits source modification.
+
+Override them with `MANA_CODEX_EXPLORER_MODEL`, `MANA_CODEX_FULL_MODEL`,
+`MANA_CODEX_WORKER_MODEL`, `--codex-explorer-model`, `--codex-full-model`, and
+`--codex-worker-model`. Disable subagents with `MANA_CODEX_SUBAGENTS=false` or
+`--no-codex-subagents`. Mana still returns `needs_model_escalation` as a
+compatibility fallback when subagents are disabled, unavailable, fail, or leave
+a high-risk judgment unsupported.
+
+OpenCode uses the same Mana runtime shape with project-scoped agents under
+`.opencode/agents/`: `mana_orchestrator` as the primary agent plus
+`mana_explorer`, `mana_full_specialist`, and `mana_worker` as bounded
+subagents. OpenCode model IDs use `provider/model` format; defaults are
+`MANA_OPENCODE_MODEL=opencode/gpt-5.1-codex` and matching specialist variables
+fall back to the root OpenCode model unless overridden. Use `--opencode-model`,
+`--opencode-explorer-model`, `--opencode-full-model`, `--opencode-worker-model`,
+or disable subagents with `MANA_OPENCODE_SUBAGENTS=false` /
+`--no-opencode-subagents`.
+
+Claude Code now uses the same project-scoped runtime shape under
+`.claude/agents/`: `mana-orchestrator` is the `haiku` economy root by default,
+`mana-explorer` and `mana-worker` default to `sonnet`, and
+`mana-full-specialist` defaults to `opus`. Use `MANA_CLAUDE_MODEL`,
+`MANA_CLAUDE_EXPLORER_MODEL`, `MANA_CLAUDE_FULL_MODEL`,
+`MANA_CLAUDE_WORKER_MODEL`, or `--claude-model`, `--claude-explorer-model`,
+`--claude-full-model`, and `--claude-worker-model` for a single run. Disable
+delegation with `MANA_CLAUDE_SUBAGENTS=false` or `--no-claude-subagents`.
+Bootstrap installs these files only in the target repository; it never changes
+`~/.claude` or the local user installation.
 
 To use Mana inside a target application repository:
 
@@ -52,14 +87,17 @@ cd /path/to/project
 ./mana profile mana-help
 ./mana profile story-start --render-only
 ./mana profile story-start --codex
+./mana profile story-start --opencode
 ./mana dependency-evidence --collect
 ./mana evidence-index
 ```
 
 The bootstrap creates a project-local `./mana` wrapper, `.mana/` evidence
-workspace, links to framework definitions, and `AGENTS.md` / `CLAUDE.md` runner
-instructions. Project artifacts stay under the target repository's `.mana/`
-workspace.
+workspace, links to framework definitions, `AGENTS.md` / `CLAUDE.md` runner
+instructions, Mana-managed `.codex/agents/mana-*.toml` agents for Codex,
+`.claude/agents/mana-*.md` agents for Claude Code, and
+`.opencode/agents/mana_*.md` agents for OpenCode delegation. Project artifacts
+stay under the target repository's `.mana/` workspace.
 
 ## What Mana Is
 - An evidence-driven delivery framework.
@@ -87,15 +125,32 @@ workspace.
 - **MCP wrappers** provide governed integrations such as read-only Jira access.
 - **Workspace rules** route generated artifacts into the project-local `.mana/`
   evidence workspace.
-- **Runners** such as Codex or Claude interpret the rendered profile. Junie is
-  used inside the IDE for local implementation support.
+- **Runners** such as Codex, Claude, or OpenCode interpret the rendered profile.
+  Junie is used inside the IDE for local implementation support.
+- **Codex runtime agents** are only execution capability classes. They are not
+  Mana semantic agents and are not mapped one-to-one to Mana skills. The root
+  orchestrator may spawn at most three direct child agents with depth one, and
+  related skills are batched by risk domain instead of spawning one child per
+  skill.
+- **OpenCode runtime agents** mirror the same capability classes:
+  `mana_orchestrator`, `mana_explorer`, `mana_full_specialist`, and
+  `mana_worker`. They also must not be mapped one-to-one to Mana skills.
+- **Claude Code runtime agents** mirror the same capability classes with
+  hyphenated names: `mana-orchestrator`, `mana-explorer`,
+  `mana-full-specialist`, and `mana-worker`. Claude Code subagents cannot
+  recursively delegate because their local definitions do not grant `Agent`.
 
 Codex is used for repository-level planning, validation, documentation, branch
 analysis, PR readiness, and learning. Junie is used inside the IDE for local
 code implementation, test generation, local fixes, green-border execution, and
 fast developer feedback. Claude Code is used as a CLI runner for repository-level
-analysis and local development support. Do not let two runners modify the same
-branch at the same time.
+analysis and local development support. OpenCode is used as a CLI runner with
+project-scoped primary/subagent configuration. Do not let two runners modify the
+same branch at the same time.
+
+Codex subagents can increase total token usage. The intended optimization is to
+reduce expensive-model scope and keep the root context compact, not to guarantee
+lower total tokens.
 
 ## Role-Based Workflow Map
 | Role | When | Mana workflow/profile | Output | Decision supported |
@@ -162,9 +217,10 @@ From a target application repository, run:
 ```
 
 This creates a small local `./mana` wrapper, `.mana/` links to the framework,
-the project-local `.mana/` artifact workspace, and `AGENTS.md` and `CLAUDE.md`
-in the project root so Codex and Claude Code load Mana instructions automatically
-at session start. See `docs/deployment/project-link-bootstrap.md`.
+the project-local `.mana/` artifact workspace, `AGENTS.md` and `CLAUDE.md` in
+the project root, and `.opencode/agents/` so Codex, Claude Code, and OpenCode
+load Mana instructions automatically at session start. See
+`docs/deployment/project-link-bootstrap.md`.
 
 For a complete Jira-free flow from epic input to PR readiness, see
 `docs/examples/end-to-end-codex-flow.md`.

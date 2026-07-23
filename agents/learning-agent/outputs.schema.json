@@ -4,6 +4,9 @@
   "type": "object",
   "additionalProperties": true,
   "properties": {
+    "service_knowledge_capture_report": {
+      "type": "string"
+    },
     "known_pitfalls": {
       "type": "string"
     },

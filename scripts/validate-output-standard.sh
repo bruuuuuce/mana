@@ -12,7 +12,7 @@ fi
 
 check_output_standard_reference() {
   file="$1"
-  if ! grep -Eq "Agent And Skill Output Standard|agent-skill-output-standard\\.md" "$file"; then
+  if ! grep -Eq "Agent And Skill Output Standard|agent-skill-output-standard\\.md|output-contract\\.md" "$file"; then
     echo "ERROR: $file does not reference the output standard" >&2
     status=1
   fi

@@ -24,15 +24,20 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
    before reading diffs.
 6. Rank PRs by risk and select the highest-signal PRs first. Respect any
    `max_prs`, label, author, branch, or repository filter from the user.
-7. For each selected PR, collect changed files, filtered diff, checks, and
-   review-relevant metadata.
-8. Exclude Mana/bootstrap noise before finding production or review issues.
-9. Load and run only the review skills whose conditions in `AGENT.md` match the
+7. For each selected PR, collect changed files, filtered diff, checks, reviews,
+   paginated general/inline comments, and GraphQL review threads when available.
+   Keep platform resolution state separate from Mana's technical validation.
+8. Validate every unresolved or unknown thread against the current code, diff,
+   tests, and discussion. Report `addressed`, `unresolved`, `obsolete`, or
+   `unverifiable`; do not upgrade general comments to resolved without a
+   resolved thread state.
+9. Exclude Mana/bootstrap noise before finding production or review issues.
+10. Load and run only the review skills whose conditions in `AGENT.md` match the
    filtered PR diff and available evidence.
-10. Update or reference `agent-memory/story-trace.md` when a story workspace is
+11. Update or reference `agent-memory/story-trace.md` when a story workspace is
    available, then write the review inbox report and per-PR notes under the
    run-specific `pr-review/` subdirectory.
-11. Present suggested comments as drafts by default. If
+12. Present suggested comments as drafts by default. If
    `publish_high_risk_comments=true` and a single PR is selected, publish at
    most one `gh pr comment` containing only blocker or high-criticality findings
    from this run. Do not call any other `gh` command that writes to GitHub

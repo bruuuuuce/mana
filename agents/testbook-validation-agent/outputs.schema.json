@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "testbook-validation-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "testbook": { "type": "string" },
+    "test_discovery_report": { "type": "string" },
+    "test_run_report": { "type": "string" },
+    "verdict": { "type": "string", "enum": ["passed", "failed", "blocked", "partial", "inconclusive"] }
+  }
+}

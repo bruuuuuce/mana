@@ -27,6 +27,10 @@ outputs:
   - test_gap_analysis
   - test_skeleton_suggestions
 risk_level: medium
+model_tier: economy
+execution_mode: read
+delegation_group: tests
+parallel_safe: true
 owner_role: Team Leader / QA
 stack:
   - any

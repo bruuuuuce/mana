@@ -1,11 +1,12 @@
 ---
 name: learning-agent
 version: 1.0.0
-description: Updates knowledge after merges, incidents, review comments, or recurring failures.
+description: Captures and updates evidence-backed service knowledge after deep analysis, merges, incidents, review comments, or recurring failures.
 preferred_runner: codex
 compatible_runners:
   - codex
 skills_used:
+  - service-knowledge-capture
   - known-pitfalls-extraction
   - post-merge-incident-learning
   - rule-update-suggestion
@@ -19,15 +20,19 @@ allowed_tools:
   - architecture_rules_read
   - test_runner_read
 trigger_points:
+  - service_knowledge_capture
   - post_merge
   - incident_closed
   - recurring_failure_detected
 inputs:
+  - analysis_evidence
+  - existing_service_knowledge
   - incident_reports
   - review_comments
   - bug_tickets
   - test_history
 outputs:
+  - service-knowledge-capture-report.md
   - known-pitfalls.md
   - rule-update-suggestions.md
   - incident-learning-report.md
@@ -39,7 +44,10 @@ risk_level: medium
 # Learning Agent
 
 ## Mission
-Updates knowledge after merges, incidents, review comments, or recurring failures. The agent orchestrates skills; it does not duplicate skill logic and does not replace human accountability.
+Captures and updates evidence-backed service knowledge after deep analysis,
+merges, incidents, review comments, or recurring failures. The agent
+orchestrates skills; it does not duplicate skill logic and does not replace
+human accountability.
 
 ## Trigger Points
 - post_merge
@@ -47,37 +55,44 @@ Updates knowledge after merges, incidents, review comments, or recurring failure
 - recurring_failure_detected
 
 ## Workflow
-1. Load `known-pitfalls-extraction` when review comments, bug tickets,
+1. Load `service-knowledge-capture` when analysis discovers reusable service
+   behavior, constraints, decisions, or unknowns with concrete evidence. Write
+   candidate cards first; promote them only with the approval required by
+   `docs/policies/service-knowledge-policy.md`.
+2. Load `known-pitfalls-extraction` when review comments, bug tickets,
    incidents, or local knowledge sources contain repeatable pitfalls.
-2. Load `post-merge-incident-learning` only for closed incidents, escaped
+3. Load `post-merge-incident-learning` only for closed incidents, escaped
    defects, or production-impacting post-merge events.
-3. Load `rule-update-suggestion` only when evidence points to a reusable guard,
+4. Load `rule-update-suggestion` only when evidence points to a reusable guard,
    checklist, standard, or automation change.
-4. Load `flaky-failure-classification` only when test history includes flaky,
+5. Load `flaky-failure-classification` only when test history includes flaky,
    intermittent, timeout, ordering, or environment-sensitive failures.
-5. Aggregate `metrics-events.md` rows from the involved feature workspaces
+6. Aggregate `metrics-events.md` rows from the involved feature workspaces
    into a proposed `delivery-metrics-update.md` following
    `docs/standards/delivery-metrics-standard.md`: story rework rate, finding
    hit/miss rate, and open question answer rate. Name the skill behind each
    miss or false positive so tuning work is actionable.
-6. Aggregate blocker, warning, and info findings into the expected artifacts.
-7. Stop at human approval gates when blockers or out-of-policy actions are detected.
+7. Aggregate blocker, warning, and info findings into the expected artifacts.
+8. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Skills Used And Why
+- `service-knowledge-capture`: stores reusable, evidence-backed service facts
+  and unknowns without polluting the global context with raw analysis.
 - `known-pitfalls-extraction`: contributes its atomic review to this workflow.
 - `post-merge-incident-learning`: contributes its atomic review to this workflow.
 - `rule-update-suggestion`: contributes its atomic review to this workflow.
 - `flaky-failure-classification`: contributes its atomic review to this workflow.
 
 ## Service Context Layer
-Before executing this agent, load `.mana/global/service-mission.md`, `.mana/global/architecture.md`, and `.mana/global/engineering-guards.md` when present. Load specialist context files as needed: `domain-glossary.md`, `integration-map.md`, `testing-policy.md`, and `database-policy.md`.
+Before executing this agent, load `.mana/global/service-mission.md`, `.mana/global/architecture.md`, and `.mana/global/engineering-guards.md` when present. Read `.mana/global/knowledge/index.md` before loading only the cards relevant to the active question. Load specialist context files as needed: `domain-glossary.md`, `integration-map.md`, `testing-policy.md`, and `database-policy.md`.
 
 Missing service context files should be reported as warnings unless the active profile makes them mandatory. Any requested action that violates `engineering-guards.md` must block or require explicit approval from the accountable owner.
 
 ## Artifact Workspace
-For feature-specific learning, use the active feature workspace and write outputs to `learning/`. For cross-feature lessons approved by the Team Leader or Architect, promote durable knowledge to `.mana/global/known-pitfalls/`, `.mana/global/rules/`, or `.mana/global/team-decisions/`.
+For feature-specific learning, use the active feature workspace and write outputs to `learning/`. For cross-feature lessons approved by the Team Leader or Architect, promote durable knowledge to `.mana/global/known-pitfalls/`, `.mana/global/rules/`, `.mana/global/team-decisions/`, or `.mana/global/knowledge/cards/`. New service knowledge without approval belongs in `.mana/global/knowledge/candidates/`.
 
 Default output routing:
+- `service-knowledge-capture-report.md` -> `learning/service-knowledge-capture-report.md`
 - `known-pitfalls.md` -> `learning/known-pitfalls.md` or `.mana/global/known-pitfalls/` when approved
 - `rule-update-suggestions.md` -> `learning/rule-update-suggestions.md`
 - `incident-learning-report.md` -> `learning/incident-learning-report.md`
@@ -121,6 +136,7 @@ Junie is preferred for IDE-local implementation, local test generation, local te
 - MCP access limitation recorded with a follow-up owner.
 
 ## Expected Artifacts
+- service-knowledge-capture-report.md
 - known-pitfalls.md
 - rule-update-suggestions.md
 - incident-learning-report.md

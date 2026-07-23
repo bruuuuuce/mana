@@ -24,6 +24,10 @@ outputs:
   - untestable_criteria
   - rewritten_criteria_suggestions
 risk_level: low
+model_tier: economy
+execution_mode: read
+delegation_group: requirements
+parallel_safe: true
 owner_role: BA / QA / Team Leader
 stack:
   - any

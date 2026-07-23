@@ -22,6 +22,10 @@ outputs:
   - vulnerable_dependency_findings
   - dependency_followups
 risk_level: medium
+model_tier: full
+execution_mode: read
+delegation_group: security
+parallel_safe: true
 owner_role: Developer / Security / Team Leader
 stack:
   - dependency

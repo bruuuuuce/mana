@@ -23,6 +23,10 @@ outputs:
   - concurrency_risk_report
   - idempotency_test_plan
 risk_level: high
+model_tier: full
+execution_mode: read
+delegation_group: architecture
+parallel_safe: true
 owner_role: Architect / Team Leader
 stack:
   - any

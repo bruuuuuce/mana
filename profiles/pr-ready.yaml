@@ -35,6 +35,22 @@ skills:
 - pre-review-defect
 - sonar-evidence-triage
 - test-quality
+skill_activation:
+  baseline:
+  - changed-files-risk-classifier
+  - development-summary
+  conditional:
+    acceptance_criteria_or_jira: jira-acceptance-criteria-normalizer
+    engineering_guard_match: architecture-guard-detector
+    existing_sonar_evidence: sonar-evidence-triage
+    dependency_manifest_or_lockfile_change: dependency-security-evidence
+    non_obvious_choice_or_plan_drift: developer-decision-review
+    maintainer_handoff_needed: developer-handoff
+    application_code_change: pre-review-defect
+    architecture_boundary_change: architecture-risk
+    api_event_or_client_contract_change: cross-service-contract
+    migration_or_schema_change: liquibase-production-risk
+    test_evidence_present: test-quality
 blocking_conditions:
   - unresolved blocker findings
   - missing required artifacts

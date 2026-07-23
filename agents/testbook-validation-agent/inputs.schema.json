@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "testbook-validation-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "project_root": { "type": "string" },
+    "testbook": { "type": "string" },
+    "requested_test_ids": { "type": "array", "items": { "type": "string" } },
+    "environment_name": { "type": "string", "default": "local" }
+  }
+}

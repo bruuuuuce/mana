@@ -1,11 +1,12 @@
 # Skills Catalog
 
-Reference guide for all 53 skills in the Mana framework, grouped by the
+Reference guide for all 54 skills in the Mana framework, grouped by the
 profile in which they are recommended. Skills may appear in multiple profiles.
 
 Skills are ordered by delivery lifecycle: story intake → planning →
 architecture → **development (dev-assist)** → pre-commit → pre-push →
-branch validation → PR → release → team coaching → framework help.
+branch validation → PR → release state audit → release → team coaching →
+framework help.
 
 Skills that exist in the framework but are not yet wired into a profile appear
 at the end under [Standalone Skills](#standalone-skills).
@@ -68,6 +69,17 @@ at the end under [Standalone Skills](#standalone-skills).
 | [`story-effort-estimation`](../skills/story-effort-estimation/SKILL.md) | Estimate Agile story points and time ranges for stories and split technical tasks. | medium | Team Leader |
 | [`green-border-plan`](../skills/green-border-plan/SKILL.md) | Plan unit, integration, contract, regression, and legacy characterization tests needed before and during implementation. | medium | Team Leader / QA |
 | [`developer-handoff`](../skills/developer-handoff/SKILL.md) | Generate a practical handoff document explaining what was developed, why, how to read the change, and what future developers must know. | low | Developer / Team Leader |
+
+---
+
+## epic-analysis
+**Trigger:** `epic_analysis` · **Owner:** BA / PO / Team Leader · **Duration:** 30 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`epic-structure-analysis`](../skills/epic-structure-analysis/SKILL.md) | Build a complete, evidence-backed inventory of the epic and its child stories before evaluating delivery decisions. | low | BA / PO / Team Leader |
+| [`epic-story-partitioning`](../skills/epic-story-partitioning/SKILL.md) | Detect sibling-story overlap, contradictions, gaps, hidden dependencies, and weak boundaries. | medium | BA / PO / Team Leader |
+| [`epic-implementation-graph`](../skills/epic-implementation-graph/SKILL.md) | Propose a reviewable dependency DAG and implementation waves from Jira, the KB, and optionally approved read-only service discovery. | medium | Team Leader / Architect |
 
 ---
 
@@ -290,6 +302,34 @@ run.
 
 ---
 
+## jira-state-audit
+**Trigger:** `jira_state_audit` · **Owner:** Developer / Team Leader / Release Owner · **Duration:** 5 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`jira-release-state-evidence`](../skills/jira-release-state-evidence/SKILL.md) | Collect read-only Jira, Git, GitHub, branch, tag, and release evidence to audit whether Jira issue state is coherent. | low | Developer / Team Leader / Release Owner |
+
+---
+
+## service-knowledge-capture
+**Trigger:** `service_knowledge_capture` · **Owner:** Developer / Team Leader / Architect · **Duration:** 15 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`service-knowledge-capture`](../skills/service-knowledge-capture/SKILL.md) | Capture reusable service behavior, constraints, decisions, and unknowns as progressive-load evidence-backed cards. | medium | Developer / Team Leader / Architect |
+
+---
+
+## testbook-validation
+**Trigger:** `testbook_validation` · **Owner:** Developer / QA · **Duration:** 20 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`testbook-discovery`](../skills/testbook-discovery/SKILL.md) | Discover unit, integration, contract, end-to-end, and performance test candidates from repository evidence without running them. | low | Developer / QA |
+| [`testbook-run-report`](../skills/testbook-run-report/SKILL.md) | Run explicitly approved local testbook entries and report result evidence without inventing commands. | medium | Developer / QA |
+
+---
+
 ## team-coaching-review
 **Trigger:** `coaching_review` · **Owner:** Team Leader · **Duration:** 30 min
 
@@ -339,9 +379,10 @@ a custom profile.
 > [`docs/deployment/sonar-scanner-wrapper.md`](deployment/sonar-scanner-wrapper.md);
 > it no longer requires a dedicated skill.
 
-> `learning-agent` uses `post-merge-incident-learning`, `rule-update-suggestion`,
-> `known-pitfalls-extraction`, and `flaky-failure-classification` but no
-> dedicated profile triggers it yet. Add a `learning` profile to enable it.
+> `learning-agent` powers `service-knowledge-capture`; it also supports
+> `post-merge-incident-learning`, `rule-update-suggestion`,
+> `known-pitfalls-extraction`, and `flaky-failure-classification` when their
+> evidence is present.
 
 ---
 
@@ -404,6 +445,7 @@ a custom profile.
 | `knowledge-transfer-brief` | pre-commit |
 | `known-pitfalls-extraction` | dev-assist, am-release-ready, team-coaching-review |
 | `jira-acceptance-criteria-normalizer` | story-start, story-ready-for-dev, branch-ready, pr-ready, requested-pr-review |
+| `jira-release-state-evidence` | jira-state-audit |
 | `liquibase-syntax` | pre-commit, branch-ready, ci-validation, pre-push |
 | `mana-usage-help` | tutorial, mana-help |
 | `profile-selector` | tutorial, mana-help |

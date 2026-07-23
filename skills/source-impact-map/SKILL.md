@@ -24,6 +24,10 @@ outputs:
   - candidate_files
   - inspection_scope
 risk_level: medium
+model_tier: economy
+execution_mode: read
+delegation_group: source
+parallel_safe: true
 owner_role: Team Leader / Developer
 stack:
   - any

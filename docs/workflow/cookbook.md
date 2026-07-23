@@ -31,6 +31,10 @@ README and `docs/examples/end-to-end-codex-flow.md` /
   `profiles/story-ready-for-dev.yaml` with `epic-story-partitioning` to check
   whether sibling stories overlap, miss epic goals, hide dependencies, or need
   splitting before assignment.
+- **Analyze an epic end to end:** use `profiles/epic-analysis.yaml` with an
+  explicit Jira key. It creates structure and partitioning reports plus an
+  evidence-backed implementation graph. Add `--allow-service-discovery` only
+  when read-only inspection of services named by the stories is approved.
 - **Generate a plan:** use the Story Implementation Planner Agent and route
   open questions to BA/PO, Team Leader, Architect, or DBA.
 - **Use the story as evidence:** planning profiles use Jira story text and
@@ -49,6 +53,15 @@ README and `docs/examples/end-to-end-codex-flow.md` /
   `./mana jira-mcp --get-issue PROJ-1234`. Use
   `./mana jira-mcp --check-access --issue PROJ-1234` only for credential or
   permission diagnostics.
+- **Audit whether Jira state matches technical evidence:** run
+  `scripts/run-profile.sh jira-state-audit --jira-key PROJ-1234 --codex`.
+  The audit is read-only and compares Jira state, fixVersion, comments, PRs,
+  merges, release branches, tags, and releases against
+  `docs/policies/jira-state-consistency-policy.md`.
+- **Discover and validate a project's tests:** run
+  `scripts/run-profile.sh testbook-validation --project-root /path/to/project --codex`.
+  Review the proposed testbook and approve individual entries before asking the
+  agent to execute unit, integration, or performance tests.
 - **Cache epic and sibling stories as Markdown:** in a linked project, run
   `./mana jira-mcp --fetch-epic-story-pack PROJ-1234`. Mana resolves the
   parent epic when Jira exposes one and writes
@@ -75,6 +88,10 @@ README and `docs/examples/end-to-end-codex-flow.md` /
   change.
 - **Run green border:** use the Green Border Test Agent to generate or run
   focused unit, integration, contract, regression, and legacy tests.
+- **Capture non-obvious service knowledge:** run
+  `scripts/run-profile.sh service-knowledge-capture --project-root /path/to/project --codex`.
+  The agent writes evidence-backed candidate cards; stable promotion needs the
+  accountable owner's approval.
 
 ## Quality Evidence
 
@@ -118,6 +135,9 @@ README and `docs/examples/end-to-end-codex-flow.md` /
 - **Prepare AM release readiness:** use `profiles/am-release-ready.yaml` for
   release impact, continuity, incident-risk, rollback, support, and
   communication evidence.
+- **Check Jira state before release governance:** use
+  `profiles/jira-state-audit.yaml` when the question is narrowly whether one
+  issue's Jira state is coherent with Git, PR, branch, tag, or release evidence.
 - **Generate PR package:** run the PR Readiness Agent to create the PR
   description, reviewer focus, test evidence, risk report, and development
   summary.

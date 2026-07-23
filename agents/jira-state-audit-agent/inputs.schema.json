@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "jira-state-audit-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "jira_issue_key": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]+-[0-9]+$"
+    },
+    "target_branch": {
+      "type": "string"
+    },
+    "release_branch": {
+      "type": "string"
+    },
+    "fix_version": {
+      "type": "string"
+    },
+    "policy_file": {
+      "type": "string",
+      "default": "docs/policies/jira-state-consistency-policy.md"
+    },
+    "pr_number": {
+      "type": [
+        "integer",
+        "string"
+      ]
+    },
+    "release_tag": {
+      "type": "string"
+    }
+  }
+}

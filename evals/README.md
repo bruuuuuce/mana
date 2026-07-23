@@ -53,6 +53,9 @@ justifies it — never delete an expectation just to make a run pass.
 | `weak-acceptance-criteria` | `story-ready-for-dev` | `acceptance-criteria-testability`, `developer-readiness-check`, start/no-start decision |
 | `plan-drift-branch` | `branch-ready` | `branch-validation-agent` plan-drift detection, missing-test evidence |
 | `risky-liquibase-change` | `pre-push` | `liquibase-production-risk`, DBA approval gate |
+| `conditional-database-pr` | `pr-ready` | migration signal activates `liquibase-production-risk` |
+| `conditional-contract-pr` | `pr-ready` | API/event signal activates `cross-service-contract` |
+| `conditional-security-pr` | `pr-ready` | dependency signal activates `dependency-security-evidence` |
 
 ## Adding A Scenario
 

@@ -24,6 +24,9 @@ Created in the target project:
   .mana/env                   Mana path configuration.
   .mana/README.md             Local usage notes.
   .mana/links/*               Symlinks to framework skills, agents, profiles, docs, templates, mcp.
+  .codex/agents/mana-*.toml    Mana-managed Codex runtime subagents.
+  .claude/agents/mana-*.md     Mana-managed Claude Code runtime agents.
+  .opencode/agents/mana_*.md   Mana-managed OpenCode runtime agents.
   .mana/jira-mcp.env          Local Jira MCP env template, ignored by Git.
   mana                        Local command wrapper for common Mana commands.
   AGENTS.md                   Codex auto-loaded runner instructions.
@@ -123,6 +126,106 @@ write_file() {
 write_file "$project_root/.mana/env" "MANA_HOME=\"$framework_root\"
 MANA_PROJECT_ROOT=\"$project_root\""
 
+is_mana_managed_file() {
+  file="$1"
+  [ -f "$file" ] && grep -q 'Mana-managed' "$file" 2>/dev/null
+}
+
+install_managed_file_or_link() {
+  source_file="$1"
+  target_file="$2"
+  mode="$3"
+
+  if [ -e "$target_file" ] || [ -L "$target_file" ]; then
+    if [ -L "$target_file" ]; then
+      if [ "$force" = true ]; then
+        rm "$target_file"
+      else
+        return 0
+      fi
+    elif is_mana_managed_file "$target_file"; then
+      if [ "$force" = true ]; then
+        rm "$target_file"
+      else
+        return 0
+      fi
+    else
+      echo "WARNING: not replacing existing non-managed file $target_file" >&2
+      return 0
+    fi
+  fi
+
+  mkdir -p "$(dirname "$target_file")"
+  if [ "$mode" = "link" ]; then
+    ln -s "$source_file" "$target_file"
+  else
+    cp "$source_file" "$target_file"
+  fi
+}
+
+install_codex_agents() {
+  source_agents_dir="$framework_root/.codex/agents"
+  target_agents_dir="$project_root/.codex/agents"
+  [ -d "$source_agents_dir" ] || return 0
+  mkdir -p "$target_agents_dir"
+
+  mode="copy"
+  if [ "$create_links" = true ]; then
+    mode="link"
+  fi
+
+  for agent_file in mana-explorer.toml mana-full-specialist.toml mana-worker.toml; do
+    [ -f "$source_agents_dir/$agent_file" ] || continue
+    install_managed_file_or_link "$source_agents_dir/$agent_file" "$target_agents_dir/$agent_file" "$mode"
+  done
+
+  config_file="$project_root/.codex/config.toml"
+  if [ ! -e "$config_file" ]; then
+    cat > "$config_file" <<'CONFIG'
+# Mana-managed minimal Codex project configuration.
+# Existing user-owned .codex/config.toml files are never replaced by bootstrap.
+[agents]
+max_threads = 3
+max_depth = 1
+interrupt_message = false
+CONFIG
+  fi
+}
+
+install_claude_agents() {
+  source_agents_dir="$framework_root/.claude/agents"
+  target_agents_dir="$project_root/.claude/agents"
+  [ -d "$source_agents_dir" ] || return 0
+  mkdir -p "$target_agents_dir"
+
+  mode="copy"
+  if [ "$create_links" = true ]; then
+    mode="link"
+  fi
+
+  for agent_file in mana-orchestrator.md mana-explorer.md mana-full-specialist.md mana-worker.md; do
+    [ -f "$source_agents_dir/$agent_file" ] || continue
+    install_managed_file_or_link "$source_agents_dir/$agent_file" "$target_agents_dir/$agent_file" "$mode"
+  done
+}
+
+install_opencode_agents() {
+  source_agents_dir="$framework_root/.opencode/agents"
+  target_agents_dir="$project_root/.opencode/agents"
+  [ -d "$source_agents_dir" ] || return 0
+  mkdir -p "$target_agents_dir"
+
+  mode="copy"
+  if [ "$create_links" = true ]; then
+    mode="link"
+  fi
+
+  for agent_file in mana_orchestrator.md mana_explorer.md mana_full_specialist.md mana_worker.md; do
+    [ -f "$source_agents_dir/$agent_file" ] || continue
+    install_managed_file_or_link "$source_agents_dir/$agent_file" "$target_agents_dir/$agent_file" "$mode"
+  done
+}
+
 # The wrapper body is intentionally single-quoted so variables expand in the
 # generated project wrapper, not while bootstrap-project.sh is running.
 # shellcheck disable=SC2016
@@ -161,6 +264,7 @@ Examples:
   ./mana profile story-start
   ./mana profile jessica-fletcher --codex
   ./mana profile jessica-fletcher --claude
+  ./mana profile jessica-fletcher --opencode
   ./mana profile jessica-fletcher --jira-key PROJ-1234 --codex
   ./mana workspace status
   ./mana workspace init --feature PROJ-1234
@@ -209,7 +313,7 @@ write_file "$project_root/mana" "$wrapper_content"
 chmod +x "$project_root/mana"
 
 if [ "$create_links" = true ]; then
-  for name in skills agents profiles docs templates mcp .codex .junie .claude; do
+  for name in skills agents profiles docs templates mcp .codex .opencode .junie .claude; do
     source_path="$framework_root/$name"
     target_path="$project_root/.mana/links/$name"
     [ -e "$source_path" ] || continue
@@ -226,6 +330,10 @@ if [ "$create_links" = true ]; then
     ln -s "$source_path" "$target_path"
   done
 fi
+
+install_codex_agents
+install_claude_agents
+install_opencode_agents
 
 if [ "$create_jira_env" = true ]; then
   jira_example="$framework_root/mcp/env/jira-mcp.env.example"
@@ -266,6 +374,13 @@ Use the local wrapper:
 Project artifacts stay local under \`.mana/\`.
 
 Linked Mana folders are under \`.mana/links/\`.
+Codex runtime agents are installed under \`.codex/agents/\` and OpenCode
+runtime agents are installed under \`.opencode/agents/\` as Mana-managed files
+or symlinks. Existing user-owned Codex/OpenCode agents and \`.codex/config.toml\`
+are preserved. Mana still enforces Codex agent \`max_threads=3\`,
+\`max_depth=1\`, and \`interrupt_message=false\` at runner startup with CLI
+configuration. OpenCode receives equivalent bounded-delegation instructions
+through the \`mana_orchestrator\` primary agent and the three Mana subagents.
 Do not put real Jira credentials in Git. For Jira Server/Data Center, the
 minimal shell setup is \`JIRA_URL\` plus \`JIRA_PERSONAL_TOKEN\`.
 For Sonar scanner, keep only \`SONAR_HOST_URL\` and \`SONAR_TOKEN\` in the
@@ -288,6 +403,7 @@ See \`.mana/links/.claude/instructions.md\` for full runner governance.
 ./mana profile <name>                # render profile
 ./mana profile <name> --codex        # run via Codex
 ./mana profile <name> --claude       # run via Claude Code
+./mana profile <name> --opencode     # run via OpenCode
 \`\`\`
 
 Key profiles:
@@ -337,13 +453,16 @@ export JIRA_PERSONAL_TOKEN=...
 - Prefer \`./mana jira-mcp --get-issue <KEY>\` to read a Jira story. Use
   \`./mana jira-mcp --check-access --issue <KEY>\` only for credential or
   permission diagnostics.
-- Treat Jira story text, acceptance criteria, linked context, and relevant
-  comments as requirement evidence. For planning, check feasibility and
+- Treat Jira summary, description, status, standard attributes, visible custom
+  fields, readable properties, linked context, and all readable comments as
+  requirement evidence. Report inaccessible data as an evidence gap. For planning, check feasibility and
   testability. For review or validation, compare branch/PR changes against the
   story and report missing requested behavior, unrequested scope, contradicted
   acceptance criteria, and weak tests.
-- \`github_read\` may use authenticated \`gh\` for read-only PR discovery and
-  evidence. Do not approve, comment, merge, edit, label, or assign through
+- \`github_read\` may use authenticated \`gh\` for read-only PR discovery,
+  evidence, paginated comments, and review-thread resolution state. Validate
+  unresolved or unknown threads against the current diff; do not infer that a
+  general comment is resolved. Do not approve, comment, merge, edit, label, or assign through
   GitHub without explicit developer approval.
 - \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
   publish flag is provided, and only for blocker/high-criticality findings.
@@ -373,6 +492,23 @@ export JIRA_PERSONAL_TOKEN=...
   PR threads, full skill files, or copied tool output.
   Convert working notes into the structured sections required by
   \`docs/standards/agent-skill-output-standard.md\`.
+
+## Claude Runtime Delegation
+
+Claude Code uses project-scoped Mana agents in \`.claude/agents/\`:
+- \`mana-orchestrator\` is the economy root for routing, evidence inventory,
+  low-risk checks, delegation, aggregation, and synthesis.
+- \`mana-explorer\` is a read-only evidence subagent.
+- \`mana-full-specialist\` is a read-only high-risk/full-tier subagent.
+- \`mana-worker\` is a serialized writer only when the selected profile
+  explicitly permits source modification.
+
+These are runtime capability classes, not Mana semantic agents. Batch related
+skills by risk domain; do not create one Claude Code subagent per Mana skill.
+The root may request at most three direct subagents, one per capability class;
+child agents cannot delegate. Parallelism is only for independent read-heavy
+work. If delegation is unavailable or insufficient for high-risk work, preserve
+a concise handoff artifact and return \`needs_model_escalation\`.
 "
 
 write_file "$project_root/CLAUDE.md" "$claude_md_content"
@@ -388,6 +524,7 @@ See \`.mana/links/.codex/instructions.md\` for full runner governance.
 ./mana profile <name>                # render profile
 ./mana profile <name> --codex        # run via Codex
 ./mana profile <name> --claude       # run via Claude Code
+./mana profile <name> --opencode     # run via OpenCode
 \`\`\`
 
 Key profiles:
@@ -405,9 +542,23 @@ When asked to run a profile, Codex:
 2. Reads \`.mana/links/agents/<agent>/AGENT.md\` and \`playbook.md\`
 3. Loads only the primary or conditionally relevant skills via
    \`.mana/links/skills/<skill>/SKILL.md\`
-4. Writes outputs to the active \`.mana/\` workspace
+4. Uses the small root model for routing, evidence inventory, low-risk checks,
+   delegation, aggregation, and final synthesis
+5. Delegates bounded read-heavy evidence work to \`mana_explorer\` and bounded
+   high-risk judgment to \`mana_full_specialist\` when those custom agents are
+   available
+6. Writes outputs to the active \`.mana/\` workspace
 
 Run: \`./mana profile jessica-fletcher --codex\` — Codex follows the full chain.
+
+Claude Code follows the same bounded delegation chain through
+\`.claude/agents/mana-orchestrator.md\` and the Mana-managed
+\`mana-explorer\`, \`mana-full-specialist\`, and \`mana-worker\` subagents.
+Run: \`./mana profile jessica-fletcher --claude\`.
+
+OpenCode follows the same Mana chain through \`.opencode/agents/mana_orchestrator.md\`
+and the Mana-managed \`mana_explorer\`, \`mana_full_specialist\`, and
+\`mana_worker\` subagents. Run: \`./mana profile jessica-fletcher --opencode\`.
 
 ## Workspace
 
@@ -438,13 +589,16 @@ export JIRA_PERSONAL_TOKEN=...
 - Prefer \`./mana jira-mcp --get-issue <KEY>\` to read a Jira story. Use
   \`./mana jira-mcp --check-access --issue <KEY>\` only for credential or
   permission diagnostics.
-- Treat Jira story text, acceptance criteria, linked context, and relevant
-  comments as requirement evidence. For planning, check feasibility and
+- Treat Jira summary, description, status, standard attributes, visible custom
+  fields, readable properties, linked context, and all readable comments as
+  requirement evidence. Report inaccessible data as an evidence gap. For planning, check feasibility and
   testability. For review or validation, compare branch/PR changes against the
   story and report missing requested behavior, unrequested scope, contradicted
   acceptance criteria, and weak tests.
-- \`github_read\` may use authenticated \`gh\` for read-only PR discovery and
-  evidence. Do not approve, comment, merge, edit, label, or assign through
+- \`github_read\` may use authenticated \`gh\` for read-only PR discovery,
+  evidence, paginated comments, and review-thread resolution state. Validate
+  unresolved or unknown threads against the current diff; do not infer that a
+  general comment is resolved. Do not approve, comment, merge, edit, label, or assign through
   GitHub without explicit developer approval.
 - \`github_pr_comment_write\` is allowed only for a selected PR when an explicit
   publish flag is provided, and only for blocker/high-criticality findings.
@@ -460,6 +614,28 @@ export JIRA_PERSONAL_TOKEN=...
   workspace, requirement source, branch or PR target, and diff base; inventory
   evidence; classify risk domains; load only needed skills; then report status,
   findings, evidence, artifacts, and approvals.
+- Codex subagents are runtime capability classes only. Mana semantic agents
+  stay under \`.mana/links/agents/\`, and Mana skills stay under
+  \`.mana/links/skills/\`. Do not create one Codex subagent per Mana skill.
+- Codex may spawn at most three direct subagents and child agents must not
+  spawn further agents. Parallel delegation is for independent read-heavy work.
+  Write-heavy work is serialized and requires a profile that explicitly permits
+  source modification.
+- If Codex custom agents are unavailable, disabled, fail, or return
+  insufficient evidence for a high-risk judgment, preserve a concise handoff
+  artifact and return \`needs_model_escalation\` instead of performing that
+  judgment on the small root model.
+- Claude Code uses the same bounded delegation model: \`mana-orchestrator\` is
+  the primary agent, and \`mana-explorer\`, \`mana-full-specialist\`, and
+  \`mana-worker\` are runtime subagents. Do not create one Claude Code
+  subagent per Mana skill; use at most three direct subagents and no recursive
+  delegation. If they are unavailable or insufficient for high-risk work,
+  return \`needs_model_escalation\` rather than letting the economy root make
+  the judgment.
+- OpenCode uses the same bounded delegation model: \`mana_orchestrator\` is the
+  primary agent, and \`mana_explorer\`, \`mana_full_specialist\`, and
+  \`mana_worker\` are runtime subagents. Do not create one OpenCode subagent per
+  Mana skill; use at most three direct subagents and no recursive delegation.
 - Use progressive load-light reading for candidate skills: front matter, title,
   \`Purpose\`, \`When To Use It\`, \`When Not To Use It\`, \`Inputs\`,
   \`Outputs\`, \`Execution Logic\`, and \`Decision Rules\` before deciding
@@ -510,6 +686,9 @@ Created:
   $project_root/.mana/env
   $project_root/.mana/README.md
   $project_root/.mana/links/
+  $project_root/.codex/agents/
+  $project_root/.claude/agents/
+  $project_root/.opencode/agents/
   $project_root/.mana/
 
 Try:

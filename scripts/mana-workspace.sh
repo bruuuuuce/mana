@@ -177,6 +177,8 @@ mkdir -p \
   "$workspace_path/learning" \
   "$root/.mana/global/rules" \
   "$root/.mana/global/known-pitfalls" \
+  "$root/.mana/global/knowledge/cards" \
+  "$root/.mana/global/knowledge/candidates" \
   "$root/.mana/global/team-decisions"
 
 write_if_missing() {
@@ -214,12 +216,17 @@ if [ -f "$sonar_config_template" ]; then
   write_if_missing "$root/.mana/global/sonar-project.properties" "$(cat "$sonar_config_template")"
 fi
 
+knowledge_index_template="$framework_root/templates/mana-workspace/global/service-knowledge-index.template.md"
+if [ -f "$knowledge_index_template" ]; then
+  write_if_missing "$root/.mana/global/knowledge/index.md" "$(cat "$knowledge_index_template")"
+fi
+
 write_global_file_if_missing "service-mission.md" "Service Mission" "Describe what this service does, why it exists, where it sits in the wider architecture, what it owns, what it must not do, and which business capability it supports."
 write_global_file_if_missing "architecture.md" "Service Architecture" "Describe components, runtime flows, data ownership, boundaries, dependencies, approved patterns, and known constraints."
 write_global_file_if_missing "engineering-guards.md" "Engineering Guards" "List non-negotiable rules, forbidden actions, protected areas, required approval gates, and patterns that agents and developers must respect."
 write_global_file_if_missing "domain-glossary.md" "Domain Glossary" "Define domain terms, statuses, enums, business meanings, and ownership."
 write_global_file_if_missing "integration-map.md" "Integration Map" "Document inbound and outbound APIs, events, topics, payload ownership, timeout, retry, idempotency, and error mapping."
-write_global_file_if_missing "testing-policy.md" "Testing Policy" "Document critical behaviors, green-border expectations, regression requirements, test data rules, and flaky test handling."
+write_global_file_if_missing "testing-policy.md" "Testing Policy" "Document critical behaviors, green-border expectations, regression requirements, test data rules, flaky test handling, the approved testbook location, and permitted test environments."
 write_global_file_if_missing "database-policy.md" "Database Policy" "Document critical tables, forbidden operations, rollback rules, Liquibase rules, DBA approval gates, and drift handling."
 
 if [ -n "$feature_id" ]; then

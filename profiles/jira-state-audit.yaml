@@ -1,0 +1,35 @@
+name: jira-state-audit
+trigger: jira_state_audit
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: true
+  default_purpose: jira-state-audit
+service_context:
+  root: .mana/global
+  core_files:
+  - service-mission.md
+  - engineering-guards.md
+  optional_files:
+  - domain-glossary.md
+  - integration-map.md
+  - testing-policy.md
+  - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- jira-state-audit-agent
+skills:
+- jira-release-state-evidence
+blocking_conditions:
+  - Jira issue cannot be read and no reliable local fallback exists
+  - multiple plausible Jira issue keys without human selection
+  - requested external write, Jira transition, PR approval, merge, tag, release, deploy, or CI trigger
+warning_conditions:
+  - GitHub or GHE read access unavailable
+  - local clone lacks PR refs, release branches, tags, or full history
+  - fixVersion to branch or tag mapping is ambiguous
+  - cherry-pick, hotfix, backport, revert, or parallel release path detected
+expected_max_duration: 5 minutes
+human_approval_requirement: false

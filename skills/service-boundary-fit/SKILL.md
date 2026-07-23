@@ -25,6 +25,9 @@ outputs:
   - boundary_risk_items
 risk_level: medium
 model_tier: full
+execution_mode: read
+delegation_group: architecture
+parallel_safe: true
 owner_role: Architect / Team Leader
 stack:
   - any

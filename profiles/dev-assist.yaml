@@ -34,6 +34,19 @@ skills:
   - sonar-change-risk
   - java-performance-smell
   - test-gap
+skill_activation:
+  baseline:
+    - source-impact-map
+    - change-impact-preview
+  conditional:
+    legacy_or_unclear_behavior: legacy-characterization
+    recurring_failure_or_unusual_pattern: known-pitfalls-extraction
+    shared_state_async_or_transaction_change: concurrency-risk
+    architecture_boundary_change: architecture-risk
+    non_obvious_choice_or_plan_drift: developer-decision-review
+    changed_test_or_missing_behavior: test-gap
+    static_analysis_evidence_present: sonar-change-risk
+    performance_sensitive_java_path: java-performance-smell
 blocking_conditions:
   - engineering guard violation without explicit owner approval
   - blocker-severity concurrency risk in planned change

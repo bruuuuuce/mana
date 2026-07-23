@@ -24,6 +24,9 @@ outputs:
   - required_contract_tests
 risk_level: medium
 model_tier: full
+execution_mode: read
+delegation_group: contracts
+parallel_safe: true
 owner_role: Team Leader / Architect
 stack:
   - api

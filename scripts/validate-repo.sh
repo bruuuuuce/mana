@@ -7,11 +7,15 @@ for d in "${required_dirs[@]}"; do
   if [ ! -d "$root/$d" ]; then echo "ERROR: missing directory $d" >&2; status=1; fi
 done
 "$root/scripts/validate-skills.sh" "$root" || status=1
+if ! "$root/scripts/build-skill-index.sh" "$root" | cmp -s - "$root/skills/index.yaml"; then
+  echo "ERROR: skills/index.yaml is stale; run scripts/build-skill-index.sh > skills/index.yaml" >&2
+  status=1
+fi
 "$root/scripts/validate-agents.sh" "$root" || status=1
 "$root/scripts/validate-output-standard.sh" "$root" || status=1
 "$root/scripts/validate-story-trace.sh" "$root" || status=1
 "$root/scripts/validate-developer-choice-log.sh" "$root" || status=1
-for f in README.md LICENSE CHANGELOG.md CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md docs/standards/agent-skill-output-standard.md docs/standards/story-trace-standard.md docs/standards/developer-choice-log-standard.md docs/standards/delivery-metrics-standard.md templates/standard-agent-skill-report.template.md templates/delivery-metrics.template.md templates/mana-workspace/story-trace.template.md templates/mana-workspace/developer-choice-log.template.md; do
+for f in README.md LICENSE CHANGELOG.md CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md docs/standards/agent-skill-output-standard.md docs/standards/output-contract.md docs/standards/story-trace-standard.md docs/standards/developer-choice-log-standard.md docs/standards/delivery-metrics-standard.md docs/policies/runtime-execution-contract.md templates/standard-agent-skill-report.template.md templates/delivery-metrics.template.md templates/mana-workspace/story-trace.template.md templates/mana-workspace/developer-choice-log.template.md; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1; fi
 done
 for f in scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/run-evidence-index.sh docs/workflow/mana-workspace.md docs/workflow/service-context-layer.md docs/deployment/project-link-bootstrap.md templates/mana-workspace/manifest.template.yaml templates/mana-workspace/index.template.md templates/mana-workspace/global/service-mission.template.md templates/mana-workspace/global/engineering-guards.template.md templates/mana-workspace/global/hooks-config.template.yaml templates/mana-workspace/global/sonar-project.properties.template; do

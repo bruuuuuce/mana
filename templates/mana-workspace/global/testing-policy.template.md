@@ -15,3 +15,8 @@
 ## Flaky Test Handling
 - `{{flaky_policy}}`
 
+## Testbook
+- Catalog location: `{{testbook_location}}`
+- Approval owner for executable entries: `{{testbook_approval_owner}}`
+- Allowed test environments: `{{testbook_allowed_environments}}`
+- Performance target and baseline policy: `{{performance_test_policy}}`
