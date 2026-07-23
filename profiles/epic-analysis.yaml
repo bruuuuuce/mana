@@ -1,0 +1,45 @@
+name: epic-analysis
+trigger: epic_analysis
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: true
+  default_purpose: epic-analysis
+service_context:
+  root: .mana/global
+  core_files:
+  - service-mission.md
+  - architecture.md
+  - engineering-guards.md
+  optional_files:
+  - domain-glossary.md
+  - integration-map.md
+  - testing-policy.md
+  - knowledge/index.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- epic-analysis-agent
+skills:
+- epic-structure-analysis
+- epic-goal-extraction
+- epic-story-partitioning
+- epic-implementation-graph
+skill_activation:
+  baseline:
+  - epic-structure-analysis
+  - epic-story-partitioning
+  - epic-implementation-graph
+  conditional:
+    unclear_epic_goal_or_constraints: epic-goal-extraction
+blocking_conditions:
+  - unresolved story contradiction or critical epic gap
+  - dependency cycle or unsupported mandatory graph edge
+  - high-risk cross-service, architecture, database, security, or concurrency judgment without specialist evidence
+warning_conditions:
+  - Jira or KB evidence incomplete, stale, or inaccessible
+  - service discovery not approved and graph edges remain unverified
+  - medium-risk ambiguity with accountable owner acknowledgement
+expected_max_duration: 30 minutes
+human_approval_requirement: true

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "epic-analysis-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "epic": { "type": "string" },
+    "epic_story_pack": { "type": "string" },
+    "service_discovery_approved": { "type": "boolean", "default": false },
+    "repository_snapshot": { "type": "string" }
+  },
+  "required": ["epic"]
+}

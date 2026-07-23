@@ -115,12 +115,24 @@ skills:
     model_tier: economy
     execution_mode: read
     delegation_group: requirements
+  - id: epic-implementation-graph
+    path: skills/epic-implementation-graph/SKILL.md
+    risk_level: medium
+    model_tier: economy
+    execution_mode: read
+    delegation_group: requirements
   - id: epic-story-partitioning
     path: skills/epic-story-partitioning/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+  - id: epic-structure-analysis
+    path: skills/epic-structure-analysis/SKILL.md
+    risk_level: low
+    model_tier: economy
+    execution_mode: read
+    delegation_group: requirements
   - id: flaky-failure-classification
     path: skills/flaky-failure-classification/SKILL.md
     risk_level: low

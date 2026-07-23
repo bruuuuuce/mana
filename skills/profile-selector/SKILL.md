@@ -78,6 +78,7 @@ to switch phase without looking up the profile catalogue manually.
 | Architecture review, ADR, NFR, service boundary | Architect | `architecture-review` |
 | Team planning, sequencing, dependencies, review load | Team Leader | `team-planning` |
 | Epic/story partitioning, overlap, sibling-story gaps | BA / PO / Team Leader | `team-planning` or `story-ready-for-dev` plus `./mana jira-mcp --fetch-epic-story-pack <KEY>` |
+| Full epic structure, contradictions, and proposed implementation graph | BA / PO / Team Leader | `epic-analysis --jira-key <EPIC-KEY>`; add `--allow-service-discovery` only with explicit consent |
 | Production pre-mortem before commit or push | Developer | `jessica-fletcher` |
 | Branch validation before PR | Developer / TL | `branch-ready` |
 | PR readiness, PR package, handoff | Developer | `pr-ready` |

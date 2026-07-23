@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "epic-analysis-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "epic_structure_report": { "type": "string" },
+    "epic_partitioning_report": { "type": "string" },
+    "epic_implementation_graph": { "type": "string" },
+    "epic_analysis_summary": { "type": "string" }
+  }
+}

@@ -72,6 +72,17 @@ at the end under [Standalone Skills](#standalone-skills).
 
 ---
 
+## epic-analysis
+**Trigger:** `epic_analysis` · **Owner:** BA / PO / Team Leader · **Duration:** 30 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`epic-structure-analysis`](../skills/epic-structure-analysis/SKILL.md) | Build a complete, evidence-backed inventory of the epic and its child stories before evaluating delivery decisions. | low | BA / PO / Team Leader |
+| [`epic-story-partitioning`](../skills/epic-story-partitioning/SKILL.md) | Detect sibling-story overlap, contradictions, gaps, hidden dependencies, and weak boundaries. | medium | BA / PO / Team Leader |
+| [`epic-implementation-graph`](../skills/epic-implementation-graph/SKILL.md) | Propose a reviewable dependency DAG and implementation waves from Jira, the KB, and optionally approved read-only service discovery. | medium | Team Leader / Architect |
+
+---
+
 ## architecture-review
 **Trigger:** `architecture_review` · **Owner:** Architect · **Duration:** 30 min
 

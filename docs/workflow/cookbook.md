@@ -31,6 +31,10 @@ README and `docs/examples/end-to-end-codex-flow.md` /
   `profiles/story-ready-for-dev.yaml` with `epic-story-partitioning` to check
   whether sibling stories overlap, miss epic goals, hide dependencies, or need
   splitting before assignment.
+- **Analyze an epic end to end:** use `profiles/epic-analysis.yaml` with an
+  explicit Jira key. It creates structure and partitioning reports plus an
+  evidence-backed implementation graph. Add `--allow-service-discovery` only
+  when read-only inspection of services named by the stories is approved.
 - **Generate a plan:** use the Story Implementation Planner Agent and route
   open questions to BA/PO, Team Leader, Architect, or DBA.
 - **Use the story as evidence:** planning profiles use Jira story text and

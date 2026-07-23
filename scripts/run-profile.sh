@@ -7,6 +7,7 @@ render_only=false
 runner=""
 pr_number=""
 publish_high_risk_comments=false
+service_discovery_approved=false
 jira_keys=""
 jira_key_regex="${MANA_JIRA_KEY_REGEX:-[A-Z][A-Z0-9]+-[0-9]+}"
 jira_env_file="${MANA_JIRA_MCP_ENV:-}"
@@ -66,6 +67,7 @@ Options:
   --pr, --pr-number <value>      Pull request number or URL for requested-pr-review.
   --jira-key, --jira-issue <KEY> Add an explicit Jira issue key.
   --jira-key-regex <regex>       Override branch issue-key discovery.
+  --allow-service-discovery       Allow epic-analysis to inspect named services read-only.
   --publish-high-risk-comments   Allow requested-pr-review to publish one high-risk PR comment.
 USAGE
 }
@@ -182,6 +184,10 @@ while [ "$#" -gt 0 ]; do
       publish_high_risk_comments=true
       shift
       ;;
+    --allow-service-discovery)
+      service_discovery_approved=true
+      shift
+      ;;
     --jira-key|--jira-issue)
       jira_keys="${jira_keys}${jira_keys:+ }${2:-}"
       [ -n "${2:-}" ] || { echo "ERROR: $1 requires a Jira issue key" >&2; exit 2; }
@@ -232,6 +238,11 @@ fi
 
 if [ "$publish_high_risk_comments" = true ] && [ -z "$pr_number" ]; then
   echo "ERROR: --publish-high-risk-comments requires --pr <number-or-url>" >&2
+  exit 2
+fi
+
+if [ "$service_discovery_approved" = true ] && [ "$profile" != "epic-analysis" ]; then
+  echo "ERROR: --allow-service-discovery is only supported by epic-analysis" >&2
   exit 2
 fi
 
@@ -719,7 +730,7 @@ if [ "$runner" = "opencode" ]; then
 fi
 sed -n '1,220p' "$file"
 echo
-if [ -n "$pr_number" ] || [ "$publish_high_risk_comments" = true ] || [ -n "$jira_keys" ]; then
+if [ -n "$pr_number" ] || [ "$publish_high_risk_comments" = true ] || [ "$service_discovery_approved" = true ] || [ -n "$jira_keys" ]; then
   echo "Profile input overrides:"
   if [ -n "$pr_number" ]; then
     echo "  pr_number: $pr_number"
@@ -730,6 +741,9 @@ if [ -n "$pr_number" ] || [ "$publish_high_risk_comments" = true ] || [ -n "$jir
   fi
   if [ "$publish_high_risk_comments" = true ]; then
     echo "  publish_high_risk_comments: true"
+  fi
+  if [ "$service_discovery_approved" = true ]; then
+    echo "  service_discovery_approved: true"
   fi
   echo
 fi
@@ -830,6 +844,7 @@ OpenCode agent runtime limits: max_threads=$opencode_max_threads, max_depth=1
 Profile input overrides:
 - pr_number: ${pr_number:-}
 - publish_high_risk_comments: $publish_high_risk_comments
+- service_discovery_approved: $service_discovery_approved
 - jira_issue_keys: ${jira_keys:-}
 - jira_key_regex: $jira_key_regex
 - current_branch: ${current_branch:-}
@@ -873,6 +888,7 @@ Instructions:
 - Resolve the active .mana workspace and write the profile artifacts there using the agent routing rules.
 - Load .mana/global/service-mission.md, architecture.md, and engineering-guards.md when present before analysis.
 - If the profile or agent allows jira_read and jira_issue_keys is non-empty, read those Jira issues as requirement context through the configured Jira MCP server before drawing requirement, plan-drift, risk, or review conclusions. Treat Jira as read-only. Do not expose tokens, transition issues, write comments, or update tickets.
+- For epic-analysis, treat the explicit Jira issue key as the epic target: refresh or load its normalized epic story pack before judging structure, sibling overlap, contradictions, or implementation order. Build the implementation graph from Jira and the existing service KB first. Only if service_discovery_approved is true may you inspect, read-only, the services explicitly named by the epic or its stories; otherwise do not traverse repositories or services and mark dependent edges unverified. Never treat shared service names as proof of a dependency.
 - In a Mana-linked project, prefer './mana jira-mcp --get-issue <KEY>' for fast read-only Jira story retrieval. Use './mana jira-mcp --check-access --issue <KEY>' only to diagnose credentials or permissions.
 - Treat Jira summary, description, status, standard attributes, visible custom fields, readable properties, linked context, and all readable comments as requirement evidence. Use the complete read-only issue payload when available; report inaccessible fields, properties, or comment pages as gaps. For feasibility/planning profiles, check whether the requested story is coherent, implementable, testable, and has the owners/approvals needed to start. For review/validation/premortem/PR profiles, compare the branch or PR changes against the story and report missing requested behavior, unrequested scope, contradicted acceptance criteria, and tests that do not prove the story. Do not treat code correctness as sufficient when it diverges from the story.
 - Jira issue keys are generic and project-configurable. Use the provided jira_key_regex only as discovery input; do not assume a project-specific prefix. If no Jira issue keys are found, continue with repository and Mana artifacts unless the selected profile requires story context.
@@ -895,7 +911,7 @@ Run Mana profile '$profile' in this repository.
 Repository root: $project_root
 Framework root: $root
 Runner: $runner
-Profile inputs: pr_number=${pr_number:-none}; jira_issue_keys=${jira_keys:-none}; current_branch=${current_branch:-detached}; jira_mcp_configured=$jira_mcp_configured; publish_high_risk_comments=$publish_high_risk_comments.
+Profile inputs: pr_number=${pr_number:-none}; jira_issue_keys=${jira_keys:-none}; current_branch=${current_branch:-detached}; jira_mcp_configured=$jira_mcp_configured; publish_high_risk_comments=$publish_high_risk_comments; service_discovery_approved=$service_discovery_approved.
 Model routing: root=economy; full-tier candidates=${model_escalation_skills:-none}; escalation warning=${model_routing_warning:-none}.
 Runtime limits: Codex subagents=$codex_subagents/$codex_max_threads; Claude subagents=$claude_subagents/$claude_max_threads; OpenCode subagents=$opencode_subagents/$opencode_max_threads.
 
