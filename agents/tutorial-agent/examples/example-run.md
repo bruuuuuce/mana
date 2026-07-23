@@ -19,9 +19,9 @@ Active profile from `.mana/active-profile`: none.
 
 | Profile | Trigger | Owner Role | Max Duration | What It Does |
 |---|---|---|---|---|
-| `story-start` | story intake | Developer / TL | 20 min | Produces story context, source impact map, technical breakdown, effort estimate, risk register, and green-border plan from Jira or Markdown input. |
-| `story-ready-for-dev` | before dev assignment | Team Leader | 10 min | Verifies that acceptance criteria, technical breakdown, effort estimate, and risk register are clear enough to assign to a developer. |
-| `team-planning` | sprint planning | Team Leader | 15 min | Produces execution sequence, owner/dependency map, story effort estimate, delivery risks, and review-load plan. |
+| `story-start` | story intake | Developer / TL | 20 min | Produces story context, source impact map, technical breakdown, base effort estimate, risk register, and green-border plan from Jira or Markdown input. |
+| `story-ready-for-dev` | before dev assignment | Team Leader | 10 min | Verifies that acceptance criteria, technical breakdown, base effort estimate, and risk register are clear enough to assign to a developer. |
+| `team-planning` | sprint planning | Team Leader | 15 min | Produces execution sequence, owner/dependency map, base story effort estimate, delivery risks, and review-load plan. |
 | `architecture-review` | design gate | Architect | 20 min | Produces ADR, NFR review, service-boundary fit, architecture-drift, trust-boundary, and database-risk evidence. |
 | `dev-assist` | during development | Developer | 10 min | Supports the developer while writing code: impact map, known pitfalls, legacy characterization, concurrency risk, what-if analysis, and test gap planning. |
 | `pre-commit` | before git commit | Developer | 8 min | Runs fast local checks: liquibase syntax, nullability, unit-test gap, pre-review defect, and produces development summary and knowledge-transfer brief. |
@@ -35,6 +35,11 @@ Active profile from `.mana/active-profile`: none.
 | `team-coaching-review` | coaching session | Team Leader | 30 min | Analyzes per-contributor quality patterns on a branch and produces a confidential coaching report with growth opportunities and recommended actions. |
 | `tutorial` | onboarding | Any | 15 min | Interactive framework walkthrough — this profile. |
 | `mana-help` | any question | Any | 5 min | Answers operational questions, routes to the right profile, skill, or fallback. |
+
+Story estimates use current-story evidence by default. After the base estimate,
+the user may explicitly approve an optional read-only calibration against
+aggregate team delivery history; it is not used to derive individual
+productivity metrics.
 
 ---
 

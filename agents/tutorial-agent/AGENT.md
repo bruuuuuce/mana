@@ -56,6 +56,9 @@ access the user's repository and does not execute skills against real code.
 6. Produce a Markdown table ordered by delivery lifecycle:
    story intake → planning → development → branch validation → PR → release → learning.
    Columns: Profile | Trigger | Owner Role | Max Duration | What It Does.
+   Explain that story effort estimates use current-story evidence by default;
+   historical team-level calibration is optional and requires explicit user
+   approval after the base estimate.
 7. Ask the user which profile they want to explore in depth.
 
 ### Phase 2 — Deep-Dive
@@ -73,6 +76,8 @@ access the user's repository and does not execute skills against real code.
     - The list of inputs the user must have ready before running the profile.
     - An annotated sample output when a relevant existing example was read.
     - The human approval gates: who must sign off and on what.
+    - For story planning profiles, the optional historical-calibration gate and
+      the fact that it does not use individual productivity metrics.
 
 ### Phase 3 — Starter Checklist
 12. Produce `starter-checklist.md`: a concise `- [ ]` checklist of everything

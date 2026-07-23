@@ -76,7 +76,7 @@ to switch phase without looking up the profile catalogue manually.
 | Start a story, planning, technical slicing | Developer / TL | `story-start` |
 | Story ready for development, TL verification | Team Leader | `story-ready-for-dev` |
 | Architecture review, ADR, NFR, service boundary | Architect | `architecture-review` |
-| Team planning, sequencing, dependencies, review load | Team Leader | `team-planning` |
+| Team planning, sequencing, dependencies, review load | Team Leader | `team-planning`; estimates use current-story evidence unless historical calibration is explicitly approved |
 | Epic/story partitioning, overlap, sibling-story gaps | BA / PO / Team Leader | `team-planning` or `story-ready-for-dev` plus `./mana jira-mcp --fetch-epic-story-pack <KEY>` |
 | Full epic structure, contradictions, and proposed implementation graph | BA / PO / Team Leader | `epic-analysis --jira-key <EPIC-KEY>`; add `--allow-service-discovery` only with explicit consent |
 | Production pre-mortem before commit or push | Developer | `jessica-fletcher` |
