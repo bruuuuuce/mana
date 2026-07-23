@@ -26,6 +26,10 @@ The workspace is not a replacement for Git, Jira, Confluence, CI, or code review
     integration-map.md
     testing-policy.md
     database-policy.md
+    knowledge/
+      index.md
+      cards/
+      candidates/
     rules/
     known-pitfalls/
     team-decisions/
@@ -46,6 +50,9 @@ Specialist files:
 - `integration-map.md`
 - `testing-policy.md`
 - `database-policy.md`
+- `knowledge/index.md`: compact retrieval map for reusable, evidence-backed
+  service behavior, constraints, decisions, and unknowns. Load relevant cards
+  only; candidate cards are not facts.
 
 Agents should load the core files when present. Missing files produce warnings, not blockers, unless a profile explicitly requires them. Violations of `engineering-guards.md` are blockers or require explicit owner approval.
 

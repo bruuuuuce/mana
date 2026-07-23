@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Added progressive-load service knowledge capture with evidence-backed cards,
+  candidate promotion gates, and a compact global retrieval index.
 - Added provider-neutral testbook discovery and controlled local execution for
   unit, integration, and performance test candidates.
 - Added Codex multi-agent orchestration support with Mana-managed

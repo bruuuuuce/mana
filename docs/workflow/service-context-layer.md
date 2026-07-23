@@ -17,6 +17,7 @@ It is the framework's local "keep the bar straight" mechanism.
     testing-policy.md
     database-policy.md
     rules/
+    knowledge/
     known-pitfalls/
     team-decisions/
 ```
@@ -37,6 +38,7 @@ It is the framework's local "keep the bar straight" mechanism.
 | `integration-map.md` | Source impact map, cross-service contract, architecture risk. |
 | `testing-policy.md` | Green border, unit/integration gap, regression selection, test quality. |
 | `database-policy.md` | Liquibase syntax, production risk, rollback safety, drift checks. |
+| `knowledge/index.md` | Compact retrieval map for evidence-backed service behavior cards. |
 
 ## Loading Rules
 
@@ -48,6 +50,7 @@ Agents should load the Service Context Layer before executing skills:
    - Cross-service/API/messaging change: `integration-map.md`.
    - Test planning or validation: `testing-policy.md`.
    - Requirement/domain work: `domain-glossary.md`.
+   - Deep code or behavior analysis: `knowledge/index.md`, then only relevant cards.
 3. If a file is missing, continue with a warning unless the profile requires it.
 4. If a requested action violates `engineering-guards.md`, block or require explicit human approval.
 5. If implementation deviates from service mission or architecture, record the decision in the active workspace `decisions/decision-log.md`.
@@ -102,6 +105,7 @@ flowchart TD
 - DBA owns database policy.
 - QA/Team Leader own testing policy.
 - Integration owners maintain integration map.
+- Team Leader and Architect review stable service knowledge cards; all agents may
+  propose candidate cards with evidence.
 
 Changes to the Service Context Layer should be reviewed like code because they affect future AI decisions.
-

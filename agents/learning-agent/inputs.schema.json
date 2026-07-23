@@ -4,6 +4,12 @@
   "type": "object",
   "additionalProperties": true,
   "properties": {
+    "analysis_evidence": {
+      "type": "string"
+    },
+    "existing_service_knowledge": {
+      "type": "string"
+    },
     "incident_reports": {
       "type": "string"
     },

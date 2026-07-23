@@ -3,13 +3,18 @@
 Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman working notes while analyzing; maintain a context budget; keep final artifacts structured and free of private chain-of-thought.
 
 ## Preparation
-- Confirm the trigger point: `post_merge, incident_closed, recurring_failure_detected`.
-- Collect inputs: `incident_reports, review_comments, bug_tickets, test_history`.
+- Confirm the trigger point: `service_knowledge_capture, post_merge, incident_closed, recurring_failure_detected`.
+- Collect inputs: `analysis_evidence, existing_service_knowledge, incident_reports, review_comments, bug_tickets, test_history`.
 - Confirm MCP access is least-privilege and read-only unless approval is recorded.
 
 ## Execution
 1. Resolve or initialize the active Mana workspace using `scripts/mana-workspace.sh`.
 2. Read `manifest.yaml` and `index.md` from the workspace.
+- Read `.mana/global/knowledge/index.md` before loading only the relevant cards.
+- Run `service-knowledge-capture` when reusable behavior, constraints, decisions,
+  or unknowns have concrete evidence. Write candidates to `knowledge/candidates/`;
+  stable-card promotion requires the approval in
+  `docs/policies/service-knowledge-policy.md`.
 - Create or locate the working artifact folder inside the active `.mana` workspace.
 - Load and run only the learning skills whose conditions in `AGENT.md` match the
   incidents, review comments, bug tickets, rules, pitfalls, or test history.

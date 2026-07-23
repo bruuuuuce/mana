@@ -84,6 +84,10 @@ README and `docs/examples/end-to-end-codex-flow.md` /
   change.
 - **Run green border:** use the Green Border Test Agent to generate or run
   focused unit, integration, contract, regression, and legacy tests.
+- **Capture non-obvious service knowledge:** run
+  `scripts/run-profile.sh service-knowledge-capture --project-root /path/to/project --codex`.
+  The agent writes evidence-backed candidate cards; stable promotion needs the
+  accountable owner's approval.
 
 ## Quality Evidence
 

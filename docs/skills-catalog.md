@@ -300,6 +300,15 @@ run.
 
 ---
 
+## service-knowledge-capture
+**Trigger:** `service_knowledge_capture` · **Owner:** Developer / Team Leader / Architect · **Duration:** 15 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`service-knowledge-capture`](../skills/service-knowledge-capture/SKILL.md) | Capture reusable service behavior, constraints, decisions, and unknowns as progressive-load evidence-backed cards. | medium | Developer / Team Leader / Architect |
+
+---
+
 ## testbook-validation
 **Trigger:** `testbook_validation` · **Owner:** Developer / QA · **Duration:** 20 min
 
@@ -359,9 +368,10 @@ a custom profile.
 > [`docs/deployment/sonar-scanner-wrapper.md`](deployment/sonar-scanner-wrapper.md);
 > it no longer requires a dedicated skill.
 
-> `learning-agent` uses `post-merge-incident-learning`, `rule-update-suggestion`,
-> `known-pitfalls-extraction`, and `flaky-failure-classification` but no
-> dedicated profile triggers it yet. Add a `learning` profile to enable it.
+> `learning-agent` powers `service-knowledge-capture`; it also supports
+> `post-merge-incident-learning`, `rule-update-suggestion`,
+> `known-pitfalls-extraction`, and `flaky-failure-classification` when their
+> evidence is present.
 
 ---
 

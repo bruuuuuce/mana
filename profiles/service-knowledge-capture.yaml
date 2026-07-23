@@ -1,0 +1,36 @@
+name: service-knowledge-capture
+trigger: service_knowledge_capture
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: true
+  default_purpose: service-knowledge-capture
+service_context:
+  root: .mana/global
+  core_files:
+  - service-mission.md
+  - architecture.md
+  - engineering-guards.md
+  optional_files:
+  - domain-glossary.md
+  - integration-map.md
+  - testing-policy.md
+  - database-policy.md
+  - knowledge/index.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- learning-agent
+skills:
+- service-knowledge-capture
+blocking_conditions:
+  - requested stable promotion lacks explicit owner approval
+  - candidate contains secrets, customer data, raw logs, or unsupported claims
+  - high-impact architecture, security, data, production, or cross-service claim lacks specialist owner approval
+warning_conditions:
+  - evidence is incomplete or inferred
+  - card is stale or has no invalidation signals
+  - near-duplicate card needs human consolidation
+expected_max_duration: 15 minutes
+human_approval_requirement: true

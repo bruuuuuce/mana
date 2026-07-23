@@ -177,6 +177,8 @@ mkdir -p \
   "$workspace_path/learning" \
   "$root/.mana/global/rules" \
   "$root/.mana/global/known-pitfalls" \
+  "$root/.mana/global/knowledge/cards" \
+  "$root/.mana/global/knowledge/candidates" \
   "$root/.mana/global/team-decisions"
 
 write_if_missing() {
@@ -212,6 +214,11 @@ fi
 sonar_config_template="$framework_root/templates/mana-workspace/global/sonar-project.properties.template"
 if [ -f "$sonar_config_template" ]; then
   write_if_missing "$root/.mana/global/sonar-project.properties" "$(cat "$sonar_config_template")"
+fi
+
+knowledge_index_template="$framework_root/templates/mana-workspace/global/service-knowledge-index.template.md"
+if [ -f "$knowledge_index_template" ]; then
+  write_if_missing "$root/.mana/global/knowledge/index.md" "$(cat "$knowledge_index_template")"
 fi
 
 write_global_file_if_missing "service-mission.md" "Service Mission" "Describe what this service does, why it exists, where it sits in the wider architecture, what it owns, what it must not do, and which business capability it supports."
