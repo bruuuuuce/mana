@@ -1,0 +1,36 @@
+name: testbook-validation
+trigger: testbook_validation
+runner: local/codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: true
+  default_purpose: testbook-validation
+service_context:
+  root: .mana/global
+  core_files:
+  - engineering-guards.md
+  optional_files:
+  - architecture.md
+  - integration-map.md
+  - testing-policy.md
+  - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- testbook-validation-agent
+skills:
+- testbook-discovery
+- testbook-run-report
+blocking_conditions:
+  - requested test is not explicitly approved in the testbook
+  - requested environment differs from the catalog entry
+  - performance target is not a declared dedicated non-production environment
+  - requested action would expose secrets, create external data, trigger CI, or target production
+warning_conditions:
+  - discovered command or classification has incomplete evidence
+  - integration test prerequisites are undocumented
+  - test failure cannot distinguish product, setup, data, or dependency cause
+  - performance baseline or threshold is absent
+expected_max_duration: 20 minutes
+human_approval_requirement: true

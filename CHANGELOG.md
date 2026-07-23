@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Added provider-neutral testbook discovery and controlled local execution for
+  unit, integration, and performance test candidates.
 - Added Codex multi-agent orchestration support with Mana-managed
   `mana_explorer`, `mana_full_specialist`, and `mana_worker` custom agents.
 - Changed Codex economy-first behavior so high-risk/full-tier work is delegated

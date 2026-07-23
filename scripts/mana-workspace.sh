@@ -219,7 +219,7 @@ write_global_file_if_missing "architecture.md" "Service Architecture" "Describe 
 write_global_file_if_missing "engineering-guards.md" "Engineering Guards" "List non-negotiable rules, forbidden actions, protected areas, required approval gates, and patterns that agents and developers must respect."
 write_global_file_if_missing "domain-glossary.md" "Domain Glossary" "Define domain terms, statuses, enums, business meanings, and ownership."
 write_global_file_if_missing "integration-map.md" "Integration Map" "Document inbound and outbound APIs, events, topics, payload ownership, timeout, retry, idempotency, and error mapping."
-write_global_file_if_missing "testing-policy.md" "Testing Policy" "Document critical behaviors, green-border expectations, regression requirements, test data rules, and flaky test handling."
+write_global_file_if_missing "testing-policy.md" "Testing Policy" "Document critical behaviors, green-border expectations, regression requirements, test data rules, flaky test handling, the approved testbook location, and permitted test environments."
 write_global_file_if_missing "database-policy.md" "Database Policy" "Document critical tables, forbidden operations, rollback rules, Liquibase rules, DBA approval gates, and drift handling."
 
 if [ -n "$feature_id" ]; then

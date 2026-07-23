@@ -300,6 +300,16 @@ run.
 
 ---
 
+## testbook-validation
+**Trigger:** `testbook_validation` · **Owner:** Developer / QA · **Duration:** 20 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`testbook-discovery`](../skills/testbook-discovery/SKILL.md) | Discover unit, integration, contract, end-to-end, and performance test candidates from repository evidence without running them. | low | Developer / QA |
+| [`testbook-run-report`](../skills/testbook-run-report/SKILL.md) | Run explicitly approved local testbook entries and report result evidence without inventing commands. | medium | Developer / QA |
+
+---
+
 ## team-coaching-review
 **Trigger:** `coaching_review` · **Owner:** Team Leader · **Duration:** 30 min
 

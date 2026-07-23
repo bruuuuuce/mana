@@ -54,6 +54,10 @@ README and `docs/examples/end-to-end-codex-flow.md` /
   The audit is read-only and compares Jira state, fixVersion, comments, PRs,
   merges, release branches, tags, and releases against
   `docs/policies/jira-state-consistency-policy.md`.
+- **Discover and validate a project's tests:** run
+  `scripts/run-profile.sh testbook-validation --project-root /path/to/project --codex`.
+  Review the proposed testbook and approve individual entries before asking the
+  agent to execute unit, integration, or performance tests.
 - **Cache epic and sibling stories as Markdown:** in a linked project, run
   `./mana jira-mcp --fetch-epic-story-pack PROJ-1234`. Mana resolves the
   parent epic when Jira exposes one and writes
