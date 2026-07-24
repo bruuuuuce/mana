@@ -76,7 +76,7 @@ to switch phase without looking up the profile catalogue manually.
 | Start a story, planning, technical slicing | Developer / TL | `story-start` |
 | Story ready for development, TL verification | Team Leader | `story-ready-for-dev` |
 | Architecture review, ADR, NFR, service boundary | Architect | `architecture-review` |
-| Team planning, sequencing, dependencies, review load | Team Leader | `team-planning` |
+| Team planning, sequencing, dependencies, review load | Team Leader | `team-planning`; estimates use current-story evidence unless historical calibration is explicitly approved |
 | Epic/story partitioning, overlap, sibling-story gaps | BA / PO / Team Leader | `team-planning` or `story-ready-for-dev` plus `./mana jira-mcp --fetch-epic-story-pack <KEY>` |
 | Full epic structure, contradictions, and proposed implementation graph | BA / PO / Team Leader | `epic-analysis --jira-key <EPIC-KEY>`; add `--allow-service-discovery` only with explicit consent |
 | Production pre-mortem before commit or push | Developer | `jessica-fletcher` |
@@ -96,6 +96,9 @@ to switch phase without looking up the profile catalogue manually.
 | Check engineering guard hits in a diff | Architect / TL / Reviewer | `branch-ready`, `pr-ready`, or `requested-pr-review` with `architecture-guard-detector` |
 | Release readiness, continuity, rollback | Application Manager | `am-release-ready` |
 | CI validation gate | CI / TL | `ci-validation` |
+| Discover, author, or run approval-gated GUI browser tests | Developer / QA | `gui-test-validation`; requires an isolated target and approved Playwright entries |
+| Author or run approval-gated API tests | Developer / QA | `api-test-validation`; isolated target and approved Newman entries required |
+| Verify persisted test state without mutations | Developer / QA / DBA | `database-read-verification`; isolated PostgreSQL and approved read-only query required |
 | General framework question, onboarding, next step | Any | `mana-help` |
 | Pre-commit local checks | Developer | `pre-commit` |
 

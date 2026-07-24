@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"database-read-verification-agent outputs","type":"object","additionalProperties":true,"properties":{"database_verification_catalog":{"type":"string"},"database_verification_report":{"type":"string"},"verdict":{"type":"string","enum":["passed","failed","blocked","partial","inconclusive"]}}}

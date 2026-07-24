@@ -33,6 +33,7 @@ inputs:
   - planning_artifacts
   - team_constraints
   - repository_snapshot
+  - historical_calibration_approved
 outputs:
   - team-leader-plan.md
   - story-readiness-report.md
@@ -55,7 +56,7 @@ Help Team Leaders convert requirements and technical analysis into a development
 - before_development
 
 ## Workflow
-1. Load epic, stories, planning artifacts, team constraints, repository snapshot, and service context.
+1. Load epic, stories, planning artifacts, team constraints, repository snapshot, and service context. Treat `historical_calibration_approved` as `false` unless explicitly supplied or confirmed by the user.
 2. Use `developer-readiness-check` when deciding whether stories can start
    development.
 3. Use `epic-story-partitioning` when an epic story pack or Jira issue key is
@@ -66,7 +67,8 @@ Help Team Leaders convert requirements and technical analysis into a development
    need validation.
 5. Use `story-effort-estimation` when a Team Leader needs story points, time
    ranges, split recommendations, or task-level estimates after a story is
-   broken down.
+   broken down. Produce the base estimate first; inspect historical delivery
+   evidence only after explicit user approval.
 6. Use `team-execution-plan` when sequencing, parallelization, ownership, or
    dependency mapping is needed.
 7. Use `delivery-risk-radar` when escalation risks, missing decisions, plan
@@ -85,7 +87,8 @@ Help Team Leaders convert requirements and technical analysis into a development
 - `review-load-balancing`: plans review load and specialist focus.
 - `source-impact-map`: verifies implementation scope.
 - `story-effort-estimation`: estimates story points, time ranges, and task-level
-  effort after story slicing.
+  effort after story slicing; optional team-level historical calibration needs
+  explicit user approval.
 - `technical-task-breakdown`: ensures tasks are bounded and assignable.
 - `green-border-plan`: confirms test strategy before implementation.
 - `developer-handoff`: prepares implementation context for developers.

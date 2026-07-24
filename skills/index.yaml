@@ -7,6 +7,12 @@ skills:
     model_tier: economy
     execution_mode: read
     delegation_group: requirements
+  - id: api-test-validation
+    path: skills/api-test-validation/SKILL.md
+    risk_level: high
+    model_tier: economy
+    execution_mode: write
+    delegation_group: tests
   - id: architecture-decision-record
     path: skills/architecture-decision-record/SKILL.md
     risk_level: medium
@@ -73,6 +79,12 @@ skills:
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+  - id: database-read-verification
+    path: skills/database-read-verification/SKILL.md
+    risk_level: high
+    model_tier: economy
+    execution_mode: write
+    delegation_group: database
   - id: delivery-risk-radar
     path: skills/delivery-risk-radar/SKILL.md
     risk_level: medium
@@ -141,6 +153,30 @@ skills:
     delegation_group: unspecified
   - id: green-border-plan
     path: skills/green-border-plan/SKILL.md
+    risk_level: medium
+    model_tier: economy
+    execution_mode: read
+    delegation_group: tests
+  - id: gui-test-context-discovery
+    path: skills/gui-test-context-discovery/SKILL.md
+    risk_level: medium
+    model_tier: economy
+    execution_mode: read
+    delegation_group: tests
+  - id: gui-test-execution
+    path: skills/gui-test-execution/SKILL.md
+    risk_level: high
+    model_tier: economy
+    execution_mode: write
+    delegation_group: tests
+  - id: gui-testbook-authoring
+    path: skills/gui-testbook-authoring/SKILL.md
+    risk_level: medium
+    model_tier: economy
+    execution_mode: read
+    delegation_group: tests
+  - id: gui-testbook-learning
+    path: skills/gui-testbook-learning/SKILL.md
     risk_level: medium
     model_tier: economy
     execution_mode: read

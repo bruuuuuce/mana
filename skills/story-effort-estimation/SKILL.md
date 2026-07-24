@@ -1,7 +1,7 @@
 ---
 name: story-effort-estimation
-version: 1.0.0
-description: Estimates Agile story points and time ranges for stories and split technical tasks using complexity, uncertainty, risk, dependencies, and test effort.
+version: 1.1.0
+description: Estimates Agile story points and time ranges for stories and split technical tasks using complexity, uncertainty, risk, dependencies, and test effort. Historical calibration is optional and requires explicit user approval.
 compatibility:
   - codex
   - junie
@@ -20,11 +20,13 @@ inputs:
   - source_impact_map
   - risk_register
   - team_constraints
+  - historical_calibration_approved
 outputs:
   - story_effort_estimate
   - task_effort_estimates
   - estimation_rationale
   - estimation_risks
+  - calibration_status
 risk_level: medium
 model_tier: economy
 execution_mode: read
@@ -66,12 +68,32 @@ This skill supports planning decisions. It does not replace team planning poker,
 - source_impact_map
 - risk_register
 - team_constraints
+- historical_calibration_approved: optional boolean, defaults to `false`. It
+  permits read-only comparison with historical team-level delivery evidence.
 
 ## Outputs
 - story_effort_estimate
 - task_effort_estimates
 - estimation_rationale
 - estimation_risks
+- calibration_status
+
+## Optional Historical Calibration
+The default estimate uses only the current story, technical analysis, service
+context, and explicit team conventions. Do not search Jira history, Git history,
+closed stories, cycle time, or delivery metrics by default.
+
+When comparable historical evidence could materially improve the estimate,
+first return the base estimate and ask the user for explicit approval. Proceed
+only when `historical_calibration_approved: true` is supplied or the user
+explicitly confirms it in the current interaction.
+
+With approval, use only aggregate, team-level evidence: comparable completed
+stories, their planned versus observed delivery range, recurring dependency or
+test-environment delays, and documented local point conventions. Do not rank,
+profile, or infer productivity for individual people. Record the sources,
+comparison scope, and limitations; calibration may refine confidence or the
+time range, but must not mechanically override the story-point estimate.
 
 ## Estimation Scale
 Use the team's configured scale when available. If no scale is provided, use:
@@ -111,6 +133,9 @@ Score using evidence, not optimism:
 4. Produce a time range separately from story points. Use person-time ranges such as `0.5-1 day`, `1-2 days`, `3-5 days`, or `1-2 weeks`. Include analysis, implementation, testing, review rework, and evidence collection when relevant.
 5. Explain why the time range differs from the story point signal when it does; for example, low complexity but slow external dependency.
 6. Call out split recommendations when any task is too large, too risky, or not independently testable.
+7. Set `calibration_status` to `not_requested` unless explicit approval was
+   provided. If approved, perform the bounded team-level comparison and set it
+   to `performed`, `insufficient_history`, or `access_limited`.
 
 ## Decision Rules
 - `blocker`: estimate cannot be made responsibly because acceptance criteria, scope, dependency, or owner decision is missing.
@@ -135,10 +160,14 @@ task_estimates:
     uncertainty_driver: "error mapping details"
 estimation_risks:
   - "Integration test environment may widen the time range."
+calibration_status:
+  state: not_requested
+  reason: "Historical calibration requires explicit user approval."
 ```
 
 ## Failure Modes
-- Teams may calibrate points differently; prefer local historical examples when available.
+- Teams may calibrate points differently; use local historical examples only
+  after explicit approval.
 - Time estimates are sensitive to developer familiarity, interruptions, CI latency, and review availability.
 - Splitting can make task time additive, but story points remain relative complexity and should not be summed blindly.
 

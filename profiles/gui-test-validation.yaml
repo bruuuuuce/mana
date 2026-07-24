@@ -1,0 +1,39 @@
+name: gui-test-validation
+trigger: gui_test_validation
+runner: local/codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: true
+  default_purpose: gui-test-validation
+service_context:
+  root: .mana/global
+  core_files:
+  - engineering-guards.md
+  - testing-policy.md
+  optional_files:
+  - service-mission.md
+  - integration-map.md
+  - knowledge/index.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- gui-test-validation-agent
+skills:
+- gui-test-context-discovery
+- gui-testbook-authoring
+- gui-test-execution
+- gui-testbook-learning
+blocking_conditions:
+  - target is production or lacks an explicit isolated_test classification
+  - requested GUI test is not explicitly approved and runnable in the testbook
+  - test data, account, or payment instrument is not a redacted test-only reference
+  - Playwright artifacts are not configured for trace, screenshot, video, and JUnit
+  - requested action would expose secrets, operate real payment data, or create irreversible external data
+warning_conditions:
+  - Confluence or document evidence is inaccessible or contradictory
+  - reset or cleanup procedure is undocumented
+  - failure cannot distinguish product, selector, data, dependency, or environment cause
+  - visual expectation lacks a deterministic assertion
+expected_max_duration: 30 minutes
+human_approval_requirement: true

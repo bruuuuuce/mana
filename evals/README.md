@@ -63,3 +63,13 @@ Keep inputs frozen and minimal: the smallest artifact set that forces the
 judgement. One scenario per behavior; do not bundle unrelated expectations.
 Use generic `PROJ-*` keys and invented domain names — no real organization
 data. Update the table above.
+# Executable Validation Fixtures
+
+`fixtures/` contains deliberately minimal projects for governed GUI, API, and
+database runner checks. Run `scripts/run-validation-fixtures.sh` to verify that
+unapproved GUI/API entries and mutating database SQL are blocked without
+requiring Playwright, Newman, Docker, or PostgreSQL.
+
+Positive executions are intentionally opt-in: they require a real isolated
+target and the relevant runtime. Do not convert these fixtures into a shared
+application or add credentials to them.

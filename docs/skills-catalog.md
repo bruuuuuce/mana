@@ -24,7 +24,7 @@ at the end under [Standalone Skills](#standalone-skills).
 | [`jira-acceptance-criteria-normalizer`](../skills/jira-acceptance-criteria-normalizer/SKILL.md) | Convert Jira or story-pack acceptance criteria into a traceable behavior, implementation, and test checklist. | low | BA / QA / Team Leader |
 | [`source-impact-map`](../skills/source-impact-map/SKILL.md) | Identify files and components to probably modify, inspect before deciding, and avoid unless approved. | medium | Team Leader / Developer |
 | [`technical-task-breakdown`](../skills/technical-task-breakdown/SKILL.md) | Create actionable tasks for developers and Junie, each with scope, candidate files, dependencies, tests, risks, and definition of done. | medium | Team Leader / Developer |
-| [`story-effort-estimation`](../skills/story-effort-estimation/SKILL.md) | Estimate Agile story points and time ranges for stories and split technical tasks. | medium | Team Leader |
+| [`story-effort-estimation`](../skills/story-effort-estimation/SKILL.md) | Estimate Agile story points and time ranges for stories and split technical tasks; optional historical calibration requires explicit user approval. | medium | Team Leader |
 | [`architecture-risk`](../skills/architecture-risk/SKILL.md) | Review transaction boundaries, sync/async flows, idempotency, retries, feature flags, bounded contexts, and forbidden zones. | medium | Architect / Team Leader |
 | [`cross-service-contract`](../skills/cross-service-contract/SKILL.md) | Check payloads, schemas, Kafka topics, error mapping, retry policy, timeout, idempotency, versioning, and ownership. | medium | Team Leader / Architect |
 | [`liquibase-production-risk`](../skills/liquibase-production-risk/SKILL.md) | Detect lock risks, missing rollback, unsafe index operations, large table updates, destructive DDL, drift concerns, and traffic-aware ordering issues. | high | DBA / Team Leader |
@@ -48,7 +48,7 @@ at the end under [Standalone Skills](#standalone-skills).
 | [`sonar-evidence-triage`](../skills/sonar-evidence-triage/SKILL.md) | Reuse existing Sonar evidence and separate changed/touched findings from unrelated noise. | medium | Reviewer / Team Leader |
 | [`dependency-security-evidence`](../skills/dependency-security-evidence/SKILL.md) | Collect and triage dependency manifest, lockfile, and scanner-report evidence for changed dependency surfaces. | medium | Developer / Security / Team Leader |
 | [`technical-task-breakdown`](../skills/technical-task-breakdown/SKILL.md) | Create actionable tasks for developers and Junie, each with scope, candidate files, dependencies, tests, risks, and definition of done. | medium | Team Leader / Developer |
-| [`story-effort-estimation`](../skills/story-effort-estimation/SKILL.md) | Estimate Agile story points and time ranges for stories and split technical tasks. | medium | Team Leader |
+| [`story-effort-estimation`](../skills/story-effort-estimation/SKILL.md) | Estimate Agile story points and time ranges for stories and split technical tasks; optional historical calibration requires explicit user approval. | medium | Team Leader |
 | [`delivery-risk-radar`](../skills/delivery-risk-radar/SKILL.md) | Provide a concise risk radar before scope, schedule, or quality problems become late surprises. | medium | Team Leader / Application Manager |
 | [`green-border-plan`](../skills/green-border-plan/SKILL.md) | Plan unit, integration, contract, regression, and legacy characterization tests needed before and during implementation. | medium | Team Leader / QA |
 
@@ -66,7 +66,7 @@ at the end under [Standalone Skills](#standalone-skills).
 | [`review-load-balancing`](../skills/review-load-balancing/SKILL.md) | Help Team Leaders and reviewers spend review time on the riskiest areas first. | low | Team Leader |
 | [`source-impact-map`](../skills/source-impact-map/SKILL.md) | Identify files and components to probably modify, inspect before deciding, and avoid unless approved. | medium | Team Leader / Developer |
 | [`technical-task-breakdown`](../skills/technical-task-breakdown/SKILL.md) | Create actionable tasks for developers and Junie, each with scope, candidate files, dependencies, tests, risks, and definition of done. | medium | Team Leader / Developer |
-| [`story-effort-estimation`](../skills/story-effort-estimation/SKILL.md) | Estimate Agile story points and time ranges for stories and split technical tasks. | medium | Team Leader |
+| [`story-effort-estimation`](../skills/story-effort-estimation/SKILL.md) | Estimate Agile story points and time ranges for stories and split technical tasks; optional historical calibration requires explicit user approval. | medium | Team Leader |
 | [`green-border-plan`](../skills/green-border-plan/SKILL.md) | Plan unit, integration, contract, regression, and legacy characterization tests needed before and during implementation. | medium | Team Leader / QA |
 | [`developer-handoff`](../skills/developer-handoff/SKILL.md) | Generate a practical handoff document explaining what was developed, why, how to read the change, and what future developers must know. | low | Developer / Team Leader |
 
@@ -327,6 +327,36 @@ run.
 |---|---|---|---|
 | [`testbook-discovery`](../skills/testbook-discovery/SKILL.md) | Discover unit, integration, contract, end-to-end, and performance test candidates from repository evidence without running them. | low | Developer / QA |
 | [`testbook-run-report`](../skills/testbook-run-report/SKILL.md) | Run explicitly approved local testbook entries and report result evidence without inventing commands. | medium | Developer / QA |
+
+---
+
+## gui-test-validation
+**Trigger:** `gui_test_validation` · **Owner:** Developer / QA · **Duration:** 30 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`gui-test-context-discovery`](../skills/gui-test-context-discovery/SKILL.md) | Build a redacted inventory of GUI requirements, documentation, test-data references, and environment gaps. | medium | Developer / QA |
+| [`gui-testbook-authoring`](../skills/gui-testbook-authoring/SKILL.md) | Propose an approval-gated Playwright GUI testbook with deterministic assertions. | medium | Developer / QA |
+| [`gui-test-execution`](../skills/gui-test-execution/SKILL.md) | Run approved Playwright entries on an isolated test target and retain browser evidence. | high | Developer / QA |
+| [`gui-testbook-learning`](../skills/gui-testbook-learning/SKILL.md) | Propose reusable testbook improvements from redacted run evidence. | medium | Developer / QA |
+
+---
+
+## api-test-validation
+**Trigger:** `api_test_validation` · **Owner:** Developer / QA · **Duration:** 30 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`api-test-validation`](../skills/api-test-validation/SKILL.md) | Author and run approval-gated Newman API testbooks against isolated targets. | high | Developer / QA |
+
+---
+
+## database-read-verification
+**Trigger:** `database_read_verification` · **Owner:** Developer / QA / DBA · **Duration:** 20 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`database-read-verification`](../skills/database-read-verification/SKILL.md) | Verify isolated PostgreSQL test data with approval-gated read-only queries. | high | Developer / QA / DBA |
 
 ---
 

@@ -1,0 +1,33 @@
+name: api-test-validation
+trigger: api_test_validation
+runner: local/codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: true
+  default_purpose: api-test-validation
+service_context:
+  root: .mana/global
+  core_files:
+  - engineering-guards.md
+  - testing-policy.md
+  optional_files:
+  - integration-map.md
+  - knowledge/index.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- api-test-validation-agent
+skills:
+- api-test-validation
+blocking_conditions:
+  - target is production or lacks explicit isolated_test classification
+  - requested API entry is not approved and runnable
+  - collection or environment file is outside the local project root
+  - request would expose secrets, customer data, or create irreversible external data
+warning_conditions:
+  - contract, expected status, or negative path is missing
+  - data reset procedure is undocumented
+  - failure cannot distinguish product, contract, data, dependency, or environment cause
+expected_max_duration: 30 minutes
+human_approval_requirement: true

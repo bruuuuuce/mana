@@ -1,0 +1,22 @@
+schema_version: 1
+review_required: true
+project_root: "{{absolute_project_root}}"
+target:
+  reference: "{{redacted_target_reference}}"
+  classification: "isolated_test"
+  environment: "dedicated_test"
+tests:
+  - id: "{{stable_api_test_id}}"
+    kind: "api"
+    runner: "newman"
+    collection: "{{relative_postman_collection_path}}"
+    environment_file: "{{relative_postman_environment_path}}"
+    source:
+      - "{{requirement_or_contract_reference}}"
+    test_data_refs:
+      - "{{vault_or_environment_reference}}"
+    environment: "dedicated_test"
+    execution_status: "needs_environment"
+    safety: "requires_explicit_api_approval"
+    timeout_seconds: 900
+    approved: false

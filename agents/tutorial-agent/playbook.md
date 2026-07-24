@@ -30,6 +30,9 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
   cache for epic and sibling-story evidence. Explain that planning checks
   feasibility and story partitioning while review/validation compares branch or
   PR changes against the story.
+- Explain that story estimates are based on current-story evidence by default.
+  Historical delivery calibration is a separate, read-only team-level step and
+  requires explicit user approval after the base estimate.
 - After presenting the table, ask one question: "Which profile do you want to
   explore in depth?"
 
@@ -49,6 +52,9 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
 - Show an annotated sample output only when an existing relevant example was
   read; otherwise show the expected artifact names and approval gates.
 - List human approval gates explicitly: who approves and what evidence is needed.
+- For `story-start`, `story-ready-for-dev`, and `team-planning`, identify
+  historical calibration as an optional approval gate rather than a default
+  prerequisite.
 
 ### Phase 3 — Starter Checklist
 - Checklist format: `- [ ] Owner: action, artifact or path`.

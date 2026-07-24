@@ -1,6 +1,15 @@
 # Changelog
 
 ## Unreleased
+- Added governed API and database test validation: approval-gated Newman API
+  collections and PostgreSQL read-only verification catalogs for isolated targets.
+- Added governed GUI test validation: redacted context discovery, approval-gated
+  Playwright testbooks, isolated-target execution with trace/screenshot/video/JUnit
+  evidence, and human-approved learning proposals.
+- Added opt-in, read-only team-level historical calibration for story effort
+  estimates. Mana now returns a base estimate first and requires explicit user
+  approval before reading delivery history; individual productivity metrics are
+  excluded.
 - Added a generated skill routing index, conditional profile skill activation,
   and a compact runtime/output contract to reduce repeated model context.
 - Added database, contract, and dependency-security activation eval fixtures

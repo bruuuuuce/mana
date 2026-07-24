@@ -8,6 +8,11 @@
     "stories": { "type": "string" },
     "planning_artifacts": { "type": "string" },
     "team_constraints": { "type": "string" },
-    "repository_snapshot": { "type": "string" }
+    "repository_snapshot": { "type": "string" },
+    "historical_calibration_approved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Allows read-only, team-level historical calibration of story estimates after explicit user approval."
+    }
   }
 }
