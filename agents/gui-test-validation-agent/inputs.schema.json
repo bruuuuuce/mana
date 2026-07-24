@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "gui-test-validation-agent inputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "project_root": { "type": "string" },
+    "application_url_reference": { "type": "string", "description": "Redacted target reference; never a production URL." },
+    "documentation_sources": { "type": "array", "items": { "type": "string" } },
+    "gui_testbook": { "type": "string" },
+    "requested_test_ids": { "type": "array", "items": { "type": "string" } },
+    "environment_name": { "type": "string", "default": "dedicated_test" }
+  }
+}

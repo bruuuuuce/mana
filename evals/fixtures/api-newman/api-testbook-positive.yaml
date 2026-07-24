@@ -1,0 +1,16 @@
+schema_version: 1
+project_root: "/Users/zel/projects/mana/evals/fixtures/api-newman"
+target:
+  reference: "fixture-api"
+  classification: "isolated_test"
+tests:
+  - id: "health-api"
+    kind: "api"
+    runner: "newman"
+    collection: "collection.json"
+    environment_file: "environment.json"
+    environment: "dedicated_test"
+    execution_status: "runnable"
+    safety: "requires_explicit_api_approval"
+    timeout_seconds: 30
+    approved: true

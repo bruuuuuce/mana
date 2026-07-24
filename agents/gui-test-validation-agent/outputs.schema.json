@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "gui-test-validation-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "gui_test_context_inventory": { "type": "string" },
+    "gui_testbook": { "type": "string" },
+    "gui_test_run_report": { "type": "string" },
+    "gui_testbook_learning": { "type": "string" },
+    "verdict": { "type": "string", "enum": ["passed", "failed", "blocked", "partial", "inconclusive"] }
+  }
+}

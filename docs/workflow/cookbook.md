@@ -66,6 +66,19 @@ README and `docs/examples/end-to-end-codex-flow.md` /
   `scripts/run-profile.sh testbook-validation --project-root /path/to/project --codex`.
   Review the proposed testbook and approve individual entries before asking the
   agent to execute unit, integration, or performance tests.
+- **Build repeatable GUI validation:** run
+  `scripts/run-profile.sh gui-test-validation --project-root /path/to/project --codex`.
+  Provide redacted documentation references and an isolated test target. Review
+  the proposed Playwright testbook, approve each entry, then request explicit
+  IDs. Mana preserves access-controlled traces, screenshots, video, JUnit, and
+  a learning proposal; reports are redacted and it never targets production.
+- **Validate an API collection:** run
+  `scripts/run-profile.sh api-test-validation --project-root /path/to/project --codex`.
+  Review and approve isolated-target Newman entries before selecting IDs.
+- **Verify database state safely:** run
+  `scripts/run-profile.sh database-read-verification --project-root /path/to/project --codex`.
+  This requires approved PostgreSQL `SELECT/WITH` files and a test-only
+  connection environment variable; it does not allow mutations or production.
 - **Cache epic and sibling stories as Markdown:** in a linked project, run
   `./mana jira-mcp --fetch-epic-story-pack PROJ-1234`. Mana resolves the
   parent epic when Jira exposes one and writes

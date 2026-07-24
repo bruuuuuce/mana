@@ -1,0 +1,35 @@
+name: database-read-verification
+trigger: database_read_verification
+runner: local/codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: true
+  default_purpose: database-read-verification
+service_context:
+  root: .mana/global
+  core_files:
+  - engineering-guards.md
+  - testing-policy.md
+  - database-policy.md
+  optional_files:
+  - architecture.md
+  - integration-map.md
+  - knowledge/index.md
+  missing_file_behavior: warn
+  guard_violation_behavior: block_or_require_owner_approval
+agents:
+- database-read-verification-agent
+skills:
+- database-read-verification
+blocking_conditions:
+  - target is production or lacks explicit isolated_test classification
+  - requested database entry is not approved and runnable
+  - query is not demonstrably read-only
+  - connection data, customer data, or unrestricted database access would be exposed
+warning_conditions:
+  - query result lacks an expected assertion or approved summary rule
+  - test data reset procedure is undocumented
+  - failure cannot distinguish product, fixture, schema, or environment cause
+expected_max_duration: 20 minutes
+human_approval_requirement: true

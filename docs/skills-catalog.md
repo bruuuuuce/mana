@@ -330,6 +330,36 @@ run.
 
 ---
 
+## gui-test-validation
+**Trigger:** `gui_test_validation` · **Owner:** Developer / QA · **Duration:** 30 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`gui-test-context-discovery`](../skills/gui-test-context-discovery/SKILL.md) | Build a redacted inventory of GUI requirements, documentation, test-data references, and environment gaps. | medium | Developer / QA |
+| [`gui-testbook-authoring`](../skills/gui-testbook-authoring/SKILL.md) | Propose an approval-gated Playwright GUI testbook with deterministic assertions. | medium | Developer / QA |
+| [`gui-test-execution`](../skills/gui-test-execution/SKILL.md) | Run approved Playwright entries on an isolated test target and retain browser evidence. | high | Developer / QA |
+| [`gui-testbook-learning`](../skills/gui-testbook-learning/SKILL.md) | Propose reusable testbook improvements from redacted run evidence. | medium | Developer / QA |
+
+---
+
+## api-test-validation
+**Trigger:** `api_test_validation` · **Owner:** Developer / QA · **Duration:** 30 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`api-test-validation`](../skills/api-test-validation/SKILL.md) | Author and run approval-gated Newman API testbooks against isolated targets. | high | Developer / QA |
+
+---
+
+## database-read-verification
+**Trigger:** `database_read_verification` · **Owner:** Developer / QA / DBA · **Duration:** 20 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`database-read-verification`](../skills/database-read-verification/SKILL.md) | Verify isolated PostgreSQL test data with approval-gated read-only queries. | high | Developer / QA / DBA |
+
+---
+
 ## team-coaching-review
 **Trigger:** `coaching_review` · **Owner:** Team Leader · **Duration:** 30 min
 
