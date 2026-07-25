@@ -63,6 +63,25 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
 - Include the exact `run-profile.sh` command with `--project-root`.
 - Link relevant templates from `templates/`.
 
+### Phase 4 — Governed Tooling Boundaries
+- Use actual command semantics, not a generic "read-only" label. Divination
+  and cast dry-run write no state; eval and governance report runs persist
+  Mana-local results; a non-dry cast can write Mana-local state/telemetry and
+  invoke a runner.
+- Show a saved-divination example with `recommendationContextFingerprint` and
+  explain that `mana cast --from` rejects old or stale JSON until divination is
+  rerun.
+- Explain that cast validates profile, saved recommendation, Service Context,
+  plan, and governance constraints before it initializes telemetry.
+- Show eval result locations as
+  `.mana/evaluations/results/<scenario>/<project-revision>/<run-id>.json` and
+  report locations as `.mana/reports/governance/<project-revision>/<run-id>.md`.
+- Explain assertion classes and limits: structural coverage does not prove
+  semantic model quality; fixture-backed success does not prove autonomous
+  detection; approval remains a human responsibility.
+- Teach learning as the terminal-safe lifecycle `candidate → reviewed →
+  rejected|archived`; never describe review as promotion.
+
 ## Completion Criteria
 - The user has seen a profile overview table with all profiles.
 - The user has seen a Mermaid flow and annotated sample output for the selected profile.

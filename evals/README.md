@@ -15,7 +15,8 @@ Historic Markdown-only scenarios remain useful manual semantic reviews; add an
 
 Run `mana eval run`, `mana eval run <scenario>`, or
 `mana eval run --profile <profile>`. Results are saved locally under
-`.mana/evaluations/results/` and contain no prompts, model responses, hidden
+`.mana/evaluations/results/<scenario>/<project-revision>/<run-id>.json` (plus
+`latest.json`) and contain no prompts, model responses, hidden
 reasoning, or secrets. `mana eval compare <baseline> <candidate>` reports
 newly failing/passing outcomes and stable execution-plan dimensions.
 
@@ -42,6 +43,12 @@ frozen `fixture-signals.txt`; they do not use an unrestricted LLM judge.
 Model-based judging is deliberately deferred behind an explicit future
 interface. Establish a baseline by copying a passing result out of `.mana/`
 before a change, then compare it with the new result.
+
+Assertions are either `structural` (the governed plan) or `fixture-backed`
+(frozen fixture facts). `must_not_modify: true` is structural and fails if the
+plan selects a write-mode skill, permits a mutating tool, schedules
+`mana_worker`, or declares repository mutation. A passing fixture does not
+override a structural failure.
 
 ## When To Run
 

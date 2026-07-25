@@ -10,14 +10,17 @@ not a substitute for delivery evidence or human judgment.
 mana eval run
 mana eval run conditional-contract-pr --json
 mana eval run --profile pr-ready
-mana eval compare baseline.json .mana/evaluations/results/conditional-contract-pr-v1-<revision>.json
+mana eval compare baseline.json .mana/evaluations/results/conditional-contract-pr/<project-revision>/latest.json
 mana report governance
 ```
 
-`run` is read-only with respect to the delivery workspace: it does not invoke
-models, agents, tools, hooks, builds, tests, or external systems. It evaluates
-profile and skill metadata, declared agent outputs, human gates, and frozen
-fixture signals. Results are local `.mana/evaluations/results/*.json` files.
+`run` does not invoke models, agents, tools, hooks, builds, tests, or external
+systems, and it does not modify the target repository. It does persist a local
+evaluation result, so its mutation contract is `repositoryModified: false` and
+`manaStateWritten: true` rather than a blanket `readOnly` claim. Results use
+schema version 2 and are stored as
+`.mana/evaluations/results/<scenario-id>/<project-revision>/<run-id>.json`,
+with a copied `latest.json`.
 
 ## Writing an automated assertion
 
@@ -49,6 +52,13 @@ Use `fixture-signals.txt` for exact, safe deterministic risk facts required by
 secrets. Bump `version` when the intended assertion semantics change; retain
 the old result as a comparison baseline.
 
+Assertions report a class. `structural` assertions inspect the governed plan;
+`fixture-backed` assertions inspect only frozen fixture signals. `runtime` is
+reserved for future verified execution traces. In particular,
+`must_not_modify: true` is structural: it fails for a selected write-mode
+skill, mutating effective tool, planned `mana_worker`, or declared repository
+mutation. A fixture signal cannot make that structural failure pass.
+
 ## Deterministic and model checks
 
 The runner checks structure deterministically. It can prove that a profile
@@ -59,17 +69,10 @@ identified in results, and never replace these checks.
 
 ## Governance report
 
-`mana report governance` writes `.mana/reports/governance-<revision>.md`. It
-summarizes profile/skill/gate coverage, local eval results, Service Context
-gaps, metadata validation, model-tier coverage, learning candidates, and a
-pointer to comparison-based regressions. It is static Markdown, local only,
-and does not prove production safety, approval, or semantic correctness.
-# Evaluation boundary and storage
-
-`must_not_modify` is a structural execution-plan assertion, not a fixture flag:
-it rejects write-mode skills and mutating effective tools. Fixture-backed
-assertions are labelled separately and do not override structural results.
-Evaluation results use schema version 2 and are stored as
-`.mana/evaluations/results/<scenario>/<project-revision>/<run-id>.json`, with a
-copied `latest.json`. Persisting a result writes Mana-local state, but does not
-modify the target repository or invoke a runner/tool.
+`mana report governance` writes schema-version-2 report artifacts under
+`.mana/reports/governance/<project-revision>/<run-id>.md`, with a copied
+`latest.md`. It separates inventory from calculated profile, skill, human-gate,
+risk-level, and model-tier coverage; it also reports the current pass rate,
+stale result count, and learning candidates by lifecycle status. These are
+structural measures and do not prove semantic model quality, production safety,
+or human approval.
