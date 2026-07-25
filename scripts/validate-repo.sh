@@ -12,13 +12,14 @@ if ! "$root/scripts/build-skill-index.sh" "$root" | cmp -s - "$root/skills/index
   status=1
 fi
 "$root/scripts/validate-agents.sh" "$root" || status=1
+"$root/scripts/validate-divination-metadata.sh" "$root" || status=1
 "$root/scripts/validate-output-standard.sh" "$root" || status=1
 "$root/scripts/validate-story-trace.sh" "$root" || status=1
 "$root/scripts/validate-developer-choice-log.sh" "$root" || status=1
 for f in README.md LICENSE CHANGELOG.md CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md docs/standards/agent-skill-output-standard.md docs/standards/output-contract.md docs/standards/story-trace-standard.md docs/standards/developer-choice-log-standard.md docs/standards/delivery-metrics-standard.md docs/policies/runtime-execution-contract.md templates/standard-agent-skill-report.template.md templates/delivery-metrics.template.md templates/mana-workspace/story-trace.template.md templates/mana-workspace/developer-choice-log.template.md; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1; fi
 done
-for f in scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/run-evidence-index.sh docs/workflow/mana-workspace.md docs/workflow/service-context-layer.md docs/deployment/project-link-bootstrap.md templates/mana-workspace/manifest.template.yaml templates/mana-workspace/index.template.md templates/mana-workspace/global/service-mission.template.md templates/mana-workspace/global/engineering-guards.template.md templates/mana-workspace/global/hooks-config.template.yaml templates/mana-workspace/global/sonar-project.properties.template; do
+for f in scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/run-evidence-index.sh scripts/divination.sh scripts/cast.sh scripts/mana-runtime.sh scripts/mana-explore.sh scripts/mana-learning.sh scripts/mana-eval.sh scripts/mana-governance-report.sh scripts/validate-divination-metadata.sh scripts/lib/divination.sh scripts/lib/explorer-retrieval.sh scripts/lib/profile-metadata.sh scripts/lib/runtime-events.sh config/divination-domains.tsv config/runtime-retention.env.example docs/workflow/mana-workspace.md docs/workflow/service-context-layer.md docs/workflow/divination.md docs/workflow/casting.md docs/workflow/runtime-events.md docs/workflow/controlled-explorer-retrieval.md docs/workflow/governed-learning-signals.md docs/workflow/behavioural-evals.md docs/deployment/project-link-bootstrap.md templates/mana-workspace/manifest.template.yaml templates/mana-workspace/index.template.md templates/mana-workspace/global/service-mission.template.md templates/mana-workspace/global/engineering-guards.template.md templates/mana-workspace/global/hooks-config.template.yaml templates/mana-workspace/global/sonar-project.properties.template; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1; fi
 done
 if [ -f "$root/scripts/mana-workspace.sh" ] && [ ! -x "$root/scripts/mana-workspace.sh" ]; then
@@ -47,6 +48,14 @@ if [ -f "$root/scripts/run-dependency-evidence.sh" ] && [ ! -x "$root/scripts/ru
 fi
 if [ -f "$root/scripts/run-evidence-index.sh" ] && [ ! -x "$root/scripts/run-evidence-index.sh" ]; then
   echo "ERROR: scripts/run-evidence-index.sh is not executable" >&2
+  status=1
+fi
+if [ -f "$root/scripts/cast.sh" ] && [ ! -x "$root/scripts/cast.sh" ]; then
+  echo "ERROR: scripts/cast.sh is not executable" >&2
+  status=1
+fi
+if [ -f "$root/scripts/mana-runtime.sh" ] && [ ! -x "$root/scripts/mana-runtime.sh" ]; then
+  echo "ERROR: scripts/mana-runtime.sh is not executable" >&2
   status=1
 fi
 if [ -f "$root/scripts/validate-output-standard.sh" ] && [ ! -x "$root/scripts/validate-output-standard.sh" ]; then

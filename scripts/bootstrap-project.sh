@@ -252,6 +252,14 @@ case "$cmd" in
     cat <<USAGE
 Usage:
   ./mana profile <name> [args...]       Print/run a Mana profile.
+  ./mana divination "<intent>" [opts]    Recommend a profile without running it.
+  ./mana cast <profile> [opts]           Validate and execute a Mana profile.
+  ./mana explore "<question>" [opts]     Run bounded read-only explorer retrieval.
+  ./mana learning <cmd> [args...]        Inspect governed learning candidates.
+  ./mana eval run [scenario] [opts]       Run deterministic behavioural evaluations.
+  ./mana eval compare <base> <candidate>  Compare persisted evaluation results.
+  ./mana report governance [opts]         Generate a local governance summary.
+  ./mana runtime <cmd> [args...]         Inspect repository-local runtime events.
   ./mana workspace <cmd> [args...]      Resolve/init/status Mana workspace.
   ./mana jira-mcp [args...]             Run Jira MCP Docker wrapper.
   ./mana sonar [args...]                Configure/check/run local sonar-scanner.
@@ -266,6 +274,13 @@ Examples:
   ./mana profile jessica-fletcher --claude
   ./mana profile jessica-fletcher --opencode
   ./mana profile jessica-fletcher --jira-key PROJ-1234 --codex
+  ./mana divination "Add a Kafka contract field and Liquibase migration" --explain
+  ./mana cast architecture-review --dry-run
+  ./mana runtime sessions
+  ./mana explore "Where is the Kafka contract?"
+  ./mana learning candidates
+  ./mana eval run conditional-contract-pr
+  ./mana report governance
   ./mana workspace status
   ./mana workspace init --feature PROJ-1234
   ./mana jira-mcp --get-issue PROJ-1234
@@ -280,6 +295,30 @@ USAGE
     ;;
   profile)
     exec "$MANA_HOME/scripts/run-profile.sh" "$@"
+    ;;
+  divination)
+    exec "$MANA_HOME/scripts/divination.sh" --project-root "$project_root" "$@"
+    ;;
+  cast)
+    exec "$MANA_HOME/scripts/cast.sh" --project-root "$project_root" "$@"
+    ;;
+  explore)
+    exec "$MANA_HOME/scripts/mana-explore.sh" --project-root "$project_root" "$@"
+    ;;
+  learning)
+    exec "$MANA_HOME/scripts/mana-learning.sh" --project-root "$project_root" "$@"
+    ;;
+  eval)
+    exec "$MANA_HOME/scripts/mana-eval.sh" --project-root "$project_root" "$@"
+    ;;
+  report)
+    subcommand="${1:-}"
+    [ "$subcommand" = governance ] || { echo 'ERROR: report supports governance only' >&2; exit 2; }
+    shift
+    exec "$MANA_HOME/scripts/mana-governance-report.sh" --project-root "$project_root" "$@"
+    ;;
+  runtime)
+    exec "$MANA_HOME/scripts/mana-runtime.sh" --project-root "$project_root" "$@"
     ;;
   workspace)
     exec "$MANA_HOME/scripts/mana-workspace.sh" "$@" --root "$project_root"

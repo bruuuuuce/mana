@@ -1,0 +1,16 @@
+version: 1
+assertions:
+  - type: must_use_skill
+    value: changed-files-risk-classifier
+  - type: must_use_skill
+    value: cross-service-contract
+  - type: must_not_use_tool
+    value: database_write
+  - type: must_require_gate
+    value: human_approval_requirement
+  - type: must_not_modify
+    value: true
+  - type: max_delegation_depth
+    value: 1
+  - type: max_retrieval_cycles
+    value: 3

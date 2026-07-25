@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -u
 root="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=lib/profile-metadata.sh
+. "$root/scripts/lib/profile-metadata.sh"
 profile=""
 project_root=""
 render_only=false
@@ -349,12 +351,7 @@ fi
 
 "$root/scripts/mana-update-check.sh" --root "$root" --profile "$profile" || exit 1
 
-profile_skills="$(awk '
-  /^skills:/ { in_skills=1; next }
-  in_skills && /^- / { sub(/^- /, ""); print; next }
-  in_skills && /^  - / { sub(/^  - /, ""); print; next }
-  in_skills && /^[^[:space:]-]/ { in_skills=0 }
-' "$file")"
+profile_skills="$(mana_profile_skills "$file")"
 skill_index="$root/skills/index.yaml"
 
 skill_metadata() {
@@ -423,7 +420,8 @@ codex_agent_instructions() {
       cat <<'TEXT'
 You are mana_explorer, a Mana runtime Codex agent for bounded repository evidence discovery.
 Remain read-only. Use targeted search rather than broad repository dumping. Do not redesign the solution, make high-risk architecture judgments, edit source, or spawn other agents.
-Return a compact structured summary with: status, assigned_goal, skills_considered, evidence_inspected, relevant_files_and_symbols, findings, evidence_gaps, confidence, artifact_paths.
+Use at most three explicit retrieval cycles: DISPATCH a focused question, EVALUATE the evidence, REFINE only when a new targeted request is meaningful, then LOOP or STOP. Each cycle must record the question, available evidence, requested files or symbols and why, retrieved evidence, sufficiency, gaps, and its stop/refine decision. Never retrieve an unchanged item twice or load a full file when a symbol/range suffices. Stop on sufficiency, the third cycle, no meaningful refinement, a tool/governance boundary, or a required human input. Do not recursively delegate to another explorer.
+Return a compact structured summary with: investigated_question, retrieval_cycles, relevant_evidence_with_provenance, rejected_evidence, probably_modify, inspect_before_deciding, do_not_touch_unless_approved, unresolved_evidence_gaps, sufficiency_status, recommended_next_action, artifact_paths.
 Use exact file and symbol references. Explicitly report evidence gaps. Do not copy large diffs, raw logs, or full file bodies.
 TEXT
       ;;

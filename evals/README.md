@@ -6,9 +6,42 @@ profile actually produces the judgements the framework promises. This
 directory holds frozen scenarios that do.
 
 Each scenario is a fixed set of input artifacts plus a checklist of expected
-findings. Run the scenario through a runner, then compare the output against
-the checklist by hand. The comparison takes minutes and tells you immediately
-whether a change to instructions, playbooks, or skills degraded behavior.
+findings. `mana eval run` now performs repeatable structural checks over
+profiles, skills, gates, artifacts, delegation, and explicit fixture signals.
+Historic Markdown-only scenarios remain useful manual semantic reviews; add an
+`eval.yaml` when a deterministic assertion is appropriate.
+
+## Automated Runner
+
+Run `mana eval run`, `mana eval run <scenario>`, or
+`mana eval run --profile <profile>`. Results are saved locally under
+`.mana/evaluations/results/` and contain no prompts, model responses, hidden
+reasoning, or secrets. `mana eval compare <baseline> <candidate>` reports
+newly failing/passing outcomes and stable execution-plan dimensions.
+
+An `eval.yaml` is intentionally small:
+
+```yaml
+version: 1
+assertions:
+  - type: must_use_skill
+    value: cross-service-contract
+  - type: must_require_gate
+    value: owner approval
+  - type: must_not_use_tool
+    value: database_write
+  - type: max_retrieval_cycles
+    value: 3
+```
+
+Supported types are `must_flag`, `must_not_flag`, `must_use_skill`,
+`must_not_use_tool`, `must_require_gate`, `must_produce_artifact`,
+`must_stop_with`, `must_not_modify`, `max_delegation_depth`, and
+`max_retrieval_cycles`. `must_flag` and `must_not_flag` use exact lines in a
+frozen `fixture-signals.txt`; they do not use an unrestricted LLM judge.
+Model-based judging is deliberately deferred behind an explicit future
+interface. Establish a baseline by copying a passing result out of `.mana/`
+before a change, then compare it with the new result.
 
 ## When To Run
 
