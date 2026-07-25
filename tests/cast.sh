@@ -39,11 +39,10 @@ execution="$(PATH="$tmp/bin:$PATH" MANA_UPDATE_CHECK=off run mana-help --json 2>
 printf '%s\n' "$execution" | grep -Fq '"status":"executed"' || fail 'execution JSON status'
 grep -Fq 'mock codex invoked' "$tmp/runner.err" || fail 'existing runner did not invoke provider'
 
-fingerprint="$(cksum < "$root/profiles/mana-help.yaml" | awk '{print $1 "-" $2}')"
-printf '{"intent":"help","status":"recommended","recommendedProfile":"mana-help","profileFingerprint":"%s","readOnly":true}\n' "$fingerprint" > "$tmp/divination.json"
+"$root/scripts/divination.sh" --project-root "$project" 'Kafka contract and Liquibase migration' --json > "$tmp/divination.json"
 from="$(run --from "$tmp/divination.json" --dry-run --json)" || fail 'valid divination result rejected'
-printf '%s\n' "$from" | grep -Fq '"profile":"mana-help"' || fail 'from result profile'
-printf '{"status":"recommended","recommendedProfile":"mana-help","profileFingerprint":"0-0","readOnly":true}\n' > "$tmp/stale.json"
+printf '%s\n' "$from" | grep -Fq '"profile":"architecture-review"' || fail 'from result profile'
+printf '{"schemaVersion":"2","status":"recommended","recommendedProfile":"architecture-review","recommendationContextFingerprint":"0-0","fingerprintAlgorithm":"cksum-logical-manifest-v1","fingerprintInputs":[],"readOnly":true}\n' > "$tmp/stale.json"
 if run --from "$tmp/stale.json" --dry-run >"$tmp/stale.out" 2>&1; then fail 'stale divination accepted'; fi
 grep -Fq 'stale divination result' "$tmp/stale.out" || fail 'stale diagnostic'
 printf '{not json}\n' > "$tmp/malformed.json"

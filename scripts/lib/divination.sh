@@ -88,6 +88,48 @@ EOF
   return 1
 }
 
+# Versioned freshness authority for a persisted recommendation. The manifest is
+# logical-name|digest only, sorted before hashing; it never records contents or
+# machine paths. Keep this as the single implementation used by divination and
+# cast --from.
+divination_recommendation_fingerprint() {
+  local root="$1" project="$2" profile="$3" requested_inputs="${4:-}" config="$root/config/divination-domains.tsv" skill agent context digest manifest="" entry logical
+  DIVINATION_FINGERPRINT_ALGORITHM="cksum-logical-manifest-v1"
+  DIVINATION_FINGERPRINT_INPUTS=""
+  divination_fp_add() { local logical="$1" file="$2"; [ -f "$file" ] || return; digest="$(cksum < "$file" | awk '{print $1 "-" $2}')"; manifest="${manifest}${manifest:+$'\n'}$logical|$digest"; }
+  if [ -n "$requested_inputs" ]; then
+    while IFS='|' read -r logical _; do
+      [ -n "$logical" ] || continue
+      case "$logical" in
+        skills/index.yaml#*) skill="${logical#*#}"; entry="$(awk -v id="$skill" '$1=="-" && $2=="id:" {on=($3==id)} on {print} on && NR>1 && $1=="-" && $2=="id:" && $3!=id {exit}' "$root/skills/index.yaml")"; digest="$(printf '%s\n' "$entry" | cksum | awk '{print $1 "-" $2}')"; manifest="${manifest}${manifest:+$'\n'}$logical|$digest" ;;
+        .mana/*) divination_fp_add "$logical" "$project/$logical" ;;
+        *) divination_fp_add "$logical" "$root/$logical"; [ -f "$root/$logical" ] || divination_fp_add "$logical" "$project/$logical" ;;
+      esac
+    done <<EOF
+$requested_inputs
+EOF
+    manifest="$(printf '%s\n' "$manifest" | LC_ALL=C sort -u)"; DIVINATION_FINGERPRINT_INPUTS="$manifest"; DIVINATION_RECOMMENDATION_CONTEXT_FINGERPRINT="$(printf '%s\n' "divination-scoring-schema-v2" "$manifest" | cksum | awk '{print $1 "-" $2}')"; return
+  fi
+  divination_fp_add "profiles/$profile.yaml" "$root/profiles/$profile.yaml"
+  divination_fp_add "config/divination-domains.tsv" "$config"
+  for skill in $(mana_profile_skills "$root/profiles/$profile.yaml" | LC_ALL=C sort -u); do
+    # Include only this skill's index entry, avoiding unrelated-index staleness.
+    if [ -f "$root/skills/index.yaml" ]; then entry="$(awk -v id="$skill" '$1=="-" && $2=="id:" {on=($3==id)} on {print} on && NR>1 && $1=="-" && $2=="id:" && $3!=id {exit}' "$root/skills/index.yaml")"; digest="$(printf '%s\n' "$entry" | cksum | awk '{print $1 "-" $2}')"; manifest="${manifest}${manifest:+$'\n'}skills/index.yaml#$skill|$digest"; fi
+    divination_fp_add "skills/$skill/SKILL.md" "$root/skills/$skill/SKILL.md"
+  done
+  for agent in $(mana_profile_list "$root/profiles/$profile.yaml" agents | LC_ALL=C sort -u); do divination_fp_add "agents/$agent/AGENT.md" "$root/agents/$agent/AGENT.md"; done
+  while IFS= read -r context; do
+    context="${context%% *}"; [ -n "$context" ] || continue
+    # These are the context files actually inspected for recommendation evidence.
+    divination_fp_add ".mana/global/$context" "$project/.mana/global/$context"
+  done < <({ mana_profile_divination_list "$root/profiles/$profile.yaml" required_context; printf '%s\n' "${DIVINATION_DOMAINS:-}" | awk -F'|' '$2=="detected" {gsub(/,/,"\n",$4); print $4}'; } | while IFS= read -r x; do divination_context_file "$config" "$x" 2>/dev/null || printf '%s\n' "$x"; done | LC_ALL=C sort -u)
+  # Repository stack probes have a finite set of authoritative signals.
+  for context in asyncapi.yaml asyncapi.yml liquibase.properties ARCHITECTURE.md docs/architecture.md pom.xml build.gradle build.gradle.kts; do divination_fp_add "$context" "$project/$context"; done
+  manifest="$(printf '%s\n' "$manifest" | LC_ALL=C sort -u)"
+  DIVINATION_FINGERPRINT_INPUTS="$manifest"
+  DIVINATION_RECOMMENDATION_CONTEXT_FINGERPRINT="$(printf '%s\n' "divination-scoring-schema-v2" "$manifest" | cksum | awk '{print $1 "-" $2}')"
+}
+
 # Public engine API. It fills DIVINATION_* globals and performs only reads.
 divination_recommend() {
   local root="$1" project="$2" raw_intent="$3" config line domain aliases needed context risk alias normalized_alias negative matched
@@ -148,4 +190,5 @@ EOF
 $DIVINATION_DOMAINS
 EOF
   DIVINATION_GATES="$(printf '%s\n' "$DIVINATION_GATES" | sed '/^$/d' | sort -u)"; DIVINATION_MISSING="$(printf '%s\n' "$DIVINATION_MISSING" | sed '/^$/d' | sort -u)"; DIVINATION_IGNORED="$(printf '%s\n' "$DIVINATION_NORMALIZED" | tr ' ' '\n' | awk 'length($0)>3 && $0 !~ /^(add|field|using|with|into|from|that|this|change|persist)$/ {print}' | sort -u | tr '\n' ',' | sed 's/,$//')"
+  [ -n "$DIVINATION_PROFILE" ] && divination_recommendation_fingerprint "$root" "$project" "$DIVINATION_PROFILE"
 }

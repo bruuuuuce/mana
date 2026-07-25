@@ -108,3 +108,10 @@ This MVP does not use an LLM, embeddings, a network request, MCP, or external
 AI service. It cannot infer technologies absent from the intent, alias table,
 skill declarations, or Service Context. Divination recommends only; it never
 grants human approvals or starts execution.
+# Saved recommendation compatibility
+
+Divination JSON schema version 2 includes a `recommendationContextFingerprint`
+over a sorted logical manifest of recommendation inputs. `mana cast --from`
+requires this strong fingerprint and rejects older profile-only results with an
+instruction to rerun divination. The fingerprint excludes timestamps, absolute
+paths, generated output, runtime telemetry, and unrelated files.

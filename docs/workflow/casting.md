@@ -59,3 +59,11 @@ are initialized only by a real cast.
 `--json` writes one stable result object to stdout. During a real execution,
 the existing runner transcript is sent to stderr so automation does not receive
 mixed output.
+# Preflight and mutation semantics
+
+Cast completes argument, profile, recommendation freshness, Service Context,
+execution-plan, tool and governance checks before runtime telemetry is created.
+A blocked preflight reports `repositoryModified`, `manaStateWritten`,
+`telemetryWritten`, `runnerInvoked`, and `externalToolInvoked` as false. A
+non-dry execution may write Mana-local state and telemetry; this is distinct
+from modifying the target repository.
