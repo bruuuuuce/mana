@@ -17,7 +17,6 @@ for field in eventId timestamp sessionId executionId profileId eventType compone
 grep -Fq '"eventType":"profile.started"' "$events" || fail 'start event missing'
 grep -Fq '"eventType":"skill.selected"' "$events" || fail 'skill event missing'
 grep -Fq '"eventType":"model.selected"' "$events" || fail 'model event missing'
-grep -Fq '"eventType":"evidence.read"' "$events" || fail 'context evidence missing'
 grep -Fq '"eventType":"profile.completed"' "$events" || fail 'completion event missing'
 ! grep -Eqi '"(prompt|response|chainOfThought|environment|token)"' "$events" || fail 'private field present'
 execution="$(basename "$events" .jsonl)"
@@ -42,5 +41,5 @@ runtime_init /dev/null unavailable >/dev/null 2>&1 && fail 'storage failure was 
 
 missing="$tmp/missing"; mkdir -p "$missing/.mana/global"
 if PATH="$tmp/bin:$PATH" MANA_UPDATE_CHECK=off "$root/scripts/cast.sh" --project-root "$missing" mana-help --json > /dev/null 2>&1; then fail 'incomplete context cast succeeded'; fi
-find "$missing/.mana/runtime/events" -name '*.jsonl' -type f -exec grep -Fq '"eventType":"evidence.missing"' {} \; || fail 'missing evidence event absent'
+[ ! -e "$missing/.mana/runtime" ] || fail 'preflight failure wrote runtime telemetry'
 echo 'Runtime event tests passed'

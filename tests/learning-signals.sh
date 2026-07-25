@@ -16,7 +16,8 @@ list="$($root/scripts/mana-learning.sh --project-root "$project" candidates --js
 id="$(printf '%s' "$list" | sed -n 's/.*"candidateId":"\([^"]*\)".*/\1/p' | head -n 1)"; [ -n "$id" ] || fail 'candidate id missing'
 $root/scripts/mana-learning.sh --project-root "$project" review "$id" | grep -Fq 'review artifact' || fail 'review artifact not generated'
 [ -f "$project/.mana/learning/reviews/$id-review.md" ] || fail 'review missing'
+$root/scripts/mana-learning.sh --project-root "$project" show "$id" --json | grep -Fq '"status":"reviewed"' || fail 'review lifecycle missing'
 $root/scripts/mana-learning.sh --project-root "$project" reject "$id" >/dev/null
-$root/scripts/mana-learning.sh --project-root "$project" show "$id" --json | grep -Fq '"status":"reject"' || fail 'rejected lifecycle missing'
+$root/scripts/mana-learning.sh --project-root "$project" show "$id" --json | grep -Fq '"status":"rejected"' || fail 'rejected lifecycle missing'
 grep -R -Eqi 'token|secret' "$project/.mana/learning/candidates" && fail 'candidate leaked a secret-bearing field'
 echo 'Learning signal tests passed'

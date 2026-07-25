@@ -27,11 +27,18 @@ json_routing() { local first=true skill tier group; printf '['; while IFS='|' re
 $DIVINATION_ROUTING
 EOF
 printf ']'; }
+json_fingerprint_inputs() { local first=true logical digest; printf '['; while IFS='|' read -r logical digest; do [ -z "$logical" ] && continue; $first || printf ','; first=false; printf '{"logicalName":"%s","digest":"%s"}' "$(json_escape "$logical")" "$(json_escape "$digest")"; done <<EOF
+${DIVINATION_FINGERPRINT_INPUTS:-}
+EOF
+printf ']'; }
 if [ "$json" = true ]; then
-  printf '{"intent":"%s","status":"%s","recommendedProfile":' "$(json_escape "$DIVINATION_INTENT")" "${DIVINATION_STATUS:-error}"
+  printf '{"schemaVersion":"2","intent":"%s","status":"%s","recommendedProfile":' "$(json_escape "$DIVINATION_INTENT")" "${DIVINATION_STATUS:-error}"
   [ -n "$DIVINATION_PROFILE" ] && printf '"%s"' "$DIVINATION_PROFILE" || printf 'null'
   printf ',"profileFingerprint":'
   [ -n "${DIVINATION_PROFILE_FINGERPRINT:-}" ] && printf '"%s"' "$DIVINATION_PROFILE_FINGERPRINT" || printf 'null'
+  printf ',"recommendationContextFingerprint":'; [ -n "${DIVINATION_RECOMMENDATION_CONTEXT_FINGERPRINT:-}" ] && printf '"%s"' "$DIVINATION_RECOMMENDATION_CONTEXT_FINGERPRINT" || printf 'null'
+  printf ',"fingerprintAlgorithm":'; [ -n "${DIVINATION_FINGERPRINT_ALGORITHM:-}" ] && printf '"%s"' "$DIVINATION_FINGERPRINT_ALGORITHM" || printf 'null'
+  printf ',"fingerprintInputs":'; json_fingerprint_inputs
   printf ',"confidence":"%s","candidates":' "$DIVINATION_CONFIDENCE"; json_candidates; printf ',"domains":'; json_domains; printf ',"skills":'; json_list "$(printf '%s' "$DIVINATION_SKILLS" | tr ',' '\n')"; printf ',"modelRouting":'; json_routing; printf ',"humanGates":'; json_list "$DIVINATION_GATES"; printf ',"missingEvidence":'; json_list "$DIVINATION_MISSING"; printf ',"nextCommand":'
   [ -n "$DIVINATION_PROFILE" ] && printf '"mana cast %s"' "$DIVINATION_PROFILE" || printf 'null'
   printf ',"readOnly":true'; [ -n "$DIVINATION_ERROR" ] && printf ',"error":"%s"' "$(json_escape "$DIVINATION_ERROR")"; printf '}\n'; exit "$result"

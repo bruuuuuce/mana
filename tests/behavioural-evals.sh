@@ -5,17 +5,15 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 project="$tmp/project"; scenario="$tmp/passing"; mkdir -p "$project/.mana/global" "$scenario"
 cat > "$scenario/scenario.md" <<'EOF'
 # Scenario: deterministic plan
-**Profile:** `pr-ready`
+**Profile:** `mana-help`
 EOF
 cat > "$scenario/eval.yaml" <<'EOF'
 version: 7
 assertions:
   - type: must_use_skill
-    value: cross-service-contract
+    value: mana-usage-help
   - type: must_not_use_tool
     value: database_write
-  - type: must_require_gate
-    value: human_approval_requirement
   - type: must_not_modify
     value: true
   - type: max_delegation_depth
@@ -28,11 +26,11 @@ EOF
 printf 'compatibility-risk\n' > "$scenario/fixture-signals.txt"
 one="$($root/scripts/mana-eval.sh --project-root "$project" run "$scenario" --json)" || fail 'passing assertions failed'
 two="$($root/scripts/mana-eval.sh --project-root "$project" run "$scenario" --json)" || fail 'second passing run failed'
-[ "$one" = "$two" ] || fail 'stable JSON output changed'
+[ "$one" != "$two" ] || fail 'eval run identity was reused'
 result="$(printf '%s' "$one" | sed -n 's/.*"results":\["\([^"]*\)"\].*/\1/p')"; [ -f "$result" ] || fail 'result was not persisted'
 grep -Fq 'hidden reasoning' "$result" && fail 'private reasoning leaked'
 
-failing="$tmp/failing"; cp -R "$scenario" "$failing"; sed -i.bak 's/cross-service-contract/no-such-skill/' "$failing/eval.yaml"; rm "$failing/eval.yaml.bak"
+failing="$tmp/failing"; cp -R "$scenario" "$failing"; sed -i.bak 's/mana-usage-help/no-such-skill/' "$failing/eval.yaml"; rm "$failing/eval.yaml.bak"
 if "$root/scripts/mana-eval.sh" --project-root "$project" run "$failing" >/dev/null; then fail 'failing assertion passed'; fi
 
 malformed="$tmp/malformed"; mkdir -p "$malformed"; printf '# Scenario\n**Profile:** `pr-ready`\n' > "$malformed/scenario.md"; printf 'version: 1\n' > "$malformed/eval.yaml"

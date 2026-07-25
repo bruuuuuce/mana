@@ -6,6 +6,8 @@ set -u
 root="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=lib/profile-metadata.sh
 . "$root/scripts/lib/profile-metadata.sh"
+. "$root/scripts/lib/json.sh"
+. "$root/scripts/lib/execution-plan.sh"
 # shellcheck source=lib/divination.sh
 . "$root/scripts/lib/divination.sh"
 # shellcheck source=lib/runtime-events.sh
@@ -86,20 +88,13 @@ profile_fingerprint() {
   cksum < "$1" | awk '{print $1 "-" $2}'
 }
 
-json_field() {
-  # Divination emits one-line JSON with string values. Reject escaped or
-  # hand-written variants rather than guessing at a permissive JSON parser.
-  sed -n "s/.*\"$2\":\"\([^\"]*\)\".*/\1/p" "$1" | head -n 1
-}
-
 load_divination_result() {
   [ -f "$from_file" ] || fail "divination result not found: $from_file" || return 1
-  grep -Eq '^[[:space:]]*\{.*\}[[:space:]]*$' "$from_file" || fail "malformed divination JSON: expected a complete object in $from_file" || return 1
-  grep -Fq '"' "$from_file" || fail "malformed divination JSON: expected quoted object keys in $from_file" || return 1
-  grep -Fq '"readOnly":true' "$from_file" || fail "invalid divination result: readOnly must be true in $from_file" || return 1
-  grep -Fq '"status":"recommended"' "$from_file" || fail "invalid divination result: status must be recommended in $from_file" || return 1
-  profile="$(json_field "$from_file" recommendedProfile)"
-  saved_fingerprint="$(json_field "$from_file" profileFingerprint)"
+  mana_json_valid_object "$from_file" || fail "malformed divination JSON: expected a JSON object in $from_file" || return 1
+  jq -e '.schemaVersion == "2" and .readOnly == true and .status == "recommended" and (.recommendedProfile|type == "string") and (.recommendationContextFingerprint|type == "string") and (.fingerprintAlgorithm == "cksum-logical-manifest-v1") and (.fingerprintInputs|type == "array")' "$from_file" >/dev/null || { fail "incompatible divination result: rerun mana divination --json to create schemaVersion 2 recommendation"; return 1; }
+  profile="$(jq -r .recommendedProfile "$from_file")"
+  saved_fingerprint="$(jq -r .recommendationContextFingerprint "$from_file")"
+  saved_fingerprint_inputs="$(jq -r '.fingerprintInputs[] | .logicalName + "|" + .digest' "$from_file" | LC_ALL=C sort)"
   [ -n "$profile" ] || fail "invalid divination result: recommendedProfile is missing in $from_file" || return 1
   [ -n "$saved_fingerprint" ] || fail "incompatible divination result: profileFingerprint is missing; run mana divination again" || return 1
   case "$profile" in *[!A-Za-z0-9_-]*|'') fail "invalid divination result: recommendedProfile is not a valid profile name"; return 1;; esac
@@ -152,62 +147,15 @@ EOF
 }
 
 collect_plan() {
-  semantic_agents="$agents"
-  allowed_tools=""
-  artifacts=""
+  mana_execution_plan "$root" "$profile_file" || { fail "$MANA_PLAN_ERROR"; return 1; }
+  semantic_agents="$MANA_PLAN_AGENTS"; skills="$MANA_PLAN_SKILLS"; allowed_tools="$MANA_PLAN_TOOLS"; artifacts="$MANA_PLAN_ARTIFACTS"; model_routing="$MANA_PLAN_ROUTING"; runner_classes="$MANA_PLAN_RUNNERS"
   external_systems=""
-  while IFS= read -r agent; do
-    [ -n "$agent" ] || continue
-    agent_file="$root/agents/$agent/AGENT.md"
-    while IFS= read -r tool; do
-      [ -n "$tool" ] || continue
-      if ! printf '%s\n' "$allowed_tools" | grep -Fxq "$tool"; then
-        allowed_tools="${allowed_tools}${allowed_tools:+$newline}$tool"
-      fi
-      add_external_system "$tool"
-    done <<EOF
-$(agent_list "$agent_file" allowed_tools)
+  while IFS= read -r tool; do add_external_system "$tool"; done <<EOF
+$allowed_tools
 EOF
-    while IFS= read -r output; do
-      [ -n "$output" ] || continue
-      artifacts="${artifacts}${artifacts:+$newline}$agent: $output"
-    done <<EOF
-$(agent_list "$agent_file" outputs)
-EOF
-  done <<EOF
-$agents
-EOF
-  model_routing=""
-  runner_classes="mana_orchestrator"
-  while IFS= read -r skill; do
-    [ -n "$skill" ] || continue
-    metadata="$(skill_metadata "$root/skills/index.yaml" "$skill")"
-    IFS='|' read -r _path tier risk mode group <<EOF
-$metadata
-EOF
-    while IFS= read -r tool; do
-      [ -n "$tool" ] || continue
-      if ! printf '%s\n' "$allowed_tools" | grep -Fxq "$tool"; then
-        allowed_tools="${allowed_tools}${allowed_tools:+$newline}$tool"
-      fi
-      add_external_system "$tool"
-    done <<EOF
-$(agent_list "$root/${_path}" allowed_tools)
-EOF
-    model_routing="${model_routing}${model_routing:+$newline}$skill: tier=${tier:-unspecified}, risk=${risk:-unspecified}, group=${group:-unspecified}, mode=${mode:-unspecified}"
-    case "$tier:$risk:$mode" in
-      full:*:*|*:high:*) runner_classes="${runner_classes}${newline}mana_full_specialist" ;;
-      *:*:write) runner_classes="${runner_classes}${newline}mana_worker" ;;
-      *) runner_classes="${runner_classes}${newline}mana_explorer" ;;
-    esac
-  done <<EOF
-$skills
-EOF
-  runner_classes="$(printf '%s\n' "$runner_classes" | awk '!seen[$0]++')"
   blocking_conditions="$(mana_profile_list "$profile_file" blocking_conditions)"
-  human_gates=""
-  [ "$(mana_profile_value "$profile_file" human_approval_requirement)" = true ] && human_gates="profile requires human approval for its governed decision; casting does not satisfy it"
-  if [ -n "$blocking_conditions" ]; then human_gates="${human_gates}${human_gates:+$newline}profile blockers must stop execution when evidenced"; fi
+  human_gates=""; [ "$(mana_profile_value "$profile_file" human_approval_requirement)" = true ] && human_gates="profile requires human approval for its governed decision; casting does not satisfy it"
+  [ -n "$blocking_conditions" ] && human_gates="${human_gates}${human_gates:+$newline}profile blockers must stop execution when evidenced"
   workspace_paths=".mana/global (existing Service Context)${newline}.mana/features/<feature-id> or .mana/sessions/<timestamp>-<branch>-$(mana_profile_section_value "$profile_file" artifact_workspace default_purpose)"
 }
 
@@ -242,6 +190,7 @@ render_json() {
   printf ',"blockingConditions":'; json_list <<<"$blocking_conditions"
   printf ',"workspacePaths":'; json_list < <(printf '%b\n' "$workspace_paths")
   printf ',"externalSystems":'; json_list <<<"$external_systems"
+  printf ',"repositoryModified":false,"manaStateWritten":%s,"telemetryWritten":%s,"runnerInvoked":%s,"externalToolInvoked":%s' "$([ "$dry_run" = true ] && echo false || echo true)" "$([ "$dry_run" = true ] && echo false || echo true)" "$([ "$dry_run" = true ] && echo false || echo true)" "$([ "$dry_run" = true ] && echo false || echo true)"
   printf ',"readOnly":%s' "$dry_run"
   [ -n "$error" ] && printf ',"error":"%s"' "$(json_escape "$error")"
   printf '}\n'
@@ -260,28 +209,26 @@ while [ "$#" -gt 0 ]; do
 done
 
 if [ -z "$error" ] && [ -n "$from_file" ] && [ -n "$profile" ]; then error='provide either a profile or --from, not both'; fi
+if [ -z "$error" ] && [ ! -d "$project_root" ]; then error="project root not found: $project_root"; fi
+if [ -z "$error" ]; then project_root="$(cd "$project_root" && pwd)"; fi
 if [ -z "$error" ] && [ -n "$from_file" ]; then load_divination_result || true; fi
 if [ -z "$error" ] && [ -z "$profile" ]; then error='a profile or --from divination.json is required'; fi
-if [ -z "$error" ] && [ ! -d "$project_root" ]; then error="project root not found: $project_root"; fi
-if [ -z "$error" ]; then project_root="$(cd "$project_root" && pwd)"; validate_profile || true; fi
-if [ -z "$error" ] && [ "$dry_run" != true ]; then
-  runtime_init "$project_root" "$profile" || echo "WARNING: $MANA_RUNTIME_WARNING" >&2
-fi
+if [ -z "$error" ]; then validate_profile || true; fi
 if [ -z "$error" ] && [ -n "$from_file" ]; then
-  current_fingerprint="$(profile_fingerprint "$profile_file")"
+  divination_recommendation_fingerprint "$root" "$project_root" "$profile" "$saved_fingerprint_inputs"
+  current_fingerprint="$DIVINATION_RECOMMENDATION_CONTEXT_FINGERPRINT"
   if [ "$saved_fingerprint" != "$current_fingerprint" ]; then error="stale divination result: profile metadata changed (saved $saved_fingerprint, current $current_fingerprint); run mana divination again"; fi
 fi
 if [ -z "$error" ]; then validate_service_context || true; fi
 if [ -z "$error" ]; then collect_plan; fi
 
+# All checks above are read-only. Runtime telemetry begins only after this
+# boundary, so blocked preflight never creates .mana/runtime.
+if [ -z "$error" ] && [ "$dry_run" != true ]; then runtime_init "$project_root" "$profile" || echo "WARNING: $MANA_RUNTIME_WARNING" >&2; fi
+
 if [ -n "$error" ]; then
-  if [ -n "$MANA_RUNTIME_ROOT" ]; then
-    runtime_emit guard.triggered profile "$profile" blocked "reason=preflight" "" true || echo "WARNING: $MANA_RUNTIME_WARNING" >&2
-    runtime_emit profile.failed profile "$profile" failed "reason=preflight" "" false || true
-    runtime_finish failed
-  fi
   if [ "$json" = true ]; then
-    printf '{"status":"blocked","profile":'; [ -n "$profile" ] && printf '"%s"' "$(json_escape "$profile")" || printf 'null'; printf ',"readOnly":true,"error":"%s"}\n' "$(json_escape "$error")"
+    printf '{"schemaVersion":"2","status":"blocked","profile":'; [ -n "$profile" ] && printf '"%s"' "$(json_escape "$profile")" || printf 'null'; printf ',"repositoryModified":false,"manaStateWritten":false,"telemetryWritten":false,"runnerInvoked":false,"externalToolInvoked":false,"error":"%s"}\n' "$(json_escape "$error")"
   else
     echo 'MANA CAST BLOCKED'
     echo "$error"

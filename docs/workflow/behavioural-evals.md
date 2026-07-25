@@ -64,3 +64,12 @@ summarizes profile/skill/gate coverage, local eval results, Service Context
 gaps, metadata validation, model-tier coverage, learning candidates, and a
 pointer to comparison-based regressions. It is static Markdown, local only,
 and does not prove production safety, approval, or semantic correctness.
+# Evaluation boundary and storage
+
+`must_not_modify` is a structural execution-plan assertion, not a fixture flag:
+it rejects write-mode skills and mutating effective tools. Fixture-backed
+assertions are labelled separately and do not override structural results.
+Evaluation results use schema version 2 and are stored as
+`.mana/evaluations/results/<scenario>/<project-revision>/<run-id>.json`, with a
+copied `latest.json`. Persisting a result writes Mana-local state, but does not
+modify the target repository or invoke a runner/tool.
