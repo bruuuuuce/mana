@@ -1,0 +1,9 @@
+# id	aliases (comma separated)	matching skills	service-context evidence	risk level
+# This deliberately small, repository-owned vocabulary is the only synonym
+# source used by `mana divination`.  Keep aliases specific and review changes
+# alongside the profiles and skills they route to.
+contract	api,contract,event,kafka,message,messaging,payload,schema,topic	cross-service-contract,source-impact-map	integration-map.md,architecture.md	medium
+database	database,oracle,persist,persistence,repository,schema,sql,table	liquibase-production-risk,database-drift,database-read-verification	database-policy.md,architecture.md	high
+liquibase	liquibase,changelog,migration,changeset,rollback	liquibase-production-risk,liquibase-syntax,rollback-safety	database-policy.md	high
+testing	test,testing,regression,playwright,newman	green-border-plan,regression-selection,test-quality	testing-policy.md	medium
+architecture	architecture,boundary,service,dependency,component	architecture-risk,architecture-drift-detection,service-boundary-fit	architecture.md,engineering-guards.md	medium

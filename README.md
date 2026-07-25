@@ -4,6 +4,9 @@
 
 # Mana
 
+Mana includes deterministic, repository-local behavioural evaluations and a
+static governance summary. See [Behavioural Evaluations](docs/workflow/behavioural-evals.md).
+
 Mana is an evidence-driven delivery framework for enterprise software delivery.
 It turns uneven requirements, late architecture decisions, weak tests, database
 risk, and overloaded reviews into governed technical workflows with traceable
@@ -88,6 +91,8 @@ cd /path/to/project
 ./mana profile story-start --render-only
 ./mana profile story-start --codex
 ./mana profile story-start --opencode
+./mana cast story-start --dry-run
+./mana runtime sessions
 ./mana dependency-evidence --collect
 ./mana evidence-index
 ```
@@ -98,6 +103,16 @@ instructions, Mana-managed `.codex/agents/mana-*.toml` agents for Codex,
 `.claude/agents/mana-*.md` agents for Claude Code, and
 `.opencode/agents/mana_*.md` agents for OpenCode delegation. Project artifacts
 stay under the target repository's `.mana/` workspace.
+
+For deterministic profile recommendation and the explicit execution boundary,
+see [Mana Divination](docs/workflow/divination.md) and
+[Mana Casting](docs/workflow/casting.md). The lifecycle is
+`attunement → divination → casting → evidence → judgment`: divination is
+read-only; casting validates then uses the existing runner; neither grants a
+human approval.
+
+Execution audit records are local-only and privacy-preserving; inspect them
+with `mana runtime` as documented in [Mana Runtime Events](docs/workflow/runtime-events.md).
 
 ## What Mana Is
 - An evidence-driven delivery framework.
@@ -252,6 +267,23 @@ Workspace resolution and routing rules are defined in
 collecting Jira, Sonar, dependency, test, validation, or PR artifacts so
 agents read a compact index before deep-loading evidence.
 
+## Divination: deterministic profile recommendation
+
+`./mana divination "<delivery intent>"` is a read-only, deterministic aid for
+choosing a Mana profile before any runner is invoked. It loads existing profile
+YAML, profile skills, skill metadata, repository-owned domain aliases, and
+available Service Context. It never runs a profile, agent, skill, tool, hook,
+or external command, and it never writes under `.mana/`.
+
+```bash
+./mana divination "Add a field to a Kafka contract and persist it in Oracle using Liquibase"
+./mana divination "Review the migration" --explain
+printf '%s\n' "Plan a contract change" | ./mana divination --json
+```
+
+See `docs/workflow/divination.md` for scoring inputs and limitations. A
+recommendation is not execution: review the evidence and gates first.
+
 ## Lifecycle Flow
 ```mermaid
 flowchart TD
@@ -330,3 +362,9 @@ repository, Jira, GitHub, or CI operations must be human-approved.
 Read `CONTRIBUTING.md`. New skills must be atomic, include required front
 matter, examples, decision rules, failure modes, MCP behavior, and human review
 gates. New agents must orchestrate existing skills rather than duplicate logic.
+For bounded evidence discovery, use `mana explore "<question>"`; it is
+read-only and stops after at most three retrieval cycles. Runtime observations
+can be inspected as governed, project-local learning candidates with
+`mana learning candidates`; candidates are never automatically promoted. See
+[controlled explorer retrieval](docs/workflow/controlled-explorer-retrieval.md)
+and [governed learning signals](docs/workflow/governed-learning-signals.md).

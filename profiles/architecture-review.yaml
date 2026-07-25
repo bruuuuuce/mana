@@ -40,3 +40,17 @@ warning_conditions:
   - MCP read limitation documented for follow-up
 expected_max_duration: 30 minutes
 human_approval_requirement: true
+divination:
+  intents:
+    - contract change
+    - schema evolution
+  domains:
+    contract: strong
+    database: medium
+    liquibase: strong
+  positive_signals:
+    - kafka
+    - oracle
+  required_context:
+    - integration-map
+    - database-policy
