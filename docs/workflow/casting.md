@@ -25,10 +25,14 @@ mana divination "Review a migration" --json > divination.json
 mana cast --from divination.json --dry-run
 ```
 
-`--from` accepts only a recommended, read-only divination JSON object with its
-profile fingerprint. Casting compares the saved fingerprint to current profile
-metadata and blocks stale results. A divination file is never authorization;
-the explicit `mana cast` invocation is still required.
+`--from` accepts only a recommended schema-version-2 divination JSON object.
+It validates `recommendationContextFingerprint`, its logical digest manifest,
+and `fingerprintAlgorithm`; old profile-only results are rejected with an
+instruction to rerun divination. The fingerprint covers selected profile,
+relevant domain configuration, selected skills and agents, considered Service
+Context, stack signals, and scoring schema—not timestamps, machine paths,
+runtime telemetry, generated output, or unrelated files. A divination file is
+never authorization; the explicit `mana cast` invocation is still required.
 
 ## Dry runs
 
@@ -59,7 +63,7 @@ are initialized only by a real cast.
 `--json` writes one stable result object to stdout. During a real execution,
 the existing runner transcript is sent to stderr so automation does not receive
 mixed output.
-# Preflight and mutation semantics
+## Preflight and mutation semantics
 
 Cast completes argument, profile, recommendation freshness, Service Context,
 execution-plan, tool and governance checks before runtime telemetry is created.
@@ -67,3 +71,11 @@ A blocked preflight reports `repositoryModified`, `manaStateWritten`,
 `telemetryWritten`, `runnerInvoked`, and `externalToolInvoked` as false. A
 non-dry execution may write Mana-local state and telemetry; this is distinct
 from modifying the target repository.
+
+The preflight order is: arguments, project root, saved recommendation, profile
+metadata, recommendation schema/freshness, Service Context, execution plan,
+tool/runner/governance constraints, then runtime telemetry. A failure before
+the telemetry boundary creates no `.mana/runtime/` state and invokes no runner
+or external tool. JSON uses `repositoryModified`, `manaStateWritten`,
+`telemetryWritten`, `runnerInvoked`, and `externalToolInvoked`; `readOnly` is
+unambiguous only for a dry run.

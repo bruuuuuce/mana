@@ -21,6 +21,12 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
 5. Identify required artifacts and missing context.
 6. Identify any approval gates that apply.
 7. Keep the output actionable and short.
+8. For divination/cast, include the saved-result freshness and preflight
+   boundary when relevant: preflight failures must not create runtime telemetry.
+9. For eval/report, name the run-identified artifact path and distinguish
+   Mana-local artifact writes from target-repository modifications.
+10. For learning, show the canonical status transition and state that no
+    automatic promotion exists.
 
 - Update or reference `agent-memory/story-trace.md` with concise evidence, assumptions, decisions, approval gates, handoffs, and generated artifact links for the active Jira story or feature.
 

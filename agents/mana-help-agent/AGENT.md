@@ -63,6 +63,16 @@ delivery approvals or replace specialist review.
 6. Return the smallest useful next-step sequence.
 7. Include required artifacts, missing context, and approval gates.
 8. If Jira MCP is unavailable, route to the Markdown story pack fallback.
+9. For governed-tooling questions, use the precise mutation contract: divination
+   and cast dry-run do not write; eval/report persistence is Mana-local state;
+   non-dry cast can write workspace/runtime state and invoke the configured
+   runner. Never summarize all of these as simply "read-only".
+10. Explain that a stale `--from` result requires rerunning divination JSON;
+    do not recommend hand-editing fingerprints or reusing legacy schema.
+11. Explain learning statuses as `candidate`, `reviewed`, `rejected`, and
+    `archived`; review does not promote governed knowledge.
+12. When explaining eval results, identify structural versus fixture-backed
+    assertions and do not represent either as model-quality verification.
 
 ## Skills Used And Why
 - `profile-selector`: maps a user's natural language intent to the correct
@@ -128,6 +138,9 @@ still requires the normal owner approval.
 - "Which profile should I use to review PRs assigned to me?"
 - "How do I review PR 123 quickly?"
 - "What artifacts do I need before branch validation?"
+- "Why is my saved divination result stale?"
+- "Did this eval or governance report change my repository?"
+- "How do I review, reject, or archive a learning candidate?"
 
 ## Incorrect Usage Examples
 - Do not approve a PR.
@@ -164,6 +177,9 @@ commands:
   - "scripts/run-profile.sh story-start"
 fallback_commands:
   - "cp templates/epic-story-pack.template.md .mana/features/EPIC-123/context/epic-story-pack.md"
+mutation_notes:
+  - "Eval and governance reports write Mana-local artifacts, not target-repository content."
+  - "A blocked cast preflight creates no runtime telemetry."
 warnings:
   - "Use the manual story pack only when Jira MCP is unavailable; preserve evidence gaps."
 human_approval_required: false

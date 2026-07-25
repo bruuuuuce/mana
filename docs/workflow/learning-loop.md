@@ -25,10 +25,16 @@ which skills produce review load instead of removing it.
 
 ## Practical Use
 Use the related profiles and templates to create repeatable artifacts. Fill each artifact with project-specific evidence and route blockers to the accountable owner.
-# Learning candidate lifecycle
+## Learning candidate lifecycle
 
 Learning candidates use schema version 2 and the only automatic lifecycle is
 `candidate → reviewed|rejected|archived`, followed by `reviewed → rejected|archived`.
 Rejected and archived candidates are terminal for collection; collection never
 promotes knowledge. `evidenceReferences` and `executions` are sorted, deduplicated
 JSON string arrays. `jq` is required to safely read persisted candidate JSON.
+
+`review` creates or refreshes the review artifact, retains candidate evidence,
+and sets `status: reviewed`; it never promotes governed knowledge. `reject`
+and `archive` set terminal statuses. Later collection preserves `reviewed`
+records while refreshing observed recurrence/evidence, and never resurrects
+`rejected` or `archived` records.

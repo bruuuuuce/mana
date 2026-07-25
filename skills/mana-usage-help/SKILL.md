@@ -92,6 +92,19 @@ governance gates.
 8. Recommend `./mana evidence-index` after local Jira, Sonar, dependency, test,
    validation, or PR evidence is collected.
 9. Flag missing service context, evidence gaps, or approval gates.
+10. When the user asks about governed tooling, state the execution boundary
+    precisely: `mana divination` is a read-only recommendation; `mana cast
+    --dry-run` writes nothing; non-dry cast may write Mana-local state and
+    runtime telemetry; eval and governance report runs write Mana-local
+    artifacts but do not invoke a runner.
+11. For a saved recommendation, instruct users to rerun `mana divination
+    --json` when `mana cast --from` reports staleness. Do not suggest editing a
+    fingerprint file or treating the legacy `profileFingerprint` as sufficient.
+12. For learning, explain `candidate → reviewed → rejected|archived`; review
+    creates an evidence-preserving artifact and never promotes knowledge.
+13. For behavioural evals, distinguish structural assertions from
+    fixture-backed assertions. Explain that `must_not_modify` checks the plan,
+    not whether a fixture happens to say no mutation occurred.
 
 ## Decision Rules
 - `blocker`: the user is about to skip a required approval gate, run write
@@ -174,6 +187,9 @@ approval and audit logging.
 - Ask how to collect dependency evidence before review.
 - Ask how to build an evidence index after collecting Jira, Sonar, dependency,
   test, validation, or PR artifacts.
+- Ask why `mana cast --from` says a recommendation is stale.
+- Ask whether an eval run changed the target repository.
+- Ask how to review or close a learning candidate without promoting it.
 
 ## Incorrect Usage Examples
 - Do not use this skill to approve a PR.
@@ -217,5 +233,23 @@ missing_context:
   - "If Jira MCP is unavailable, use templates/epic-story-pack.template.md."
 risk_notes:
   - "Do not proceed with implementation until acceptance criteria gaps are resolved or approved."
+human_review_required: false
+```
+
+## Governed Tooling Support Example
+
+```yaml
+skill: mana-usage-help
+status: ready
+next_step_recommendation: "Regenerate the saved recommendation before casting."
+command_sequence:
+  - "mana divination \"<delivery intent>\" --json > divination.json"
+  - "mana cast --from divination.json --dry-run --json"
+mutation_notes:
+  - "The divination and dry-run commands do not write target-repository or Mana-local state."
+  - "A non-dry cast can write Mana-local workspace/runtime state; inspect its explicit mutation fields."
+learning_notes:
+  - "Review writes .mana/learning/reviews/<candidate-id>-review.md and changes status to reviewed."
+  - "Rejected and archived candidates are terminal for collection."
 human_review_required: false
 ```

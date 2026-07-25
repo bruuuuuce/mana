@@ -85,6 +85,24 @@ access the user's repository and does not execute skills against real code.
 13. Include concrete file paths, commands, and links to relevant templates.
 14. Do not promise the profile will work without the listed prerequisites.
 
+### Phase 4 — Governed Tooling Walkthrough
+15. When the user asks about divination, casting, evaluation, reporting, or
+    learning, teach the executable boundary using the current commands:
+    `mana divination ... --json`, `mana cast --from ... --dry-run --json`,
+    `mana eval run`, `mana report governance`, and `mana learning candidates`.
+16. Explain the composite recommendation fingerprint and that an old or stale
+    saved divination result must be regenerated, never manually repaired.
+17. Explain the cast preflight boundary: a blocked preflight writes no runtime
+    telemetry and invokes no runner/external tool.
+18. Explain mutation fields individually. Eval/report persistence is a
+    Mana-local write; it is not a repository modification or runtime proof.
+19. Explain assertion classes: structural plan checks, fixture-backed signals,
+    and reserved future runtime assertions. Do not claim that passing fixtures
+    prove autonomous detection or semantic model quality.
+20. Explain the learning lifecycle as `candidate → reviewed →
+    rejected|archived`, with rejected/archived terminal for collection and no
+    automatic promotion.
+
 ## Skills Used And Why
 - `profile-selector`: confirms the user's profile choice and optionally writes
   `.mana/active-profile` so the selection persists for subsequent runs.
@@ -167,7 +185,8 @@ flowchart TD
     Selector --> Deep
     Deep --> Read[Read AGENT.md + SKILL.md + examples/]
     Read --> Flow[Mermaid flow + annotated sample output]
-    Flow --> Check[Phase 3: starter checklist]
+    Flow --> Boundary[Phase 4: governed tooling boundaries]
+    Boundary --> Check[Phase 3: starter checklist]
     Check --> Done[tutorial-session.md + starter-checklist.md]
 ```
 
@@ -180,11 +199,13 @@ phases_completed:
   - discovery
   - overview
   - deep-dive
+  - governed-tooling-boundaries
   - starter-checklist
 artifacts:
   - agent-memory/tutorial-session.md
   - agent-memory/starter-checklist.md
 warnings:
   - "No active workspace; artifacts provided in chat only."
+  - "A passing structural or fixture-backed eval does not prove production safety."
 human_approval_required: false
 ```
