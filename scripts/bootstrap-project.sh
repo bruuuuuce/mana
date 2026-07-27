@@ -313,7 +313,7 @@ USAGE
     ;;
   report)
     subcommand="${1:-}"
-    [ "$subcommand" = governance ] || { echo 'ERROR: report supports governance only' >&2; exit 2; }
+    [ "$subcommand" = governance ] || { echo "ERROR: report supports governance only" >&2; exit 2; }
     shift
     exec "$MANA_HOME/scripts/mana-governance-report.sh" --project-root "$project_root" "$@"
     ;;
