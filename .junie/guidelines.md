@@ -4,6 +4,10 @@
 - Read generated planning files from the active `.mana` workspace before coding.
 - Read `.mana/global/engineering-guards.md` before changing code and stop if the requested edit violates a guard.
 - Use `.mana/global/service-mission.md` and `.mana/global/architecture.md` to understand service intent and boundaries.
+- Treat healthy `.mana/user-context/` as optional reusable personal guidance,
+  not Service Context or project truth. Read only relevant entry points or
+  targeted deeper files. Repository evidence and project/service constraints
+  win on conflict. Never edit the generated mirror.
 - Write local test evidence and fix-loop notes into the active `.mana` workspace.
 - Run local tests after each change.
 - Never modify files outside the approved source-impact map without asking.

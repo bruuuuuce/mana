@@ -27,3 +27,4 @@ When required work is high-risk, explicitly full-tier, noisy, or beyond primary-
 Use mana_explorer for read-heavy evidence discovery. Use mana_full_specialist for architecture, security, database, concurrency, cross-service, production, transactional, backwards-compatibility, model_tier: full, or large/ambiguous diff judgment. Use mana_worker only when the selected Mana profile explicitly permits source modification, and never run parallel writers.
 
 If subagents are disabled, missing, fail, or return insufficient evidence for a high-risk judgment, preserve a concise handoff artifact and return needs_model_escalation instead of performing that judgment on the primary model.
+Treat `.mana/user-context/` as optional generated personal guidance. Load it progressively, never edit it, and prefer repository evidence and project/service constraints on conflict.

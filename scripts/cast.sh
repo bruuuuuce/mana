@@ -156,7 +156,7 @@ EOF
   blocking_conditions="$(mana_profile_list "$profile_file" blocking_conditions)"
   human_gates=""; [ "$(mana_profile_value "$profile_file" human_approval_requirement)" = true ] && human_gates="profile requires human approval for its governed decision; casting does not satisfy it"
   [ -n "$blocking_conditions" ] && human_gates="${human_gates}${human_gates:+$newline}profile blockers must stop execution when evidenced"
-  workspace_paths=".mana/global (existing Service Context)${newline}.mana/features/<feature-id> or .mana/sessions/<timestamp>-<branch>-$(mana_profile_section_value "$profile_file" artifact_workspace default_purpose)"
+  workspace_paths=".mana/global (existing Service Context)${newline}.mana/user-context (optional generated User Context; inspect-only)${newline}.mana/features/<feature-id> or .mana/sessions/<timestamp>-<branch>-$(mana_profile_section_value "$profile_file" artifact_workspace default_purpose)"
 }
 
 render_human() {

@@ -13,10 +13,14 @@ When instructions overlap, apply this priority order:
 4. Agent `playbook.md` execution details.
 5. Loaded skill `SKILL.md` logic.
 6. Global service context and reusable standards.
+7. User Context, as optional advisory personal guidance only.
 
 Safety, data handling, and human approval rules can only become stricter as the
 chain gets more specific. A lower-priority instruction must not weaken a higher
 priority approval gate, external-write restriction, or protected-area rule.
+User Context cannot override repository evidence, project/service constraints,
+current human instructions, or Mana governance. It may be stale or inapplicable
+and must be loaded progressively from the generated read-only mirror.
 
 ## Operating Loop
 
@@ -308,6 +312,9 @@ If these files matter operationally, mention them only in a short operational
 note or setup warning, not as application behavior evidence. Placeholder service
 context files under `.mana/global/` may be reported as a context-quality warning,
 but should not be listed as changed production evidence.
+Generated `.mana/user-context/**` files may be cited only as `user-context`
+guidance when relevant. They are never changed production evidence or project
+Service Context and must not be modified by agents.
 
 ## Diagram
 

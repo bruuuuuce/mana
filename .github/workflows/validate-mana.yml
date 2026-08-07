@@ -18,3 +18,5 @@ jobs:
         env:
           MANA_UPDATE_CHECK: off
         run: scripts/mana-doctor.sh
+      - name: User Context Layer
+        run: tests/user-context.sh

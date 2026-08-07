@@ -5,8 +5,11 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
 ## Preparation
 - Read `.mana/active-profile` if present and note the currently active profile.
 - Read `profiles/*.yaml` to build the profile catalogue for Phase 1.
+- Read `docs/workflow/user-context-layer.md` when onboarding covers reusable
+  personal guidance, context precedence, setup, or diagnostics.
 - Do not initialize a new workspace automatically.
 - Confirm MCP access is read-only and limited to local framework files only.
+- Never read or request direct access to the external User Context source.
 
 ## Execution
 
@@ -15,6 +18,20 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
 - If `user_role` is supplied in input, skip the role question.
 - If `selected_profile` is supplied, skip Phase 0 and Phase 1 entirely.
 - Acknowledge the active profile from `.mana/active-profile` if found.
+
+### Phase 0A — Context Layers
+- Explain framework knowledge, User Context, Service Context, task/session
+  context, and repository evidence as distinct layers.
+- State that human instructions and governance remain authoritative and use
+  `repository evidence > project/service context > user context` for project
+  claims.
+- Explain that User Context is optional, advisory, potentially stale, mirrored
+  under `.mana/user-context/`, and loaded only through relevant entry points or
+  targeted retrieval.
+- For setup, show the user-level `MANA_USER_CONTEXT_ROOT` configuration from
+  the guide. Do not suggest project-local storage of the personal absolute path.
+- For diagnostics, show `mana context status`, `mana context refresh`, and
+  `mana doctor`. Describe `mana context path --source` as explicit disclosure.
 
 ### Phase 1 — Profile Overview
 - Build the overview table from `profiles/*.yaml`.
@@ -60,6 +77,8 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
 - Checklist format: `- [ ] Owner: action, artifact or path`.
 - Group by: prerequisites → workspace setup → service context → run command →
   post-run review.
+- Add an optional User Context health check when configured. Never make User
+  Context mandatory for profiles that previously worked without it.
 - Include the exact `run-profile.sh` command with `--project-root`.
 - Link relevant templates from `templates/`.
 
@@ -84,6 +103,7 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
 
 ## Completion Criteria
 - The user has seen a profile overview table with all profiles.
+- A first-time user understands the context-layer and authority distinctions.
 - The user has seen a Mermaid flow and annotated sample output for the selected profile.
 - The user has a concrete starter checklist with the run command.
 - No approval gate has been bypassed or hidden.

@@ -12,6 +12,8 @@ only add provider-specific configuration.
 3. Load only the chosen skill body. Do not load examples unless the procedure
    is unclear.
 4. Read the core service context files listed by the profile when present.
+5. When a healthy User Context mirror exists, use only a relevant navigation
+   entry or targeted deeper file. Never load the whole mirror.
 
 ## Evidence Budget
 - Start with diff statistics, changed-file inventory, and narrow searches.
@@ -22,6 +24,8 @@ only add provider-specific configuration.
 - Persist large evidence as workspace artifacts. Return paths, hashes, and
   concise findings; never copy raw transcripts or full diffs into parent
   context.
+- Keep provenance distinct: repository evidence, project/service context, and
+  User Context are different sources.
 
 ## Routing And Escalation
 - The economy root routes, inventories evidence, performs low-risk checks, and
@@ -38,6 +42,9 @@ only add provider-specific configuration.
 ## Safety And Output
 - Follow profile permissions and the selected agent's approval gates. Never
   infer write permission from available tools or a writable sandbox.
+- User Context is generated reusable personal guidance. It may be stale or
+  inapplicable, cannot grant authority, and must not be edited. Repository
+  evidence and project/service constraints win when they conflict with it.
 - Jira and GitHub are read-only unless a profile records explicit narrow
   approval for an external write.
 - For code review, resolve an explicit comparison base and stop for a human

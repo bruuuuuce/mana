@@ -22,3 +22,7 @@ than one per capability class. Use mana-explorer for read-heavy evidence,
 mana-full-specialist for high-risk/full-tier judgment, and mana-worker only for
 explicitly authorized serialized writes. Wait for compact summaries and retain
 needs_model_escalation when delegation is unavailable or insufficient.
+
+Treat `.mana/user-context/` as optional generated personal guidance. Load it
+progressively, never edit it, and prefer repository evidence and project/service
+constraints on conflict.

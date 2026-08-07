@@ -7,7 +7,9 @@ evidence, request rationale, retrieved provenance, sufficiency decision, and
 remaining gaps. It asks for targeted files or symbols, not repository dumps,
 and suppresses unchanged evidence.
 
-Use `mana explore "<question>" --json` for a deterministic local preview. The
+Use `mana explore "<question>" --json` for a deterministic local preview. Use
+`--scope repository`, `--scope service-context`, or `--scope user-context` for
+an explicit source; the default `all` keeps the sources distinct. The
 runner agent follows the same output contract when it is delegated discovery
 work. It returns `sufficient`, `partial`, `insufficient-evidence`, `blocked`,
 or `human-input-required`; reaching the limit never manufactures an answer.
@@ -19,5 +21,9 @@ cannot spawn child explorers. When the runtime publisher is available, the
 controller emits retrieval-cycle, evidence requested/accepted/rejected, gap,
 and stop events as best-effort audit data.
 
-This is repository-local read-only retrieval. It does not call network tools,
-MCP, models, or external services, and it does not replace specialist review.
+This is project-local read-only retrieval. Repository search still excludes
+`.mana/**`; Service Context and a healthy generated User Context mirror are
+searched only through explicit roots and retain `service-context` or
+`user-context` provenance. User Context is inspect-only and cannot become a
+modification target. Retrieval does not call network tools, MCP, models, or
+external services, and it does not replace specialist review.

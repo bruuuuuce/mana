@@ -27,6 +27,7 @@ Checks:
   - Jira MCP Docker wrapper dry-run.
   - Sonar scanner wrapper and local config initialization.
   - Mana update-check script and no-fetch execution.
+  - Optional User Context configuration, source health, and materialization freshness.
 USAGE
 }
 
@@ -37,6 +38,7 @@ fail() {
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$script_dir/.." && pwd)"
+. "$root/scripts/lib/user-context.sh"
 project=""
 strict=false
 
@@ -221,15 +223,33 @@ if [ -n "$project" ]; then echo "Project: $project"; fi
 
 check_external_tools
 
+user_context_project="${project:-$root}"
+mana_user_context_status "$user_context_project"
+if [ "$MANA_UC_CONFIGURED" != true ]; then
+  if [ "$MANA_UC_FRESHNESS" = invalid ]; then
+    warn "User Context configuration is invalid: $MANA_UC_ERROR"
+  else
+    pass "optional User Context is not configured"
+  fi
+elif [ "$MANA_UC_SOURCE_USABLE" != true ]; then
+  warn "User Context is configured but unavailable: $MANA_UC_ERROR"
+elif [ "$MANA_UC_MATERIALIZED" != true ]; then
+  warn "User Context source is usable but has not been materialized; run: ./mana context refresh"
+elif [ "$MANA_UC_FRESHNESS" != current ]; then
+  warn "User Context materialization is $MANA_UC_FRESHNESS; run: ./mana context refresh"
+else
+  pass "User Context is configured, usable, and current (${MANA_UC_FILE_COUNT} files)"
+fi
+
 for dir in docs skills agents profiles mcp templates scripts hooks templates/mana-workspace .codex .junie .claude; do
   check_dir "$dir"
 done
 
-for file in README.md scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-profile.sh scripts/run-jira-mcp-docker.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/run-evidence-index.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh profiles/jessica-fletcher.yaml profiles/mana-help.yaml profiles/pre-commit.yaml profiles/am-release-ready.yaml profiles/architecture-review.yaml profiles/team-planning.yaml profiles/story-ready-for-dev.yaml agents/pre-commit-documentation-agent/AGENT.md docs/workflow/mana-workspace.md docs/standards/agent-skill-output-standard.md docs/standards/story-trace-standard.md docs/standards/developer-choice-log-standard.md templates/standard-agent-skill-report.template.md templates/mana-workspace/story-trace.template.md templates/mana-workspace/developer-choice-log.template.md templates/mana-workspace/global/sonar-project.properties.template templates/pre-commit-development-summary.template.md templates/knowledge-transfer-brief.template.md .codex/README.md .codex/instructions.md .junie/README.md .junie/guidelines.md .claude/README.md .claude/instructions.md; do
+for file in README.md scripts/mana-workspace.sh scripts/mana-context.sh scripts/lib/user-context.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-profile.sh scripts/run-jira-mcp-docker.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/run-evidence-index.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh profiles/jessica-fletcher.yaml profiles/mana-help.yaml profiles/pre-commit.yaml profiles/am-release-ready.yaml profiles/architecture-review.yaml profiles/team-planning.yaml profiles/story-ready-for-dev.yaml agents/pre-commit-documentation-agent/AGENT.md docs/workflow/mana-workspace.md docs/standards/agent-skill-output-standard.md docs/standards/story-trace-standard.md docs/standards/developer-choice-log-standard.md templates/standard-agent-skill-report.template.md templates/mana-workspace/story-trace.template.md templates/mana-workspace/developer-choice-log.template.md templates/mana-workspace/global/sonar-project.properties.template templates/pre-commit-development-summary.template.md templates/knowledge-transfer-brief.template.md .codex/README.md .codex/instructions.md .junie/README.md .junie/guidelines.md .claude/README.md .claude/instructions.md; do
   check_file "$file"
 done
 
-for file in scripts/mana-workspace.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-jira-mcp-docker.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/run-evidence-index.sh scripts/run-profile.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh; do
+for file in scripts/mana-workspace.sh scripts/mana-context.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-jira-mcp-docker.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/run-evidence-index.sh scripts/run-profile.sh scripts/validate-output-standard.sh scripts/validate-story-trace.sh scripts/validate-developer-choice-log.sh; do
   check_exec "$file"
 done
 

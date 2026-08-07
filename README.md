@@ -30,6 +30,12 @@ scripts/run-profile.sh mana-help
 scripts/run-profile.sh story-start --render-only
 ```
 
+Optional reusable personal guidance can be configured as a read-only User
+Context Layer and materialized under `.mana/user-context/`. See
+[User Context Layer](docs/workflow/user-context-layer.md). It remains distinct
+from project Service Context in `.mana/global/`, is loaded progressively, and
+never overrides repository evidence or project constraints.
+
 `scripts/run-profile.sh <profile>` validates Mana freshness and renders the
 profile. It does not execute the listed agents or skills by itself. Add a runner
 flag only when you want local runner-backed execution:

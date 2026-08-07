@@ -14,7 +14,7 @@ explorer_retrieve "$project" 'Find the order source' || fail 'single-cycle retri
 explorer_retrieve "$project" 'Find the Kafka contract' || fail 'one/two-cycle retrieval failed'
 [ "$EXPLORER_STATUS" = sufficient ] || fail 'expected sufficient evidence'
 [ "$(printf '%s\n' "$EXPLORER_CYCLES" | awk 'END {print NR}')" = 3 ] || fail 'maximum-cycle stop was not enforced'
-printf '%s\n' "$EXPLORER_EVIDENCE" | grep -Fq 'repository-local' || fail 'provenance missing'
+printf '%s\n' "$EXPLORER_EVIDENCE" | grep -Fq 'repository' || fail 'provenance missing'
 printf '%s\n' "$EXPLORER_REJECTED" | grep -Fq 'already retrieved' || fail 'repeated evidence was not suppressed'
 MANA_EXPLORER_TOOL_BLOCKED=true explorer_retrieve "$project" 'Find contract' || fail 'blocked retrieval failed'
 [ "$EXPLORER_STATUS" = blocked ] || fail 'tool boundary did not block'

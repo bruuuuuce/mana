@@ -255,6 +255,8 @@ Usage:
   ./mana divination "<intent>" [opts]    Recommend a profile without running it.
   ./mana cast <profile> [opts]           Validate and execute a Mana profile.
   ./mana explore "<question>" [opts]     Run bounded read-only explorer retrieval.
+  ./mana context <cmd> [args...]         Inspect or refresh optional User Context.
+  ./mana doctor [args...]                Diagnose Mana and this linked project.
   ./mana learning <cmd> [args...]        Inspect governed learning candidates.
   ./mana eval run [scenario] [opts]       Run deterministic behavioural evaluations.
   ./mana eval compare <base> <candidate>  Compare persisted evaluation results.
@@ -278,6 +280,8 @@ Examples:
   ./mana cast architecture-review --dry-run
   ./mana runtime sessions
   ./mana explore "Where is the Kafka contract?"
+  ./mana context status
+  ./mana context refresh
   ./mana learning candidates
   ./mana eval run conditional-contract-pr
   ./mana report governance
@@ -304,6 +308,12 @@ USAGE
     ;;
   explore)
     exec "$MANA_HOME/scripts/mana-explore.sh" --project-root "$project_root" "$@"
+    ;;
+  context)
+    exec "$MANA_HOME/scripts/mana-context.sh" "$@" --project-root "$project_root"
+    ;;
+  doctor)
+    exec "$MANA_HOME/scripts/mana-doctor.sh" --project "$project_root" "$@"
     ;;
   learning)
     exec "$MANA_HOME/scripts/mana-learning.sh" --project-root "$project_root" "$@"
@@ -399,6 +409,8 @@ Use the local wrapper:
 ./mana profile jessica-fletcher
 ./mana profile jessica-fletcher --jira-key PROJ-1234 --codex
 ./mana workspace status
+./mana context status
+./mana context refresh
 ./mana workspace init --feature <FEATURE-ID>
 ./mana jira-mcp --get-issue PROJ-1234
 ./mana jira-mcp --fetch-epic-story-pack PROJ-1234
@@ -411,6 +423,9 @@ Use the local wrapper:
 \`\`\`
 
 Project artifacts stay local under \`.mana/\`.
+\`.mana/user-context/\` is a generated, read-only working mirror of optional
+user-owned reusable guidance. It is not Service Context and must not be edited
+or committed.
 
 Linked Mana folders are under \`.mana/links/\`.
 Codex runtime agents are installed under \`.codex/agents/\` and OpenCode
@@ -469,6 +484,7 @@ Run: \`./mana profile jessica-fletcher --claude\` — Claude Code follows the fu
 Active workspace:  \`.mana/\`
 Feature work:      \`.mana/features/<FEATURE-ID>/\`
 Global context:    \`.mana/global/service-mission.md\`, \`architecture.md\`, \`engineering-guards.md\`
+User Context:      \`.mana/user-context/\` when configured; generated, advisory, and read-only
 
 ## Jira Read-Only Context
 
@@ -485,6 +501,10 @@ export JIRA_PERSONAL_TOKEN=...
 ## Governance
 
 - Load \`.mana/global/engineering-guards.md\` before any analysis.
+- Treat healthy \`.mana/user-context/\` content as reusable personal guidance,
+  not project truth. Start with \`index.md\` or \`preferences.md\` when present,
+  inspect deeper files only when relevant, and prefer repository evidence and
+  project/service constraints on conflict. Never edit the generated mirror.
 - Write outputs to \`.mana/\` only — never to \`src/\` or project source.
 - Do not commit automatically — every git commit requires explicit developer approval.
 - \`jira_read\` is read-only. Do not expose tokens, transition issues, add Jira
@@ -511,7 +531,8 @@ export JIRA_PERSONAL_TOKEN=...
   \`.mana/<workspace>/evidence/sonar/\`.
 - Follow \`docs/standards/agent-skill-output-standard.md\`. Instruction priority
   is current human instruction, profile YAML, agent \`AGENT.md\`, playbook,
-  loaded skill \`SKILL.md\`, then global service context. Never weaken safety,
+  loaded skill \`SKILL.md\`, then global service context, with User Context as
+  advisory guidance beneath project evidence and constraints. Never weaken safety,
   external-write, or human-approval rules.
 - Use the Mana operating loop: identify the human decision, resolve inputs,
   workspace, requirement source, branch or PR target, and diff base; inventory
@@ -604,6 +625,7 @@ and the Mana-managed \`mana_explorer\`, \`mana_full_specialist\`, and
 Active workspace:  \`.mana/\`
 Feature work:      \`.mana/features/<FEATURE-ID>/\`
 Global context:    \`.mana/global/service-mission.md\`, \`architecture.md\`, \`engineering-guards.md\`
+User Context:      \`.mana/user-context/\` when configured; generated, advisory, and read-only
 
 ## Jira Read-Only Context
 
@@ -620,6 +642,10 @@ export JIRA_PERSONAL_TOKEN=...
 ## Governance
 
 - Load \`.mana/global/engineering-guards.md\` before any analysis.
+- Treat healthy \`.mana/user-context/\` content as reusable personal guidance,
+  not project truth. Start with \`index.md\` or \`preferences.md\` when present,
+  inspect deeper files only when relevant, and prefer repository evidence and
+  project/service constraints on conflict. Never edit the generated mirror.
 - Write outputs to \`.mana/\` only — never to \`src/\` or project source.
 - Do not modify the same branch while Junie is actively editing it.
 - Do not commit automatically — every git commit requires explicit developer approval.
@@ -647,7 +673,8 @@ export JIRA_PERSONAL_TOKEN=...
   \`.mana/<workspace>/evidence/sonar/\`.
 - Follow \`docs/standards/agent-skill-output-standard.md\`. Instruction priority
   is current human instruction, profile YAML, agent \`AGENT.md\`, playbook,
-  loaded skill \`SKILL.md\`, then global service context. Never weaken safety,
+  loaded skill \`SKILL.md\`, then global service context, with User Context as
+  advisory guidance beneath project evidence and constraints. Never weaken safety,
   external-write, or human-approval rules.
 - Use the Mana operating loop: identify the human decision, resolve inputs,
   workspace, requirement source, branch or PR target, and diff base; inventory
@@ -703,6 +730,7 @@ if [ "$update_gitignore" = true ]; then
     fi
   }
   add_ignore_line ".mana/jira-mcp.env"
+  add_ignore_line ".mana/user-context/"
   add_ignore_line ".mana/"
 fi
 
@@ -711,6 +739,10 @@ if [ -n "$feature" ]; then
   workspace_args+=(--feature "$feature")
 fi
 "$framework_root/scripts/mana-workspace.sh" "${workspace_args[@]}"
+
+if ! "$framework_root/scripts/mana-context.sh" refresh --project-root "$project_root" >/dev/null; then
+  echo "WARNING: User Context is configured but could not be materialized; run ./mana context status" >&2
+fi
 
 cat <<SUMMARY
 Mana linked successfully.
@@ -733,5 +765,6 @@ Created:
 Try:
   ./mana profile mana-help
   ./mana workspace status
+  ./mana context status
   ./mana profile jessica-fletcher
 SUMMARY

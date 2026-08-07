@@ -51,6 +51,8 @@ After bootstrap, use:
 ./mana profile jessica-fletcher --jira-key PROJ-1234 --opencode
 ./mana workspace status
 ./mana workspace init --feature PROJ-1234
+./mana context status
+./mana context refresh
 ./mana jira-mcp --get-issue PROJ-1234
 ./mana jira-mcp --fetch-epic-story-pack PROJ-1234
 ./mana jira-mcp --env-file .mana/jira-mcp.env --check-access --issue PROJ-1234
@@ -123,11 +125,17 @@ By default the bootstrap appends:
 
 ```text
 .mana/jira-mcp.env
+.mana/user-context/
 .mana/
 ```
 
 Use `--no-gitignore` when a project wants to version selected `.mana`
 artifacts intentionally.
+
+The User Context mirror remains generated and should not be versioned even when
+selected project-owned `.mana/global` artifacts are intentionally tracked.
+Configure its external read-only source in the XDG user config described in
+[`user-context-layer.md`](../workflow/user-context-layer.md).
 
 ## Notes
 
