@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mana Repair Loop Result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "kind", "loopId", "runtimeExecutionId", "target", "requestedMaxIterations", "hardMaxIterations", "attemptsExecuted", "attempts", "verificationProgression", "finalResult", "stopReason", "cumulativeMutation", "cost", "limitations", "judgment"],
+  "properties": {
+    "schemaVersion": {"const": "1"},
+    "kind": {"const": "repair-loop-result"},
+    "loopId": {"type": "string", "pattern": "^repair-loop-[A-Za-z0-9._-]+$"},
+    "runtimeExecutionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]+$"},
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["concernKey", "reference", "digest"],
+      "properties": {
+        "concernKey": {"type": "string", "pattern": "^concern:[a-z0-9][a-z0-9-]*:[a-z0-9][a-z0-9-]*:sha256:[0-9a-f]{64}$"},
+        "reference": {"$ref": "#/$defs/repositoryReference"},
+        "digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "requestedMaxIterations": {"const": 2},
+    "hardMaxIterations": {"const": 2},
+    "attemptsExecuted": {"enum": [1, 2]},
+    "attempts": {
+      "type": "array", "minItems": 1, "maxItems": 2,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["iteration", "reference", "digest", "comparison", "progress", "attemptStatus", "stopReason"],
+        "properties": {
+          "iteration": {"enum": [1, 2]},
+          "reference": {"$ref": "#/$defs/repositoryReference"},
+          "digest": {"$ref": "#/$defs/digest"},
+          "comparison": {"$ref": "#/$defs/comparison"},
+          "progress": {"enum": ["partial", "complete", null]},
+          "attemptStatus": {"type": "string", "minLength": 1},
+          "stopReason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "verificationProgression": {
+      "type": "array", "minItems": 1, "maxItems": 2,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["iteration", "before", "after"],
+        "properties": {
+          "iteration": {"enum": [1, 2]},
+          "before": {"$ref": "#/$defs/evidence"},
+          "after": {"oneOf": [{"$ref": "#/$defs/evidence"}, {"type": "null"}]}
+        }
+      }
+    },
+    "finalResult": {"$ref": "#/$defs/comparison"},
+    "stopReason": {"enum": ["target_resolved", "no_progress", "regressed", "comparison_unknown", "policy_violation", "integrity_violation", "runner_failed", "runner_timeout", "verification_blocked", "verification_inconclusive", "repair_loop_budget_exhausted", "hard_iteration_limit", "human_scope_required", "interrupted"]},
+    "cumulativeMutation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["allowedPaths", "maxFiles", "maxChangedLines", "hardMaxChangedLines", "changedLines"],
+      "properties": {
+        "allowedPaths": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"$ref": "#/$defs/repositoryReference"}},
+        "maxFiles": {"const": 1},
+        "maxChangedLines": {"const": 100},
+        "hardMaxChangedLines": {"const": 500},
+        "changedLines": {"type": "integer", "minimum": 0, "maximum": 100}
+      }
+    },
+    "cost": {
+      "type": "object", "additionalProperties": false,
+      "required": ["runnerInvocations", "verificationRuns", "wallTimeMs", "inputTokens", "outputTokens"],
+      "properties": {
+        "runnerInvocations": {"enum": [1, 2]},
+        "verificationRuns": {"type": "integer", "minimum": 0, "maximum": 2},
+        "wallTimeMs": {"type": "integer", "minimum": 0},
+        "inputTokens": {"type": "null"}, "outputTokens": {"type": "null"}
+      }
+    },
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "judgment": {"type": "null"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "repositoryReference": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(^|/)\\.\\.?(/|$))[^\\\\\\t\\n]+$"},
+    "comparison": {"enum": ["RESOLVED", "UNCHANGED", "REGRESSED", "UNKNOWN"]},
+    "evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reference", "digest"],
+      "properties": {"reference": {"$ref": "#/$defs/repositoryReference"}, "digest": {"$ref": "#/$defs/digest"}}
+    }
+  }
+}

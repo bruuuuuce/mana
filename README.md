@@ -285,6 +285,39 @@ available skills or `./mana verify --dry-run --explain` to inspect exact checks,
 trust origins, effects, limits, and blockers without writing state. See
 [`docs/workflow/verification-skills.md`](docs/workflow/verification-skills.md).
 
+## Bounded evidence-driven repair
+
+`./mana repair` can consume a canonical failed Verification Result v2,
+grant one exact shell-file path to one existing provider runner, stage the
+current working tree in a disposable copy, compute and validate the candidate
+delta, import only an accepted exact-file content change, protect the live
+baseline and verification surface, rerun the same structured concern against
+the live repository, and publish `RESOLVED`, `UNCHANGED`, `REGRESSED`, or
+`UNKNOWN` evidence. V1
+automatic eligibility is limited to `shell-syntax-verification/bash_syntax`.
+The default and `--once` remain one attempt. An explicit `--max-iterations 2`
+permits one final attempt only when the first result proves strict-subset partial
+progress. There is no provider retry, third attempt, auto-revert, commit, push,
+learning, or automatic repair from `mana verify`.
+
+```bash
+./mana repair --from <result.json> --check <check-id> \
+  --allow-path scripts/example.sh --runner codex --once --dry-run --explain
+
+./mana repair --from <result.json> --check <check-id> \
+  --allow-path scripts/example.sh --runner codex --max-iterations 2
+```
+
+`RESOLVED` means only that the targeted concern disappeared under comparable
+evidence; it does not mean ready to merge, correct, or production-safe. See
+[`docs/standards/bounded-repair.md`](docs/standards/bounded-repair.md).
+
+The provider does not directly edit the live repository through the normal
+bounded-repair path. This `faulty-contained` disposable-workspace mode protects
+against accidental or faulty provider writes, but it is not an OS security
+boundary against a deliberately malicious same-UID process. It provides no
+host-filesystem, process, credential, or network isolation.
+
 ## Divination: deterministic profile recommendation
 
 `./mana divination "<delivery intent>"` is a read-only, deterministic aid for

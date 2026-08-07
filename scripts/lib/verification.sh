@@ -119,7 +119,31 @@ verification_execution_fingerprint() {
 }
 
 verification_environment_digest() {
-  printf 'PATH=%s\nJAVA_HOME=%s\nMAVEN_OPTS=%s\nGRADLE_OPTS=%s\n' "${PATH:-}" "${JAVA_HOME:-}" "${MAVEN_OPTS:-}" "${GRADLE_OPTS:-}" | verification_digest_text
+  # Locale changes Bash's diagnostic language.  It is therefore part of the
+  # identity of any evidence whose failure atoms were derived from diagnostics.
+  printf 'PATH=%s\nJAVA_HOME=%s\nMAVEN_OPTS=%s\nGRADLE_OPTS=%s\nLC_ALL=%s\nLC_MESSAGES=%s\nLANG=%s\n' "${PATH:-}" "${JAVA_HOME:-}" "${MAVEN_OPTS:-}" "${GRADLE_OPTS:-}" "${LC_ALL:-}" "${LC_MESSAGES:-}" "${LANG:-}" | verification_digest_text
+}
+
+verification_bash_syntax_observations() {
+  # A bash_syntax atom is a verifier-defined parser-error headline, never a
+  # terminal line.  Path and line number are deliberately excluded; locale is
+  # protected by verification_environment_digest.  Unrecognised diagnostics
+  # collapse to one opaque atom, which cannot demonstrate partial progress.
+  local stderr="$1" base_id="$2" atoms
+  atoms="$(LC_ALL=C awk '
+    match($0, /syntax error near unexpected token .*/) {
+      value=substr($0, RSTART, RLENGTH); sub(/[[:space:]]+$/, "", value); print value; next
+    }
+    /syntax error: unexpected end of file/ { print "syntax error: unexpected end of file"; next }
+    /syntax error: unexpected EOF while looking for matching/ {
+      value=$0; sub(/^.*syntax error: /, "syntax error: ", value); sub(/[[:space:]]+$/, "", value); print value; next
+    }
+  ' "$stderr" | LC_ALL=C sort -u)"
+  if [ -z "$atoms" ]; then
+    jq -cn --arg id "$base_id" '[{id:$id,result:"not_satisfied",messages:["bash_syntax:opaque_diagnostic"]}]'
+  else
+    printf '%s\n' "$atoms" | jq -Rsc --arg id "$base_id" 'split("\n")|map(select(length>0))|[{id:$id,result:"not_satisfied",messages:.}]'
+  fi
 }
 
 verification_redact_stream() {
@@ -143,7 +167,7 @@ verification_trust_executable() {
 verification_snapshot_source_state() {
   # project root, tracked-state digest file, tracked path JSONL file, and
   # untracked path/type/mode/content JSONL file.
-  local project="$1" base path identity kind mode digest
+  local project="$1" base path identity kind mode index_identity
   if git -C "$project" rev-parse --verify HEAD >/dev/null 2>&1; then base=HEAD
   else base="$(git -C "$project" hash-object -t tree /dev/null)"; fi
   # Every tracked path is attribution-sensitive, even when its name resembles
@@ -151,15 +175,33 @@ verification_snapshot_source_state() {
   # Known build/cache directories are ignored below only for untracked paths.
   git -C "$project" diff --no-ext-diff --binary "$base" -- . ':(exclude).mana/**' | verification_digest_text > "$2"
   : > "$3"; : > "$4"
-  while IFS= read -r -d '' path; do jq -cn --arg path "$path" '$path' >> "$3"; done < <(git -C "$project" diff --no-ext-diff --name-only -z "$base" -- . ':(exclude).mana/**')
+  # Record every tracked path independently, including index and worktree
+  # identity. This attributes changes precisely even when multiple paths were
+  # already dirty before verification or repair.
   while IFS= read -r -d '' path; do
-    case "$path" in .mana/*|target/*|build/*|out/*|.gradle/*|node_modules/*|*/target/*|*/build/*|*/out/*|*/.gradle/*|*/node_modules/*) continue;; esac
+    index_identity="$(git -C "$project" ls-files -s -- "$path" | verification_digest_text)"
+    if [ -L "$project/$path" ]; then kind=symlink; identity="$(readlink "$project/$path" | verification_digest_text)"
+    elif [ -f "$project/$path" ]; then kind=file; identity="$(verification_digest_file "$project/$path")"
+    elif [ -e "$project/$path" ]; then kind=other; identity=unreadable
+    else kind=missing; identity=unavailable; fi
+    mode="$([ -x "$project/$path" ] && echo executable || echo regular)"
+    jq -cn --arg path "$path" --arg kind "$kind" --arg mode "$mode" --arg index "$index_identity" --arg identity "$identity" '{path:$path,kind:$kind,mode:$mode,indexIdentity:$index,identity:$identity}' >> "$3"
+  done < <(git -C "$project" ls-files -z -- . ':(exclude).mana/**')
+  while IFS= read -r -d '' path; do
+    if [ "${MANA_VERIFY_STRICT_UNTRACKED:-false}" = true ]; then
+      case "$path" in .mana/runtime/*|"${MANA_VERIFY_SNAPSHOT_EXCLUDE:-[no-exclusion]}"|"${MANA_VERIFY_SNAPSHOT_EXCLUDE:-[no-exclusion]}"/*) continue;; esac
+    else
+      case "$path" in .mana/*|target/*|build/*|out/*|.gradle/*|node_modules/*|*/target/*|*/build/*|*/out/*|*/.gradle/*|*/node_modules/*) continue;; esac
+    fi
     if [ -L "$project/$path" ]; then kind=symlink; identity="$(readlink "$project/$path" | verification_digest_text)"
     elif [ -f "$project/$path" ]; then kind=file; identity="$(verification_digest_file "$project/$path")"
     else kind=other; identity=unreadable; fi
     mode="$(git -C "$project" ls-files -s -- "$path" | awk 'NR==1{print $1}')"; [ -n "$mode" ] || mode="$(test -x "$project/$path" && echo executable || echo regular)"
     jq -cn --arg path "$path" --arg kind "$kind" --arg mode "$mode" --arg identity "$identity" '{path:$path,kind:$kind,mode:$mode,identity:$identity}' >> "$4"
-  done < <(git -C "$project" ls-files --others --exclude-standard -z)
+  done < <(
+    git -C "$project" ls-files --others --exclude-standard -z
+    [ "${MANA_VERIFY_STRICT_UNTRACKED:-false}" = true ] && git -C "$project" ls-files --others --ignored --exclude-standard -z
+  )
 }
 
 verification_detect_source_mutations() {
@@ -167,7 +209,7 @@ verification_detect_source_mutations() {
   local project="$1" before_state="$2" before_paths="$3" before_untracked="$4" scratch="$5" paths
   verification_snapshot_source_state "$project" "$scratch/state" "$scratch/paths" "$scratch/untracked"
   paths="$scratch/mutation-paths.jsonl"; : > "$paths"
-  if ! cmp -s "$before_state" "$scratch/state"; then cat "$before_paths" "$scratch/paths" >> "$paths"; fi
+  jq -s 'group_by(.path)[] | select(length == 1 or (map(.kind + "|" + .mode + "|" + .indexIdentity + "|" + .identity) | unique | length) > 1) | .[0].path' "$before_paths" "$scratch/paths" >> "$paths"
   jq -s 'group_by(.path)[] | select(length == 1 or (map(.kind + "|" + .mode + "|" + .identity) | unique | length) > 1) | .[0].path' "$before_untracked" "$scratch/untracked" >> "$paths"
   jq -sr 'unique[] | if test("[\\t\\n]") then "[unsupported-control-character-path]" else . end' "$paths"
 }
@@ -188,7 +230,7 @@ verification_overall_result() {
   ' <<<"$1"
 }
 
-verification_result_validate() {
+verification_result_validate_v1() {
   jq -e '
     def keys_exact($allowed): ((keys - $allowed) | length) == 0;
     def keys_equal($expected): (keys|sort) == ($expected|sort);
@@ -214,4 +256,60 @@ verification_result_validate() {
     (.observedEffects|type=="object" and keys_equal(["unexpectedSourceMutation"])) and
     (.cost|type=="object" and keys_equal(["checksExecuted","duplicateActionsSuppressed","inputTokens","modelCalls","outputTokens","wallTimeMs"]) and .modelCalls==0 and .inputTokens==0 and .outputTokens==0)
   ' "$1" >/dev/null
+}
+
+verification_safe_repository_path() {
+  case "$1" in ''|/*|*'//'*) return 1;; esac
+  case "/$1/" in */../*|*/./*) return 1;; esac
+  [[ "$1" != *$'\n'* && "$1" != *$'\t'* && "$1" != *'\\'* ]]
+}
+
+verification_json_no_duplicate_keys() {
+  [ -z "$(jq --stream -r 'select(length==2) | .[0] | @json' "$1" 2>/dev/null | LC_ALL=C sort | uniq -d)" ]
+}
+
+verification_result_validate_v2() {
+  verification_json_no_duplicate_keys "$1" || return 1
+  jq -e '
+    def keys_equal($x): (keys|sort)==($x|sort);
+    def keys_exact($x): ((keys-$x)|length)==0;
+    def has_all($x): . as $o | all($x[]; . as $k | $o|has($k));
+    def digest: type=="string" and (test("^sha256:[0-9a-f]{64}$") or .=="unavailable");
+    def path: type=="string" and length>0 and (startswith("/")|not) and (contains("\\")|not) and (test("(^|/)\\.\\.?(/|$)")|not) and (test("[\\t\\n]")|not);
+    type=="object" and
+    keys_equal(["checks","cost","frameworkIdentity","generatedAt","judgment","kind","observedEffects","overallResult","projectRevision","rerunOf","runId","runtimeExecutionId","schemaVersion","scope","selections","startedAt","workingTreeDirtyBefore"]) and
+    .schemaVersion=="2" and .kind=="verification-result" and .judgment==null and
+    (.runId|test("^verification-[A-Za-z0-9._-]+$")) and
+    (.overallResult|IN("passed","failed","blocked","partial","inconclusive")) and
+    (.rerunOf==null or (.rerunOf|type=="object" and keys_equal(["checkId","resultDigest","resultReference","runId"]) and (.resultDigest|digest) and (.resultReference|path))) and
+    (.frameworkIdentity|type=="object" and keys_equal(["verificationImplementationDigest"]) and (.verificationImplementationDigest|digest)) and
+    (.scope|type=="object" and keys_equal(["base","changedPaths","changedPathsDigest","head","inputDigest","mode"]) and (.changedPathsDigest|digest) and (.inputDigest|digest) and (.changedPaths|type=="array")) and
+    (.selections|type=="array" and ([.[].skillId]|length==(unique|length)) and all(.[]; type=="object" and keys_equal(["applicability","mode","reasons","selected","skillId"]) and (.applicability|IN("applicable","not_applicable","blocked")) and (.mode|IN("automatic","explicit")) and (.selected|type=="boolean") and (.reasons|type=="array"))) and
+    (.checks|type=="array" and ([.[].checkId]|length==(unique|length)) and all(.[];
+      type=="object" and
+      keys_exact(["actionFingerprint","adapter","adapterImplementationDigest","baseCheckId","checkId","commandOrigin","concernKey","costClass","declaredEffects","deduplicated","deduplicatedFrom","deduplicatedFromCheckId","descendantsTerminated","durationMs","effectiveArgv","environmentClassification","environmentDigest","evaluationSurface","executable","executionFingerprint","exitCode","failureFingerprint","inputDigest","limitations","nativeArtifacts","observations","observedEffects","output","outputLimitBytes","relevantFiles","required","rerunDescriptor","result","scope","signal","skillId","skillVersion","specDigest","targetFingerprint","timedOut","timeoutSeconds","trustOrigin","workingDirectory"]) and
+      has_all(["actionFingerprint","adapter","adapterImplementationDigest","baseCheckId","checkId","commandOrigin","concernKey","costClass","declaredEffects","deduplicated","descendantsTerminated","durationMs","effectiveArgv","environmentClassification","environmentDigest","evaluationSurface","executable","executionFingerprint","exitCode","failureFingerprint","inputDigest","limitations","nativeArtifacts","observations","observedEffects","output","outputLimitBytes","relevantFiles","required","rerunDescriptor","result","scope","skillId","skillVersion","specDigest","targetFingerprint","timedOut","timeoutSeconds","trustOrigin","workingDirectory"]) and
+      (.adapterImplementationDigest|digest) and (.specDigest|digest) and (.targetFingerprint|digest) and (.inputDigest|digest) and (.environmentDigest|digest) and
+      (.actionFingerprint|digest) and (.executionFingerprint|digest) and (.failureFingerprint==null or (.failureFingerprint|digest)) and
+      (.deduplicated|type=="boolean") and (if .deduplicated then has("deduplicatedFrom") and has("deduplicatedFromCheckId") and (.deduplicatedFrom|digest) else ((has("deduplicatedFrom") or has("deduplicatedFromCheckId"))|not) end) and
+      (.concernKey|test("^concern:[a-z0-9][a-z0-9-]*:[a-z0-9][a-z0-9-]*:sha256:[0-9a-f]{64}$")) and
+      (.rerunDescriptor|type=="object" and keys_equal(["kind","path"]) and .kind=="repository_path" and (.path|path)) and
+      (.evaluationSurface|type=="array" and length>=3 and all(.[]; type=="object" and keys_equal(["digest","path","protected","role"]) and (.path|path) and (.digest|digest) and (.protected|type=="boolean") and (.role|IN("mutable_input","oracle","configuration","verifier")))) and
+      (.required|type=="boolean") and (.timedOut|type=="boolean") and (.result|IN("passed","failed","blocked","partial","inconclusive")) and
+      (.adapter|IN("bash_syntax","mana_eval","java_approved_test")) and
+      (.executable|type=="object" and keys_equal(["digest","path"]) and (.digest|digest)) and
+      (.output|type=="object" and keys_equal(["excerpt","stderrArtifact","stderrBytes","stderrDigest","stderrTruncated","stdoutArtifact","stdoutBytes","stdoutDigest","stdoutTruncated"]) and (.stdoutDigest|digest) and (.stderrDigest|digest)) and
+      (.observedEffects|type=="object" and keys_equal(["mutationPaths","unexpectedSourceMutation"])))) and
+    (.observedEffects|type=="object" and keys_equal(["unexpectedSourceMutation"])) and
+    (.cost|type=="object" and keys_equal(["checksExecuted","duplicateActionsSuppressed","inputTokens","modelCalls","outputTokens","wallTimeMs"]) and .modelCalls==0 and .inputTokens==0 and .outputTokens==0)
+  ' "$1" >/dev/null
+}
+
+verification_result_validate() {
+  verification_json_no_duplicate_keys "$1" || return 1
+  case "$(jq -r '.schemaVersion // empty' "$1" 2>/dev/null)" in
+    1) verification_result_validate_v1 "$1" ;;
+    2) verification_result_validate_v2 "$1" ;;
+    *) return 1 ;;
+  esac
 }

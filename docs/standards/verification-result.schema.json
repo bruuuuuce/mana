@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Mana Verification Result v1",
+  "title": "Mana Verification Result v1/v2",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "kind", "runId", "runtimeExecutionId", "generatedAt", "startedAt", "projectRevision", "workingTreeDirtyBefore", "scope", "overallResult", "selections", "checks", "observedEffects", "cost", "judgment"],
@@ -19,7 +19,9 @@
     }
   },
   "properties": {
-    "schemaVersion": {"const": "1"}, "kind": {"const": "verification-result"},
+    "schemaVersion": {"enum": ["1", "2"]}, "kind": {"const": "verification-result"},
+    "frameworkIdentity": {"type": "object", "additionalProperties": false, "required": ["verificationImplementationDigest"], "properties": {"verificationImplementationDigest": {"$ref": "#/$defs/digest"}}},
+    "rerunOf": {"anyOf": [{"type": "null"}, {"type": "object", "additionalProperties": false, "required": ["resultReference", "resultDigest", "runId", "checkId"], "properties": {"resultReference": {"type": "string"}, "resultDigest": {"$ref": "#/$defs/digest"}, "runId": {"type": "string"}, "checkId": {"type": "string"}}}]},
     "runId": {"type": "string", "minLength": 1}, "runtimeExecutionId": {"type": "string", "minLength": 1},
     "generatedAt": {"type": "string"}, "startedAt": {"type": "string"}, "projectRevision": {"type": "string"},
     "workingTreeDirtyBefore": {"type": "boolean"},
@@ -54,6 +56,10 @@
           "targetFingerprint": {"$ref": "#/$defs/digest"}, "actionFingerprint": {"$ref": "#/$defs/digest"}, "executionFingerprint": {"$ref": "#/$defs/digest"}, "failureFingerprint": {"anyOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]},
           "deduplicated": {"type": "boolean"}, "deduplicatedFrom": {"type": "string"}, "deduplicatedFromCheckId": {"type": "string"},
           "adapter": {"enum": ["bash_syntax", "mana_eval", "java_approved_test"]},
+          "adapterImplementationDigest": {"$ref": "#/$defs/digest"},
+          "concernKey": {"type": "string", "pattern": "^concern:"},
+          "rerunDescriptor": {"type": "object", "additionalProperties": false, "required": ["kind", "path"], "properties": {"kind": {"const": "repository_path"}, "path": {"type": "string"}}},
+          "evaluationSurface": {"type": "array", "minItems": 3, "items": {"type": "object", "additionalProperties": false, "required": ["role", "path", "digest", "protected"], "properties": {"role": {"enum": ["mutable_input", "oracle", "configuration", "verifier"]}, "path": {"type": "string"}, "digest": {"$ref": "#/$defs/digest"}, "protected": {"type": "boolean"}}}},
           "trustOrigin": {"enum": ["framework_declared", "project_approved", "derived", "repository_script", "generated"]},
           "commandOrigin": {"type": "string"}, "effectiveArgv": {"type": "array", "minItems": 1, "items": {"type": "string"}},
           "executable": {"type": "object", "additionalProperties": false, "required": ["path", "digest"], "properties": {"path": {"type": "string"}, "digest": {"$ref": "#/$defs/digest"}}},
@@ -78,5 +84,6 @@
     "observedEffects": {"type": "object", "additionalProperties": false, "required": ["unexpectedSourceMutation"], "properties": {"unexpectedSourceMutation": {"type": "boolean"}}},
     "cost": {"type": "object", "additionalProperties": false, "required": ["wallTimeMs", "checksExecuted", "duplicateActionsSuppressed", "modelCalls", "inputTokens", "outputTokens"], "properties": {"wallTimeMs": {"type": "integer", "minimum": 0}, "checksExecuted": {"type": "integer", "minimum": 0}, "duplicateActionsSuppressed": {"type": "integer", "minimum": 0}, "modelCalls": {"const": 0}, "inputTokens": {"const": 0}, "outputTokens": {"const": 0}}},
     "judgment": {"type": "null"}
-  }
+  },
+  "allOf": [{"if": {"properties": {"schemaVersion": {"const": "2"}}}, "then": {"required": ["frameworkIdentity", "rerunOf"], "properties": {"checks": {"items": {"required": ["adapterImplementationDigest", "concernKey", "rerunDescriptor", "evaluationSurface"]}}}}}]
 }

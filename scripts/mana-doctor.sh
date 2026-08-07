@@ -28,6 +28,7 @@ Checks:
   - Sonar scanner wrapper and local config initialization.
   - Mana update-check script and no-fetch execution.
   - Optional User Context configuration, source health, and materialization freshness.
+  - Disposable-workspace bounded-repair containment and host import readiness.
 USAGE
 }
 
@@ -222,6 +223,24 @@ echo "Root: $root"
 if [ -n "$project" ]; then echo "Project: $project"; fi
 
 check_external_tools
+
+echo "Repair containment"
+echo "backend: disposable-workspace"
+echo "capability: faulty-contained"
+echo "live-repo provider mutation: prevented by staging/import"
+echo "live repository provider access: no (normal bounded-repair path)"
+echo "host patch import: available"
+echo "process isolation: unavailable"
+echo "host filesystem isolation: unavailable"
+echo "network isolation: unavailable"
+echo "adversarial containment: unavailable"
+containment_tmp="$(mktemp -d "${TMPDIR:-/tmp}/mana-doctor-repair-containment.XXXXXX" 2>/dev/null || true)"
+if [ -n "$containment_tmp" ] && printf 'baseline\n' > "$containment_tmp/live" && cp "$containment_tmp/live" "$containment_tmp/candidate" && printf 'candidate\n' > "$containment_tmp/candidate" && cp "$containment_tmp/candidate" "$containment_tmp/import" && mv -f "$containment_tmp/import" "$containment_tmp/live" && [ "$(cat "$containment_tmp/live")" = candidate ]; then
+  pass "repair containment staging and host atomic import available"
+else
+  error "repair containment staging or host atomic import unavailable"
+fi
+if [ -n "$containment_tmp" ]; then rm -f "$containment_tmp/live" "$containment_tmp/candidate" "$containment_tmp/import"; rmdir "$containment_tmp" 2>/dev/null || true; fi
 
 user_context_project="${project:-$root}"
 mana_user_context_status "$user_context_project"

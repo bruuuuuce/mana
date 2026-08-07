@@ -8,9 +8,10 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 . "$root/scripts/lib/runtime-events.sh"
 
 project_root="$(pwd)"; dry_run=false; explain=false; json=false; list_only=false
-base=""; explicit_skills=""; newline=$'\n'; tab=$'\t'
+base=""; explicit_skills=""; rerun_file=""; rerun_check=""; rerun_path=""; rerun_digest=""; rerun_reference=""; rerun_run=""; newline=$'\n'; tab=$'\t'
 usage() { cat <<'USAGE'
 Usage: mana verify [--skill <id>] [--list] [--dry-run] [--explain] [--json] [--base <ref>]
+       mana verify --rerun <verification-result.json> --check <check-id> [--json]
 
 Runs bounded deterministic Verification Skills. It never starts Codex, Claude,
 OpenCode, Junie, or another model runner.
@@ -23,12 +24,41 @@ while [ "$#" -gt 0 ]; do
     --project-root) project_root="${2:-}"; [ -n "$project_root" ] || fail '--project-root requires a path'; shift 2;;
     --skill) value="${2:-}"; [ -n "$value" ] || fail '--skill requires an id'; explicit_skills="${explicit_skills}${explicit_skills:+$newline}$value"; shift 2;;
     --base) base="${2:-}"; [ -n "$base" ] || fail '--base requires a ref'; shift 2;;
+    --rerun) rerun_file="${2:-}"; [ -n "$rerun_file" ] || fail '--rerun requires a result path'; shift 2;;
+    --check) rerun_check="${2:-}"; [ -n "$rerun_check" ] || fail '--check requires an id'; shift 2;;
     --list) list_only=true; shift;; --dry-run) dry_run=true; shift;; --explain) explain=true; shift;; --json) json=true; shift;;
     --help|-h) usage; exit 0;; *) fail "unknown option: $1";;
   esac
 done
 command -v jq >/dev/null 2>&1 || fail 'jq is required for mana verify'
 project_root="$(cd "$project_root" 2>/dev/null && pwd -P)" || fail "project root not found: $project_root"
+
+if [ -n "$rerun_file" ]; then
+  [ -n "$rerun_check" ] || fail '--rerun requires --check'
+  [ -f "$rerun_file" ] || fail "rerun evidence not found: $rerun_file"
+  rerun_file="$(cd "$(dirname "$rerun_file")" && pwd -P)/$(basename "$rerun_file")"
+  case "$rerun_file" in "$project_root"/.mana/*/evidence/verification/*/result.json) ;; *) fail 'rerun evidence must be a canonical project-local verification result' ;; esac
+  verification_result_validate "$rerun_file" || fail 'rerun evidence is malformed or non-canonical'
+  [ "$(jq -r .schemaVersion "$rerun_file")" = 2 ] || fail 'verification evidence predates repair-capable schema; rerun verification first'
+  [ "$(jq --arg id "$rerun_check" '[.checks[]|select(.checkId==$id)]|length' "$rerun_file")" = 1 ] || fail "rerun check is missing or ambiguous: $rerun_check"
+  rerun_digest="$(verification_digest_file "$rerun_file")"
+  [ -f "$(dirname "$rerun_file")/result.sha256" ] && [ "$(sed -n '1p' "$(dirname "$rerun_file")/result.sha256")" = "$rerun_digest" ] || fail 'rerun evidence digest sidecar is missing or mismatched'
+  rerun_path="$(jq -r --arg id "$rerun_check" '.checks[]|select(.checkId==$id)|.rerunDescriptor.path' "$rerun_file")"
+  verification_safe_repository_path "$rerun_path" || fail 'rerun descriptor contains an unsafe repository path'
+  [ "$(jq -r --arg id "$rerun_check" '.checks[]|select(.checkId==$id)|.rerunDescriptor.kind' "$rerun_file")" = repository_path ] || fail 'unsupported rerun descriptor kind'
+  rerun_skill="$(jq -r --arg id "$rerun_check" '.checks[]|select(.checkId==$id)|.skillId' "$rerun_file")"
+  rerun_adapter="$(jq -r --arg id "$rerun_check" '.checks[]|select(.checkId==$id)|.adapter' "$rerun_file")"
+  [ "$rerun_adapter" = bash_syntax ] || fail "rerun adapter is not supported by the bounded rerun path: $rerun_adapter"
+  rerun_skill_file="$root/skills/$rerun_skill/SKILL.md"; rerun_spec_file="$root/skills/$rerun_skill/verification.yaml"
+  [ "$(verification_frontmatter_field "$rerun_skill_file" version)" = "$(jq -r --arg id "$rerun_check" '.checks[]|select(.checkId==$id)|.skillVersion' "$rerun_file")" ] || fail 'rerun skill version identity changed'
+  [ "$(verification_digest_file "$rerun_spec_file")" = "$(jq -r --arg id "$rerun_check" '.checks[]|select(.checkId==$id)|.specDigest' "$rerun_file")" ] || fail 'rerun verification spec identity changed'
+  [ "$(cat "$root/scripts/mana-verify.sh" "$root/scripts/lib/verification.sh" | verification_digest_text)" = "$(jq -r --arg id "$rerun_check" '.checks[]|select(.checkId==$id)|.adapterImplementationDigest' "$rerun_file")" ] || fail 'rerun adapter implementation identity changed'
+  rerun_bash="$(command -v bash 2>/dev/null || true)"; [ -f "$rerun_bash" ] || fail 'rerun bash executable is unavailable'
+  [ "$(verification_digest_file "$rerun_bash")" = "$(jq -r --arg id "$rerun_check" '.checks[]|select(.checkId==$id)|.executable.digest' "$rerun_file")" ] || fail 'rerun executable identity changed'
+  [ "$(verification_environment_digest)" = "$(jq -r --arg id "$rerun_check" '.checks[]|select(.checkId==$id)|.environmentDigest' "$rerun_file")" ] || fail 'rerun environment identity changed'
+  explicit_skills="$rerun_skill"; rerun_run="$(jq -r .runId "$rerun_file")"; rerun_reference="${rerun_file#"$project_root"/}"
+fi
+[ -z "$rerun_check" ] || [ -n "$rerun_file" ] || fail '--check is only valid with --rerun'
 
 verification_skills() { awk '$1=="-"&&$2=="id:"{id=$3} $1=="capability:"&&$2=="verification"{print id}' "$root/skills/index.yaml" | LC_ALL=C sort; }
 skill_known() { printf '%s\n' "$(verification_skills)" | grep -Fxq "$1"; }
@@ -90,6 +120,7 @@ if git -C "$project_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     while IFS= read -r -d '' path; do
       case "$path" in *$'\t'*|*$'\n'*) : > "$unsafe_path_file";; *) printf '%s\n' "$path";; esac
     done < "$changed_raw" | LC_ALL=C sort -u > "$changed_file"
+    if [ -n "$rerun_file" ]; then printf '%s\n' "$rerun_path" > "$changed_file"; fi
   fi
 else
   scope_status=blocked
@@ -203,6 +234,12 @@ EOF
   done < <(jq -c '.checks[]' "$spec")
 done
 
+if [ -n "$rerun_file" ]; then
+  [ "$(awk -F'\t' -v id="$rerun_check" '$5==id{n++} END{print n+0}' "$action_file")" = 1 ] || fail 'current skill/spec no longer resolves the originating rerun target'
+  awk -F'\t' -v id="$rerun_check" '$5==id' "$action_file" > "$tmp/rerun-action"
+  mv "$tmp/rerun-action" "$action_file"
+fi
+
 action_count="$(wc -l < "$action_file" | tr -d ' ')"; plan_blockers=""
 [ "$scope_status" = ambiguous ] && plan_blockers="diff base is ambiguous; provide --base <ref>"
 [ "$scope_status" = blocked ] && plan_blockers="project root is not a Git repository"
@@ -247,8 +284,13 @@ if [ -n "$plan_blockers" ]; then if [ "$json" = true ]; then printf '%s\n' "$pla
 # Real execution begins here. Planning above creates no Mana workspace or audit files.
 umask 077
 started_epoch="$(date +%s)"; started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; run_id="verification-$(date -u +%Y%m%dT%H%M%SZ)-$$"
-"$root/scripts/mana-workspace.sh" init --root "$project_root" --purpose verification >/dev/null || fail 'workspace initialization failed'
-active_relative="$(sed -n '1p' "$project_root/.mana/active-workspace")"; workspace="$project_root/$active_relative"; evidence_parent="$workspace/evidence/verification"; evidence_dir="$evidence_parent/$run_id"; checks_dir="$evidence_dir/checks"; mkdir -p "$evidence_parent"; mkdir "$evidence_dir" || fail "verification run identity collision: $run_id"; mkdir "$checks_dir"
+if [ -n "$rerun_file" ]; then
+  workspace="${rerun_file%%/evidence/verification/*}"; active_relative="${workspace#"$project_root"/}"
+else
+  "$root/scripts/mana-workspace.sh" init --root "$project_root" --purpose verification >/dev/null || fail 'workspace initialization failed'
+  active_relative="$(sed -n '1p' "$project_root/.mana/active-workspace")"; workspace="$project_root/$active_relative"
+fi
+evidence_parent="$workspace/evidence/verification"; evidence_dir="$evidence_parent/$run_id"; checks_dir="$evidence_dir/checks"; mkdir -p "$evidence_parent"; mkdir "$evidence_dir" || fail "verification run identity collision: $run_id"; mkdir "$checks_dir"
 runtime_init "$project_root" verification || echo "WARNING: $MANA_RUNTIME_WARNING" >&2
 runtime_emit verification.started verification "$run_id" started "checks=$action_count modelCalls=0" "${active_relative}/evidence/verification/$run_id" false || true
 verification_interrupted() { runtime_emit verification.interrupted verification "$run_id" interrupted "modelCalls=0" "${active_relative}/evidence/verification/$run_id" false || true; runtime_finish failed; exit 130; }
@@ -295,7 +337,11 @@ while IFS="$tab" read -r skill version spec_digest base_id instance_id adapter t
   target_fingerprint="$(verification_target_fingerprint "$adapter" "$argv_json" "$project_root" "$scope")"
   fingerprint="$(verification_action_fingerprint "$target_fingerprint" "$contract_digest" "$input_digest" "$executable_identity" "$trust" "$effects" "$environment_digest")"
   execution_fingerprint="$(verification_execution_fingerprint "$target_fingerprint" "$input_digest" "$executable_identity" "$trust" "$effects" "$environment_digest" "$timeout_seconds|$skill_max_output")"; fingerprint_key="$(printf '%s' "$execution_fingerprint" | tr ':/' '__')"
-  if ! verification_dedup_claim "$dedup_dir" "$execution_fingerprint"; then jq --arg skill "$skill" --arg version "$version" --arg spec "$spec_digest" --arg check "$instance_id" --arg baseCheck "$base_id" --arg actionFingerprint "$fingerprint" --arg targetFingerprint "$target_fingerprint" --arg executionFingerprint "$execution_fingerprint" --arg scope "$scope" --arg cost "$cost" --argjson effects "$effects" --argjson required "$required" '.checkId as $fromCheck | .skillId=$skill | .skillVersion=$version | .specDigest=$spec | .checkId=$check | .baseCheckId=$baseCheck | .required=$required | .actionFingerprint=$actionFingerprint | .targetFingerprint=$targetFingerprint | .executionFingerprint=$executionFingerprint | .scope=$scope | .costClass=$cost | .declaredEffects=$effects | .deduplicated=true | .deduplicatedFrom=$executionFingerprint | .deduplicatedFromCheckId=$fromCheck' "$dedup_dir/$fingerprint_key.json" > "$result_fragments/$executed.json"; executed=$((executed+1)); continue; fi
+  if ! verification_dedup_claim "$dedup_dir" "$execution_fingerprint"; then
+    dedup_concern="concern:${skill}:${base_id}:$(printf '%s' "$adapter|$target" | verification_digest_text)"; oracle_path="mana-framework/skills/$skill/verification.yaml"
+    jq --arg skill "$skill" --arg version "$version" --arg spec "$spec_digest" --arg check "$instance_id" --arg baseCheck "$base_id" --arg concern "$dedup_concern" --arg oraclePath "$oracle_path" --arg actionFingerprint "$fingerprint" --arg targetFingerprint "$target_fingerprint" --arg executionFingerprint "$execution_fingerprint" --arg scope "$scope" --arg cost "$cost" --argjson effects "$effects" --argjson required "$required" '.checkId as $fromCheck | .skillId=$skill | .skillVersion=$version | .specDigest=$spec | .checkId=$check | .baseCheckId=$baseCheck | .concernKey=$concern | .evaluationSurface |= map(if .role=="oracle" then .path=$oraclePath | .digest=$spec else . end) | .required=$required | .actionFingerprint=$actionFingerprint | .targetFingerprint=$targetFingerprint | .executionFingerprint=$executionFingerprint | .scope=$scope | .costClass=$cost | .declaredEffects=$effects | .deduplicated=true | .deduplicatedFrom=$executionFingerprint | .deduplicatedFromCheckId=$fromCheck' "$dedup_dir/$fingerprint_key.json" > "$result_fragments/$executed.json"
+    executed=$((executed+1)); continue
+  fi
   if [ "$executed" -ge "$MANA_VERIFY_MAX_CHECKS" ]; then break; fi
   now_epoch="$(date +%s)"; elapsed=$(( now_epoch - started_epoch ))
   skill_clock="$tmp/skill-clock-$skill"; [ -f "$skill_clock" ] || printf '%s\n' "$now_epoch" > "$skill_clock"; skill_elapsed=$(( now_epoch - $(sed -n '1p' "$skill_clock") )); skill_remaining=$(( skill_max_seconds - skill_elapsed )); total_remaining=$(( MANA_VERIFY_MAX_SECONDS - elapsed )); effective_timeout="$timeout_seconds"; [ "$effective_timeout" -le "$skill_remaining" ] || effective_timeout="$skill_remaining"; [ "$effective_timeout" -le "$total_remaining" ] || effective_timeout="$total_remaining"; effective_output="$skill_max_output"; [ "$effective_output" -le "$MANA_VERIFY_MAX_OUTPUT_BYTES" ] || effective_output="$MANA_VERIFY_MAX_OUTPUT_BYTES"
@@ -329,13 +375,18 @@ while IFS="$tab" read -r skill version spec_digest base_id instance_id adapter t
     native_artifacts="$(cat "$native_lines" | verification_json_array_lines)"
   fi
   if [ "$result" = passed ]; then normalized="$(jq -cn --arg id "$base_id" '[{id:$id,result:"satisfied"}]')"
+  elif [ "$adapter" = bash_syntax ]; then normalized="$(verification_bash_syntax_observations "$stderr" "$base_id")"
   elif [ "$adapter" = mana_eval ] && [ -s "$eval_failures" ]; then normalized="$(jq -Rn --arg id "$base_id" '[inputs|select(length>0)][0:10] as $lines | [{id:$id,result:"not_satisfied",messages:$lines}]' < "$eval_failures")"
   else normalized="$(jq -Rn --arg id "$base_id" '[inputs|select(length>0)][0:10] as $lines | [{id:$id,result:"not_satisfied",messages:$lines}]' < "$excerpt_file")"; fi
   mutation_json="$(printf '%s\n' "$mutations" | verification_json_array_lines)"; relevant_json="$(printf '%s\n' "$target" | verification_json_array_lines)"
   rel_stdout="${stdout#"$project_root"/}"; rel_stderr="${stderr#"$project_root"/}"; stdout_digest="$(verification_digest_file "$stdout")"; stderr_digest="$(verification_digest_file "$stderr")"
   if [ "$result" = passed ]; then failure_fingerprint=null; else failure_fingerprint="$(printf '%s\n%s\n%s\n' "$target_fingerprint" "$result" "$normalized" | verification_digest_text)"; fi
   limitations="$(jq -cn --arg result "$result" --argjson nativeRejected "$native_rejected" --argjson descendants "$RUN_DESCENDANTS_TERMINATED" --argjson repositoryScript "$([ "$command_origin" = repository_script ] && echo true || echo false)" --argjson truncated "$([ "$OUT_TRUNCATED" = true ] || [ "$ERR_TRUNCATED" = true ] && echo true || echo false)" '[if $result=="blocked" then "Action did not satisfy its trust, approval, effects, or execution budget gate." elif $result=="inconclusive" then "Evidence did not establish a mechanical pass or failure." else empty end, if $nativeRejected then "An eval artifact reference outside project-local Mana evaluation evidence was rejected." else empty end, if $descendants then "Descendant processes outlived the command leader and were terminated." else empty end, if $repositoryScript then "Approved repository code executed without an OS sandbox; deliberately detached processes are outside v1 containment." else empty end, if $truncated then "Command output exceeded the retained artifact limit; byte counts describe discarded output." else empty end]')"
-  jq -cn --arg skill "$skill" --arg version "$version" --arg spec "$spec_digest" --arg check "$instance_id" --arg baseCheck "$base_id" --arg adapter "$adapter" --arg trust "$trust" --arg commandOrigin "${command_origin:-$trust}" --arg fingerprint "$fingerprint" --arg targetFingerprint "$target_fingerprint" --arg executionFingerprint "$execution_fingerprint" --arg inputDigest "$input_digest" --arg environmentDigest "$environment_digest" --arg executablePath "$executable_path" --arg executableDigest "$executable_digest" --arg failureFingerprint "$failure_fingerprint" --arg scope "$scope" --arg cost "$cost" --arg result "$result" --argjson required "$required" --argjson argv "$argv_json" --argjson effects "$effects" --argjson exitCode "$code" --argjson signal "$RUN_SIGNAL" --argjson timedOut "$RUN_TIMED_OUT" --argjson descendants "$RUN_DESCENDANTS_TERMINATED" --argjson duration "$duration_ms" --argjson timeout "$effective_timeout" --argjson outputLimit "$effective_output" --argjson relevant "$relevant_json" --argjson nativeArtifacts "$native_artifacts" --rawfile excerpt "$excerpt_file" --arg stdout "$rel_stdout" --arg stderr "$rel_stderr" --arg stdoutDigest "$stdout_digest" --arg stderrDigest "$stderr_digest" --argjson outBytes "$OUT_BYTES" --argjson errBytes "$ERR_BYTES" --argjson outTruncated "$OUT_TRUNCATED" --argjson errTruncated "$ERR_TRUNCATED" --argjson observations "$normalized" --argjson sourceMutation "$source_mutation" --argjson mutationPaths "$mutation_json" --argjson limitations "$limitations" '{skillId:$skill,skillVersion:$version,specDigest:$spec,checkId:$check,baseCheckId:$baseCheck,required:$required,targetFingerprint:$targetFingerprint,actionFingerprint:$fingerprint,executionFingerprint:$executionFingerprint,failureFingerprint:(if $failureFingerprint=="null" then null else $failureFingerprint end),deduplicated:false,adapter:$adapter,trustOrigin:$trust,commandOrigin:$commandOrigin,effectiveArgv:$argv,executable:{path:$executablePath,digest:$executableDigest},workingDirectory:".",environmentClassification:"local",environmentDigest:$environmentDigest,inputDigest:$inputDigest,scope:$scope,costClass:$cost,result:$result,exitCode:$exitCode,signal:$signal,timedOut:$timedOut,descendantsTerminated:$descendants,durationMs:$duration,timeoutSeconds:$timeout,outputLimitBytes:$outputLimit,relevantFiles:$relevant,observations:$observations,nativeArtifacts:$nativeArtifacts,output:{excerpt:$excerpt,stdoutArtifact:$stdout,stderrArtifact:$stderr,stdoutDigest:$stdoutDigest,stderrDigest:$stderrDigest,stdoutBytes:$outBytes,stderrBytes:$errBytes,stdoutTruncated:$outTruncated,stderrTruncated:$errTruncated},declaredEffects:$effects,observedEffects:{unexpectedSourceMutation:$sourceMutation,mutationPaths:$mutationPaths},limitations:$limitations}' > "$result_fragments/$executed.json"
+  adapter_digest="$(cat "$root/scripts/mana-verify.sh" "$root/scripts/lib/verification.sh" | verification_digest_text)"
+  concern_key="concern:${skill}:${base_id}:$(printf '%s' "$adapter|$target" | verification_digest_text)"
+  evaluation_surface="$(jq -cn --arg input "$target" --arg inputDigest "$input_digest" --arg specPath "mana-framework/skills/$skill/verification.yaml" --arg specDigest "$spec_digest" --arg verifierPath "mana-framework/scripts/mana-verify.sh+scripts/lib/verification.sh" --arg verifierDigest "$adapter_digest" '[{role:"mutable_input",path:$input,digest:$inputDigest,protected:false},{role:"oracle",path:$specPath,digest:$specDigest,protected:true},{role:"verifier",path:$verifierPath,digest:$verifierDigest,protected:true}]')"
+  rerun_descriptor="$(jq -cn --arg path "$target" '{kind:"repository_path",path:$path}')"
+  jq -cn --arg skill "$skill" --arg version "$version" --arg spec "$spec_digest" --arg check "$instance_id" --arg baseCheck "$base_id" --arg adapter "$adapter" --arg adapterDigest "$adapter_digest" --arg concernKey "$concern_key" --arg trust "$trust" --arg commandOrigin "${command_origin:-$trust}" --arg fingerprint "$fingerprint" --arg targetFingerprint "$target_fingerprint" --arg executionFingerprint "$execution_fingerprint" --arg inputDigest "$input_digest" --arg environmentDigest "$environment_digest" --arg executablePath "$executable_path" --arg executableDigest "$executable_digest" --arg failureFingerprint "$failure_fingerprint" --arg scope "$scope" --arg cost "$cost" --arg result "$result" --argjson rerunDescriptor "$rerun_descriptor" --argjson evaluationSurface "$evaluation_surface" --argjson required "$required" --argjson argv "$argv_json" --argjson effects "$effects" --argjson exitCode "$code" --argjson signal "$RUN_SIGNAL" --argjson timedOut "$RUN_TIMED_OUT" --argjson descendants "$RUN_DESCENDANTS_TERMINATED" --argjson duration "$duration_ms" --argjson timeout "$effective_timeout" --argjson outputLimit "$effective_output" --argjson relevant "$relevant_json" --argjson nativeArtifacts "$native_artifacts" --rawfile excerpt "$excerpt_file" --arg stdout "$rel_stdout" --arg stderr "$rel_stderr" --arg stdoutDigest "$stdout_digest" --arg stderrDigest "$stderr_digest" --argjson outBytes "$OUT_BYTES" --argjson errBytes "$ERR_BYTES" --argjson outTruncated "$OUT_TRUNCATED" --argjson errTruncated "$ERR_TRUNCATED" --argjson observations "$normalized" --argjson sourceMutation "$source_mutation" --argjson mutationPaths "$mutation_json" --argjson limitations "$limitations" '{skillId:$skill,skillVersion:$version,specDigest:$spec,checkId:$check,baseCheckId:$baseCheck,required:$required,concernKey:$concernKey,targetFingerprint:$targetFingerprint,actionFingerprint:$fingerprint,executionFingerprint:$executionFingerprint,failureFingerprint:(if $failureFingerprint=="null" then null else $failureFingerprint end),deduplicated:false,adapter:$adapter,adapterImplementationDigest:$adapterDigest,rerunDescriptor:$rerunDescriptor,evaluationSurface:$evaluationSurface,trustOrigin:$trust,commandOrigin:$commandOrigin,effectiveArgv:$argv,executable:{path:$executablePath,digest:$executableDigest},workingDirectory:".",environmentClassification:"local",environmentDigest:$environmentDigest,inputDigest:$inputDigest,scope:$scope,costClass:$cost,result:$result,exitCode:$exitCode,signal:$signal,timedOut:$timedOut,descendantsTerminated:$descendants,durationMs:$duration,timeoutSeconds:$timeout,outputLimitBytes:$outputLimit,relevantFiles:$relevant,observations:$observations,nativeArtifacts:$nativeArtifacts,output:{excerpt:$excerpt,stdoutArtifact:$stdout,stderrArtifact:$stderr,stdoutDigest:$stdoutDigest,stderrDigest:$stderrDigest,stdoutBytes:$outBytes,stderrBytes:$errBytes,stdoutTruncated:$outTruncated,stderrTruncated:$errTruncated},declaredEffects:$effects,observedEffects:{unexpectedSourceMutation:$sourceMutation,mutationPaths:$mutationPaths},limitations:$limitations}' > "$result_fragments/$executed.json"
   cp "$result_fragments/$executed.json" "$dedup_dir/$fingerprint_key.json"
   runtime_emit "check.$result" check "$skill/$instance_id" "$result" "adapter=$adapter exitCode=${code:-none} durationMs=$duration_ms" "${active_relative}/evidence/verification/$run_id/checks/$instance_id" false || true
   executed=$((executed+1))
@@ -345,9 +396,12 @@ if [ "$executed" -eq 0 ]; then checks_json='[]'; else checks_json="$(jq -s '.' "
 overall="$(verification_overall_result "$checks_json" "$stop_for_mutation")"
 finished_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; duration_ms=$(( ($(date +%s) - started_epoch) * 1000 )); result_file="$evidence_dir/result.json"; summary_file="$evidence_dir/summary.md"; result_tmp="$evidence_dir/.result.json.tmp.$$"; summary_tmp="$evidence_dir/.summary.md.tmp.$$"
 result_relative="${result_file#"$project_root"/}"
-jq -n --arg run "$run_id" --arg runtime "$MANA_RUNTIME_EXECUTION_ID" --arg generated "$finished_at" --arg started "$started_at" --arg projectRevision "$project_revision" --arg base "$base" --arg head "$head_ref" --arg mode "$scope_mode" --arg digest "$changed_digest" --arg inputDigest "$repository_input_digest" --arg overall "$overall" --argjson dirty "$dirty_before" --argjson changed "$(cat "$changed_file" | verification_json_array_lines)" --argjson selections "$selections_json" --argjson checks "$checks_json" --argjson duration "$duration_ms" --argjson sourceMutation "$stop_for_mutation" '{schemaVersion:"1",kind:"verification-result",runId:$run,runtimeExecutionId:$runtime,generatedAt:$generated,startedAt:$started,projectRevision:$projectRevision,workingTreeDirtyBefore:$dirty,scope:{base:$base,head:$head,mode:$mode,changedPathsDigest:$digest,changedPaths:$changed,inputDigest:$inputDigest},overallResult:$overall,selections:$selections,checks:$checks,observedEffects:{unexpectedSourceMutation:$sourceMutation},cost:{wallTimeMs:$duration,checksExecuted:($checks|map(select(.deduplicated==false))|length),duplicateActionsSuppressed:($checks|map(select(.deduplicated==true))|length),modelCalls:0,inputTokens:0,outputTokens:0},judgment:null}' > "$result_tmp" || fail 'could not assemble verification result'
+framework_digest="$(cat "$root/scripts/mana-verify.sh" "$root/scripts/lib/verification.sh" | verification_digest_text)"
+rerun_of="$(if [ -n "$rerun_file" ]; then jq -cn --arg ref "$rerun_reference" --arg digest "$rerun_digest" --arg run "$rerun_run" --arg check "$rerun_check" '{resultReference:$ref,resultDigest:$digest,runId:$run,checkId:$check}'; else printf null; fi)"
+jq -n --arg run "$run_id" --arg runtime "$MANA_RUNTIME_EXECUTION_ID" --arg generated "$finished_at" --arg started "$started_at" --arg projectRevision "$project_revision" --arg base "$base" --arg head "$head_ref" --arg mode "$scope_mode" --arg digest "$changed_digest" --arg inputDigest "$repository_input_digest" --arg frameworkDigest "$framework_digest" --arg overall "$overall" --argjson rerunOf "$rerun_of" --argjson dirty "$dirty_before" --argjson changed "$(cat "$changed_file" | verification_json_array_lines)" --argjson selections "$selections_json" --argjson checks "$checks_json" --argjson duration "$duration_ms" --argjson sourceMutation "$stop_for_mutation" '{schemaVersion:"2",kind:"verification-result",runId:$run,runtimeExecutionId:$runtime,generatedAt:$generated,startedAt:$started,projectRevision:$projectRevision,workingTreeDirtyBefore:$dirty,scope:{base:$base,head:$head,mode:$mode,changedPathsDigest:$digest,changedPaths:$changed,inputDigest:$inputDigest},frameworkIdentity:{verificationImplementationDigest:$frameworkDigest},rerunOf:$rerunOf,overallResult:$overall,selections:$selections,checks:$checks,observedEffects:{unexpectedSourceMutation:$sourceMutation},cost:{wallTimeMs:$duration,checksExecuted:($checks|map(select(.deduplicated==false))|length),duplicateActionsSuppressed:($checks|map(select(.deduplicated==true))|length),modelCalls:0,inputTokens:0,outputTokens:0},judgment:null}' > "$result_tmp" || fail 'could not assemble verification result'
 verification_result_validate "$result_tmp" || fail 'verification result failed canonical validation'
 mv "$result_tmp" "$result_file" || fail 'could not publish verification result'
+verification_digest_file "$result_file" > "$evidence_dir/.result.sha256.tmp.$$" && mv "$evidence_dir/.result.sha256.tmp.$$" "$evidence_dir/result.sha256"
 {
   echo '# Mana Verification Evidence'; echo; echo "- Run: \`$run_id\`"; echo "- Result: \`$overall\`"; echo "- Base: \`$base\`"; echo "- Head: \`$head_ref\`"; echo '- Model calls: `0`'; echo '- Judgment: _not produced by verification_'; echo; echo '## Selection'; echo; jq -r '.selections[] | "- `" + .skillId + "`: " + .applicability + (if .selected then "; selected" else "" end)' "$result_file"; echo; echo '## Checks'; echo; echo '| Check | Adapter | Trust | Result | Exit | Duration |'; echo '|---|---|---|---|---:|---:|'; jq -r '.checks[] | "| `" + .checkId + "` | `" + .adapter + "` | `" + .trustOrigin + "` | `" + .result + "` | " + ((.exitCode // "-")|tostring) + " | " + (.durationMs|tostring) + " ms |"' "$result_file"; echo; echo '## Evidence'; echo; jq -r '.checks[] | "- `" + .checkId + "`: `" + .output.stdoutArtifact + "`, `" + .output.stderrArtifact + "`."' "$result_file"; echo; echo '## Boundary'; echo; echo 'This artifact contains verification evidence only. Existing reviewers and accountable humans create findings and judgment.'; } > "$summary_tmp"
 mv "$summary_tmp" "$summary_file" || fail 'could not publish verification summary'

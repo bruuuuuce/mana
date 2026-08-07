@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mana Repair Target v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "kind", "targetId", "createdAt", "mode", "origin", "concernKey", "skill", "target", "failure", "rerunIdentity", "mutationGrant", "workspaceContext", "executionPlan"],
+  "properties": {
+    "schemaVersion": {"const": "1"}, "kind": {"const": "repair-target"}, "mode": {"const": "implementation"},
+    "targetId": {"type": "string", "pattern": "^repair-target-sha256-[0-9a-f]{64}$"}, "createdAt": {"type": "string"}, "concernKey": {"type": "string", "pattern": "^concern:"},
+    "origin": {"type": "object"}, "skill": {"type": "object"}, "target": {"type": "object"}, "failure": {"type": "object"}, "rerunIdentity": {"type": "object"}, "mutationGrant": {"type": "object"}, "workspaceContext": {"type": "object"}, "executionPlan": {"type": "object"}
+  }
+}

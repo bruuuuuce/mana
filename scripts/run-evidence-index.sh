@@ -75,6 +75,8 @@ section() {
   section "Sonar" "$workspace/evidence/sonar"
   section "Dependencies" "$workspace/evidence/dependencies"
   section "Verification" "$workspace/evidence/verification"
+  section "Repair" "$workspace/evidence/repair"
+  section "Repair Loops" "$workspace/evidence/repair-loop"
   section "Tests" "$workspace/tests"
   section "Validation" "$workspace/validation"
   section "PR" "$workspace/pr"

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -u
 root="$(cd "$(dirname "$0")/.." && pwd)"
+. "$root/scripts/lib/provider-dispatch.sh"
 # shellcheck source=lib/profile-metadata.sh
 . "$root/scripts/lib/profile-metadata.sh"
 . "$root/scripts/lib/user-context.sh"
@@ -951,16 +952,8 @@ run_codex() {
     printf '%s\n' "$codex_agent_install_warnings" >&2
   fi
 
-  codex_args=(
-    --ask-for-approval on-request
-    exec
-    --model "$codex_model"
-    --cd "$project_root"
-    --sandbox workspace-write
-    -c "agents.max_threads=$codex_max_threads"
-    -c "agents.max_depth=$codex_max_depth"
-    -c "agents.interrupt_message=false"
-  )
+  mana_provider_profile_args codex "$project_root" "$codex_model" "$codex_max_threads" "$codex_max_depth"
+  codex_args=("${MANA_PROVIDER_ARGS[@]}")
 
   if [ "$jira_mcp_configured" = true ] && [ "$jira_mcp_config_source" = "env_file" ]; then
     codex_args+=(
@@ -983,12 +976,8 @@ run_claude() {
     printf '%s\n' "$claude_agent_install_warnings" >&2
   fi
 
-  claude_args=(
-    -p
-    --agent mana-orchestrator
-    --model "$claude_model"
-    --permission-mode default
-  )
+  mana_provider_profile_args claude "$project_root" "$claude_model" 1 1
+  claude_args=("${MANA_PROVIDER_ARGS[@]}")
 
   MANA_PROFILE_RUNNING=1 claude "${claude_args[@]}" "$prompt"
 }
@@ -999,12 +988,8 @@ run_opencode() {
     printf '%s\n' "$opencode_agent_install_warnings" >&2
   fi
 
-  opencode_args=(
-    run
-    --dir "$project_root"
-    --model "$opencode_model"
-    --agent mana_orchestrator
-  )
+  mana_provider_profile_args opencode "$project_root" "$opencode_model" "$opencode_max_threads" 1
+  opencode_args=("${MANA_PROVIDER_ARGS[@]}")
 
   MANA_PROFILE_RUNNING=1 opencode "${opencode_args[@]}" "$prompt"
 }

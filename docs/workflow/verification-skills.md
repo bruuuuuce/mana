@@ -28,12 +28,17 @@ mana verify --skill shell-syntax-verification
 mana verify --list
 mana verify --dry-run --explain
 mana verify --json
+mana verify --rerun <result.json> --check <check-id> --json
 ```
 
 `--skill` is repeatable and narrows selection, but never bypasses applicability,
 trust, environment, effects, or approval gates. `--dry-run` performs no Mana
 workspace or runtime writes. Automatic selection occurs only after a human
 invokes `mana verify`; it is not a background trigger.
+
+`--rerun` accepts only canonical project-local v2 evidence. It validates the
+stored descriptor as data, resolves the current skill/spec/check, reconstructs
+the action through the current adapter, and ignores historical `effectiveArgv`.
 
 ## V1 Vocabulary
 
@@ -67,5 +72,7 @@ the complete child process group on timeout. Skill contracts may tighten these
 values. There are no retries and an identical execution fingerprint executes
 only once per run.
 
-Repair loops, model-assisted verification, cross-run caching, skill learning,
-and automatic promotion are not implemented.
+Automatic verification-triggered repair, generic or unbounded repair loops,
+model-assisted verification, cross-run caching, skill learning, and automatic
+promotion are not implemented. The separate repair primitive and its explicit
+hard-two-attempt governor are documented in `docs/standards/bounded-repair.md`.

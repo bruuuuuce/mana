@@ -22,3 +22,11 @@ jobs:
         run: tests/user-context.sh
       - name: Verification Skills
         run: tests/verification-skills.sh
+      - name: Provider dispatch
+        run: tests/provider-dispatch.sh
+      - name: Repair containment
+        run: tests/repair-containment.sh
+      - name: Bounded repair once
+        run: tests/bounded-repair.sh
+      - name: Bounded repair loop
+        run: tests/bounded-repair-loop.sh
