@@ -101,6 +101,7 @@ cd /path/to/project
 ./mana runtime sessions
 ./mana dependency-evidence --collect
 ./mana evidence-index
+./mana verify --dry-run --explain
 ```
 
 The bootstrap creates a project-local `./mana` wrapper, `.mana/` evidence
@@ -272,6 +273,17 @@ Workspace resolution and routing rules are defined in
 `docs/workflow/service-context-layer.md`. Use `./mana evidence-index` after
 collecting Jira, Sonar, dependency, test, validation, or PR artifacts so
 agents read a compact index before deep-loading evidence.
+
+## Deterministic Verification Skills
+
+`./mana verify` selects applicable verification-capable normal Mana skills,
+runs only fixed Mana adapters or approved structured project actions, and writes
+versioned evidence under the active `.mana` workspace. It makes zero model
+calls. Verification results are evidence; existing reviewers and accountable
+humans create findings and judgment. Use `./mana verify --list` to inspect
+available skills or `./mana verify --dry-run --explain` to inspect exact checks,
+trust origins, effects, limits, and blockers without writing state. See
+[`docs/workflow/verification-skills.md`](docs/workflow/verification-skills.md).
 
 ## Divination: deterministic profile recommendation
 

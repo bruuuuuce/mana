@@ -74,6 +74,7 @@ section() {
   section "Jira" "$workspace/evidence/jira"
   section "Sonar" "$workspace/evidence/sonar"
   section "Dependencies" "$workspace/evidence/dependencies"
+  section "Verification" "$workspace/evidence/verification"
   section "Tests" "$workspace/tests"
   section "Validation" "$workspace/validation"
   section "PR" "$workspace/pr"

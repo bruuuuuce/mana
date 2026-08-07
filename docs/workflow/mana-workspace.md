@@ -145,6 +145,7 @@ Each feature or session workspace should use this internal layout:
     jira/
     sonar/
     dependencies/
+    verification/
   tests/
     green-border-plan.md
     green-border-report.md

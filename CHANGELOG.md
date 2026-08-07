@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- Added deterministic Verification Skills and `mana verify`, with strict
+  machine-readable contracts on normal skills, fixed adapters, bounded
+  structured evidence, explicit trust/effects, source-mutation detection, and
+  zero model calls. Initial skills cover changed shell syntax, bounded Mana
+  governance evals, and approval-gated Java build/test evidence.
 - Added governed API and database test validation: approval-gated Newman API
   collections and PostgreSQL read-only verification catalogs for isolated targets.
 - Added governed GUI test validation: redacted context discovery, approval-gated

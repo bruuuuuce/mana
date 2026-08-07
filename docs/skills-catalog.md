@@ -330,6 +330,19 @@ run.
 
 ---
 
+## deterministic-verification
+**Trigger:** explicit `mana verify` · **Owner:** Developer / QA / Mana Maintainer · **Duration:** bounded to 15 min
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`shell-syntax-verification`](../skills/shell-syntax-verification/SKILL.md) | Run fixed `bash -n` checks for changed shell files and preserve parser evidence. | low | Developer |
+| [`mana-governance-regression-verification`](../skills/mana-governance-regression-verification/SKILL.md) | Reuse bounded deterministic Mana eval scenarios as implementation evidence. | low | Mana Maintainer |
+| [`java-targeted-build-verification`](../skills/java-targeted-build-verification/SKILL.md) | Run fixed Maven/Gradle test argv only through a matching approved local testbook entry. | medium | Developer / QA |
+
+Verification results are evidence, not reviewer findings or readiness judgment.
+
+---
+
 ## gui-test-validation
 **Trigger:** `gui_test_validation` · **Owner:** Developer / QA · **Duration:** 30 min
 

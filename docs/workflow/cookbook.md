@@ -112,6 +112,14 @@ README and `docs/examples/end-to-end-codex-flow.md` /
 
 ## Quality Evidence
 
+- **Collect deterministic implementation evidence:** run `./mana verify`.
+  Inspect selection, trust, effects, and exact fixed actions first with
+  `./mana verify --dry-run --explain`. Verification makes zero model calls and
+  does not produce reviewer severity or merge/readiness judgment.
+- **Run one verification capability explicitly:** use repeatable
+  `./mana verify --skill <id>` flags. Explicit selection does not bypass
+  applicability, catalog approval, environment, trust, effects, or bounds.
+
 - **Configure local Sonar evidence:** keep only `SONAR_HOST_URL` and
   `SONAR_TOKEN` in the environment, then run `./mana sonar --init-config` and
   edit `.mana/global/sonar-project.properties`. Use `./mana sonar --check` to

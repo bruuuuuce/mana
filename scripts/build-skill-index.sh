@@ -28,6 +28,8 @@ for skill in "$root"/skills/*/SKILL.md; do
   tier="$(field "$skill" model_tier)"
   mode="$(field "$skill" execution_mode)"
   group="$(field "$skill" delegation_group)"
+  capability="$(field "$skill" capability)"
+  verification_spec="$(field "$skill" verification_spec)"
   relative_path="${skill#"$root"/}"
 
   printf '  - id: %s\n' "$id"
@@ -36,4 +38,6 @@ for skill in "$root"/skills/*/SKILL.md; do
   printf '    model_tier: %s\n' "${tier:-unspecified}"
   printf '    execution_mode: %s\n' "${mode:-unspecified}"
   printf '    delegation_group: %s\n' "${group:-unspecified}"
+  printf '    capability: %s\n' "${capability:-unspecified}"
+  printf '    verification_spec: %s\n' "${verification_spec:-unspecified}"
 done

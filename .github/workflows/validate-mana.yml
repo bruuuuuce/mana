@@ -20,3 +20,5 @@ jobs:
         run: scripts/mana-doctor.sh
       - name: User Context Layer
         run: tests/user-context.sh
+      - name: Verification Skills
+        run: tests/verification-skills.sh
