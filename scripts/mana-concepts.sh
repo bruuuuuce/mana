@@ -40,7 +40,7 @@ filter_index() {
   ' "$index"
 }
 candidates() {
-  local language="" category="" framework="" limit=50 output_json=false line
+  local language="" category="" framework="" limit=50 output_json=false
   while [ "$#" -gt 0 ]; do case "$1" in --language) language="${2:-}"; shift 2;; --category) category="${2:-}"; shift 2;; --framework) framework="${2:-}"; shift 2;; --limit) limit="${2:-}"; shift 2;; --json) output_json=true; shift;; *) fail "unknown candidates option: $1";; esac; done
   positive_int "$limit" || fail '--limit must be a positive integer'
   validate

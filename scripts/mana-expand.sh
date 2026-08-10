@@ -101,7 +101,9 @@ case "$command" in
     anchor_count="$(printf '%s' "$selected_anchors" | jq length)"; relation_count="$(printf '%s' "$related" | jq length)"
     epistemic=unknown; [ "$anchor_count" -gt 0 ] && epistemic=strongly_supported
     body="This explanation is bounded to $node_label. It is supported by $anchor_count selected source anchor(s) and $relation_count direct graph relation(s). It does not infer behaviour beyond the persisted evidence and direct context."
-    explanation="$(journey add-explanation "$journey_id" --subject "$subject" --status completed --body "$body" --epistemic-status "$epistemic" $(printf '%s ' "${evidence_ids[@]/#/--evidence }"))"
+    evidence_args=()
+    for evidence_id in "${evidence_ids[@]}"; do evidence_args+=(--evidence "$evidence_id"); done
+    explanation="$(journey add-explanation "$journey_id" --subject "$subject" --status completed --body "$body" --epistemic-status "$epistemic" "${evidence_args[@]}")"
     journey add-enrichment "$journey_id" --request-id "$request_id" --subject "$subject" --kind explanation --status completed >/dev/null
     report="$context_dir/$request_id-report.json"
     jq -cn --arg request "$request_id" --arg journey "$journey_id" --arg explanation "$explanation" --arg context "$context" --argjson anchors "$anchor_count" --argjson evidence "$(printf '%s' "$evidence_json" | jq length)" --argjson relations "$relation_count" '{schema:"mana.learning.expansion-report/v1",request_id:$request,journey_id:$journey,status:"completed",explanation_id:$explanation,context:$context,used:{anchors:$anchors,evidence:$evidence,related_edges:$relations}}' > "$report"

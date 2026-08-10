@@ -5,7 +5,10 @@ set -eu
 root="$(cd "$(dirname "$0")/.." && pwd)"
 fixtures="$root/tests/fixtures/concept-recognition/cases.tsv"
 index="$root/learning-kb/concept-index.tsv"
-[ -f "$fixtures" ] && [ -f "$index" ] || { echo 'ERROR: missing concept evaluation inputs' >&2; exit 2; }
+if [ ! -f "$fixtures" ] || [ ! -f "$index" ]; then
+  echo 'ERROR: missing concept evaluation inputs' >&2
+  exit 2
+fi
 printf 'variant\tprecision\trecall\tambiguous_rate\ttest_cases\testimated_tokens\n'
 for variant in keyword keyword-category keyword-category-aliases keyword-category-aliases-hint; do
   awk -F '\t' -v variant="$variant" '

@@ -117,7 +117,7 @@ harden_journey() {
     printf '%s\t%s\n' "$members" "$member_count" >> "$components"
     candidate_regions=$((candidate_regions + 1)); candidate_members=$((candidate_members + member_count))
   done < "$analysis"
-  while IFS=$'\t' read -r type edge from to; do
+  while IFS=$'\t' read -r type _edge from to; do
     [ "$type" = B ] || continue
     while IFS=$'\t' read -r members member_count; do
       if [[ ",$members," == *",$from,"* && ",$members," == *",$to,"* ]]; then candidate_back_edges=$((candidate_back_edges + 1)); break; fi
@@ -140,7 +140,7 @@ harden_journey() {
     labels="$(jq -r --argjson members "$members_json" '.nodes[] | select(.id as $id | $members | index($id)) | .label' "$graph")"
     kind="$(classify_cycle "$labels" "$member_count")"
     entry="$(printf '%s' "$members" | cut -d, -f1)"; back_ids=(); back_args=()
-    while IFS=$'\t' read -r type original_edge from to; do
+    while IFS=$'\t' read -r type _original_edge from to; do
       [ "$type" = B ] || continue
       if [[ ",$members," == *",$from,"* && ",$members," == *",$to,"* ]]; then
         existing="$(jq -r --arg from "$from" --arg to "$to" '.edges[] | select(.kind == "LOOP_BACK" and .from == $from and .to == $to) | .id' "$graph" | head -n 1)"
@@ -149,7 +149,9 @@ harden_journey() {
       fi
     done < "$analysis"
     [ "${#back_ids[@]}" -gt 0 ] || fail "internal error: cycle has no traversal-stack back edge"
-    journey add-cycle-region "$jrn" --entry "$entry" --kind "$kind" --nodes $(printf '%s ' "$members" | tr ',' ' ') "${back_args[@]}" >/dev/null
+    member_args=()
+    while IFS= read -r member; do member_args+=("$member"); done < <(printf '%s\n' "$members" | tr ',' '\n')
+    journey add-cycle-region "$jrn" --entry "$entry" --kind "$kind" --nodes "${member_args[@]}" "${back_args[@]}" >/dev/null
   done < "$components"
   jq -cn --arg j "$jrn" --argjson regions "$candidate_regions" --argjson members "$candidate_members" --argjson back_edges "$candidate_back_edges" --argjson joins "$joins" --argjson max_regions "$max_regions" --argjson max_members "$max_members" --argjson max_back_edges "$max_back_edges" '{schema:"mana.learning.cycle-report/v1",journey_id:$j,status:"completed",stop_reason:null,detected:{cycle_regions:$regions,cycle_members:$members,back_edges:$back_edges,joins:$joins},budget:{max_cycle_regions:$max_regions,max_cycle_members:$max_members,max_back_edges:$max_back_edges}}' > "$report"
   if [ "$json" = true ]; then jq -cn --arg journey_id "$jrn" --arg report "$report" '{journey_id:$journey_id,report:$report}'; else printf '%s\n' "$jrn"; fi
@@ -205,8 +207,8 @@ case "$command" in
     controller_method="$(method_name "$endpoint_file" "$controller_line")"; controller_symbol="$(symbol_for "$endpoint_file" "$controller_method")"
     budget_depth 0 || on_budget; endpoint="$(add_node boundary "POST $route endpoint" primary)" || on_budget
     budget_depth 1 || on_budget; controller="$(add_node code "$controller_symbol" primary)" || on_budget
-    anchor_node "$endpoint" "${endpoint_file#$project_root/}" "$endpoint_line" "$endpoint_line" "$controller_symbol"
-    anchor_node "$controller" "${endpoint_file#$project_root/}" "$controller_line" "$controller_end" "$controller_symbol"
+    anchor_node "$endpoint" "${endpoint_file#"$project_root"/}" "$endpoint_line" "$endpoint_line" "$controller_symbol"
+    anchor_node "$controller" "${endpoint_file#"$project_root"/}" "$controller_line" "$controller_end" "$controller_symbol"
     add_edge "$endpoint" "$controller" EXECUTES primary || on_budget
     calls="$(sed -n "${controller_line},${controller_end}p" "$endpoint_file" | grep -Eo '[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*[[:space:]]*\(' | sed -E 's/[[:space:]]*\($//' | LC_ALL=C sort -u || true)"
     service_call="$(printf '%s\n' "$calls" | head -n 1)"; [ -n "$service_call" ] || fail "controller $controller_symbol has no resolvable method call"
@@ -214,7 +216,7 @@ case "$command" in
     service_file="$(rg -l --glob '*.java' -e "(public|protected|private)[^;]*[[:space:]]${service_method}[[:space:]]*\\(" "$src" | LC_ALL=C sort | head -n 1 || true)"; [ -n "$service_file" ] || fail "no Java declaration found for $service_call"
     service_line="$(rg -n -e "(public|protected|private)[^;]*[[:space:]]${service_method}[[:space:]]*\\(" "$service_file" | head -n 1 | cut -d: -f1)"; service_end="$(method_end "$service_file" "$service_line")"; service_symbol="$(symbol_for "$service_file" "$service_method")"
     budget_depth 2 || on_budget; service="$(add_node code "$service_symbol" primary)" || on_budget; primary_nodes+=("$endpoint" "$controller" "$service")
-    anchor_node "$service" "${service_file#$project_root/}" "$service_line" "$service_end" "$service_symbol"; add_edge "$controller" "$service" CALLS primary || on_budget
+    anchor_node "$service" "${service_file#"$project_root"/}" "$service_line" "$service_end" "$service_symbol"; add_edge "$controller" "$service" CALLS primary || on_budget
     repo_calls="$(sed -n "${service_line},${service_end}p" "$service_file" | grep -Eo '[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*[[:space:]]*\(' | sed -E 's/[[:space:]]*\($//' | LC_ALL=C sort -u || true)"
     repo_call="$(printf '%s\n' "$repo_calls" | head -n 1)"; [ -n "$repo_call" ] || fail "service $service_symbol has no resolvable repository/external call"
     repo_method="${repo_call#*.}"
@@ -223,17 +225,17 @@ case "$command" in
     [ -n "$repo_file" ] || fail "no Java declaration found for $repo_call"
     repo_line="$(rg -n -e "(public|protected|private)[^;]*[[:space:]]${repo_method}[[:space:]]*\\(" "$repo_file" | head -n 1 | cut -d: -f1)"; repo_end="$(method_end "$repo_file" "$repo_line")"; repo_symbol="$(symbol_for "$repo_file" "$repo_method")"
     budget_depth 3 || on_budget; repo="$(add_node code "$repo_symbol" primary)" || on_budget; primary_nodes+=("$repo")
-    anchor_node "$repo" "${repo_file#$project_root/}" "$repo_line" "$repo_end" "$repo_symbol"; add_edge "$service" "$repo" CALLS primary || on_budget
+    anchor_node "$repo" "${repo_file#"$project_root"/}" "$repo_line" "$repo_end" "$repo_symbol"; add_edge "$service" "$repo" CALLS primary || on_budget
     if ! sed -n "1,${service_end}p" "$service_file" | grep -q '@Transactional'; then fail "service $service_symbol is not annotated @Transactional"; fi
     budget_depth 4 || on_budget; commit="$(add_node runtime_effect 'primary transaction commit' primary)" || on_budget; primary_nodes+=("$commit")
     add_edge "$repo" "$commit" EXECUTES primary || on_budget
-    commit_evidence="$(journey add-evidence "$jrn" --kind runtime_semantic --summary "Spring commits the primary transaction after $service_symbol returns.")"
+    journey add-evidence "$jrn" --kind runtime_semantic --summary "Spring commits the primary transaction after $service_symbol returns." >/dev/null
     journey add-traversal "$jrn" --kind execution --entry "$endpoint" --nodes "${primary_nodes[@]}" >/dev/null
     while IFS= read -r async_file; do
       [ -n "$async_file" ] || continue
       async_line="$(rg -n -F 'TransactionPhase.AFTER_COMMIT' "$async_file" | head -n 1 | cut -d: -f1)"; async_method_line="$(method_after "$async_file" "$async_line")"; async_end="$(method_end "$async_file" "$async_method_line")"; async_method="$(method_name "$async_file" "$async_method_line")"; async_symbol="$(symbol_for "$async_file" "$async_method")"
       deferred="$(add_node code "$async_symbol" deferred)" || on_budget; deferred_nodes+=("$deferred")
-      anchor_node "$deferred" "${async_file#$project_root/}" "$async_method_line" "$async_end" "$async_symbol"; add_edge "$commit" "$deferred" EXECUTES deferred || on_budget
+      anchor_node "$deferred" "${async_file#"$project_root"/}" "$async_method_line" "$async_end" "$async_symbol"; add_edge "$commit" "$deferred" EXECUTES deferred || on_budget
     done < <(rg -l --glob '*.java' -F 'TransactionPhase.AFTER_COMMIT' "$src" | LC_ALL=C sort || true)
     trap - EXIT; report
     if [ "$json" = true ]; then jq -cn --arg journey_id "$jrn" --arg report "$project_root/.mana/learning/journeys/$jrn/derived/scout-report.json" '{journey_id:$journey_id,report:$report}'; else printf '%s\n' "$jrn"; fi

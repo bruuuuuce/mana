@@ -75,4 +75,6 @@ diagram_title="${title:-$kind diagram for selected Journey region}"
 } > "$tmp_file"
 mv "$tmp_file" "$asset_file"
 trap - EXIT
-journey add-diagram "$jrn" --kind "$kind" --asset-path "$asset_path" --title "$diagram_title" --nodes $(printf '%s' "$nodes" | jq -r '.[]')
+node_args=()
+while IFS= read -r node; do node_args+=("$node"); done < <(printf '%s' "$nodes" | jq -r '.[]')
+journey add-diagram "$jrn" --kind "$kind" --asset-path "$asset_path" --title "$diagram_title" --nodes "${node_args[@]}"

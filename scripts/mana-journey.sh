@@ -5,7 +5,6 @@ set -eu
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 project_root="$(pwd)"
-json=false
 
 usage() {
   cat <<'USAGE' >&2
@@ -60,7 +59,7 @@ require_journey() { journey_id_ok "$1" || fail "invalid journey id: $1"; [ -f "$
 new_id() {
   local prefix="$1" candidate random_hex
   while :; do
-    random_hex="$(uuidgen)"
+    random_hex="$(uuidgen | tr '[:upper:]' '[:lower:]')"
     random_hex="${random_hex//-/}"
     candidate="${prefix}_${random_hex:0:24}"
     [ "${#candidate}" -eq $(( ${#prefix} + 25 )) ] || continue
@@ -140,11 +139,12 @@ validate() {
 }
 
 materialize() {
-  local journey="$1" records
+  local journey="$1" record
+  local -a records=()
   validate "$journey" || fail "journey validation failed"
-  records="$(find "$(records_dir "$journey")" -type f -name '*.yaml' | LC_ALL=C sort)"
-  if [ -n "$records" ]; then
-    jq -s --argjson journey "$(cat "$(meta_file "$journey")")" '{schema:"mana.learning.graph/v1",journey:$journey,nodes:(map(select(.record_type == "node"))|sort_by(.id)),edges:(map(select(.record_type == "edge"))|sort_by(.id)),anchors:(map(select(.record_type == "anchor"))|sort_by(.id)),evidence:(map(select(.record_type == "evidence"))|sort_by(.id)),explanations:(map(select(.record_type == "explanation"))|sort_by(.id)),enrichments:(map(select(.record_type == "enrichment"))|sort_by(.id)),hypotheses:(map(select(.record_type == "hypothesis"))|sort_by(.id)),git_enrichments:(map(select(.record_type == "git_enrichment"))|sort_by(.id)),timeline_events:(map(select(.record_type == "timeline_event"))|sort_by(.id)),hypothesis_assessments:(map(select(.record_type == "hypothesis_assessment"))|sort_by(.id)),diagrams:(map(select(.record_type == "diagram"))|sort_by(.id)),concept_occurrences:(map(select(.record_type == "concept_occurrence"))|sort_by(.id)),traversals:(map(select(.record_type == "traversal"))|sort_by(.id)),cycle_regions:(map(select(.record_type == "cycle_region"))|sort_by(.id))}' $records
+  while IFS= read -r record; do records+=("$record"); done < <(find "$(records_dir "$journey")" -type f -name '*.yaml' | LC_ALL=C sort)
+  if [ "${#records[@]}" -gt 0 ]; then
+    jq -s --argjson journey "$(cat "$(meta_file "$journey")")" '{schema:"mana.learning.graph/v1",journey:$journey,nodes:(map(select(.record_type == "node"))|sort_by(.id)),edges:(map(select(.record_type == "edge"))|sort_by(.id)),anchors:(map(select(.record_type == "anchor"))|sort_by(.id)),evidence:(map(select(.record_type == "evidence"))|sort_by(.id)),explanations:(map(select(.record_type == "explanation"))|sort_by(.id)),enrichments:(map(select(.record_type == "enrichment"))|sort_by(.id)),hypotheses:(map(select(.record_type == "hypothesis"))|sort_by(.id)),git_enrichments:(map(select(.record_type == "git_enrichment"))|sort_by(.id)),timeline_events:(map(select(.record_type == "timeline_event"))|sort_by(.id)),hypothesis_assessments:(map(select(.record_type == "hypothesis_assessment"))|sort_by(.id)),diagrams:(map(select(.record_type == "diagram"))|sort_by(.id)),concept_occurrences:(map(select(.record_type == "concept_occurrence"))|sort_by(.id)),traversals:(map(select(.record_type == "traversal"))|sort_by(.id)),cycle_regions:(map(select(.record_type == "cycle_region"))|sort_by(.id))}' "${records[@]}"
   else
     jq -n --argjson journey "$(cat "$(meta_file "$journey")")" '{schema:"mana.learning.graph/v1",journey:$journey,nodes:[],edges:[],anchors:[],evidence:[],explanations:[],enrichments:[],hypotheses:[],git_enrichments:[],timeline_events:[],hypothesis_assessments:[],diagrams:[],concept_occurrences:[],traversals:[],cycle_regions:[]}'
   fi
@@ -164,7 +164,7 @@ case "$command" in
   add-edge)
     journey="${1:-}"; shift || true; require_journey "$journey"; from=""; to=""; kind=""; disposition=primary; while [ "$#" -gt 0 ]; do case "$1" in --from) from="${2:-}"; shift 2;; --to) to="${2:-}"; shift 2;; --kind) kind="${2:-}"; shift 2;; --disposition) disposition="${2:-}"; shift 2;; *) fail "unknown edge option: $1";; esac; done; [ -n "$from$to$kind" ] || fail '--from, --to, and --kind are required'; case "$kind" in CALLS|EXECUTES|DEPENDS_ON|RETURNS_TO|LOOP_BACK|EXPLAINS|EXEMPLIFIES|INTRODUCES_CONCEPT|DEEP_DIVE|MAY_EXIST_BECAUSE|SUPPORTED_BY|CONTRADICTED_BY|RELATED_TO) ;; *) fail "invalid edge kind: $kind";; esac; case "$disposition" in primary|deferred) ;; *) fail "invalid edge disposition: $disposition";; esac; require_id_kind "$journey" "$from" node; require_id_kind "$journey" "$to" node; id="$(new_id je)"; append_record "$journey" edge "$id" "$(jq -cn --arg id "$id" --arg from "$from" --arg to "$to" --arg kind "$kind" --arg disposition "$disposition" '{schema:"mana.learning.record/v1",record_type:"edge",id:$id,from:$from,to:$to,kind:$kind,disposition:$disposition}')"; echo "$id" ;;
   add-anchor)
-    journey="${1:-}"; shift || true; require_journey "$journey"; node=""; revision=""; path=""; start=""; end=""; symbol=""; fingerprint=""; while [ "$#" -gt 0 ]; do case "$1" in --node) node="${2:-}"; shift 2;; --revision) revision="${2:-}"; shift 2;; --path) path="${2:-}"; shift 2;; --start-line) start="${2:-}"; shift 2;; --end-line) end="${2:-}"; shift 2;; --symbol) symbol="${2:-}"; shift 2;; --fingerprint) fingerprint="${2:-}"; shift 2;; *) fail "unknown anchor option: $1";; esac; done; [ -n "$node$revision$path$start$end" ] || fail 'anchor requires node, revision, path, start-line, end-line'; case "$start:$end" in *[!0-9:]*|:*) fail 'anchor lines must be positive integers';; esac; [ "$start" -ge 1 ] && [ "$end" -ge "$start" ] || fail 'anchor range is invalid'; require_id_kind "$journey" "$node" node; id="$(new_id anc)"; append_record "$journey" anchor "$id" "$(jq -cn --arg id "$id" --arg node "$node" --arg revision "$revision" --arg path "$path" --arg symbol "$symbol" --arg fingerprint "$fingerprint" --argjson start "$start" --argjson end "$end" '{schema:"mana.learning.record/v1",record_type:"anchor",id:$id,node_id:$node,revision:$revision,path:$path,symbol:$symbol,range:{start_line:$start,end_line:$end},structural_fingerprint:$fingerprint}')"; echo "$id" ;;
+    journey="${1:-}"; shift || true; require_journey "$journey"; node=""; revision=""; path=""; start=""; end=""; symbol=""; fingerprint=""; while [ "$#" -gt 0 ]; do case "$1" in --node) node="${2:-}"; shift 2;; --revision) revision="${2:-}"; shift 2;; --path) path="${2:-}"; shift 2;; --start-line) start="${2:-}"; shift 2;; --end-line) end="${2:-}"; shift 2;; --symbol) symbol="${2:-}"; shift 2;; --fingerprint) fingerprint="${2:-}"; shift 2;; *) fail "unknown anchor option: $1";; esac; done; [ -n "$node$revision$path$start$end" ] || fail 'anchor requires node, revision, path, start-line, end-line'; case "$start:$end" in *[!0-9:]*|:*) fail 'anchor lines must be positive integers';; esac; if [ "$start" -lt 1 ] || [ "$end" -lt "$start" ]; then fail 'anchor range is invalid'; fi; require_id_kind "$journey" "$node" node; id="$(new_id anc)"; append_record "$journey" anchor "$id" "$(jq -cn --arg id "$id" --arg node "$node" --arg revision "$revision" --arg path "$path" --arg symbol "$symbol" --arg fingerprint "$fingerprint" --argjson start "$start" --argjson end "$end" '{schema:"mana.learning.record/v1",record_type:"anchor",id:$id,node_id:$node,revision:$revision,path:$path,symbol:$symbol,range:{start_line:$start,end_line:$end},structural_fingerprint:$fingerprint}')"; echo "$id" ;;
   add-evidence)
     journey="${1:-}"; shift || true; require_journey "$journey"; kind=""; anchor=""; summary=""; while [ "$#" -gt 0 ]; do case "$1" in --kind) kind="${2:-}"; shift 2;; --anchor) anchor="${2:-}"; shift 2;; --summary) summary="${2:-}"; shift 2;; *) fail "unknown evidence option: $1";; esac; done; [ -n "$kind" ] || fail '--kind is required'; case "$kind" in source_range|symbol|configuration|test|git_commit|git_diff|documentation|adr|runtime_semantic) ;; *) fail "invalid evidence kind: $kind";; esac; [ -z "$anchor" ] || require_id_kind "$journey" "$anchor" anchor; id="$(new_id ev)"; append_record "$journey" evidence "$id" "$(jq -cn --arg id "$id" --arg kind "$kind" --arg anchor "$anchor" --arg summary "$summary" '{schema:"mana.learning.record/v1",record_type:"evidence",id:$id,kind:$kind,summary:$summary} + (if $anchor == "" then {} else {anchor_id:$anchor} end)')"; echo "$id" ;;
   add-explanation)
