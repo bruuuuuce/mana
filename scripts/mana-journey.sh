@@ -58,9 +58,11 @@ records_dir() { printf '%s/records' "$(journey_dir "$1")"; }
 require_journey() { journey_id_ok "$1" || fail "invalid journey id: $1"; [ -f "$(meta_file "$1")" ] || fail "journey not found: $1"; }
 
 new_id() {
-  local prefix="$1" candidate
+  local prefix="$1" candidate random_hex
   while :; do
-    candidate="${prefix}_$(LC_ALL=C tr -dc 'a-f0-9' < /dev/urandom | head -c 24)"
+    random_hex="$(uuidgen)"
+    random_hex="${random_hex//-/}"
+    candidate="${prefix}_${random_hex:0:24}"
     [ "${#candidate}" -eq $(( ${#prefix} + 25 )) ] || continue
     if ! find "$(journeys_dir)" -type f -name '*.yaml' -exec grep -Fql "\"id\":\"$candidate\"" {} + 2>/dev/null; then
       printf '%s' "$candidate"; return
