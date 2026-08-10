@@ -25,8 +25,10 @@ import 'architecture_context.dart';
 import 'diagram_detachment.dart';
 import 'diagram_workspace.dart';
 import 'investigation_inspector.dart';
+import 'investigation_prompt.dart';
 import 'journey_navigator.dart';
 import 'source_workspace.dart';
+import 'external_editor.dart';
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -293,6 +295,7 @@ class ExplorerPreferences {
     required this.fontSize,
     required this.tabSize,
     required this.wordWrap,
+    required this.externalEditors,
   }) : themeMode = ValueNotifier(initialMode);
 
   final File _file;
@@ -300,6 +303,7 @@ class ExplorerPreferences {
   double fontSize;
   int tabSize;
   bool wordWrap;
+  ExternalEditorSettings externalEditors;
 
   static Future<ExplorerPreferences> load(ExplorerConfig config) async {
     final file = File(
@@ -313,6 +317,9 @@ class ExplorerPreferences {
         fontSize: (raw['editorFontSize'] as num?)?.toDouble() ?? 14,
         tabSize: raw['tabSize'] as int? ?? 2,
         wordWrap: raw['wordWrap'] as bool? ?? false,
+        externalEditors: ExternalEditorSettings.fromJson(
+          raw['externalEditors'] as Map<String, dynamic>?,
+        ),
       );
     } catch (_) {
       return ExplorerPreferences._(
@@ -321,6 +328,7 @@ class ExplorerPreferences {
         fontSize: 14,
         tabSize: 2,
         wordWrap: false,
+        externalEditors: const ExternalEditorSettings(),
       );
     }
   }
@@ -347,6 +355,11 @@ class ExplorerPreferences {
     await _save();
   }
 
+  Future<void> saveExternalEditors(ExternalEditorSettings value) async {
+    externalEditors = value;
+    await _save();
+  }
+
   Future<void> _save() async {
     await _file.parent.create(recursive: true);
     await _file.writeAsString(
@@ -355,6 +368,7 @@ class ExplorerPreferences {
         'editorFontSize': fontSize,
         'tabSize': tabSize,
         'wordWrap': wordWrap,
+        'externalEditors': externalEditors.toJson(),
       }),
     );
   }
@@ -825,6 +839,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 _evidenceSection(model),
                 const SizedBox(height: 16),
                 _relationsSection(model),
+                const SizedBox(height: 16),
+                _promptHandoffSection(),
                 if (diagrams.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Text(
@@ -986,6 +1002,121 @@ class _ExplorerPageState extends State<ExplorerPage> {
       _relationGroup('CAME FROM', model.cameFrom),
     ],
   );
+
+  Widget _promptHandoffSection() => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          const Icon(Icons.content_paste_search_outlined),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('INVESTIGATION HANDOFF'),
+                Text(
+                  'Preview and copy a local context prompt for an external agent.',
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: _showPromptHandoff,
+            child: const Text('Preview'),
+          ),
+        ],
+      ),
+    ),
+  );
+
+  String _investigationPrompt(String requestedGoal) {
+    final route = navigation.current!;
+    return const InvestigationPromptBuilder().build(
+      graph: graph!,
+      route: route,
+      projectRoot: widget.store.config.projectRoot,
+      requestedGoal: requestedGoal,
+      displayedSource: source,
+      selectedDiagramElementId: diagramViewState.focusedElementId,
+    );
+  }
+
+  Future<void> _showPromptHandoff() async {
+    final goal = TextEditingController();
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) {
+            final prompt = _investigationPrompt(goal.text);
+            return AlertDialog(
+              title: const Text('Investigation prompt handoff'),
+              content: SizedBox(
+                width: 760,
+                height: 600,
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: goal,
+                      decoration: const InputDecoration(
+                        labelText: 'Requested investigation goal',
+                        hintText:
+                            'For example: identify the next source-backed step.',
+                      ),
+                      onChanged: (_) => setDialogState(() {}),
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: SingleChildScrollView(
+                          child: SelectableText(
+                            prompt,
+                            style: const TextStyle(fontFamily: 'monospace'),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Close'),
+                ),
+                FilledButton.icon(
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: prompt));
+                    if (dialogContext.mounted) Navigator.pop(dialogContext);
+                    if (mounted) {
+                      ScaffoldMessenger.of(this.context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Investigation prompt copied.'),
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.copy_outlined),
+                  label: const Text('Copy prompt'),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    } finally {
+      goal.dispose();
+    }
+  }
 
   Widget _relationGroup(
     String title,
@@ -1303,6 +1434,11 @@ class _ExplorerPageState extends State<ExplorerPage> {
             ],
           ),
           actions: [
+            TextButton.icon(
+              onPressed: () => _showExternalEditorSettings(dialogContext),
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('External editors'),
+            ),
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Done'),
@@ -1311,6 +1447,509 @@ class _ExplorerPageState extends State<ExplorerPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _showExternalEditorSettings(BuildContext parentContext) async {
+    var settings = widget.preferences.externalEditors;
+    await showDialog<void>(
+      context: parentContext,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('External editor profiles'),
+          content: SizedBox(
+            width: 680,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'The most specific match wins: path override, extension, language, then default.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 12),
+                  _editorProfileList(
+                    settings,
+                    setDialogState,
+                    (next) => settings = next,
+                  ),
+                  const Divider(height: 28),
+                  _editorMappings(
+                    settings,
+                    setDialogState,
+                    (next) => settings = next,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                await widget.preferences.saveExternalEditors(settings);
+                if (mounted) setState(() {});
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _editorProfileList(
+    ExternalEditorSettings settings,
+    StateSetter refresh,
+    ValueChanged<ExternalEditorSettings> replace,
+  ) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text('Profiles', style: Theme.of(context).textTheme.titleSmall),
+      ...settings.profiles.map(
+        (profile) => ListTile(
+          dense: true,
+          title: Text(profile.name),
+          subtitle: Text(
+            profile.isUriProfile
+                ? profile.uriTemplate!
+                : '${profile.executable} ${profile.arguments.join(' ')}',
+          ),
+          trailing: Wrap(
+            spacing: 2,
+            children: [
+              IconButton(
+                tooltip: 'Test profile',
+                icon: const Icon(Icons.play_circle_outline),
+                onPressed: () => _testEditorProfile(profile),
+              ),
+              IconButton(
+                tooltip: 'Remove profile',
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () {
+                  final profiles = [...settings.profiles]
+                    ..removeWhere((p) => p.id == profile.id);
+                  final next = ExternalEditorSettings(
+                    profiles: profiles,
+                    defaultProfileId: settings.defaultProfileId == profile.id
+                        ? null
+                        : settings.defaultProfileId,
+                    extensionProfiles: Map.of(settings.extensionProfiles)
+                      ..removeWhere((_, id) => id == profile.id),
+                    languageProfiles: Map.of(settings.languageProfiles)
+                      ..removeWhere((_, id) => id == profile.id),
+                    pathOverrides: settings.pathOverrides
+                        .where((item) => item.profileId != profile.id)
+                        .toList(),
+                  );
+                  replace(next);
+                  refresh(() {});
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      TextButton.icon(
+        onPressed: () => _addEditorProfile(settings, refresh, replace),
+        icon: const Icon(Icons.add),
+        label: const Text('Add profile'),
+      ),
+    ],
+  );
+
+  Widget _editorMappings(
+    ExternalEditorSettings settings,
+    StateSetter refresh,
+    ValueChanged<ExternalEditorSettings> replace,
+  ) {
+    final ids = settings.profiles.map((profile) => profile.id).toList();
+    Widget selector(
+      String label,
+      String? value,
+      ValueChanged<String?> changed,
+    ) => Row(
+      children: [
+        SizedBox(width: 150, child: Text(label)),
+        Expanded(
+          child: DropdownButton<String?>(
+            isExpanded: true,
+            value: value,
+            items: [
+              const DropdownMenuItem<String?>(value: null, child: Text('None')),
+              ...settings.profiles.map(
+                (p) =>
+                    DropdownMenuItem<String?>(value: p.id, child: Text(p.name)),
+              ),
+            ],
+            onChanged: ids.isEmpty ? null : changed,
+          ),
+        ),
+      ],
+    );
+    ExternalEditorSettings next({
+      String? defaultId,
+      Map<String, String>? extensions,
+      Map<String, String>? languages,
+      List<EditorPathOverride>? paths,
+    }) => ExternalEditorSettings(
+      profiles: settings.profiles,
+      defaultProfileId: defaultId ?? settings.defaultProfileId,
+      extensionProfiles: extensions ?? settings.extensionProfiles,
+      languageProfiles: languages ?? settings.languageProfiles,
+      pathOverrides: paths ?? settings.pathOverrides,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Mappings', style: Theme.of(context).textTheme.titleSmall),
+        selector('Default fallback', settings.defaultProfileId, (id) {
+          replace(
+            ExternalEditorSettings(
+              profiles: settings.profiles,
+              defaultProfileId: id,
+              extensionProfiles: settings.extensionProfiles,
+              languageProfiles: settings.languageProfiles,
+              pathOverrides: settings.pathOverrides,
+            ),
+          );
+          refresh(() {});
+        }),
+        _mappingRows(
+          'Extension',
+          settings.extensionProfiles,
+          settings,
+          refresh,
+          replace,
+          (map) => next(extensions: map),
+        ),
+        _mappingRows(
+          'Language',
+          settings.languageProfiles,
+          settings,
+          refresh,
+          replace,
+          (map) => next(languages: map),
+        ),
+        Text('Path overrides', style: Theme.of(context).textTheme.labelLarge),
+        ...settings.pathOverrides.map(
+          (override) => Row(
+            children: [
+              Expanded(child: Text(override.pathPrefix)),
+              SizedBox(
+                width: 180,
+                child: Text(_profileName(settings, override.profileId)),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                tooltip: 'Remove override',
+                onPressed: () {
+                  replace(
+                    next(
+                      paths: settings.pathOverrides
+                          .where((item) => item != override)
+                          .toList(),
+                    ),
+                  );
+                  refresh(() {});
+                },
+              ),
+            ],
+          ),
+        ),
+        TextButton.icon(
+          onPressed: ids.isEmpty
+              ? null
+              : () => _addPathOverride(settings, refresh, replace),
+          icon: const Icon(Icons.add),
+          label: const Text('Add path override'),
+        ),
+      ],
+    );
+  }
+
+  Widget _mappingRows(
+    String type,
+    Map<String, String> mappings,
+    ExternalEditorSettings settings,
+    StateSetter refresh,
+    ValueChanged<ExternalEditorSettings> replace,
+    ExternalEditorSettings Function(Map<String, String>) build,
+  ) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text('$type mappings', style: Theme.of(context).textTheme.labelLarge),
+      ...mappings.entries.map(
+        (entry) => Row(
+          children: [
+            SizedBox(width: 150, child: Text(entry.key)),
+            Expanded(child: Text(_profileName(settings, entry.value))),
+            IconButton(
+              icon: const Icon(Icons.close),
+              tooltip: 'Remove mapping',
+              onPressed: () {
+                final map = Map.of(mappings)..remove(entry.key);
+                replace(build(map));
+                refresh(() {});
+              },
+            ),
+          ],
+        ),
+      ),
+      TextButton.icon(
+        onPressed: settings.profiles.isEmpty
+            ? null
+            : () => _addMapping(type, settings, refresh, replace, build),
+        icon: const Icon(Icons.add),
+        label: Text('Add $type mapping'),
+      ),
+    ],
+  );
+
+  String _profileName(ExternalEditorSettings settings, String id) {
+    for (final profile in settings.profiles) {
+      if (profile.id == id) return profile.name;
+    }
+    return id;
+  }
+
+  Future<void> _addEditorProfile(
+    ExternalEditorSettings settings,
+    StateSetter refresh,
+    ValueChanged<ExternalEditorSettings> replace,
+  ) async {
+    final name = TextEditingController();
+    final executable = TextEditingController();
+    final arguments = TextEditingController(
+      text: '--goto {file}:{line}:{column}',
+    );
+    final uri = TextEditingController();
+    final profile = await showDialog<ExternalEditorProfile>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add editor profile'),
+        content: SizedBox(
+          width: 460,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: name,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: executable,
+                decoration: const InputDecoration(labelText: 'Executable'),
+              ),
+              TextField(
+                controller: arguments,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Arguments, one per line',
+                ),
+              ),
+              TextField(
+                controller: uri,
+                decoration: const InputDecoration(
+                  labelText: 'URI template (optional alternative)',
+                ),
+              ),
+              const Text(
+                'Placeholders: {file}, {path}, {line}, {column}, {projectRoot}.',
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final id = name.text.trim().toLowerCase().replaceAll(
+                RegExp(r'[^a-z0-9]+'),
+                '-',
+              );
+              final value = ExternalEditorProfile(
+                id: id,
+                name: name.text.trim(),
+                executable: executable.text.trim().isEmpty
+                    ? null
+                    : executable.text.trim(),
+                arguments: arguments.text
+                    .split('\n')
+                    .where((item) => item.isNotEmpty)
+                    .toList(),
+                uriTemplate: uri.text.trim().isEmpty ? null : uri.text.trim(),
+              );
+              if (value.isValid &&
+                  !settings.profiles.any((item) => item.id == id)) {
+                Navigator.pop(context, value);
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+    if (profile == null) return;
+    replace(
+      ExternalEditorSettings(
+        profiles: [...settings.profiles, profile],
+        defaultProfileId: settings.defaultProfileId,
+        extensionProfiles: settings.extensionProfiles,
+        languageProfiles: settings.languageProfiles,
+        pathOverrides: settings.pathOverrides,
+      ),
+    );
+    refresh(() {});
+  }
+
+  Future<void> _addMapping(
+    String type,
+    ExternalEditorSettings settings,
+    StateSetter refresh,
+    ValueChanged<ExternalEditorSettings> replace,
+    ExternalEditorSettings Function(Map<String, String>) build,
+  ) async {
+    final key = TextEditingController();
+    String id = settings.profiles.first.id;
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text('Add $type mapping'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: key,
+                decoration: InputDecoration(
+                  labelText: type == 'Extension'
+                      ? 'Extension (without dot)'
+                      : 'Detected language',
+                ),
+              ),
+              DropdownButton<String>(
+                isExpanded: true,
+                value: id,
+                items: settings.profiles
+                    .map(
+                      (p) => DropdownMenuItem(value: p.id, child: Text(p.name)),
+                    )
+                    .toList(),
+                onChanged: (value) => setState(() => id = value!),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.pop(context, key.text.trim().isNotEmpty),
+              child: const Text('Add'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (accepted != true) return;
+    final map = type == 'Extension'
+        ? Map.of(settings.extensionProfiles)
+        : Map.of(settings.languageProfiles);
+    map[key.text.trim().toLowerCase()] = id;
+    replace(build(map));
+    refresh(() {});
+  }
+
+  Future<void> _addPathOverride(
+    ExternalEditorSettings settings,
+    StateSetter refresh,
+    ValueChanged<ExternalEditorSettings> replace,
+  ) async {
+    final path = TextEditingController();
+    String id = settings.profiles.first.id;
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Add path override'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: path,
+                decoration: const InputDecoration(
+                  labelText: 'Project-relative path prefix',
+                ),
+              ),
+              DropdownButton<String>(
+                isExpanded: true,
+                value: id,
+                items: settings.profiles
+                    .map(
+                      (p) => DropdownMenuItem(value: p.id, child: Text(p.name)),
+                    )
+                    .toList(),
+                onChanged: (value) => setState(() => id = value!),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.pop(context, path.text.trim().isNotEmpty),
+              child: const Text('Add'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (accepted != true) return;
+    replace(
+      ExternalEditorSettings(
+        profiles: settings.profiles,
+        defaultProfileId: settings.defaultProfileId,
+        extensionProfiles: settings.extensionProfiles,
+        languageProfiles: settings.languageProfiles,
+        pathOverrides: [
+          ...settings.pathOverrides,
+          EditorPathOverride(pathPrefix: path.text.trim(), profileId: id),
+        ],
+      ),
+    );
+    refresh(() {});
+  }
+
+  Future<void> _testEditorProfile(ExternalEditorProfile profile) async {
+    try {
+      await const ExternalEditorLauncher().test(
+        profile,
+        widget.store.config.projectRoot,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${profile.name} launched.')));
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not launch ${profile.name}: $error')),
+        );
+      }
+    }
   }
 
   Widget _sourceWorkspace(Map<String, dynamic> node) {
@@ -1407,6 +2046,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
               icon: const Icon(Icons.copy_outlined),
               tooltip: 'Copy reference',
             ),
+          if (source != null)
+            IconButton(
+              onPressed: _openExternally,
+              icon: const Icon(Icons.open_in_new),
+              tooltip: 'Open externally',
+            ),
           if (!inspectorVisible)
             IconButton(
               onPressed: () => setState(() => inspectorVisible = true),
@@ -1417,4 +2062,38 @@ class _ExplorerPageState extends State<ExplorerPage> {
       ),
     ),
   );
+
+  Future<void> _openExternally() async {
+    final current = source;
+    if (current == null) return;
+    final profile = widget.preferences.externalEditors.resolve(
+      current.location,
+    );
+    if (profile == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No external editor matches this source.'),
+          action: SnackBarAction(label: 'Settings', onPressed: _showSettings),
+        ),
+      );
+      return;
+    }
+    try {
+      await const ExternalEditorLauncher().launch(profile, current.location);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Opened in ${profile.name}.')));
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not open ${profile.name}: $error'),
+          action: SnackBarAction(label: 'Settings', onPressed: _showSettings),
+        ),
+      );
+    }
+  }
 }
