@@ -262,6 +262,9 @@ Usage:
   ./mana concepts <cmd> [args...]        Query/validate the Learning Concept Registry.
   ./mana scout <cmd> [args...]           Scout or harden a bounded Learning Journey.
   ./mana expand <cmd> [args...]          Add a bounded explanation enrichment to a Journey node.
+  ./mana rationale <cmd> [args...]       Propose calibrated rationale hypotheses.
+  ./mana history <cmd> [args...]         Add scoped Git archaeology to a Journey node.
+  ./mana diagram <cmd> [args...]         Generate a selected Journey-region PlantUML diagram.
   ./mana user-learning <cmd> [args...]   Capture, aggregate, or synthesize external User Learning proposals.
   ./mana eval run [scenario] [opts]       Run deterministic behavioural evaluations.
   ./mana eval compare <base> <candidate>  Compare persisted evaluation results.
@@ -349,6 +352,15 @@ USAGE
     ;;
   expand)
     exec "$MANA_HOME/scripts/mana-expand.sh" --project-root "$project_root" "$@"
+    ;;
+  rationale)
+    exec "$MANA_HOME/scripts/mana-rationale.sh" --project-root "$project_root" "$@"
+    ;;
+  history)
+    exec "$MANA_HOME/scripts/mana-history.sh" --project-root "$project_root" "$@"
+    ;;
+  diagram)
+    exec "$MANA_HOME/scripts/mana-diagram.sh" --project-root "$project_root" "$@"
     ;;
   user-learning)
     exec "$MANA_HOME/scripts/mana-user-learning.sh" --project-root "$project_root" "$@"

@@ -20,7 +20,8 @@ must treat them as the schemas in `mana-learning-journey-v0.schema.json`.
 
 `scripts/mana-journey.sh` owns ID allocation. IDs use a type prefix plus 24
 host-generated random hexadecimal characters: `jrn_`, `jn_`, `je_`, `anc_`,
-`ev_`, `exp_`, `enr_`, `hyp_`, `occ_`, `trv_`, and `cyc_`. Callers never provide IDs.
+`ev_`, `exp_`, `enr_`, `hyp_`, `occ_`, `trv_`, `cyc_`, `git_`, `tle_`, and
+`hya_`, and `dia_`. Callers never provide IDs.
 Neither path, symbol, range, nor parent graph position participates in a node
 ID. A source move therefore adds an Anchor and leaves the Node unchanged.
 
@@ -63,5 +64,13 @@ node. The request/context contract is specified in
 
 ## Scope deliberately deferred
 
-There is no model-generated explanation content, concept KB, Git archaeology,
-Flutter client, or unbounded graph expansion in this contract.
+Git archaeology is an independent enrichment: it adds a `git_enrichment`
+record, historical Anchors, `git_commit` Evidence and TimelineEvent records.
+Timeline events refer to the same logical node as the current source anchor;
+they never replace its ID. A failed Git lookup is persisted as a failed
+enrichment and does not invalidate the Journey. A HypothesisAssessment can
+state that selected Git evidence strengthens, weakens, or is inconclusive for
+an existing hypothesis without rewriting it.
+
+The read-only Flutter renderer is specified separately in
+`mana-learning-explorer-v0.md`.

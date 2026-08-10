@@ -10,6 +10,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
       - name: Shell syntax
         run: bash -n scripts/*.sh hooks/pre-commit hooks/pre-push
       - name: Validate repository
@@ -42,6 +45,14 @@ jobs:
         run: tests/mana-scout-cycles.sh
       - name: Mana Expansion v0
         run: tests/mana-expand.sh
+      - name: Mana Learning Explorer v0
+        run: tests/mana-learning-explorer.sh
+      - name: Mana rationale v0
+        run: tests/mana-rationale.sh
+      - name: Mana Git archaeology v0
+        run: tests/mana-history.sh
+      - name: Mana diagram enrichment v0
+        run: tests/mana-diagram.sh
       - name: Verification Skills
         run: tests/verification-skills.sh
       - name: Provider dispatch
