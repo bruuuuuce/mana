@@ -20,6 +20,10 @@ import 'package:re_highlight/styles/atom-one-dark-reasonable.dart';
 import 'package:re_highlight/styles/atom-one-light.dart';
 
 import 'journey_graph.dart';
+import 'explorer_navigation.dart';
+import 'architecture_context.dart';
+import 'investigation_inspector.dart';
+import 'journey_navigator.dart';
 import 'source_workspace.dart';
 
 Future<void> main(List<String> args) async {
@@ -406,13 +410,17 @@ class ExplorerPage extends StatefulWidget {
 
 class _ExplorerPageState extends State<ExplorerPage> {
   JourneyGraph? graph;
-  String? journeyId, selectedNode, error;
+  String? journeyId, error;
   ResolvedSource? source;
   List<String> journeys = [];
   List<Map<String, dynamic>> labels = [];
   StreamSubscription<void>? watcher;
   bool navigatorVisible = true;
   bool inspectorVisible = true;
+  final TraversalState navigation = TraversalState();
+  final DiagramViewState diagramViewState = DiagramViewState();
+
+  String? get selectedNode => navigation.current?.nodeId;
 
   @override
   void initState() {
@@ -440,17 +448,26 @@ class _ExplorerPageState extends State<ExplorerPage> {
         return;
       }
       final loaded = await widget.store.load(id);
+      final current = navigation.current;
+      final nextNode =
+          current?.journeyId == id && loaded.node(current!.nodeId) != null
+          ? current.nodeId
+          : loaded.nodes.isEmpty
+          ? null
+          : loaded.nodes.first['id'] as String?;
       setState(() {
         journeyId = id;
         graph = loaded;
-        selectedNode ??= loaded.nodes.isEmpty
-            ? null
-            : loaded.nodes.first['id'] as String?;
         error = null;
       });
       watcher?.cancel();
       watcher = widget.store.watch(id).listen((_) => _reload());
-      await _select(selectedNode);
+      if (nextNode != null) {
+        if (current?.journeyId != id) {
+          navigation.reset(ExplorerRoute(journeyId: id, nodeId: nextNode));
+        }
+        await _hydrateRoute(navigation.current!);
+      }
     } catch (exception) {
       setState(() => error = exception.toString());
     }
@@ -460,24 +477,70 @@ class _ExplorerPageState extends State<ExplorerPage> {
     if (journeyId != null) await _open(journeyId);
   }
 
-  Future<void> _select(String? id) async {
-    if (id == null || graph == null || journeyId == null) return;
-    final anchor = graph!.anchorsFor(id).isEmpty
+  Future<void> _navigate(ExplorerRoute route) async {
+    if (graph == null || route.journeyId != journeyId) return;
+    if (graph!.node(route.nodeId) == null) return;
+    if (!navigation.navigate(route)) return;
+    setState(() {
+      source = null;
+      labels = [];
+    });
+    await _hydrateRoute(route);
+  }
+
+  Future<void> _hydrateRoute(ExplorerRoute route) async {
+    if (graph == null || route.journeyId != journeyId) return;
+    final architecture = ArchitectureContextModel.build(
+      graph: graph!,
+      nodeId: route.nodeId,
+    );
+    if (diagramViewState.followCurrent) {
+      diagramViewState.focus(architecture.focusedElementId);
+    }
+    final anchor = graph!.anchorsFor(route.nodeId).isEmpty
         ? null
-        : graph!.anchorsFor(id).first;
-    final loaded = anchor == null
+        : graph!.anchorsFor(route.nodeId).first;
+    final location =
+        route.sourceLocation ??
+        (anchor == null
+            ? null
+            : SourceLocation.fromAnchor(
+                widget.store.config.projectRoot,
+                anchor,
+              ));
+    final loaded = location == null
         ? null
-        : await SourceResolver().resolve(
-            SourceLocation.fromAnchor(widget.store.config.projectRoot, anchor),
-          );
-    final conceptLabels = await widget.store.labels(journeyId!, id);
-    if (mounted) {
+        : await SourceResolver().resolve(location);
+    final conceptLabels = await widget.store.labels(
+      route.journeyId,
+      route.nodeId,
+    );
+    if (mounted && navigation.current == route) {
       setState(() {
-        selectedNode = id;
         source = loaded;
         labels = conceptLabels;
       });
     }
+  }
+
+  Future<void> _goBack() async {
+    final route = navigation.back();
+    if (route == null) return;
+    setState(() {
+      source = null;
+      labels = [];
+    });
+    await _hydrateRoute(route);
+  }
+
+  Future<void> _goForward() async {
+    final route = navigation.forward();
+    if (route == null) return;
+    setState(() {
+      source = null;
+      labels = [];
+    });
+    await _hydrateRoute(route);
   }
 
   @override
@@ -511,8 +574,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 .map((id) => DropdownMenuItem(value: id, child: Text(id)))
                 .toList(),
             onChanged: (id) {
-              selectedNode = null;
-              _open(id);
+              if (id != null) _open(id);
             },
           ),
           IconButton(
@@ -544,7 +606,51 @@ class _ExplorerPageState extends State<ExplorerPage> {
             SizedBox(width: 420, child: _inspectorPanel(selected)),
         ],
       ),
+      bottomNavigationBar: _traversalBar(),
     );
+  }
+
+  Widget _traversalBar() => Material(
+    color: Theme.of(context).colorScheme.surfaceContainerLow,
+    child: SafeArea(
+      top: false,
+      child: SizedBox(
+        height: 48,
+        child: Row(
+          children: [
+            TextButton.icon(
+              onPressed: navigation.canGoBack ? _goBack : null,
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Back'),
+            ),
+            Expanded(
+              child: Center(
+                child: Text(
+                  _breadcrumb(),
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: navigation.canGoForward ? _goForward : null,
+              icon: const Icon(Icons.arrow_forward),
+              label: const Text('Forward'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  String _breadcrumb() {
+    final route = navigation.current;
+    if (route == null || graph == null) return 'No selected node';
+    final path = graph!.logicalPathFor(route.nodeId);
+    final labels = path
+        .map((id) => graph!.node(id)?['label'] as String? ?? id)
+        .toList();
+    return labels.isEmpty ? route.nodeId : labels.join('  ›  ');
   }
 
   Widget _panelHeading(String title, VoidCallback onCollapse) => Padding(
@@ -564,49 +670,133 @@ class _ExplorerPageState extends State<ExplorerPage> {
     ),
   );
 
-  Widget _navigatorPanel() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _panelHeading(
-        'JOURNEY NAVIGATOR',
-        () => setState(() => navigatorVisible = false),
-      ),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Text(
-          'All discovered nodes',
-          style: Theme.of(context).textTheme.labelMedium,
+  Widget _navigatorPanel() {
+    final model = JourneyNavigatorModel.build(
+      graph: graph!,
+      currentNodeId: selectedNode!,
+      visitedNodeIds: navigation.visitedNodeIds,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _panelHeading(
+          'JOURNEY NAVIGATOR',
+          () => setState(() => navigatorVisible = false),
         ),
-      ),
-      const SizedBox(height: 6),
-      Expanded(
-        child: ListView(
-          children: graph!.nodes
-              .map(
-                (node) => ListTile(
-                  selected: node['id'] == selectedNode,
-                  title: Text(node['label'] as String? ?? node['id'] as String),
-                  subtitle: Text(
-                    '${node['state']} • ${node['disposition'] ?? 'primary'}',
-                  ),
-                  leading: Icon(
-                    node['disposition'] == 'deferred'
-                        ? Icons.schedule_outlined
-                        : Icons.account_tree_outlined,
-                  ),
-                  onTap: () => _select(node['id'] as String),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 12),
+            children: [
+              _navigatorSection('CURRENT PATH'),
+              ...model.currentPath.map(_navigatorItem),
+              if (model.isTerminal)
+                _navigatorMessage(
+                  Icons.flag_outlined,
+                  'Terminal point for this branch',
                 ),
-              )
-              .toList(),
+              if (model.primary.isNotEmpty) ...[
+                _navigatorSection(
+                  model.primary.length == 1 ? 'CONTINUE' : 'CHOOSE NEXT',
+                ),
+                ...model.primary.map(_navigatorItem),
+              ],
+              if (model.alternatives.isNotEmpty) ...[
+                _navigatorSection('ALTERNATIVES'),
+                ...model.alternatives.map(_navigatorItem),
+              ],
+              if (model.deferred.isNotEmpty)
+                ExpansionTile(
+                  initiallyExpanded: false,
+                  leading: const Icon(Icons.schedule_outlined),
+                  title: Text('Deferred (${model.deferred.length})'),
+                  children: model.deferred.map(_navigatorItem).toList(),
+                ),
+              if (model.related.isNotEmpty) ...[
+                _navigatorSection('RELATED'),
+                ...model.related.map(_navigatorItem),
+              ],
+              if (model.visitedOutsidePath.isNotEmpty)
+                ExpansionTile(
+                  initiallyExpanded: false,
+                  leading: const Icon(Icons.history),
+                  title: Text('Visited (${model.visitedOutsidePath.length})'),
+                  children: model.visitedOutsidePath
+                      .map(_navigatorItem)
+                      .toList(),
+                ),
+              if (model.explorable.isNotEmpty)
+                ExpansionTile(
+                  initiallyExpanded: false,
+                  leading: const Icon(Icons.explore_outlined),
+                  title: Text(
+                    'Explore known nodes (${model.explorable.length})',
+                  ),
+                  children: model.explorable.map(_navigatorItem).toList(),
+                ),
+            ],
+          ),
         ),
-      ),
-    ],
+      ],
+    );
+  }
+
+  Widget _navigatorSection(String title) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+    child: Text(title, style: Theme.of(context).textTheme.labelMedium),
   );
 
+  Widget _navigatorMessage(IconData icon, String message) =>
+      ListTile(dense: true, leading: Icon(icon), title: Text(message));
+
+  Widget _navigatorItem(JourneyNavigatorItem item) {
+    final colors = Theme.of(context).colorScheme;
+    final role = switch (item.role) {
+      JourneyPathRole.primary => 'Primary',
+      JourneyPathRole.alternative => 'Alternative',
+      JourneyPathRole.deferred => 'Deferred',
+      JourneyPathRole.related => 'Related',
+    };
+    final icon = switch (item.role) {
+      JourneyPathRole.primary => Icons.arrow_forward_outlined,
+      JourneyPathRole.alternative => Icons.alt_route_outlined,
+      JourneyPathRole.deferred => Icons.schedule_outlined,
+      JourneyPathRole.related => Icons.account_tree_outlined,
+    };
+    return ListTile(
+      dense: true,
+      selected: item.isCurrent,
+      leading: Icon(icon),
+      title: Text(item.label, maxLines: 2, overflow: TextOverflow.ellipsis),
+      subtitle: Text(
+        [
+          if (item.isCurrent) 'Current',
+          if (item.isVisited && !item.isCurrent) 'Visited',
+          item.state,
+          role,
+          if (item.relationHint != null) item.relationHint!,
+        ].join(' • '),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: item.isCurrent
+          ? Icon(Icons.my_location, color: colors.primary, size: 18)
+          : null,
+      onTap: () =>
+          _navigate(ExplorerRoute(journeyId: journeyId!, nodeId: item.id)),
+    );
+  }
+
   Widget _inspectorPanel(Map<String, dynamic> node) {
-    final explanations = graph!.explanationsFor(node['id'] as String);
-    final timeline = graph!.timelineFor(node['id'] as String);
     final diagrams = graph!.diagramsFor(node['id'] as String);
+    final model = InvestigationInspectorModel.build(
+      graph: graph!,
+      nodeId: node['id'] as String,
+      projectRoot: widget.store.config.projectRoot,
+    );
+    final architecture = ArchitectureContextModel.build(
+      graph: graph!,
+      nodeId: node['id'] as String,
+    );
     return Column(
       children: [
         _panelHeading(
@@ -618,75 +808,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: ListView(
               children: [
-                _architectureContext(node, diagrams),
+                _architectureContext(architecture),
                 const SizedBox(height: 18),
-                Text(
-                  node['label'] as String? ?? node['id'] as String,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                Text(
-                  'State: ${node['state']} • ${node['disposition'] ?? 'primary'}',
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  children: labels
-                      .map((item) => Chip(label: Text(item['key'] as String)))
-                      .toList(),
-                ),
+                _whyThisNode(node, model),
                 const SizedBox(height: 16),
-                Text(
-                  'Direct paths',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                ...graph!
-                    .related(node['id'] as String)
-                    .map(
-                      (edge) => ListTile(
-                        dense: true,
-                        title: Text(
-                          '${edge['kind']} ${edge['from'] == node['id'] ? '→' : '←'}',
-                        ),
-                        subtitle: Text(
-                          edge['from'] == node['id']
-                              ? edge['to'] as String
-                              : edge['from'] as String,
-                        ),
-                      ),
-                    ),
-                const SizedBox(height: 12),
-                Text(
-                  'Explanation',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                ...explanations.map(
-                  (item) => Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
-                        item['body'] as String? ??
-                            'Explanation available without body.',
-                      ),
-                    ),
-                  ),
-                ),
-                if (timeline.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    'Git timeline',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  ...timeline.map(
-                    (event) => ListTile(
-                      dense: true,
-                      leading: const Icon(Icons.history),
-                      title: Text(event['summary'] as String),
-                      subtitle: Text(
-                        '${event['revision']} • ${event['occurred_at']}',
-                      ),
-                    ),
-                  ),
-                ],
+                _evidenceSection(model),
+                const SizedBox(height: 16),
+                _relationsSection(model),
                 if (diagrams.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Text(
@@ -709,31 +837,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
                     ),
                   ),
                 ],
-                FilledButton.icon(
-                  onPressed: () async {
-                    try {
-                      final path = await widget.store.requestExpansion(
-                        journeyId!,
-                        node['id'] as String,
-                      );
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Expansion request created: $path'),
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(e.toString())));
-                      }
-                    }
-                  },
-                  icon: const Icon(Icons.add_comment_outlined),
-                  label: const Text('Request explanation'),
-                ),
               ],
             ),
           ),
@@ -742,10 +845,192 @@ class _ExplorerPageState extends State<ExplorerPage> {
     );
   }
 
-  Widget _architectureContext(
+  Widget _whyThisNode(
     Map<String, dynamic> node,
-    List<Map<String, dynamic>> diagrams,
-  ) => Card(
+    InvestigationInspectorModel model,
+  ) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text('WHY THIS NODE', style: Theme.of(context).textTheme.titleMedium),
+      const SizedBox(height: 6),
+      Text(
+        node['label'] as String? ?? node['id'] as String,
+        style: Theme.of(context).textTheme.headlineSmall,
+      ),
+      Text(
+        'State: ${node['state'] ?? 'discovered'} • ${node['disposition'] ?? 'primary'}',
+      ),
+      if (labels.isNotEmpty) ...[
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 4,
+          children: labels
+              .map((item) => Chip(label: Text(item['key'] as String)))
+              .toList(),
+        ),
+      ],
+      ...model.hypotheses.map(
+        (hypothesis) => Card(
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(hypothesis['claim'] as String? ?? 'Hypothesis'),
+                const SizedBox(height: 4),
+                Text(
+                  '${hypothesis['confidence'] ?? 'unknown'} • ${hypothesis['category'] ?? 'unknown'}',
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      ...model.explanations.map(
+        (explanation) => Card(
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Text(
+              explanation['body'] as String? ??
+                  'Explanation available without body.',
+            ),
+          ),
+        ),
+      ),
+      if (model.explanations.isEmpty && model.hypotheses.isEmpty)
+        Text(
+          'No rationale was recorded for this node.',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+    ],
+  );
+
+  Widget _evidenceSection(InvestigationInspectorModel model) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text('EVIDENCE', style: Theme.of(context).textTheme.titleMedium),
+      if (model.evidence.isEmpty)
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(
+            'No evidence is linked to this node.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+      ...model.evidence.map(
+        (evidence) => Card(
+          child: ListTile(
+            enabled: evidence.location != null,
+            leading: const Icon(Icons.fact_check_outlined),
+            title: Text(evidence.summary),
+            subtitle: Text(
+              [
+                evidence.kind,
+                if (evidence.relationship != null) evidence.relationship!,
+                if (evidence.location != null) evidence.location!.reference,
+                evidence.id,
+              ].join(' • '),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: evidence.location == null
+                ? const Icon(Icons.link_off_outlined)
+                : const Icon(Icons.open_in_new),
+            onTap: evidence.location == null
+                ? null
+                : () => _navigate(
+                    ExplorerRoute(
+                      journeyId: journeyId!,
+                      nodeId: selectedNode!,
+                      evidenceId: evidence.id,
+                      sourceLocation: evidence.location,
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    ],
+  );
+
+  Widget _relationsSection(InvestigationInspectorModel model) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        'RELATIONS / NEXT HOPS',
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      if (model.isTerminal)
+        _navigatorMessage(
+          Icons.flag_outlined,
+          'Terminal point for this branch',
+        ),
+      _relationGroup(
+        model.primary.length == 1 ? 'CONTINUE' : 'CHOOSE NEXT',
+        model.primary,
+      ),
+      _relationGroup('ALTERNATIVES', model.alternatives),
+      _relationGroup('DEFERRED', model.deferred, subdued: true),
+      _relationGroup('RELATED', model.related),
+      _relationGroup('CAME FROM', model.cameFrom),
+    ],
+  );
+
+  Widget _relationGroup(
+    String title,
+    List<InspectorRelation> relations, {
+    bool subdued = false,
+  }) {
+    if (relations.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Text(title, style: Theme.of(context).textTheme.labelMedium),
+        ),
+        ...relations.map(
+          (relation) => Opacity(
+            opacity: subdued ? .68 : 1,
+            child: title == 'CONTINUE'
+                ? Card(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    child: ListTile(
+                      leading: const Icon(Icons.arrow_forward),
+                      title: Text('Continue to ${relation.label}'),
+                      subtitle: Text('${relation.kind} • ${relation.targetId}'),
+                      onTap: () => _navigate(
+                        ExplorerRoute(
+                          journeyId: journeyId!,
+                          nodeId: relation.targetId,
+                        ),
+                      ),
+                    ),
+                  )
+                : ListTile(
+                    dense: true,
+                    leading: Icon(
+                      relation.incoming
+                          ? Icons.arrow_back
+                          : Icons.arrow_forward,
+                    ),
+                    title: Text(relation.label),
+                    subtitle: Text('${relation.kind} • ${relation.targetId}'),
+                    onTap: () => _navigate(
+                      ExplorerRoute(
+                        journeyId: journeyId!,
+                        nodeId: relation.targetId,
+                      ),
+                    ),
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _architectureContext(ArchitectureContextModel model) => Card(
     child: Padding(
       padding: const EdgeInsets.all(12),
       child: Column(
@@ -762,23 +1047,102 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 ),
               ),
               TextButton(
-                onPressed: diagrams.isEmpty
+                onPressed: model.diagrams.isEmpty
                     ? null
-                    : () => _openDiagram(diagrams.first),
+                    : () => _openDiagram(_diagramFor(model)),
                 child: const Text('Open'),
               ),
             ],
           ),
+          if (model.hasComponents || model.hasSequence) ...[
+            const SizedBox(height: 8),
+            SegmentedButton<ArchitectureViewKind>(
+              segments: [
+                ButtonSegment(
+                  value: ArchitectureViewKind.components,
+                  label: const Text('Components'),
+                  enabled: model.hasComponents,
+                ),
+                ButtonSegment(
+                  value: ArchitectureViewKind.sequence,
+                  label: const Text('Sequence'),
+                  enabled: model.hasSequence,
+                ),
+              ],
+              selected: {
+                diagramViewState.kind == ArchitectureViewKind.components &&
+                        !model.hasComponents
+                    ? ArchitectureViewKind.sequence
+                    : diagramViewState.kind,
+              },
+              onSelectionChanged: (value) =>
+                  setState(() => diagramViewState.kind = value.single),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                _activeArchitectureSummary(model),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
           Text(
-            diagrams.isEmpty
-                ? 'No mapped component or execution context is available.'
-                : '${diagrams.length} mapped diagram ${diagrams.length == 1 ? 'artifact' : 'artifacts'} available for this node.',
+            model.statusMessage,
             style: Theme.of(context).textTheme.bodySmall,
           ),
+          if (model.component != null)
+            _contextLine('Component', model.component!),
+          if (model.participant != null)
+            _contextLine('Participant', model.participant!),
+          if (model.executionPath.isNotEmpty)
+            _contextLine('Execution', model.executionPath.join('  ›  ')),
+          if (model.step != null || model.depth != null)
+            _contextLine(
+              'Step',
+              '${model.step ?? 'current'}${model.depth == null ? '' : ' • depth ${model.depth}'}',
+            ),
+          if (model.transitionKind != null)
+            _contextLine(
+              'Boundary',
+              model.isAsync
+                  ? '${model.transitionKind} boundary (not a synchronous stack)'
+                  : model.transitionKind!,
+            ),
+          if (model.provenance != null)
+            _contextLine('Snapshot', model.provenance!),
+          if (model.status == ArchitectureContextStatus.mapped ||
+              model.status == ArchitectureContextStatus.inferred)
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              title: const Text('Follow current'),
+              value: diagramViewState.followCurrent,
+              onChanged: (value) =>
+                  setState(() => diagramViewState.followCurrent = value),
+            ),
         ],
       ),
     ),
   );
+
+  Widget _contextLine(String label, String value) => Padding(
+    padding: const EdgeInsets.only(top: 4),
+    child: Text('$label: $value', style: Theme.of(context).textTheme.bodySmall),
+  );
+
+  Map<String, dynamic> _diagramFor(ArchitectureContextModel model) =>
+      model.diagrams.firstWhere(
+        (diagram) => diagram['kind'] == diagramViewState.kind.name,
+        orElse: () => model.diagrams.first,
+      );
+
+  String _activeArchitectureSummary(ArchitectureContextModel model) {
+    final diagram = _diagramFor(model);
+    final kind = diagram['kind'] as String? ?? 'diagram';
+    final title = diagram['title'] as String? ?? '$kind context';
+    return '${kind == 'component' ? 'Components' : 'Sequence'}: $title';
+  }
 
   Future<void> _openDiagram(Map<String, dynamic> diagram) async {
     try {
@@ -804,7 +1168,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             label: Text(id),
                             onPressed: () {
                               Navigator.pop(context);
-                              _select(id);
+                              _navigate(
+                                ExplorerRoute(
+                                  journeyId: journeyId!,
+                                  nodeId: id,
+                                ),
+                              );
                             },
                           ),
                         )

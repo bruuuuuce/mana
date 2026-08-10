@@ -40,6 +40,20 @@ class SourceLocation {
       !path.startsWith('/') &&
       !path.split('/').any((part) => part == '..' || part.isEmpty);
   String get reference => '$path:$startLine-$endLine';
+
+  @override
+  bool operator ==(Object other) =>
+      other is SourceLocation &&
+      projectRoot == other.projectRoot &&
+      path == other.path &&
+      startLine == other.startLine &&
+      endLine == other.endLine &&
+      revision == other.revision &&
+      contentHash == other.contentHash;
+
+  @override
+  int get hashCode =>
+      Object.hash(projectRoot, path, startLine, endLine, revision, contentHash);
 }
 
 enum SourceState { snapshot, workingTree, snapshotUnavailable, missing }

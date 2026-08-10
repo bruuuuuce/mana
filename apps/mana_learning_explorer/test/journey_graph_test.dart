@@ -20,6 +20,14 @@ void main() {
     expect(graph.node('jn_b')?['label'], 'Repository');
   });
 
+  test('builds a finite logical breadcrumb from primary graph relations', () {
+    final graph = JourneyGraph.decode(
+      '''{"nodes":[{"id":"a"},{"id":"b"},{"id":"c"}],"edges":[{"from":"a","to":"b","disposition":"primary"},{"from":"b","to":"c","disposition":"primary"},{"from":"c","to":"a","disposition":"primary"}]}''',
+    );
+
+    expect(graph.logicalPathFor('c'), ['a', 'b', 'c']);
+  });
+
   test('watches append-only Journey record changes', () async {
     final root = await Directory.systemTemp.createTemp('mana-explorer-watch-');
     addTearDown(() => root.delete(recursive: true));
