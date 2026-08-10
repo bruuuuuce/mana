@@ -427,6 +427,30 @@ class ExplorerPage extends StatefulWidget {
 
 enum ExplorerViewMode { journey, graph }
 
+class _BackIntent extends Intent {
+  const _BackIntent();
+}
+
+class _ForwardIntent extends Intent {
+  const _ForwardIntent();
+}
+
+class _ContinueIntent extends Intent {
+  const _ContinueIntent();
+}
+
+class _ToggleFocusIntent extends Intent {
+  const _ToggleFocusIntent();
+}
+
+class _OpenDiagramIntent extends Intent {
+  const _OpenDiagramIntent();
+}
+
+class _CenterOnCurrentIntent extends Intent {
+  const _CenterOnCurrentIntent();
+}
+
 class _ExplorerPageState extends State<ExplorerPage> {
   JourneyGraph? graph;
   String? journeyId, error;
@@ -437,6 +461,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   bool navigatorVisible = true;
   bool inspectorVisible = true;
   ExplorerViewMode viewMode = ExplorerViewMode.journey;
+  int graphCenterRequest = 0;
   final TraversalState navigation = TraversalState();
   final DiagramViewState diagramViewState = DiagramViewState();
   final ValueNotifier<ExplorerRoute?> currentRoute = ValueNotifier(null);
@@ -571,96 +596,223 @@ class _ExplorerPageState extends State<ExplorerPage> {
     await _hydrateRoute(route);
   }
 
+  void _continuePrimary() {
+    if (graph == null || selectedNode == null) return;
+    final model = JourneyNavigatorModel.build(
+      graph: graph!,
+      currentNodeId: selectedNode!,
+      visitedNodeIds: navigation.visitedNodeIds,
+    );
+    if (model.primary.length == 1) {
+      _navigate(
+        ExplorerRoute(journeyId: journeyId!, nodeId: model.primary.single.id),
+      );
+    }
+  }
+
+  void _toggleFocusMode() => setState(() {
+    final enteringFocus = navigatorVisible || inspectorVisible;
+    navigatorVisible = !enteringFocus;
+    inspectorVisible = !enteringFocus;
+  });
+
+  void _centerOnCurrent() {
+    if (viewMode == ExplorerViewMode.graph) {
+      setState(() => graphCenterRequest++);
+    }
+  }
+
+  Future<void> _copyToClipboard(String text, String label) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('$label copied.')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (error != null) {
-      return Scaffold(body: Center(child: Text(error!)));
+      return Scaffold(
+        appBar: AppBar(title: const Text('Mana Learning Explorer')),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, size: 42),
+                  const SizedBox(height: 12),
+                  const Text('Could not open this Journey'),
+                  const SizedBox(height: 8),
+                  SelectableText(error!, textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: _reload,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Try again'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
     }
     if (graph == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final selected = graph!.node(selectedNode!)!;
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 20,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(graph!.title, style: Theme.of(context).textTheme.titleMedium),
-            Text(
-              journeyId ?? '',
-              style: Theme.of(context).textTheme.labelSmall,
-            ),
-          ],
-        ),
-        actions: [
-          SegmentedButton<ExplorerViewMode>(
-            segments: const [
-              ButtonSegment(
-                value: ExplorerViewMode.journey,
-                label: Text('Journey'),
-              ),
-              ButtonSegment(
-                value: ExplorerViewMode.graph,
-                label: Text('Graph'),
-              ),
-            ],
-            selected: {viewMode},
-            onSelectionChanged: (value) =>
-                setState(() => viewMode = value.single),
+    return Shortcuts(
+      shortcuts: const {
+        SingleActivator(LogicalKeyboardKey.arrowLeft, alt: true): _BackIntent(),
+        SingleActivator(LogicalKeyboardKey.arrowRight, alt: true):
+            _ForwardIntent(),
+        SingleActivator(LogicalKeyboardKey.arrowDown, alt: true):
+            _ContinueIntent(),
+        SingleActivator(LogicalKeyboardKey.keyF, control: true, shift: true):
+            _ToggleFocusIntent(),
+        SingleActivator(LogicalKeyboardKey.keyD, control: true):
+            _OpenDiagramIntent(),
+        SingleActivator(LogicalKeyboardKey.keyL, control: true):
+            _CenterOnCurrentIntent(),
+      },
+      child: Actions(
+        actions: {
+          _BackIntent: CallbackAction<_BackIntent>(onInvoke: (_) => _goBack()),
+          _ForwardIntent: CallbackAction<_ForwardIntent>(
+            onInvoke: (_) => _goForward(),
           ),
-          const SizedBox(width: 12),
-          DropdownButton<String>(
-            value: journeyId,
-            items: journeys
-                .map((id) => DropdownMenuItem(value: id, child: Text(id)))
-                .toList(),
-            onChanged: (id) {
-              if (id != null) _open(id);
-            },
+          _ContinueIntent: CallbackAction<_ContinueIntent>(
+            onInvoke: (_) => _continuePrimary(),
           ),
-          IconButton(
-            onPressed: () => _showDiagramAccess(selected),
-            icon: const Icon(Icons.account_tree_outlined),
-            tooltip: 'Diagram workspace',
+          _ToggleFocusIntent: CallbackAction<_ToggleFocusIntent>(
+            onInvoke: (_) => _toggleFocusMode(),
           ),
-          IconButton(
-            onPressed: _showSettings,
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Settings',
+          _OpenDiagramIntent: CallbackAction<_OpenDiagramIntent>(
+            onInvoke: (_) => _showDiagramAccess(selected),
           ),
-          IconButton(
-            onPressed: _reload,
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
+          _CenterOnCurrentIntent: CallbackAction<_CenterOnCurrentIntent>(
+            onInvoke: (_) => _centerOnCurrent(),
           ),
-        ],
-      ),
-      body: Row(
-        children: [
-          if (navigatorVisible) ...[
-            SizedBox(width: 292, child: _navigatorPanel()),
-            const VerticalDivider(width: 1),
-          ],
-          Expanded(
-            child: viewMode == ExplorerViewMode.journey
-                ? _sourceWorkspace(selected)
-                : JourneyGraphOverview(
-                    graph: graph!,
-                    currentNodeId: selectedNode!,
-                    visitedNodeIds: navigation.visitedNodeIds,
-                    onNodeSelected: (nodeId) => _navigate(
-                      ExplorerRoute(journeyId: journeyId!, nodeId: nodeId),
-                    ),
-                    onRelationSelected: _showGraphRelation,
+        },
+        child: Focus(
+          autofocus: true,
+          child: Scaffold(
+            appBar: AppBar(
+              titleSpacing: 20,
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    graph!.title,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
+                  Text(
+                    journeyId ?? '',
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                ],
+              ),
+              actions: [
+                SegmentedButton<ExplorerViewMode>(
+                  segments: const [
+                    ButtonSegment(
+                      value: ExplorerViewMode.journey,
+                      label: Text('Journey'),
+                    ),
+                    ButtonSegment(
+                      value: ExplorerViewMode.graph,
+                      label: Text('Graph'),
+                    ),
+                  ],
+                  selected: {viewMode},
+                  onSelectionChanged: (value) =>
+                      setState(() => viewMode = value.single),
+                ),
+                const SizedBox(width: 12),
+                DropdownButton<String>(
+                  value: journeyId,
+                  items: journeys
+                      .map((id) => DropdownMenuItem(value: id, child: Text(id)))
+                      .toList(),
+                  onChanged: (id) {
+                    if (id != null) _open(id);
+                  },
+                ),
+                IconButton(
+                  onPressed: () => _showDiagramAccess(selected),
+                  icon: const Icon(Icons.account_tree_outlined),
+                  tooltip: 'Diagram workspace (Ctrl+D)',
+                ),
+                IconButton(
+                  onPressed: _toggleFocusMode,
+                  icon: Icon(
+                    navigatorVisible || inspectorVisible
+                        ? Icons.center_focus_strong_outlined
+                        : Icons.center_focus_weak_outlined,
+                  ),
+                  tooltip: navigatorVisible || inspectorVisible
+                      ? 'Focus mode: hide side panels (Ctrl+Shift+F)'
+                      : 'Exit focus mode (Ctrl+Shift+F)',
+                ),
+                IconButton(
+                  onPressed: () => _copyToClipboard(selectedNode!, 'Node ID'),
+                  icon: const Icon(Icons.tag),
+                  tooltip: 'Copy node ID',
+                ),
+                IconButton(
+                  onPressed: () => _copyToClipboard(journeyId!, 'Journey ID'),
+                  icon: const Icon(Icons.copy_all_outlined),
+                  tooltip: 'Copy journey ID',
+                ),
+                IconButton(
+                  onPressed: _showSettings,
+                  icon: const Icon(Icons.settings_outlined),
+                  tooltip: 'Settings',
+                ),
+                IconButton(
+                  onPressed: _reload,
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Refresh',
+                ),
+              ],
+            ),
+            body: Row(
+              children: [
+                if (navigatorVisible) ...[
+                  SizedBox(width: 292, child: _navigatorPanel()),
+                  const VerticalDivider(width: 1),
+                ],
+                Expanded(
+                  child: viewMode == ExplorerViewMode.journey
+                      ? _sourceWorkspace(selected)
+                      : JourneyGraphOverview(
+                          graph: graph!,
+                          currentNodeId: selectedNode!,
+                          visitedNodeIds: navigation.visitedNodeIds,
+                          onNodeSelected: (nodeId) => _navigate(
+                            ExplorerRoute(
+                              journeyId: journeyId!,
+                              nodeId: nodeId,
+                            ),
+                          ),
+                          onRelationSelected: _showGraphRelation,
+                          centerRequest: graphCenterRequest,
+                        ),
+                ),
+                const VerticalDivider(width: 1),
+                if (inspectorVisible)
+                  SizedBox(width: 420, child: _inspectorPanel(selected)),
+              ],
+            ),
+            bottomNavigationBar: _traversalBar(),
           ),
-          const VerticalDivider(width: 1),
-          if (inspectorVisible)
-            SizedBox(width: 420, child: _inspectorPanel(selected)),
-        ],
+        ),
       ),
-      bottomNavigationBar: _traversalBar(),
     );
   }
 
@@ -2030,7 +2182,30 @@ class _ExplorerPageState extends State<ExplorerPage> {
           child: resolved == null
               ? const Center(child: CircularProgressIndicator())
               : !resolved.available
-              ? Center(child: Text(resolved.status))
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.source_outlined, size: 36),
+                      const SizedBox(height: 8),
+                      Text(resolved.status, textAlign: TextAlign.center),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: navigation.canGoBack ? _goBack : _reload,
+                        icon: Icon(
+                          navigation.canGoBack
+                              ? Icons.arrow_back
+                              : Icons.refresh,
+                        ),
+                        label: Text(
+                          navigation.canGoBack
+                              ? 'Back to previous node'
+                              : 'Reload Journey',
+                        ),
+                      ),
+                    ],
+                  ),
+                )
               : _ReadOnlySourceEditor(
                   key: ValueKey(
                     '${resolved.location.path}:${resolved.location.revision}:${resolved.contents.hashCode}',

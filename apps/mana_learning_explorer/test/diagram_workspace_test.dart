@@ -1,5 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mana_learning_explorer/diagram_detachment.dart';
 import 'package:mana_learning_explorer/diagram_workspace.dart';
+import 'package:mana_learning_explorer/explorer_navigation.dart';
 import 'package:mana_learning_explorer/journey_graph.dart';
 
 void main() {
@@ -52,4 +55,33 @@ void main() {
     );
     expect(document.elements.single.nodeIds, ['a', 'b']);
   });
+
+  testWidgets(
+    'marks the current binding in text and moves between mapped steps',
+    (tester) async {
+      final route = ValueNotifier<ExplorerRoute?>(
+        const ExplorerRoute(journeyId: 'journey', nodeId: 'c'),
+      );
+      final navigated = <ExplorerRoute>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DiagramWorkspace(
+              graph: graph,
+              diagrams: [diagram],
+              currentRoute: route,
+              onNavigate: navigated.add,
+              windowState: DiagramWindowState(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      expect(find.text('node:c • CURRENT'), findsOneWidget);
+      await tester.tap(find.byTooltip('Previous mapped step (Alt+Left)'));
+      expect(navigated.single.nodeId, 'b');
+      route.dispose();
+    },
+  );
 }

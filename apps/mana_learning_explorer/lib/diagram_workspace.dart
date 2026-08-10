@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'architecture_context.dart';
 import 'diagram_detachment.dart';
@@ -7,6 +8,18 @@ import 'explorer_navigation.dart';
 import 'journey_graph.dart';
 
 enum DiagramScope { currentPath, currentBranch, wholeStream }
+
+class _PreviousMappedStepIntent extends Intent {
+  const _PreviousMappedStepIntent();
+}
+
+class _NextMappedStepIntent extends Intent {
+  const _NextMappedStepIntent();
+}
+
+class _LocateCurrentIntent extends Intent {
+  const _LocateCurrentIntent();
+}
 
 class DiagramElementBinding {
   const DiagramElementBinding({
@@ -170,23 +183,50 @@ class _DiagramWorkspaceState extends State<DiagramWorkspace> {
         scope: _scope,
         currentNodeId: route.nodeId,
       );
-      return Column(
-        children: [
-          _toolbar(document),
-          Expanded(
-            child: InteractiveViewer(
-              transformationController: _transform,
-              minScale: .4,
-              maxScale: 3,
-              child: Center(child: _diagram(document, route)),
+      return Shortcuts(
+        shortcuts: const {
+          SingleActivator(LogicalKeyboardKey.arrowLeft, alt: true):
+              _PreviousMappedStepIntent(),
+          SingleActivator(LogicalKeyboardKey.arrowRight, alt: true):
+              _NextMappedStepIntent(),
+          SingleActivator(LogicalKeyboardKey.keyL, control: true):
+              _LocateCurrentIntent(),
+        },
+        child: Actions(
+          actions: {
+            _PreviousMappedStepIntent:
+                CallbackAction<_PreviousMappedStepIntent>(
+                  onInvoke: (_) => _step(-1, document),
+                ),
+            _NextMappedStepIntent: CallbackAction<_NextMappedStepIntent>(
+              onInvoke: (_) => _step(1, document),
+            ),
+            _LocateCurrentIntent: CallbackAction<_LocateCurrentIntent>(
+              onInvoke: (_) => _locateCurrent(),
+            ),
+          },
+          child: Focus(
+            autofocus: true,
+            child: Column(
+              children: [
+                _toolbar(document),
+                Expanded(
+                  child: InteractiveViewer(
+                    transformationController: _transform,
+                    minScale: .4,
+                    maxScale: 3,
+                    child: Center(child: _diagram(document, route)),
+                  ),
+                ),
+                if (_selectedElement != null)
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Text('Selected element: $_selectedElement'),
+                  ),
+              ],
             ),
           ),
-          if (_selectedElement != null)
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Text('Selected element: $_selectedElement'),
-            ),
-        ],
+        ),
       );
     },
   );
@@ -244,9 +284,9 @@ class _DiagramWorkspaceState extends State<DiagramWorkspace> {
         tooltip: 'Fit to view',
       ),
       IconButton(
-        onPressed: () => _transform.value = Matrix4.identity(),
+        onPressed: _locateCurrent,
         icon: const Icon(Icons.my_location),
-        tooltip: 'Locate current',
+        tooltip: 'Locate current (Ctrl+L)',
       ),
       IconButton(
         onPressed: () => _transform.value = Matrix4.identity(),
@@ -254,14 +294,14 @@ class _DiagramWorkspaceState extends State<DiagramWorkspace> {
         tooltip: 'Actual size',
       ),
       IconButton(
-        onPressed: () => _step(-1),
+        onPressed: () => _step(-1, document),
         icon: const Icon(Icons.skip_previous),
-        tooltip: 'Previous mapped step',
+        tooltip: 'Previous mapped step (Alt+Left)',
       ),
       IconButton(
-        onPressed: () => _step(1),
+        onPressed: () => _step(1, document),
         icon: const Icon(Icons.skip_next),
-        tooltip: 'Next mapped step',
+        tooltip: 'Next mapped step (Alt+Right)',
       ),
       FilterChip(
         label: const Text('Follow current'),
@@ -304,10 +344,18 @@ class _DiagramWorkspaceState extends State<DiagramWorkspace> {
       _transform.value = _transform.value.clone()
         ..scaleByDouble(scale, scale, scale, 1);
 
-  void _step(int delta) {
+  void _locateCurrent() => _transform.value = Matrix4.identity();
+
+  void _step(int delta, DiagramDocument document) {
     final route = widget.currentRoute.value;
     if (route == null) return;
-    final path = widget.graph.logicalPathFor(route.nodeId);
+    final mapped = document.elements
+        .expand((element) => element.nodeIds)
+        .toSet();
+    final path = widget.graph
+        .logicalPathFor(route.nodeId)
+        .where(mapped.contains)
+        .toList();
     final index = path.indexOf(route.nodeId);
     final next = index + delta;
     if (next < 0 || next >= path.length) return;
@@ -347,18 +395,49 @@ class _DiagramWorkspaceState extends State<DiagramWorkspace> {
   Widget _element(DiagramElementBinding binding, ExplorerRoute route) {
     final id = binding.nodeIds.singleOrNull;
     final node = id == null ? null : widget.graph.node(id);
-    return InkWell(
-      onTap: () => _activate(binding),
-      child: Chip(
-        avatar: Icon(
-          binding.semanticRole == 'participant'
-              ? Icons.person_outline
-              : Icons.widgets_outlined,
+    final current = id == route.nodeId;
+    final label = node?['label'] as String? ?? binding.elementId;
+    return Semantics(
+      button: true,
+      selected: current,
+      label: '$label, ${binding.semanticRole}${current ? ', current' : ''}',
+      hint: binding.nodeIds.isEmpty
+          ? 'Diagram metadata only'
+          : binding.nodeIds.length == 1
+          ? 'Open mapped Journey node'
+          : 'Choose a mapped Journey node',
+      child: Tooltip(
+        message: binding.nodeIds.isEmpty
+            ? '$label: no mapped Journey node'
+            : 'Open $label',
+        child: FocusableActionDetector(
+          onFocusChange: (focused) {
+            if (focused) setState(() => _selectedElement = binding.elementId);
+          },
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () => _activate(binding),
+            child: Chip(
+              avatar: Icon(
+                current
+                    ? Icons.my_location
+                    : binding.semanticRole == 'participant'
+                    ? Icons.person_outline
+                    : Icons.widgets_outlined,
+              ),
+              label: Text('$label${current ? ' • CURRENT' : ''}'),
+              side: current
+                  ? BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 2,
+                    )
+                  : null,
+              backgroundColor: current
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : null,
+            ),
+          ),
         ),
-        label: Text(node?['label'] as String? ?? binding.elementId),
-        backgroundColor: id == route.nodeId
-            ? Theme.of(context).colorScheme.primaryContainer
-            : null,
       ),
     );
   }
@@ -368,13 +447,18 @@ class _DiagramWorkspaceState extends State<DiagramWorkspace> {
     final edge = edgeId == null
         ? null
         : widget.graph.edges.where((e) => e['id'] == edgeId).firstOrNull;
-    return ListTile(
-      leading: Icon(
-        (edge?['kind'] == 'LOOP_BACK') ? Icons.loop : Icons.arrow_forward,
+    final kind = edge?['kind'] as String? ?? binding.semanticRole;
+    return Semantics(
+      button: true,
+      label: '$kind relation, ${edge?['from'] ?? '?'} to ${edge?['to'] ?? '?'}',
+      child: ListTile(
+        leading: Icon(
+          (edge?['kind'] == 'LOOP_BACK') ? Icons.loop : Icons.arrow_forward,
+        ),
+        title: Text(kind),
+        subtitle: Text('${edge?['from'] ?? '?'} → ${edge?['to'] ?? '?'}'),
+        onTap: () => _activate(binding),
       ),
-      title: Text(edge?['kind'] as String? ?? binding.semanticRole),
-      subtitle: Text('${edge?['from'] ?? '?'} → ${edge?['to'] ?? '?'}'),
-      onTap: () => _activate(binding),
     );
   }
 

@@ -96,12 +96,14 @@ class JourneyGraphOverview extends StatefulWidget {
     required this.visitedNodeIds,
     required this.onNodeSelected,
     required this.onRelationSelected,
+    this.centerRequest = 0,
   });
   final JourneyGraph graph;
   final String currentNodeId;
   final Set<String> visitedNodeIds;
   final ValueChanged<String> onNodeSelected;
   final ValueChanged<GraphRelation> onRelationSelected;
+  final int centerRequest;
 
   @override
   State<JourneyGraphOverview> createState() => _JourneyGraphOverviewState();
@@ -124,7 +126,8 @@ class _JourneyGraphOverviewState extends State<JourneyGraphOverview> {
     if (oldWidget.graph != widget.graph) {
       _model = GraphOverviewModel.build(widget.graph);
     }
-    if (oldWidget.currentNodeId != widget.currentNodeId) {
+    if (oldWidget.currentNodeId != widget.currentNodeId ||
+        oldWidget.centerRequest != widget.centerRequest) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _centerOnCurrent());
     }
   }
@@ -164,7 +167,7 @@ class _JourneyGraphOverviewState extends State<JourneyGraphOverview> {
                 IconButton(
                   onPressed: _centerOnCurrent,
                   icon: const Icon(Icons.my_location),
-                  tooltip: 'Center on current node',
+                  tooltip: 'Center on current node (Ctrl+L)',
                 ),
               ],
             ),
