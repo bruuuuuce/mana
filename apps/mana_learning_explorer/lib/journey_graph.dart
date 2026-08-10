@@ -66,6 +66,30 @@ class JourneyGraph {
       .where((item) => (item['node_ids'] as List? ?? []).contains(id))
       .toList();
 
+  /// Select the domain-declared entry point before falling back to topology.
+  /// Record order is an implementation detail and must never decide where an
+  /// investigation starts.
+  String? get initialNodeId {
+    final declared =
+        raw['journey']?['current_node_id'] as String? ??
+        raw['journey']?['entry_node_id'] as String?;
+    if (declared != null && node(declared) != null) return declared;
+    for (final traversal in traversals) {
+      final entry = traversal['entry_node_id'] as String?;
+      if (entry != null && node(entry) != null) return entry;
+    }
+    final roots = nodes.where((candidate) {
+      final id = candidate['id'] as String?;
+      return id != null &&
+          !edges.any((edge) {
+            return edge['to'] == id &&
+                (edge['disposition'] as String? ?? 'primary') == 'primary';
+          });
+    });
+    return roots.firstOrNull?['id'] as String? ??
+        nodes.firstOrNull?['id'] as String?;
+  }
+
   /// Prefer an explicit domain traversal. Older Journeys have no logical-path
   /// record, so use a finite primary-parent chain as an honest fallback.
   List<String> logicalPathFor(String id) {

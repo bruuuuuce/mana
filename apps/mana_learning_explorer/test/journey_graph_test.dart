@@ -28,6 +28,16 @@ void main() {
     expect(graph.logicalPathFor('c'), ['a', 'b', 'c']);
   });
 
+  test('prefers the declared traversal entry over serialized node order', () {
+    final graph = JourneyGraph.decode('''
+      {"nodes":[{"id":"later"},{"id":"entry"},{"id":"other"}],
+       "traversals":[{"entry_node_id":"entry","node_ids":["entry","later"]}],
+       "edges":[{"from":"entry","to":"later","disposition":"primary"}]}
+    ''');
+
+    expect(graph.initialNodeId, 'entry');
+  });
+
   test('watches append-only Journey record changes', () async {
     final root = await Directory.systemTemp.createTemp('mana-explorer-watch-');
     addTearDown(() => root.delete(recursive: true));

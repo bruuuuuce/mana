@@ -501,9 +501,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
       final nextNode =
           current?.journeyId == id && loaded.node(current!.nodeId) != null
           ? current.nodeId
-          : loaded.nodes.isEmpty
-          ? null
-          : loaded.nodes.first['id'] as String?;
+          : loaded.initialNodeId;
       setState(() {
         journeyId = id;
         graph = loaded;
