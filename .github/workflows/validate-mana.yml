@@ -34,6 +34,8 @@ jobs:
         run: tests/mana-journey.sh
       - name: Mana Concept Registry v0
         run: tests/mana-concepts.sh
+      - name: Mana Concept tagging and teaching v0
+        run: tests/mana-concept-tagging.sh
       - name: Mana Scout v0
         run: tests/mana-scout.sh
       - name: Mana Scout cycle hardening v0

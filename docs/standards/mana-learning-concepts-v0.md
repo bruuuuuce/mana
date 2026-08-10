@@ -26,6 +26,11 @@ KB. Promotion is explicitly deferred.
 The seed set is intentionally small: general programming, OO, functional,
 concurrency, design and architecture patterns, plus Java, Spring, and Rust.
 
+Phase 6 uses this same closed registry for Journey tagging and on-demand
+teaching; see `mana-learning-concept-tagging-v0.md`. The classifier remains
+bounded to node anchors and candidate inventory, while a canonical KB document
+is loaded only after a user selects its concept.
+
 `scripts/evaluate-concept-index.sh` compares keyword-only, keyword + category,
 keyword + category + aliases, and that same form with hints. On the committed
 fixture, aliases are the smallest representation meeting the v0 thresholds
