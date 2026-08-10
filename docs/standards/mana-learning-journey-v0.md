@@ -72,5 +72,5 @@ enrichment and does not invalidate the Journey. A HypothesisAssessment can
 state that selected Git evidence strengthens, weakens, or is inconclusive for
 an existing hypothesis without rewriting it.
 
-The read-only Flutter renderer is specified separately in
+The standalone desktop consumer boundary is specified separately in
 `mana-learning-explorer-v0.md`.

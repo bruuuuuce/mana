@@ -1,27 +1,46 @@
-# Mana Learning Explorer v0
+# Mana Learning Explorer consumer contract v0
 
-The Flutter client in `apps/mana_learning_explorer` is a read-only renderer of
-incremental Journey state. Mana remains authoritative for IDs, persistence,
-materialization, evidence and expansion semantics.
+Mana is the authoritative producer of Learning Journey artifacts. Mana Learning
+Explorer is a separate desktop consumer maintained in the
+`mana-learning-explorer` repository; no Flutter application code lives here.
 
-The app invokes `scripts/mana-journey.sh materialize` and watches the selected
-Journey directory with `Directory.watch(recursive: true)`. Every filesystem
-event reloads the materialized graph; no restart or Journey regeneration is
-needed when Mana appends records.
+## Stable producer boundary
 
-The initial UI deliberately uses a simple three-panel layout: stable Journey
-node navigation, node/enrichment details, and an anchor-highlighted source
-viewer. It renders deferred branches, direct paths, canonical concept badges,
-explanation bodies, scoped Git timeline events and a bounded “Request
-explanation” action. The action
-delegates to Phase 5’s request CLI; it never writes source code or Journey
-records directly. For an explicitly generated diagram, it opens the derived
-PlantUML source beside the selected Journey node; the embedded node IDs allow
-the user to return to that node and its source anchors.
+The authoritative persistence model and schema are:
 
-Run it with:
+- `mana-learning-journey-v0.md`
+- `mana-learning-journey-v0.schema.json`
+
+For a selected project root, Mana stores Journey records under
+`.mana/learning/journeys/<journey-id>/`. The supported consumer graph API is:
 
 ```bash
-cd apps/mana_learning_explorer
-flutter run -d macos lib/main.dart -- --project-root /path/to/project --mana-root /path/to/mana --journey jrn_…
+scripts/mana-journey.sh --project-root /path/to/project materialize <journey-id>
 ```
+
+It validates the append-only records and emits deterministic
+`mana.learning.graph/v1` JSON. Consumers must use that materialized graph
+rather than parse or write individual Journey record files.
+
+The Explorer may also call these producer-owned operations:
+
+```bash
+scripts/mana-concepts.sh --project-root /path/to/project labels \
+  --journey <journey-id> --node <node-id> --json
+scripts/mana-expand.sh --project-root /path/to/project request \
+  --journey <journey-id> --node <node-id>
+```
+
+Mana owns IDs, record persistence, validation, evidence, concepts, and
+expansion semantics. The Explorer owns rendering, navigation, source display,
+and its own local UI preferences. It may watch a selected Journey directory
+and read producer-declared diagram assets, but it never creates or changes
+Journey records.
+
+## Compatibility
+
+Changes to `mana.learning.graph/v1`, the Journey schema, or the commands above
+are producer compatibility changes. Update this document and the authoritative
+schema with any such change, and coordinate a corresponding Explorer release.
+The Explorer is launched with explicit `--project-root` and `--mana-root`
+arguments, so it does not rely on Mana's internal repository layout.

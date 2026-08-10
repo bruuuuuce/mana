@@ -23,7 +23,7 @@ appending `ConceptOccurrence` records. The occurrence retains relevance,
 evidence and the classifier request ID, preventing a request from being applied
 twice. No nodes, edges or source regions are discovered.
 
-`labels` is the CLI projection that a Flutter client can later render as concept
-badges. `teach` loads the canonical KB document only when requested; optional
+`labels` is the consumer projection for rendering canonical concept badges.
+`teach` loads the canonical KB document only when requested; optional
 project examples are bounded to anchors of the selected node and never trigger
 a repository-wide occurrence scan.
