@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mana_learning_explorer/journey_graph.dart';
 import 'package:mana_learning_explorer/main.dart';
@@ -46,6 +47,31 @@ void main() {
         File('${config.manaRoot}/scripts/mana-journey.sh').existsSync(),
         isTrue,
       );
+    },
+  );
+
+  test(
+    'persists the selected theme mode in project-local explorer settings',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'mana-explorer-theme-',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final config = ExplorerConfig(
+        projectRoot: root.path,
+        manaRoot: root.path,
+      );
+
+      final preferences = await ExplorerPreferences.load(config);
+      expect(preferences.themeMode.value, ThemeMode.system);
+      await preferences.saveThemeMode(ThemeMode.dark);
+      await preferences.saveDisplay(fontSize: 18, tabSize: 4, wordWrap: true);
+
+      final reloaded = await ExplorerPreferences.load(config);
+      expect(reloaded.themeMode.value, ThemeMode.dark);
+      expect(reloaded.fontSize, 18);
+      expect(reloaded.tabSize, 4);
+      expect(reloaded.wordWrap, isTrue);
     },
   );
 }
