@@ -26,6 +26,7 @@ import 'diagram_detachment.dart';
 import 'diagram_workspace.dart';
 import 'investigation_inspector.dart';
 import 'investigation_prompt.dart';
+import 'graph_overview.dart';
 import 'journey_navigator.dart';
 import 'source_workspace.dart';
 import 'external_editor.dart';
@@ -424,6 +425,8 @@ class ExplorerPage extends StatefulWidget {
   State<ExplorerPage> createState() => _ExplorerPageState();
 }
 
+enum ExplorerViewMode { journey, graph }
+
 class _ExplorerPageState extends State<ExplorerPage> {
   JourneyGraph? graph;
   String? journeyId, error;
@@ -433,6 +436,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   StreamSubscription<void>? watcher;
   bool navigatorVisible = true;
   bool inspectorVisible = true;
+  ExplorerViewMode viewMode = ExplorerViewMode.journey;
   final TraversalState navigation = TraversalState();
   final DiagramViewState diagramViewState = DiagramViewState();
   final ValueNotifier<ExplorerRoute?> currentRoute = ValueNotifier(null);
@@ -590,8 +594,22 @@ class _ExplorerPageState extends State<ExplorerPage> {
           ],
         ),
         actions: [
-          const Text('Journey'),
-          const SizedBox(width: 8),
+          SegmentedButton<ExplorerViewMode>(
+            segments: const [
+              ButtonSegment(
+                value: ExplorerViewMode.journey,
+                label: Text('Journey'),
+              ),
+              ButtonSegment(
+                value: ExplorerViewMode.graph,
+                label: Text('Graph'),
+              ),
+            ],
+            selected: {viewMode},
+            onSelectionChanged: (value) =>
+                setState(() => viewMode = value.single),
+          ),
+          const SizedBox(width: 12),
           DropdownButton<String>(
             value: journeyId,
             items: journeys
@@ -624,7 +642,19 @@ class _ExplorerPageState extends State<ExplorerPage> {
             SizedBox(width: 292, child: _navigatorPanel()),
             const VerticalDivider(width: 1),
           ],
-          Expanded(child: _sourceWorkspace(selected)),
+          Expanded(
+            child: viewMode == ExplorerViewMode.journey
+                ? _sourceWorkspace(selected)
+                : JourneyGraphOverview(
+                    graph: graph!,
+                    currentNodeId: selectedNode!,
+                    visitedNodeIds: navigation.visitedNodeIds,
+                    onNodeSelected: (nodeId) => _navigate(
+                      ExplorerRoute(journeyId: journeyId!, nodeId: nodeId),
+                    ),
+                    onRelationSelected: _showGraphRelation,
+                  ),
+          ),
           const VerticalDivider(width: 1),
           if (inspectorVisible)
             SizedBox(width: 420, child: _inspectorPanel(selected)),
@@ -664,6 +694,31 @@ class _ExplorerPageState extends State<ExplorerPage> {
           ],
         ),
       ),
+    ),
+  );
+
+  Future<void> _showGraphRelation(GraphRelation relation) => showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Graph relation'),
+      content: Text(
+        '${relation.kind} · ${relation.style.name}\n${relation.from} → ${relation.to}',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Close'),
+        ),
+        FilledButton(
+          onPressed: () {
+            Navigator.pop(dialogContext);
+            _navigate(
+              ExplorerRoute(journeyId: journeyId!, nodeId: relation.to),
+            );
+          },
+          child: const Text('Open target'),
+        ),
+      ],
     ),
   );
 
