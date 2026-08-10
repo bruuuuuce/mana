@@ -1,0 +1,6 @@
+@startuml
+title Invoice dispatch component context
+[HTTP endpoint] --> [Invoice dispatcher]
+[Invoice dispatcher] --> [Invoice validator]
+[Invoice dispatcher] --> [Retry policy]
+@enduml

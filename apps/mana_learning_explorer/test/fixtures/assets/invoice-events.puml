@@ -1,0 +1,6 @@
+@startuml
+title Invoice event sequence
+participant InvoiceValidator
+queue InvoiceAccepted
+InvoiceValidator -> InvoiceAccepted : publish accepted invoice
+@enduml

@@ -10,7 +10,8 @@ void main() {
         {"id":"primary","from":"a","to":"b","kind":"CALLS","disposition":"primary"},
         {"id":"alternative","from":"b","to":"c","kind":"CALLS","disposition":"alternative"},
         {"id":"deferred","from":"b","to":"d","kind":"CALLS","disposition":"deferred"},
-        {"id":"cycle","from":"c","to":"a","kind":"RELATED_TO"}
+        {"id":"cycle","from":"c","to":"a","kind":"LOOP_BACK"},
+        {"id":"related","from":"d","to":"a","kind":"RELATED_TO"}
        ]}
     ''');
     final model = GraphOverviewModel.build(graph);
@@ -24,6 +25,10 @@ void main() {
         GraphRelationStyle.deferred,
         GraphRelationStyle.related,
       ]),
+    );
+    expect(
+      model.relations.singleWhere((edge) => edge.id == 'cycle').isBackReference,
+      isTrue,
     );
   });
 

@@ -25,6 +25,8 @@ class GraphRelation {
   final String to;
   final String kind;
   final GraphRelationStyle style;
+
+  bool get isBackReference => kind == 'LOOP_BACK';
 }
 
 /// Finite, deterministic projection of Journey topology. It never unfolds
@@ -112,12 +114,13 @@ class JourneyGraphOverview extends StatefulWidget {
 class _JourneyGraphOverviewState extends State<JourneyGraphOverview> {
   final TransformationController _transform = TransformationController();
   late GraphOverviewModel _model;
+  Size? _viewportSize;
 
   @override
   void initState() {
     super.initState();
     _model = GraphOverviewModel.build(widget.graph);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _centerOnCurrent());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fitGraph());
   }
 
   @override
@@ -141,15 +144,48 @@ class _JourneyGraphOverviewState extends State<JourneyGraphOverview> {
   void _centerOnCurrent() {
     final point = _model.positions[widget.currentNodeId];
     if (point == null || !mounted) return;
+    final viewport = _viewportSize ?? const Size(760, 560);
     _transform.value = Matrix4.identity()
-      ..setTranslationRaw(380 - point.dx, 280 - point.dy, 0);
+      ..setTranslationRaw(
+        viewport.width / 2 - point.dx,
+        viewport.height / 2 - point.dy,
+        0,
+      );
+  }
+
+  Size get _canvasSize {
+    final rows = math.max(1, (_model.nodes.length / 4).ceil());
+    return Size(1200, math.max(620, rows * 150.0 + 120));
+  }
+
+  void _fitGraph() {
+    final viewport = _viewportSize;
+    if (viewport == null || !mounted) return;
+    final canvas = _canvasSize;
+    final scale = math
+        .min(viewport.width / canvas.width, viewport.height / canvas.height)
+        .clamp(.45, 1.25);
+    final offset = Offset(
+      (viewport.width - canvas.width * scale) / 2,
+      (viewport.height - canvas.height * scale) / 2,
+    );
+    _transform.value = Matrix4.identity()
+      ..translateByDouble(offset.dx, offset.dy, 0, 1)
+      ..scaleByDouble(scale, scale, 1, 1);
+  }
+
+  void _adjustZoom(double multiplier) {
+    final current = _transform.value.getMaxScaleOnAxis();
+    final target = (current * multiplier).clamp(.45, 2.5);
+    // Zoom controls refine the user's current pan; only Fit graph resets the
+    // viewport deliberately.
+    _transform.value = Matrix4.copy(_transform.value)
+      ..scaleByDouble(target / current, target / current, 1, 1);
   }
 
   @override
   Widget build(BuildContext context) {
-    final nodeCount = _model.nodes.length;
-    final rows = math.max(1, (nodeCount / 4).ceil());
-    final canvasSize = Size(1200, math.max(620, rows * 150.0 + 120));
+    final canvasSize = _canvasSize;
     return Column(
       children: [
         Material(
@@ -161,8 +197,21 @@ class _JourneyGraphOverviewState extends State<JourneyGraphOverview> {
                 const Icon(Icons.account_tree_outlined),
                 const SizedBox(width: 8),
                 const Expanded(child: Text('GRAPH OVERVIEW')),
-                const Text(
-                  'Solid: primary  ·  dashed: alternative/deferred  ·  dotted: related',
+                const Text('Pan / zoom · ↩ back-reference'),
+                IconButton(
+                  onPressed: () => _adjustZoom(1.2),
+                  icon: const Icon(Icons.zoom_in),
+                  tooltip: 'Zoom in',
+                ),
+                IconButton(
+                  onPressed: () => _adjustZoom(1 / 1.2),
+                  icon: const Icon(Icons.zoom_out),
+                  tooltip: 'Zoom out',
+                ),
+                IconButton(
+                  onPressed: _fitGraph,
+                  icon: const Icon(Icons.fit_screen_outlined),
+                  tooltip: 'Fit graph',
                 ),
                 IconButton(
                   onPressed: _centerOnCurrent,
@@ -174,28 +223,33 @@ class _JourneyGraphOverviewState extends State<JourneyGraphOverview> {
           ),
         ),
         Expanded(
-          child: ClipRect(
-            child: InteractiveViewer(
-              transformationController: _transform,
-              minScale: .45,
-              maxScale: 2.5,
-              constrained: false,
-              child: SizedBox(
-                width: canvasSize.width,
-                height: canvasSize.height,
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: _GraphEdges(
-                        model: _model,
-                        onSelected: widget.onRelationSelected,
-                      ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              _viewportSize = constraints.biggest;
+              return ClipRect(
+                child: InteractiveViewer(
+                  transformationController: _transform,
+                  minScale: .45,
+                  maxScale: 2.5,
+                  constrained: false,
+                  child: SizedBox(
+                    width: canvasSize.width,
+                    height: canvasSize.height,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: _GraphEdges(
+                            model: _model,
+                            onSelected: widget.onRelationSelected,
+                          ),
+                        ),
+                        ..._model.nodes.map((node) => _node(node)),
+                      ],
                     ),
-                    ..._model.nodes.map((node) => _node(node)),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ),
       ],
@@ -238,10 +292,13 @@ class _JourneyGraphOverviewState extends State<JourneyGraphOverview> {
                           : 'NODE',
                       style: Theme.of(context).textTheme.labelSmall,
                     ),
-                    Text(
-                      '${node['label'] ?? id}',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    Tooltip(
+                      message: '${node['label'] ?? id}',
+                      child: Text(
+                        '${node['label'] ?? id}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     Text(
                       id,
@@ -320,6 +377,28 @@ class _GraphEdgePainter extends CustomPainter {
         )
         ..close();
       canvas.drawPath(arrow, paint);
+      if (relation.isBackReference) {
+        final midpoint = Offset(
+          (start.dx + end.dx) / 2,
+          (start.dy + end.dy) / 2,
+        );
+        final label = TextPainter(
+          text: TextSpan(
+            text: '↩',
+            style: TextStyle(
+              color: colors.secondary,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        canvas.drawCircle(midpoint, 11, Paint()..color = colors.surface);
+        label.paint(
+          canvas,
+          midpoint - Offset(label.width / 2, label.height / 2),
+        );
+      }
     }
   }
 

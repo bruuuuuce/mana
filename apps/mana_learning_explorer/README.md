@@ -19,3 +19,17 @@ the existing bounded Expansion request command; it does not alter source code.
 The local macOS runner deliberately has no App Sandbox entitlement: it needs
 read access to the selected project’s `.mana` directory and source anchors.
 This is a local developer tool, not an App Store-distributed application.
+## Stress fixture
+
+For manual review of branch, cycle, shared-target, terminal, no-source, and
+source-authority states, launch the deterministic development-only fixture:
+
+```sh
+cd apps/mana_learning_explorer
+flutter run -d macos -- --project-root ../.. --mana-root ../.. --fixture test/fixtures/complex_journey_fixture.json
+```
+
+The fixture is materialized Journey JSON, uses stable IDs, and does not alter
+or persist data under `.mana`. Its alternative branch relies on the existing
+Explorer `role: alternative` convention; the persisted Journey CLI does not
+currently expose a corresponding `--role` option.

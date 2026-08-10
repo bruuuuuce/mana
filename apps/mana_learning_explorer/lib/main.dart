@@ -152,10 +152,15 @@ class ExplorerConfig {
     required this.projectRoot,
     required this.manaRoot,
     this.journeyId,
+    this.fixturePath,
   });
   final String projectRoot;
   final String manaRoot;
   final String? journeyId;
+
+  /// A materialized Journey graph for local UI review. This deliberately
+  /// bypasses persistence and is not available through the normal navigator.
+  final String? fixturePath;
 
   factory ExplorerConfig.parse(List<String> args) {
     String value(String flag, String fallback) {
@@ -194,6 +199,7 @@ class ExplorerConfig {
       projectRoot: value('--project-root', detectedProject),
       manaRoot: value('--mana-root', detectedMana),
       journeyId: args.contains('--journey') ? value('--journey', '') : null,
+      fixturePath: args.contains('--fixture') ? value('--fixture', '') : null,
     );
   }
 }
@@ -206,6 +212,12 @@ class JourneyStore {
   Directory get journeys =>
       Directory('${config.projectRoot}/.mana/learning/journeys');
   Future<List<String>> list() async {
+    final fixture = config.fixturePath;
+    if (fixture != null && fixture.isNotEmpty) {
+      final graph = JourneyGraph.decode(await File(fixture).readAsString());
+      final id = graph.raw['journey']?['id'] as String?;
+      return id == null || id.isEmpty ? [] : [id];
+    }
     if (!await journeys.exists()) return [];
     final result =
         (await journeys
@@ -219,6 +231,14 @@ class JourneyStore {
   }
 
   Future<JourneyGraph> load(String id) async {
+    final fixture = config.fixturePath;
+    if (fixture != null && fixture.isNotEmpty) {
+      final graph = JourneyGraph.decode(await File(fixture).readAsString());
+      if (graph.raw['journey']?['id'] != id) {
+        throw StateError('Fixture does not contain Journey $id.');
+      }
+      return graph;
+    }
     final result = await Process.run(
       '${config.manaRoot}/scripts/mana-journey.sh',
       ['--project-root', config.projectRoot, 'materialize', id],
@@ -228,6 +248,9 @@ class JourneyStore {
   }
 
   Stream<void> watch(String id) {
+    if (config.fixturePath != null && config.fixturePath!.isNotEmpty) {
+      return const Stream<void>.empty();
+    }
     final controller = StreamController<void>();
     final target = Directory('${journeys.path}/$id');
     _watch?.cancel();
@@ -239,6 +262,7 @@ class JourneyStore {
   }
 
   Future<List<Map<String, dynamic>>> labels(String id, String node) async {
+    if (config.fixturePath != null && config.fixturePath!.isNotEmpty) return [];
     final result =
         await Process.run('${config.manaRoot}/scripts/mana-concepts.sh', [
           '--project-root',
@@ -281,6 +305,10 @@ class JourneyStore {
     if (path == null ||
         !RegExp(r'^assets/[A-Za-z0-9._/-]+\.puml$').hasMatch(path)) {
       throw StateError('Invalid diagram asset path.');
+    }
+    final fixture = config.fixturePath;
+    if (fixture != null && fixture.isNotEmpty) {
+      return File('${File(fixture).parent.path}/$path').readAsString();
     }
     return File('${journeys.path}/$journey/$path').readAsString();
   }
@@ -506,6 +534,11 @@ class _ExplorerPageState extends State<ExplorerPage> {
         journeyId = id;
         graph = loaded;
         error = null;
+        // A source is route-owned UI state. Never let a prior Journey's
+        // resolved contents remain visible while the new initial route is
+        // being hydrated.
+        source = null;
+        labels = [];
       });
       watcher?.cancel();
       watcher = widget.store.watch(id).listen((_) => _reload());
@@ -664,6 +697,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final selected = graph!.node(selectedNode!)!;
+    final hasSelectedDiagram = graph!.diagramsFor(selectedNode!).isNotEmpty;
     return Shortcuts(
       shortcuts: const {
         SingleActivator(LogicalKeyboardKey.arrowLeft, alt: true): _BackIntent(),
@@ -742,9 +776,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   },
                 ),
                 IconButton(
-                  onPressed: () => _showDiagramAccess(selected),
+                  onPressed: hasSelectedDiagram
+                      ? () => _showDiagramAccess(selected)
+                      : null,
                   icon: const Icon(Icons.account_tree_outlined),
-                  tooltip: 'Diagram workspace (Ctrl+D)',
+                  tooltip: hasSelectedDiagram
+                      ? 'Diagram workspace (Ctrl+D)'
+                      : 'No diagram context for this node',
                 ),
                 IconButton(
                   onPressed: _toggleFocusMode,
@@ -779,33 +817,46 @@ class _ExplorerPageState extends State<ExplorerPage> {
                 ),
               ],
             ),
-            body: Row(
-              children: [
-                if (navigatorVisible) ...[
-                  SizedBox(width: 292, child: _navigatorPanel()),
-                  const VerticalDivider(width: 1),
-                ],
-                Expanded(
-                  child: viewMode == ExplorerViewMode.journey
-                      ? _sourceWorkspace(selected)
-                      : JourneyGraphOverview(
-                          graph: graph!,
-                          currentNodeId: selectedNode!,
-                          visitedNodeIds: navigation.visitedNodeIds,
-                          onNodeSelected: (nodeId) => _navigate(
-                            ExplorerRoute(
-                              journeyId: journeyId!,
-                              nodeId: nodeId,
+            body: LayoutBuilder(
+              builder: (context, constraints) {
+                // Preserve a usable central investigation surface before
+                // showing optional persistent panels. The user can still use
+                // focus mode and graph navigation at constrained widths.
+                final showInspector =
+                    inspectorVisible && constraints.maxWidth >= 1190;
+                final showNavigator =
+                    navigatorVisible &&
+                    constraints.maxWidth >= (showInspector ? 1190 : 780);
+                return Row(
+                  children: [
+                    if (showNavigator) ...[
+                      SizedBox(width: 292, child: _navigatorPanel()),
+                      const VerticalDivider(width: 1),
+                    ],
+                    Expanded(
+                      child: viewMode == ExplorerViewMode.journey
+                          ? _sourceWorkspace(selected)
+                          : JourneyGraphOverview(
+                              graph: graph!,
+                              currentNodeId: selectedNode!,
+                              visitedNodeIds: navigation.visitedNodeIds,
+                              onNodeSelected: (nodeId) => _navigate(
+                                ExplorerRoute(
+                                  journeyId: journeyId!,
+                                  nodeId: nodeId,
+                                ),
+                              ),
+                              onRelationSelected: _showGraphRelation,
+                              centerRequest: graphCenterRequest,
                             ),
-                          ),
-                          onRelationSelected: _showGraphRelation,
-                          centerRequest: graphCenterRequest,
-                        ),
-                ),
-                const VerticalDivider(width: 1),
-                if (inspectorVisible)
-                  SizedBox(width: 420, child: _inspectorPanel(selected)),
-              ],
+                    ),
+                    if (showInspector) ...[
+                      const VerticalDivider(width: 1),
+                      SizedBox(width: 420, child: _inspectorPanel(selected)),
+                    ],
+                  ],
+                );
+              },
             ),
             bottomNavigationBar: _traversalBar(),
           ),
@@ -924,9 +975,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   'Terminal point for this branch',
                 ),
               if (model.primary.isNotEmpty) ...[
-                _navigatorSection(
-                  model.primary.length == 1 ? 'CONTINUE' : 'CHOOSE NEXT',
-                ),
+                _navigatorSection('NEXT HOPS'),
                 ...model.primary.map(_navigatorItem),
               ],
               if (model.alternatives.isNotEmpty) ...[
@@ -1339,13 +1388,31 @@ class _ExplorerPageState extends State<ExplorerPage> {
         ...relations.map(
           (relation) => Opacity(
             opacity: subdued ? .68 : 1,
-            child: title == 'CONTINUE'
+            child: title == 'CONTINUE' || title == 'CHOOSE NEXT'
                 ? Card(
-                    color: Theme.of(context).colorScheme.primaryContainer,
+                    color: title == 'CONTINUE'
+                        ? Theme.of(context).colorScheme.primaryContainer
+                        : Theme.of(context).colorScheme.secondaryContainer,
                     child: ListTile(
-                      leading: const Icon(Icons.arrow_forward),
-                      title: Text('Continue to ${relation.label}'),
-                      subtitle: Text('${relation.kind} • ${relation.targetId}'),
+                      leading: Icon(
+                        title == 'CONTINUE'
+                            ? Icons.arrow_forward
+                            : Icons.alt_route_outlined,
+                      ),
+                      title: Text(
+                        title == 'CONTINUE'
+                            ? 'Continue to ${relation.label}'
+                            : 'Choose ${relation.label}',
+                      ),
+                      subtitle: Text(
+                        [
+                          relation.kind,
+                          if (relation.edge['rationale'] is String &&
+                              (relation.edge['rationale'] as String).isNotEmpty)
+                            relation.edge['rationale'] as String,
+                          relation.targetId,
+                        ].join(' • '),
+                      ),
                       onTap: () => _navigate(
                         ExplorerRoute(
                           journeyId: journeyId!,
@@ -1520,14 +1587,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   void _showDiagramAccess(Map<String, dynamic> node) {
     final diagrams = graph!.diagramsFor(node['id'] as String);
-    if (diagrams.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No diagram context is mapped to this node.'),
-        ),
-      );
-      return;
-    }
+    if (diagrams.isEmpty) return;
     _openDiagram(diagrams.first);
   }
 
@@ -2162,14 +2222,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
         ? null
         : graph!.anchorsFor(node['id'] as String).first;
     if (anchor == null) {
-      return Column(
-        children: [
-          _sourceHeader(null),
-          const Expanded(
-            child: Center(child: Text('No source anchor for this node.')),
-          ),
-        ],
-      );
+      return _nodeOverviewWorkspace(node);
     }
     final resolved = source;
     return Column(
@@ -2213,6 +2266,101 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   tabSize: widget.preferences.tabSize,
                   wordWrap: widget.preferences.wordWrap,
                 ),
+        ),
+      ],
+    );
+  }
+
+  /// An anchorless node is a normal Journey state, not an empty or failed
+  /// source view. Keep the central workspace useful while preserving the fact
+  /// that no source or evidence has been fabricated for it.
+  Widget _nodeOverviewWorkspace(Map<String, dynamic> node) {
+    final nodeId = node['id'] as String;
+    final model = InvestigationInspectorModel.build(
+      graph: graph!,
+      nodeId: nodeId,
+      projectRoot: widget.store.config.projectRoot,
+    );
+    final hasCycle =
+        graph!.raw['cycle_regions'] is List &&
+        (graph!.raw['cycle_regions'] as List).any(
+          (region) =>
+              region is Map &&
+              ((region['node_ids'] as List? ?? const []).contains(nodeId)),
+        );
+    return Column(
+      children: [
+        _sourceHeader(null),
+        Expanded(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: Padding(
+                padding: const EdgeInsets.all(28),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.article_outlined, size: 30),
+                            SizedBox(width: 12),
+                            Text('NODE OVERVIEW'),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        Text(
+                          node['label'] as String? ?? nodeId,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'State: ${node['state'] ?? 'discovered'} • No source anchor recorded',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          model.isTerminal
+                              ? 'This is a terminal node; use Back or select another known traversal.'
+                              : '${model.cameFrom.length} incoming • ${model.primary.length} primary next • ${model.alternatives.length} alternative • ${model.deferred.length} deferred',
+                        ),
+                        if (hasCycle) ...[
+                          const SizedBox(height: 8),
+                          const Text(
+                            'This node belongs to a recorded cycle. Revisiting it does not create a new graph node.',
+                          ),
+                        ],
+                        const SizedBox(height: 20),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 8,
+                          children: [
+                            FilledButton.icon(
+                              onPressed: () => setState(() {
+                                viewMode = ExplorerViewMode.graph;
+                                graphCenterRequest++;
+                              }),
+                              icon: const Icon(Icons.account_tree_outlined),
+                              label: const Text('Locate in graph'),
+                            ),
+                            if (navigation.canGoBack)
+                              OutlinedButton.icon(
+                                onPressed: _goBack,
+                                icon: const Icon(Icons.arrow_back),
+                                label: const Text('Back to previous node'),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     );
