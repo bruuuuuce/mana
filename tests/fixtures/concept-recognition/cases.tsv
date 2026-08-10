@@ -1,0 +1,5 @@
+id	snippet	expected_id	category
+case-01	The provider abstraction chooses an interchangeable strategy at runtime.	cpt_005	design-pattern
+case-02	The Spring @Transactional method is wrapped by a transaction proxy.	cpt_008	framework
+case-03	A mutable borrow is checked by the Rust borrow checker.	cpt_009	language
+case-04	A lock protects the critical section from concurrent access.	cpt_004	concurrency

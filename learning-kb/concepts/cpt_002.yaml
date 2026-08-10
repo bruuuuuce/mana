@@ -1,0 +1,1 @@
+{"schema":"mana.learning.concept/v1","id":"cpt_002","key":"information-hiding","category":"object-oriented","aliases":["encapsulation","hide implementation details"],"hint":"Keeps implementation decisions behind a stable interface.","languages":[],"frameworks":[]}

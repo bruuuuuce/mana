@@ -1,0 +1,1 @@
+{"schema":"mana.learning.concept/v1","id":"cpt_003","key":"functional-composition","category":"functional","aliases":["function composition","compose functions","pipeline"],"hint":"Builds behavior by combining small functions.","languages":[],"frameworks":[]}

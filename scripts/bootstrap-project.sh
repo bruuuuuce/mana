@@ -258,6 +258,10 @@ Usage:
   ./mana context <cmd> [args...]         Inspect or refresh optional User Context.
   ./mana doctor [args...]                Diagnose Mana and this linked project.
   ./mana learning <cmd> [args...]        Inspect governed learning candidates.
+  ./mana journey <cmd> [args...]         Create and inspect append-only Learning Journeys.
+  ./mana concepts <cmd> [args...]        Query/validate the Learning Concept Registry.
+  ./mana scout <cmd> [args...]           Scout or harden a bounded Learning Journey.
+  ./mana expand <cmd> [args...]          Add a bounded explanation enrichment to a Journey node.
   ./mana user-learning <cmd> [args...]   Capture, aggregate, or synthesize external User Learning proposals.
   ./mana eval run [scenario] [opts]       Run deterministic behavioural evaluations.
   ./mana eval compare <base> <candidate>  Compare persisted evaluation results.
@@ -286,6 +290,11 @@ Examples:
   ./mana context status
   ./mana context refresh
   ./mana learning candidates
+  ./mana journey create --title "Trace request" --start-kind http_endpoint --start-value "POST /x" --termination-kind runtime_effect --termination-condition committed
+  ./mana concepts candidates --language java --framework spring
+  ./mana scout request --title "Trace payment" --path /payments
+  ./mana scout harden jrn_0123456789abcdef01234567
+  ./mana expand request --journey jrn_0123456789abcdef01234567 --node jn_0123456789abcdef01234567
   ./mana user-learning capture
   ./mana user-learning aggregate
   ./mana user-learning synthesize --dry-run
@@ -328,6 +337,18 @@ USAGE
     ;;
   learning)
     exec "$MANA_HOME/scripts/mana-learning.sh" --project-root "$project_root" "$@"
+    ;;
+  journey)
+    exec "$MANA_HOME/scripts/mana-journey.sh" --project-root "$project_root" "$@"
+    ;;
+  concepts)
+    exec "$MANA_HOME/scripts/mana-concepts.sh" --project-root "$project_root" "$@"
+    ;;
+  scout)
+    exec "$MANA_HOME/scripts/mana-scout.sh" --project-root "$project_root" "$@"
+    ;;
+  expand)
+    exec "$MANA_HOME/scripts/mana-expand.sh" --project-root "$project_root" "$@"
     ;;
   user-learning)
     exec "$MANA_HOME/scripts/mana-user-learning.sh" --project-root "$project_root" "$@"

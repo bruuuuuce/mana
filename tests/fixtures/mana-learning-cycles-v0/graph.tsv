@@ -1,0 +1,24 @@
+# kind<TAB>logical label<TAB>target label (for edge rows)<TAB>edge kind
+node	RetryDispatcher
+node	RetryAttempt
+edge	RetryDispatcher	RetryAttempt	CALLS
+edge	RetryAttempt	RetryDispatcher	CALLS
+node	PollingTick
+node	PollingFetch
+edge	PollingTick	PollingFetch	EXECUTES
+edge	PollingFetch	PollingTick	RETURNS_TO
+node	EventConsumer
+node	EventPublisher
+edge	EventConsumer	EventPublisher	EXECUTES
+edge	EventPublisher	EventConsumer	EXECUTES
+node	RecursiveCall
+edge	RecursiveCall	RecursiveCall	CALLS
+node	StateTransitionOpen
+node	StateTransitionClosed
+edge	StateTransitionOpen	StateTransitionClosed	CALLS
+edge	StateTransitionClosed	StateTransitionOpen	CALLS
+node	JoinLeft
+node	JoinRight
+node	JoinTarget
+edge	JoinLeft	JoinTarget	RETURNS_TO
+edge	JoinRight	JoinTarget	RETURNS_TO

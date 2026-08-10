@@ -1,0 +1,1 @@
+{"schema":"mana.learning.concept/v1","id":"cpt_004","key":"synchronization","category":"concurrency","aliases":["mutual exclusion","lock","critical section"],"hint":"Coordinates concurrent access to shared state.","languages":[],"frameworks":[]}

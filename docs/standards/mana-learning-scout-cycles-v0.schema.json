@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/schemas/mana-learning-scout-cycles-v0.schema.json",
+  "title": "Mana Learning Scout Cycle hardening v0 report",
+  "type": "object",
+  "required": ["schema", "journey_id", "status", "stop_reason", "detected", "budget"],
+  "properties": {
+    "schema": {"const": "mana.learning.cycle-report/v1"},
+    "journey_id": {"type": "string", "pattern": "^jrn_[a-f0-9]{24}$"},
+    "status": {"enum": ["completed", "budget_exceeded"]},
+    "stop_reason": {"type": ["null", "string"], "enum": [null, "max_cycle_regions", "max_cycle_members", "max_back_edges"]},
+    "detected": {"type": "object", "required": ["cycle_regions", "cycle_members", "back_edges", "joins"], "properties": {"cycle_regions": {"type": "integer", "minimum": 0}, "cycle_members": {"type": "integer", "minimum": 0}, "back_edges": {"type": "integer", "minimum": 0}, "joins": {"type": "array"}}},
+    "budget": {"type": "object", "required": ["max_cycle_regions", "max_cycle_members", "max_back_edges"], "properties": {"max_cycle_regions": {"type": "integer", "minimum": 1}, "max_cycle_members": {"type": "integer", "minimum": 1}, "max_back_edges": {"type": "integer", "minimum": 1}}}
+  }
+}

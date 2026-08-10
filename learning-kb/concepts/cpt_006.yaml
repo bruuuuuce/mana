@@ -1,0 +1,1 @@
+{"schema":"mana.learning.concept/v1","id":"cpt_006","key":"hexagonal-architecture","category":"architecture-pattern","aliases":["ports and adapters","clean architecture"],"hint":"Separates domain behavior from infrastructure adapters.","languages":[],"frameworks":[]}

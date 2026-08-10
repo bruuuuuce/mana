@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/schemas/mana-learning-expansion-v0.schema.json",
+  "title": "Mana Learning Expansion v0 request",
+  "type": "object",
+  "required": ["schema", "id", "journey_id", "subject_node_id", "kind", "budget"],
+  "properties": {
+    "schema": {"const": "mana.learning.expansion-request/v1"},
+    "id": {"type": "string", "pattern": "^exr_[a-f0-9]{24}$"},
+    "journey_id": {"type": "string", "pattern": "^jrn_[a-f0-9]{24}$"},
+    "subject_node_id": {"type": "string", "pattern": "^jn_[a-f0-9]{24}$"},
+    "kind": {"const": "explanation"},
+    "budget": {"type": "object", "required": ["max_context_lines", "max_evidence", "max_related_nodes"], "properties": {"max_context_lines": {"type": "integer", "minimum": 1}, "max_evidence": {"type": "integer", "minimum": 1}, "max_related_nodes": {"type": "integer", "minimum": 1}}}
+  }
+}
