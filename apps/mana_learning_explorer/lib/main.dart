@@ -22,6 +22,8 @@ import 'package:re_highlight/styles/atom-one-light.dart';
 import 'journey_graph.dart';
 import 'explorer_navigation.dart';
 import 'architecture_context.dart';
+import 'diagram_detachment.dart';
+import 'diagram_workspace.dart';
 import 'investigation_inspector.dart';
 import 'journey_navigator.dart';
 import 'source_workspace.dart';
@@ -419,6 +421,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
   bool inspectorVisible = true;
   final TraversalState navigation = TraversalState();
   final DiagramViewState diagramViewState = DiagramViewState();
+  final ValueNotifier<ExplorerRoute?> currentRoute = ValueNotifier(null);
+  final DiagramWindowState diagramWindowState = DiagramWindowState();
 
   String? get selectedNode => navigation.current?.nodeId;
 
@@ -431,6 +435,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   void dispose() {
     watcher?.cancel();
+    currentRoute.dispose();
+    diagramWindowState.dispose();
     super.dispose();
   }
 
@@ -466,6 +472,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
         if (current?.journeyId != id) {
           navigation.reset(ExplorerRoute(journeyId: id, nodeId: nextNode));
         }
+        currentRoute.value = navigation.current;
         await _hydrateRoute(navigation.current!);
       }
     } catch (exception) {
@@ -481,6 +488,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     if (graph == null || route.journeyId != journeyId) return;
     if (graph!.node(route.nodeId) == null) return;
     if (!navigation.navigate(route)) return;
+    currentRoute.value = navigation.current;
     setState(() {
       source = null;
       labels = [];
@@ -526,6 +534,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Future<void> _goBack() async {
     final route = navigation.back();
     if (route == null) return;
+    currentRoute.value = route;
     setState(() {
       source = null;
       labels = [];
@@ -536,6 +545,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Future<void> _goForward() async {
     final route = navigation.forward();
     if (route == null) return;
+    currentRoute.value = route;
     setState(() {
       source = null;
       labels = [];
@@ -1145,64 +1155,31 @@ class _ExplorerPageState extends State<ExplorerPage> {
   }
 
   Future<void> _openDiagram(Map<String, dynamic> diagram) async {
-    try {
-      final contents = await widget.store.loadDiagram(journeyId!, diagram);
-      final nodeIds = (diagram['node_ids'] as List? ?? []).cast<String>();
-      if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(diagram['title'] as String? ?? 'Journey diagram'),
-          content: SizedBox(
-            width: 720,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Mapped Journey nodes'),
-                  Wrap(
-                    spacing: 8,
-                    children: nodeIds
-                        .map(
-                          (id) => ActionChip(
-                            label: Text(id),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _navigate(
-                                ExplorerRoute(
-                                  journeyId: journeyId!,
-                                  nodeId: id,
-                                ),
-                              );
-                            },
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  const SizedBox(height: 12),
-                  SelectableText(
-                    contents,
-                    style: const TextStyle(fontFamily: 'monospace'),
-                  ),
-                ],
-              ),
-            ),
+    if (graph == null || currentRoute.value == null) return;
+    final related = graph!.diagramsFor(currentRoute.value!.nodeId);
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(diagram['title'] as String? ?? 'Diagram Workspace'),
+        content: SizedBox(
+          width: 1100,
+          height: 760,
+          child: DiagramWorkspace(
+            graph: graph!,
+            diagrams: related.isEmpty ? [diagram] : related,
+            currentRoute: currentRoute,
+            onNavigate: _navigate,
+            windowState: diagramWindowState,
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
-            ),
-          ],
         ),
-      );
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.toString())));
-      }
-    }
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showDiagramAccess(Map<String, dynamic> node) {
