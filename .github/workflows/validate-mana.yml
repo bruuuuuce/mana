@@ -20,6 +20,16 @@ jobs:
         run: scripts/mana-doctor.sh
       - name: User Context Layer
         run: tests/user-context.sh
+      - name: User Learning Capture
+        run: tests/user-learning.sh
+      - name: User Learning Aggregation
+        run: tests/user-learning-aggregation.sh
+      - name: User Learning Synthesis
+        run: tests/user-learning-synthesis.sh
+      - name: User Learning Review
+        run: tests/user-learning-review.sh
+      - name: User Learning end-to-end acceptance
+        run: tests/user-learning-e2e.sh
       - name: Verification Skills
         run: tests/verification-skills.sh
       - name: Provider dispatch

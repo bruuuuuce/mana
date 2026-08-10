@@ -6,12 +6,13 @@ use IO::Select;
 use POSIX qw(:sys_wait_h setsid WIFEXITED WEXITSTATUS WIFSIGNALED WTERMSIG);
 use Time::HiRes qw(time sleep);
 
-my ($timeout, $cap, $stdout_path, $stderr_path, $status_path);
+my ($timeout, $cap, $stderr_cap, $stdout_path, $stderr_path, $status_path);
 while (@ARGV) {
     my $arg = shift @ARGV;
     last if $arg eq '--';
     if ($arg eq '--timeout') { $timeout = shift @ARGV; next; }
     if ($arg eq '--output-cap') { $cap = shift @ARGV; next; }
+    if ($arg eq '--stderr-cap') { $stderr_cap = shift @ARGV; next; }
     if ($arg eq '--stdout') { $stdout_path = shift @ARGV; next; }
     if ($arg eq '--stderr') { $stderr_path = shift @ARGV; next; }
     if ($arg eq '--status') { $status_path = shift @ARGV; next; }
@@ -20,6 +21,8 @@ while (@ARGV) {
 die "invalid supervisor arguments\n" unless defined($timeout) && $timeout =~ /^\d+$/ && $timeout > 0
     && defined($cap) && $cap =~ /^\d+$/ && $cap >= 0
     && defined($stdout_path) && defined($stderr_path) && defined($status_path) && @ARGV;
+$stderr_cap = $cap unless defined $stderr_cap;
+die "invalid stderr cap\n" unless $stderr_cap =~ /^\d+$/ && $stderr_cap >= 0;
 
 open my $saved_out, '>:raw', $stdout_path or die "open stdout artifact: $!\n";
 open my $saved_err, '>:raw', $stderr_path or die "open stderr artifact: $!\n";
@@ -62,6 +65,7 @@ my $selector = IO::Select->new($out_read, $err_read);
 my %kind = (fileno($out_read) => 'stdout', fileno($err_read) => 'stderr');
 my %bytes = (stdout => 0, stderr => 0);
 my %kept = (stdout => 0, stderr => 0);
+my %cap_for = (stdout => $cap, stderr => $stderr_cap);
 my %sink = (stdout => $saved_out, stderr => $saved_err);
 my ($wait_status, $leader_done, $timed_out, $descendants_terminated) = (0, 0, 0, 0);
 
@@ -81,7 +85,7 @@ sub drain_ready {
         if ($read == 0) { $selector->remove($handle); close $handle; next; }
         my $stream = $kind{fileno($handle)};
         $bytes{$stream} += $read;
-        my $remaining = $cap - $kept{$stream};
+        my $remaining = $cap_for{$stream} - $kept{$stream};
         if ($remaining > 0) {
             my $piece = substr($buffer, 0, $remaining);
             print { $sink{$stream} } $piece or die "write bounded output: $!\n";

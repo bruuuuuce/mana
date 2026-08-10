@@ -61,8 +61,12 @@ The internal directory structure is not prescribed.
 `mana context refresh` builds a filtered staging tree and replaces the generated
 `.mana/user-context/` mirror only after the complete copy succeeds. A digest
 makes unchanged refreshes idempotent. Full replacement removes files deleted
-from the source. The external source is never modified, and symlinks are not
-followed or copied.
+from the source. The external source is never modified by normal context
+commands, and symlinks are not followed or copied. The narrow exception is an
+explicit M4 `mana user-learning promote <review-id>` action: it atomically
+publishes an ownership-marked file under `learned/` in the configured source,
+then invokes this same refresh path. Runners and normal context commands still
+treat the external source as read-only.
 
 Refreshes are serialized per project. Abandoned staging data is removed and a
 single previous complete tree is recovered after an interrupted replacement.

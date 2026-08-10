@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mana UserChoiceSignal v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "signalId", "sourceProject", "sourceDecision", "provenance", "capture"],
+  "properties": {
+    "schemaVersion": {"const": "2"},
+    "signalId": {"type": "string", "pattern": "^user-choice-[0-9a-f]{64}$", "description": "Identifies the governed source decision, not this signal payload or capture metadata."},
+    "sourceProject": {
+      "type": "object", "additionalProperties": false,
+      "required": ["projectId", "repositoryRoot"],
+      "properties": {"projectId": {"type": "string", "pattern": "^project-[0-9a-f]{64}$"}, "repositoryRoot": {"type": "string", "pattern": "^/"}}
+    },
+    "sourceDecision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reference", "logPath", "line", "choiceOrdinal", "status", "subject", "confirmedChoice", "confirmedBy"],
+      "properties": {
+        "reference": {"type": "string"}, "logPath": {"type": "string", "pattern": "^\\.mana/"}, "line": {"type": "integer", "minimum": 1},
+        "choiceOrdinal": {"type": "integer", "minimum": 1, "description": "Stable source-decision identity within the canonical Choices table."}, "status": {"const": "confirmed"},
+        "subject": {"type": "string", "minLength": 1}, "confirmedChoice": {"type": "string", "minLength": 1}, "confirmedBy": {"type": "string", "minLength": 1},
+        "decisionDate": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"}, "story": {"type": "string", "minLength": 1}, "area": {"type": "string", "minLength": 1}
+      }
+    },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sourceType", "sourceArtifact", "evidence"],
+      "properties": {
+        "sourceType": {"const": "developer-choice-log"},
+        "sourceArtifact": {"type": "object", "additionalProperties": false, "required": ["path", "sha256"], "properties": {"path": {"type": "string", "pattern": "^\\.mana/"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}},
+        "evidence": {"type": "array", "maxItems": 1, "items": {"type": "string", "minLength": 1}}, "followUp": {"type": "string", "minLength": 1}
+      }
+    },
+    "capture": {
+      "type": "object", "additionalProperties": false,
+      "required": ["processor", "modelCalls", "capturedAt"],
+      "properties": {"processor": {"const": "deterministic-developer-choice-log-v1"}, "modelCalls": {"const": 0}, "capturedAt": {"type": "string", "format": "date-time"}}
+    }
+  }
+}

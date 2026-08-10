@@ -419,3 +419,10 @@ can be inspected as governed, project-local learning candidates with
 `mana learning candidates`; candidates are never automatically promoted. See
 [controlled explorer retrieval](docs/workflow/controlled-explorer-retrieval.md)
 and [governed learning signals](docs/workflow/governed-learning-signals.md).
+Explicit confirmed Developer Choice Log rows can separately be captured into
+host-owned User Learning state with `mana user-learning capture`, then
+deterministically aggregated with `mana user-learning aggregate`. Bounded T1
+proposal synthesis is available through `mana user-learning synthesize`; it
+never promotes or modifies User Context. A separate explicit human
+review-and-promotion command is required to publish approved guidance. See
+[User Learning](docs/workflow/user-learning.md).

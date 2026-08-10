@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mana UserContextCandidateReview v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "kind", "reviewId", "candidateId", "candidateInputFingerprint", "action", "reviewedGuidance", "reviewedScope", "reviewedAt", "toolVersion", "modelCalls"],
+  "properties": {
+    "schemaVersion": {"const": "1"}, "kind": {"const": "user-context-candidate-review"},
+    "reviewId": {"type": "string", "pattern": "^review-[0-9a-f]{64}$"},
+    "candidateId": {"type": "string", "pattern": "^user-context-candidate-[0-9a-f]{64}$"},
+    "candidateInputFingerprint": {"type": "string", "pattern": "^m3-input-[0-9a-f]{64}$"},
+    "action": {"enum": ["ACCEPT", "EDIT_AND_ACCEPT", "REJECT", "DEFER"]},
+    "reviewedGuidance": {"type": ["string", "null"], "maxLength": 600},
+    "reviewedScope": {"type": ["string", "null"], "maxLength": 120},
+    "reviewedAt": {"type": "string", "format": "date-time"},
+    "toolVersion": {"const": "m4-human-review-v1"}, "modelCalls": {"const": 0}
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mana RecurringEvidenceCluster v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "clusterId", "aggregationKey", "supportingSignalIds", "supportingProjectIds", "occurrenceCount", "distinctProjectCount", "alternativeConfirmedEvidence", "derivation"],
+  "properties": {
+    "schemaVersion": {"const": "1"},
+    "clusterId": {"type": "string", "pattern": "^cluster-[0-9a-f]{64}$", "description": "Identifies the deterministic aggregation key, not its current supporting membership."},
+    "aggregationKey": {
+      "type": "object", "additionalProperties": false,
+      "required": ["aggregationVersion", "normalizedSubject", "normalizedConfirmedChoice"],
+      "properties": {"aggregationVersion": {"const": "1"}, "normalizedSubject": {"type": "string", "minLength": 1}, "normalizedConfirmedChoice": {"type": "string", "minLength": 1}}
+    },
+    "supportingSignalIds": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^user-choice-[0-9a-f]{64}$"}},
+    "supportingProjectIds": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^project-[0-9a-f]{64}$"}},
+    "occurrenceCount": {"type": "integer", "minimum": 1},
+    "distinctProjectCount": {"type": "integer", "minimum": 1},
+    "alternativeConfirmedEvidence": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["normalizedConfirmedChoice", "supportingSignalIds", "supportingProjectIds"], "properties": {"normalizedConfirmedChoice": {"type": "string", "minLength": 1}, "supportingSignalIds": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^user-choice-[0-9a-f]{64}$"}}, "supportingProjectIds": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^project-[0-9a-f]{64}$"}}}}},
+    "derivation": {"type": "object", "additionalProperties": false, "required": ["processor", "aggregationVersion", "normalization", "modelCalls"], "properties": {"processor": {"const": "deterministic-user-learning-aggregation-v1"}, "aggregationVersion": {"const": "1"}, "normalization": {"const": "trim-collapse-whitespace-preserve-case-v1"}, "modelCalls": {"const": 0}}}
+  }
+}

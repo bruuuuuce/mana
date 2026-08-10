@@ -258,6 +258,7 @@ Usage:
   ./mana context <cmd> [args...]         Inspect or refresh optional User Context.
   ./mana doctor [args...]                Diagnose Mana and this linked project.
   ./mana learning <cmd> [args...]        Inspect governed learning candidates.
+  ./mana user-learning <cmd> [args...]   Capture, aggregate, or synthesize external User Learning proposals.
   ./mana eval run [scenario] [opts]       Run deterministic behavioural evaluations.
   ./mana eval compare <base> <candidate>  Compare persisted evaluation results.
   ./mana verify [opts]                   Run deterministic Verification Skills.
@@ -285,6 +286,12 @@ Examples:
   ./mana context status
   ./mana context refresh
   ./mana learning candidates
+  ./mana user-learning capture
+  ./mana user-learning aggregate
+  ./mana user-learning synthesize --dry-run
+  ./mana user-learning candidates
+  ./mana user-learning review <candidate-id> --accept
+  ./mana user-learning promote <review-id>
   ./mana eval run conditional-contract-pr
   ./mana verify --dry-run --explain
   ./mana repair --from <result.json> --check <id> --allow-path <file> --runner codex --once --dry-run
@@ -321,6 +328,9 @@ USAGE
     ;;
   learning)
     exec "$MANA_HOME/scripts/mana-learning.sh" --project-root "$project_root" "$@"
+    ;;
+  user-learning)
+    exec "$MANA_HOME/scripts/mana-user-learning.sh" --project-root "$project_root" "$@"
     ;;
   eval)
     exec "$MANA_HOME/scripts/mana-eval.sh" --project-root "$project_root" "$@"
