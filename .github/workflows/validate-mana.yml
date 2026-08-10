@@ -18,3 +18,43 @@ jobs:
         env:
           MANA_UPDATE_CHECK: off
         run: scripts/mana-doctor.sh
+      - name: User Context Layer
+        run: tests/user-context.sh
+      - name: User Learning Capture
+        run: tests/user-learning.sh
+      - name: User Learning Aggregation
+        run: tests/user-learning-aggregation.sh
+      - name: User Learning Synthesis
+        run: tests/user-learning-synthesis.sh
+      - name: User Learning Review
+        run: tests/user-learning-review.sh
+      - name: User Learning end-to-end acceptance
+        run: tests/user-learning-e2e.sh
+      - name: Mana Journey Model v0
+        run: tests/mana-journey.sh
+      - name: Mana Concept Registry v0
+        run: tests/mana-concepts.sh
+      - name: Mana Concept tagging and teaching v0
+        run: tests/mana-concept-tagging.sh
+      - name: Mana Scout v0
+        run: tests/mana-scout.sh
+      - name: Mana Scout cycle hardening v0
+        run: tests/mana-scout-cycles.sh
+      - name: Mana Expansion v0
+        run: tests/mana-expand.sh
+      - name: Mana rationale v0
+        run: tests/mana-rationale.sh
+      - name: Mana Git archaeology v0
+        run: tests/mana-history.sh
+      - name: Mana diagram enrichment v0
+        run: tests/mana-diagram.sh
+      - name: Verification Skills
+        run: tests/verification-skills.sh
+      - name: Provider dispatch
+        run: tests/provider-dispatch.sh
+      - name: Repair containment
+        run: tests/repair-containment.sh
+      - name: Bounded repair once
+        run: tests/bounded-repair.sh
+      - name: Bounded repair loop
+        run: tests/bounded-repair-loop.sh

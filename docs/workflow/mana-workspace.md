@@ -4,6 +4,11 @@ The Mana workspace is the project-local evidence store used by this framework. E
 
 The workspace is not a replacement for Git, Jira, Confluence, CI, or code review. It is a structured local trace that makes AI-assisted delivery reproducible and auditable.
 
+The optional generated `.mana/user-context/` mirror is a separate User Context
+Layer. It contains filtered reusable personal guidance and is neither a feature
+workspace nor project-owned Service Context. See
+[`user-context-layer.md`](user-context-layer.md).
+
 ## Goals
 - Keep all story, branch, and session artifacts in one predictable location.
 - Preserve partial agent memory without mixing it with source code.
@@ -140,6 +145,7 @@ Each feature or session workspace should use this internal layout:
     jira/
     sonar/
     dependencies/
+    verification/
   tests/
     green-border-plan.md
     green-border-report.md

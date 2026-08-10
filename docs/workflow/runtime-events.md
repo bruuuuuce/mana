@@ -22,6 +22,13 @@ artifact, and approval-recorded events are intentionally deferred: current
 runners do not expose a safe structured callback for them, and Mana will not
 infer them from model transcripts.
 
+Deterministic `mana verify` executions use the same envelope with
+`verification.started`, `check.started`, `check.passed`, `check.failed`,
+`check.blocked`, `check.inconclusive`, `evidence.created`, and
+`verification.completed`. These events contain operational metadata and links
+only. The canonical verification result under the active workspace remains
+delivery evidence and is not duplicated into runtime telemetry.
+
 No event stores prompts, model responses, reasoning, environment variables,
 credentials, tokens, source contents, arbitrary tool payloads, or unnecessary
 personal data. Attributes accept only compact operational `key=value` facts;

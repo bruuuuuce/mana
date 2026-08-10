@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "skill_id": "java-targeted-build-verification",
+  "applicability": {
+    "all": [
+      {"type": "repository_available"},
+      {"type": "manifest_exists", "paths": ["pom.xml", "build.gradle", "build.gradle.kts"]}
+    ],
+    "any": [
+      {"type": "changed_extension", "extensions": ["java", "kt"]}
+    ]
+  },
+  "checks": [
+    {
+      "id": "java-approved-test",
+      "adapter": "java_approved_test",
+      "scope": "changed_modules",
+      "required": true,
+      "timeout_seconds": 900,
+      "cost": "expensive",
+      "trust_origin": "project_approved",
+      "effects": {
+        "source_tree": "none",
+        "mana_workspace": "write",
+        "build_outputs": "write",
+        "external_state": "isolated_test_write",
+        "network": "declared"
+      }
+    }
+  ],
+  "success": {
+    "requires": ["java-approved-test"],
+    "accepted_results": ["passed"]
+  },
+  "limits": {
+    "max_checks": 1,
+    "max_seconds": 900,
+    "max_output_bytes": 16384
+  }
+}

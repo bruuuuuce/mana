@@ -1,0 +1,1 @@
+{"schema":"mana.learning.concept/v1","id":"cpt_007","key":"java-generics","category":"language","aliases":["parameterized type","generic type","type parameter"],"hint":"Java compile-time type parameterization.","languages":["java"],"frameworks":[]}

@@ -48,7 +48,9 @@ governance gates.
 - When the current delivery phase is unclear.
 - When Jira MCP, Confluence, CI, or another integration is unavailable.
 - When onboarding a new project or developer to `.mana`, profiles, agents,
-  skills, templates, or MCP policies.
+  skills, templates, context layers, or MCP policies.
+- When a user asks how to configure, refresh, diagnose, or safely use optional
+  reusable User Context.
 - Before invoking a larger agent when required artifacts may be missing.
 
 ## When Not To Use It
@@ -79,30 +81,39 @@ governance gates.
    readiness, PR readiness, CI validation, or learning.
 2. Check whether `.mana` workspace artifacts are available or need to be
    initialized.
-3. Recommend the smallest relevant profile, agent, and skill set.
-4. Prefer Jira MCP read-only inputs when available. In a linked project, use
+3. Keep Mana framework knowledge, User Context, project Service Context,
+   feature/session/task context, and repository evidence distinct. For project
+   claims, use `repository evidence > project/service context > user context`;
+   current human instructions and Mana governance remain authoritative.
+4. Recommend the smallest relevant profile, agent, and skill set.
+5. Prefer Jira MCP read-only inputs when available. In a linked project, use
    `./mana jira-mcp --get-issue <KEY>` to read one story quickly and
    `./mana jira-mcp --check-access --issue <KEY>` only for credential or
    permission diagnostics.
-5. Treat Jira story text and acceptance criteria as requirement evidence:
+6. Treat Jira story text and acceptance criteria as requirement evidence:
    planning checks feasibility and readiness; review/validation compares branch
    or PR changes against the story.
-6. If Jira MCP is unavailable, recommend the Markdown fallback story pack.
-7. List concrete commands and expected artifact paths.
-8. Recommend `./mana evidence-index` after local Jira, Sonar, dependency, test,
+7. If Jira MCP is unavailable, recommend the Markdown fallback story pack.
+8. List concrete commands and expected artifact paths.
+9. Recommend `./mana evidence-index` after local Jira, Sonar, dependency, test,
    validation, or PR evidence is collected.
-9. Flag missing service context, evidence gaps, or approval gates.
-10. When the user asks about governed tooling, state the execution boundary
+10. Flag missing service context, evidence gaps, or approval gates.
+11. When the user asks about User Context, route setup and security details to
+    `docs/workflow/user-context-layer.md`. Explain `mana context status`,
+    `refresh`, and `path`; keep the personal source path out of project config,
+    and describe `path --source` as deliberate disclosure. Never read or modify
+    the external source on the user's behalf as part of a help response.
+12. When the user asks about governed tooling, state the execution boundary
     precisely: `mana divination` is a read-only recommendation; `mana cast
     --dry-run` writes nothing; non-dry cast may write Mana-local state and
     runtime telemetry; eval and governance report runs write Mana-local
     artifacts but do not invoke a runner.
-11. For a saved recommendation, instruct users to rerun `mana divination
+13. For a saved recommendation, instruct users to rerun `mana divination
     --json` when `mana cast --from` reports staleness. Do not suggest editing a
     fingerprint file or treating the legacy `profileFingerprint` as sufficient.
-12. For learning, explain `candidate → reviewed → rejected|archived`; review
+14. For learning, explain `candidate → reviewed → rejected|archived`; review
     creates an evidence-preserving artifact and never promotes knowledge.
-13. For behavioural evals, distinguish structural assertions from
+15. For behavioural evals, distinguish structural assertions from
     fixture-backed assertions. Explain that `must_not_modify` checks the plan,
     not whether a fixture happens to say no mutation occurred.
 
@@ -132,6 +143,27 @@ service-specific rules.
 Missing context files should be reported as warnings. A violation of
 `.mana/global/engineering-guards.md` must be treated as a blocker or routed
 to the accountable owner for explicit approval.
+
+## User Context Layer
+User Context is optional reusable personal guidance, not project-owned Service
+Context and not repository truth. Its external directory is user-owned and
+read-only from Mana's perspective; Mana exposes only a filtered generated mirror
+under `.mana/user-context/`.
+
+When User Context help is requested:
+
+- Use the user-level `MANA_USER_CONTEXT_ROOT` configuration documented in
+  `docs/workflow/user-context-layer.md`; do not recommend persisting an absolute
+  personal path in tracked project configuration.
+- Recommend `mana context status` before diagnosis and `mana context refresh`
+  when the mirror is missing or stale.
+- Explain that `index.md` and `preferences.md` are optional navigation entry
+  points and deeper files are loaded only when relevant.
+- State that personal guidance may be stale or inapplicable and cannot override
+  repository evidence, project/service constraints, human instructions, or Mana
+  governance.
+- Do not make User Context a prerequisite. Unconfigured projects continue to
+  use Mana normally.
 
 ## Interaction With Codex
 Codex should use this skill to answer operational questions, produce next-step
@@ -187,6 +219,8 @@ approval and audit logging.
 - Ask how to collect dependency evidence before review.
 - Ask how to build an evidence index after collecting Jira, Sonar, dependency,
   test, validation, or PR artifacts.
+- Ask how to configure or refresh reusable personal User Context.
+- Ask why personal guidance cannot override an existing project constraint.
 - Ask why `mana cast --from` says a recommendation is stale.
 - Ask whether an eval run changed the target repository.
 - Ask how to review or close a learning candidate without promoting it.

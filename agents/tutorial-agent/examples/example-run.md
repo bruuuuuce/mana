@@ -15,6 +15,32 @@ Active profile from `.mana/active-profile`: none.
 
 ---
 
+## Phase 0A — Context Layers
+
+Mana keeps five context layers distinct:
+
+1. framework knowledge;
+2. optional reusable User Context;
+3. project-owned Service Context in `.mana/global/`;
+4. feature/session/task context;
+5. repository evidence.
+
+For project claims, repository evidence outranks project/service knowledge,
+which outranks User Context. Current human instructions and governance remain
+authoritative. User Context is advisory, read-only from Mana's perspective, and
+progressively retrieved from its generated `.mana/user-context/` mirror; it is
+never a prerequisite for this tutorial or delivery profiles.
+
+Useful diagnostics when it is configured:
+
+```bash
+mana context status
+mana context refresh
+mana doctor
+```
+
+---
+
 ## Phase 1 — Profile Overview
 
 | Profile | Trigger | Owner Role | Max Duration | What It Does |

@@ -1,0 +1,10 @@
+id	key	category	aliases	hint	languages	frameworks
+cpt_001	polymorphism	general-programming	subtype polymorphism|runtime polymorphism|polymorphic dispatch	Selects behavior from an object's runtime type.		
+cpt_002	information-hiding	object-oriented	encapsulation|hide implementation details	Keeps implementation decisions behind a stable interface.		
+cpt_003	functional-composition	functional	function composition|compose functions|pipeline	Builds behavior by combining small functions.		
+cpt_004	synchronization	concurrency	mutual exclusion|lock|critical section	Coordinates concurrent access to shared state.		
+cpt_005	strategy-pattern	design-pattern	strategy|interchangeable behaviors|provider abstraction	Selects one of a family of interchangeable algorithms.		
+cpt_006	hexagonal-architecture	architecture-pattern	ports and adapters|clean architecture	Separates domain behavior from infrastructure adapters.		
+cpt_007	java-generics	language	parameterized type|generic type|type parameter	Java compile-time type parameterization.	java	
+cpt_008	spring-transactional-proxy	framework	@transactional|transaction proxy|spring proxy	Spring proxy that applies transactional behavior around a method.	java	spring
+cpt_009	rust-borrowing	language	borrow checker|borrowed reference|mutable borrow	Rust references governed by borrowing rules.	rust	

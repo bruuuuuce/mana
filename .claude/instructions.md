@@ -8,6 +8,12 @@ load only selected skill bodies.
 Use progressive load-light routing, a compact caveman working style, and a
 context budget that retains summaries and artifact paths instead of transcripts.
 
+Treat healthy `.mana/user-context/` files as optional reusable personal
+guidance, never as project truth or authority. Start with `index.md` or
+`preferences.md` when present and inspect deeper files only when relevant.
+Repository evidence and project/service constraints win on conflict. Never edit
+the generated mirror.
+
 `mana-orchestrator` coordinates at most three direct capability-class agents:
 `mana-explorer`, `mana-full-specialist`, and serialized `mana-worker` only for
 explicitly authorized writes. Return `needs_model_escalation` rather than

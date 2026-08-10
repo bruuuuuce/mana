@@ -35,8 +35,9 @@ the full profile catalogue, explains each phase of the delivery lifecycle, and
 produces a personalized starter checklist for the selected profile.
 
 The tutorial uses only the framework's own files as source material: profiles,
-agent files, selected skill sections, and examples when needed. It does not
-access the user's repository and does not execute skills against real code.
+agent files, selected skill sections, examples, and the User Context guide when
+needed. It does not access the user's repository or external User Context source
+and does not execute skills against real code.
 
 ## Trigger Points
 - onboarding
@@ -51,26 +52,42 @@ access the user's repository and does not execute skills against real code.
 3. If `selected_profile` is already provided, skip Phase 1 entirely.
 4. Read `.mana/active-profile` if present and acknowledge the currently active profile.
 
+### Phase 0A — Context Layers
+5. During first-time onboarding, explain the five distinct context layers:
+   Mana framework knowledge, optional reusable User Context, project-owned
+   Service Context, feature/session/task context, and repository evidence.
+6. State the authority boundary precisely: current human instructions and Mana
+   governance remain authoritative; for project claims, repository evidence
+   outranks project/service knowledge, which outranks User Context.
+7. Explain that User Context is optional advisory personal guidance, may be
+   stale or inapplicable, is materialized read-only under
+   `.mana/user-context/`, and is loaded progressively rather than injected in
+   full.
+8. When setup or diagnostics are relevant, show the documented commands:
+   `mana context status`, `mana context refresh`, `mana context path`, and
+   `mana doctor`. Mention `mana context path --source` only as an explicit path
+   disclosure operation.
+
 ### Phase 1 — Profile Overview
-5. Read all `profiles/*.yaml` files.
-6. Produce a Markdown table ordered by delivery lifecycle:
+9. Read all `profiles/*.yaml` files.
+10. Produce a Markdown table ordered by delivery lifecycle:
    story intake → planning → development → branch validation → PR → release → learning.
    Columns: Profile | Trigger | Owner Role | Max Duration | What It Does.
    Explain that story effort estimates use current-story evidence by default;
    historical team-level calibration is optional and requires explicit user
    approval after the base estimate.
-7. Ask the user which profile they want to explore in depth.
+11. Ask the user which profile they want to explore in depth.
 
 ### Phase 2 — Deep-Dive
-8. Invoke `profile-selector` to confirm and optionally persist the selection.
-9. Read the selected profile YAML, the AGENT.md of its primary agent, and the
+12. Invoke `profile-selector` to confirm and optionally persist the selection.
+13. Read the selected profile YAML, the AGENT.md of its primary agent, and the
    agent playbook.
-10. Build the skill explanation from the profile list plus each skill's front
+14. Build the skill explanation from the profile list plus each skill's front
     matter, Purpose, When To Use It, When Not To Use It, Outputs, and Decision
     Rules sections. Read full skill files or examples only for the primary
     skill, for skills the user asks about, or when the requested explanation
     cannot be answered from those sections.
-11. Produce:
+15. Produce:
     - A Mermaid flowchart of the profile execution.
     - A skill-by-skill explanation of what each skill does and why it is included.
     - The list of inputs the user must have ready before running the profile.
@@ -80,26 +97,29 @@ access the user's repository and does not execute skills against real code.
       the fact that it does not use individual productivity metrics.
 
 ### Phase 3 — Starter Checklist
-12. Produce `starter-checklist.md`: a concise `- [ ]` checklist of everything
+16. Produce `starter-checklist.md`: a concise `- [ ]` checklist of everything
     the user must prepare before running the profile for the first time.
-13. Include concrete file paths, commands, and links to relevant templates.
-14. Do not promise the profile will work without the listed prerequisites.
+17. Include concrete file paths, commands, and links to relevant templates.
+18. When User Context is configured, include `mana context status` and, when
+    needed, `mana context refresh`; never make optional User Context a profile
+    prerequisite.
+19. Do not promise the profile will work without the listed prerequisites.
 
 ### Phase 4 — Governed Tooling Walkthrough
-15. When the user asks about divination, casting, evaluation, reporting, or
+20. When the user asks about divination, casting, evaluation, reporting, or
     learning, teach the executable boundary using the current commands:
     `mana divination ... --json`, `mana cast --from ... --dry-run --json`,
     `mana eval run`, `mana report governance`, and `mana learning candidates`.
-16. Explain the composite recommendation fingerprint and that an old or stale
+21. Explain the composite recommendation fingerprint and that an old or stale
     saved divination result must be regenerated, never manually repaired.
-17. Explain the cast preflight boundary: a blocked preflight writes no runtime
+22. Explain the cast preflight boundary: a blocked preflight writes no runtime
     telemetry and invokes no runner/external tool.
-18. Explain mutation fields individually. Eval/report persistence is a
+23. Explain mutation fields individually. Eval/report persistence is a
     Mana-local write; it is not a repository modification or runtime proof.
-19. Explain assertion classes: structural plan checks, fixture-backed signals,
+24. Explain assertion classes: structural plan checks, fixture-backed signals,
     and reserved future runtime assertions. Do not claim that passing fixtures
     prove autonomous detection or semantic model quality.
-20. Explain the learning lifecycle as `candidate → reviewed →
+25. Explain the learning lifecycle as `candidate → reviewed →
     rejected|archived`, with rejected/archived terminal for collection and no
     automatic promotion.
 
@@ -112,6 +132,14 @@ access the user's repository and does not execute skills against real code.
 ## Service Context Layer
 Load `.mana/global/` files only when they exist and when the user's question
 concerns service-specific rules. Missing context files are warnings, not blockers.
+
+## User Context Layer
+Teach User Context from `docs/workflow/user-context-layer.md`. Keep it distinct
+from `.mana/global/`: the external directory is user-owned and read-only from
+Mana's perspective, while `.mana/user-context/` is generated and ephemeral.
+Never ask the tutorial agent to read the external source path. Explain
+configuration precedence, progressive loading, ignore/security filters, and
+that repository evidence and project/service constraints win on conflict.
 
 ## Artifact Workspace
 Write to the active workspace when present:
@@ -149,6 +177,8 @@ action triggered after the tutorial still requires the normal owner approval.
 - Anyone asks "I want to understand jessica-fletcher before I run it".
 - Reviewer asks "show me how evidence-index, dependency evidence, Sonar
   evidence, and requested-pr-review fit together".
+- New developer asks "how do I reuse my personal conventions without making
+  them project rules?".
 
 ## Incorrect Usage Examples
 - Do not use this agent to approve delivery gates.
@@ -177,7 +207,8 @@ raw transcripts, full diffs, repeated file dumps, or copied tool output.
 ```mermaid
 flowchart TD
     Start[User starts tutorial] --> Disc[Phase 0: role and phase discovery]
-    Disc --> Known{profile known?}
+    Disc --> Context[Explain framework, User, Service, task, and repository context]
+    Context --> Known{profile known?}
     Known -->|yes| Deep[Phase 2: deep-dive]
     Known -->|no| Overview[Phase 1: profile overview table]
     Overview --> Select[User selects profile]
@@ -197,6 +228,7 @@ status: ready
 selected_profile: jessica-fletcher
 phases_completed:
   - discovery
+  - context-layers
   - overview
   - deep-dive
   - governed-tooling-boundaries

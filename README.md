@@ -30,6 +30,12 @@ scripts/run-profile.sh mana-help
 scripts/run-profile.sh story-start --render-only
 ```
 
+Optional reusable personal guidance can be configured as a read-only User
+Context Layer and materialized under `.mana/user-context/`. See
+[User Context Layer](docs/workflow/user-context-layer.md). It remains distinct
+from project Service Context in `.mana/global/`, is loaded progressively, and
+never overrides repository evidence or project constraints.
+
 `scripts/run-profile.sh <profile>` validates Mana freshness and renders the
 profile. It does not execute the listed agents or skills by itself. Add a runner
 flag only when you want local runner-backed execution:
@@ -95,6 +101,7 @@ cd /path/to/project
 ./mana runtime sessions
 ./mana dependency-evidence --collect
 ./mana evidence-index
+./mana verify --dry-run --explain
 ```
 
 The bootstrap creates a project-local `./mana` wrapper, `.mana/` evidence
@@ -267,6 +274,50 @@ Workspace resolution and routing rules are defined in
 collecting Jira, Sonar, dependency, test, validation, or PR artifacts so
 agents read a compact index before deep-loading evidence.
 
+## Deterministic Verification Skills
+
+`./mana verify` selects applicable verification-capable normal Mana skills,
+runs only fixed Mana adapters or approved structured project actions, and writes
+versioned evidence under the active `.mana` workspace. It makes zero model
+calls. Verification results are evidence; existing reviewers and accountable
+humans create findings and judgment. Use `./mana verify --list` to inspect
+available skills or `./mana verify --dry-run --explain` to inspect exact checks,
+trust origins, effects, limits, and blockers without writing state. See
+[`docs/workflow/verification-skills.md`](docs/workflow/verification-skills.md).
+
+## Bounded evidence-driven repair
+
+`./mana repair` can consume a canonical failed Verification Result v2,
+grant one exact shell-file path to one existing provider runner, stage the
+current working tree in a disposable copy, compute and validate the candidate
+delta, import only an accepted exact-file content change, protect the live
+baseline and verification surface, rerun the same structured concern against
+the live repository, and publish `RESOLVED`, `UNCHANGED`, `REGRESSED`, or
+`UNKNOWN` evidence. V1
+automatic eligibility is limited to `shell-syntax-verification/bash_syntax`.
+The default and `--once` remain one attempt. An explicit `--max-iterations 2`
+permits one final attempt only when the first result proves strict-subset partial
+progress. There is no provider retry, third attempt, auto-revert, commit, push,
+learning, or automatic repair from `mana verify`.
+
+```bash
+./mana repair --from <result.json> --check <check-id> \
+  --allow-path scripts/example.sh --runner codex --once --dry-run --explain
+
+./mana repair --from <result.json> --check <check-id> \
+  --allow-path scripts/example.sh --runner codex --max-iterations 2
+```
+
+`RESOLVED` means only that the targeted concern disappeared under comparable
+evidence; it does not mean ready to merge, correct, or production-safe. See
+[`docs/standards/bounded-repair.md`](docs/standards/bounded-repair.md).
+
+The provider does not directly edit the live repository through the normal
+bounded-repair path. This `faulty-contained` disposable-workspace mode protects
+against accidental or faulty provider writes, but it is not an OS security
+boundary against a deliberately malicious same-UID process. It provides no
+host-filesystem, process, credential, or network isolation.
+
 ## Divination: deterministic profile recommendation
 
 `./mana divination "<delivery intent>"` is a read-only, deterministic aid for
@@ -368,3 +419,10 @@ can be inspected as governed, project-local learning candidates with
 `mana learning candidates`; candidates are never automatically promoted. See
 [controlled explorer retrieval](docs/workflow/controlled-explorer-retrieval.md)
 and [governed learning signals](docs/workflow/governed-learning-signals.md).
+Explicit confirmed Developer Choice Log rows can separately be captured into
+host-owned User Learning state with `mana user-learning capture`, then
+deterministically aggregated with `mana user-learning aggregate`. Bounded T1
+proposal synthesis is available through `mana user-learning synthesize`; it
+never promotes or modifies User Context. A separate explicit human
+review-and-promotion command is required to publish approved guidance. See
+[User Learning](docs/workflow/user-learning.md).

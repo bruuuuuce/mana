@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/schemas/mana-learning-concept-v0.schema.json",
+  "title": "Mana Learning Concept v0",
+  "type": "object",
+  "required": ["schema", "id", "key", "category", "aliases", "hint", "languages", "frameworks"],
+  "properties": {
+    "schema": {"const": "mana.learning.concept/v1"},
+    "id": {"type": "string", "pattern": "^cpt_[0-9]{3}$"},
+    "key": {"type": "string", "minLength": 1},
+    "category": {"type": "string", "minLength": 1},
+    "aliases": {"type": "array", "items": {"type": "string"}},
+    "hint": {"type": "string"},
+    "languages": {"type": "array", "items": {"type": "string"}},
+    "frameworks": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}

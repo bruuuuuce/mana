@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/schemas/mana-learning-scout-v0.schema.json",
+  "title": "Mana Learning Scout v0 request",
+  "type": "object",
+  "required": ["schema", "technology", "title", "start", "termination", "source_root", "budget"],
+  "properties": {
+    "schema": {"const": "mana.learning.scout-request/v1"},
+    "technology": {"const": "java-spring-http-v0"},
+    "title": {"type": "string", "minLength": 1},
+    "start": {"type": "object", "required": ["kind", "method", "path"], "properties": {"kind": {"const": "http_endpoint"}, "method": {"const": "POST"}, "path": {"type": "string", "pattern": "^/"}}},
+    "termination": {"type": "object", "required": ["kind", "condition"], "properties": {"kind": {"const": "runtime_effect"}, "condition": {"const": "primary_transaction_committed"}}},
+    "source_root": {"type": "string", "minLength": 1},
+    "budget": {"type": "object", "required": ["max_nodes", "max_edges", "max_depth", "max_branching_per_node"], "properties": {"max_nodes": {"type": "integer", "minimum": 1}, "max_edges": {"type": "integer", "minimum": 1}, "max_depth": {"type": "integer", "minimum": 1}, "max_branching_per_node": {"type": "integer", "minimum": 1}}}
+  }
+}

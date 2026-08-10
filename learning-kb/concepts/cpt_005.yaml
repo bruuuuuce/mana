@@ -1,0 +1,1 @@
+{"schema":"mana.learning.concept/v1","id":"cpt_005","key":"strategy-pattern","category":"design-pattern","aliases":["strategy","interchangeable behaviors","provider abstraction"],"hint":"Selects one of a family of interchangeable algorithms.","languages":[],"frameworks":[]}

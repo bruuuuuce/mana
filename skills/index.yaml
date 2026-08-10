@@ -7,387 +7,541 @@ skills:
     model_tier: economy
     execution_mode: read
     delegation_group: requirements
+    capability: unspecified
+    verification_spec: unspecified
   - id: api-test-validation
     path: skills/api-test-validation/SKILL.md
     risk_level: high
     model_tier: economy
     execution_mode: write
     delegation_group: tests
+    capability: unspecified
+    verification_spec: unspecified
   - id: architecture-decision-record
     path: skills/architecture-decision-record/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: architecture-drift-detection
     path: skills/architecture-drift-detection/SKILL.md
     risk_level: high
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: architecture-guard-detector
     path: skills/architecture-guard-detector/SKILL.md
     risk_level: high
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: architecture-risk
     path: skills/architecture-risk/SKILL.md
     risk_level: medium
     model_tier: full
     execution_mode: read
     delegation_group: architecture
+    capability: unspecified
+    verification_spec: unspecified
   - id: business-continuity-check
     path: skills/business-continuity-check/SKILL.md
     risk_level: high
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: change-impact-preview
     path: skills/change-impact-preview/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: changed-files-risk-classifier
     path: skills/changed-files-risk-classifier/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: concurrency-risk
     path: skills/concurrency-risk/SKILL.md
     risk_level: high
     model_tier: full
     execution_mode: read
     delegation_group: architecture
+    capability: unspecified
+    verification_spec: unspecified
   - id: contributor-pattern-analysis
     path: skills/contributor-pattern-analysis/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: cross-service-contract
     path: skills/cross-service-contract/SKILL.md
     risk_level: medium
     model_tier: full
     execution_mode: read
     delegation_group: contracts
+    capability: unspecified
+    verification_spec: unspecified
   - id: database-drift
     path: skills/database-drift/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: database-read-verification
     path: skills/database-read-verification/SKILL.md
     risk_level: high
     model_tier: economy
     execution_mode: write
     delegation_group: database
+    capability: unspecified
+    verification_spec: unspecified
   - id: delivery-risk-radar
     path: skills/delivery-risk-radar/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: dependency-security-evidence
     path: skills/dependency-security-evidence/SKILL.md
     risk_level: medium
     model_tier: full
     execution_mode: read
     delegation_group: security
+    capability: unspecified
+    verification_spec: unspecified
   - id: developer-decision-review
     path: skills/developer-decision-review/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: developer-handoff
     path: skills/developer-handoff/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: developer-readiness-check
     path: skills/developer-readiness-check/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: development-summary
     path: skills/development-summary/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: epic-goal-extraction
     path: skills/epic-goal-extraction/SKILL.md
     risk_level: low
     model_tier: economy
     execution_mode: read
     delegation_group: requirements
+    capability: unspecified
+    verification_spec: unspecified
   - id: epic-implementation-graph
     path: skills/epic-implementation-graph/SKILL.md
     risk_level: medium
     model_tier: economy
     execution_mode: read
     delegation_group: requirements
+    capability: unspecified
+    verification_spec: unspecified
   - id: epic-story-partitioning
     path: skills/epic-story-partitioning/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: epic-structure-analysis
     path: skills/epic-structure-analysis/SKILL.md
     risk_level: low
     model_tier: economy
     execution_mode: read
     delegation_group: requirements
+    capability: unspecified
+    verification_spec: unspecified
   - id: flaky-failure-classification
     path: skills/flaky-failure-classification/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: green-border-plan
     path: skills/green-border-plan/SKILL.md
     risk_level: medium
     model_tier: economy
     execution_mode: read
     delegation_group: tests
+    capability: unspecified
+    verification_spec: unspecified
   - id: gui-test-context-discovery
     path: skills/gui-test-context-discovery/SKILL.md
     risk_level: medium
     model_tier: economy
     execution_mode: read
     delegation_group: tests
+    capability: unspecified
+    verification_spec: unspecified
   - id: gui-test-execution
     path: skills/gui-test-execution/SKILL.md
     risk_level: high
     model_tier: economy
     execution_mode: write
     delegation_group: tests
+    capability: unspecified
+    verification_spec: unspecified
   - id: gui-testbook-authoring
     path: skills/gui-testbook-authoring/SKILL.md
     risk_level: medium
     model_tier: economy
     execution_mode: read
     delegation_group: tests
+    capability: unspecified
+    verification_spec: unspecified
   - id: gui-testbook-learning
     path: skills/gui-testbook-learning/SKILL.md
     risk_level: medium
     model_tier: economy
     execution_mode: read
     delegation_group: tests
+    capability: unspecified
+    verification_spec: unspecified
   - id: incident-risk-forecast
     path: skills/incident-risk-forecast/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: java-performance-smell
     path: skills/java-performance-smell/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
+  - id: java-targeted-build-verification
+    path: skills/java-targeted-build-verification/SKILL.md
+    risk_level: medium
+    model_tier: economy
+    execution_mode: write
+    delegation_group: tests
+    capability: verification
+    verification_spec: verification.yaml
   - id: jira-acceptance-criteria-normalizer
     path: skills/jira-acceptance-criteria-normalizer/SKILL.md
     risk_level: low
     model_tier: economy
     execution_mode: read
     delegation_group: requirements
+    capability: unspecified
+    verification_spec: unspecified
   - id: jira-release-state-evidence
     path: skills/jira-release-state-evidence/SKILL.md
     risk_level: low
     model_tier: economy
     execution_mode: read
     delegation_group: documentation
+    capability: unspecified
+    verification_spec: unspecified
   - id: knowledge-transfer-brief
     path: skills/knowledge-transfer-brief/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: known-pitfalls-extraction
     path: skills/known-pitfalls-extraction/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: legacy-characterization
     path: skills/legacy-characterization/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: liquibase-production-risk
     path: skills/liquibase-production-risk/SKILL.md
     risk_level: high
     model_tier: full
     execution_mode: read
     delegation_group: database
+    capability: unspecified
+    verification_spec: unspecified
   - id: liquibase-syntax
     path: skills/liquibase-syntax/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
+  - id: mana-governance-regression-verification
+    path: skills/mana-governance-regression-verification/SKILL.md
+    risk_level: low
+    model_tier: economy
+    execution_mode: write
+    delegation_group: tests
+    capability: verification
+    verification_spec: verification.yaml
   - id: mana-usage-help
     path: skills/mana-usage-help/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: non-functional-requirements-review
     path: skills/non-functional-requirements-review/SKILL.md
     risk_level: medium
     model_tier: full
     execution_mode: read
     delegation_group: architecture
+    capability: unspecified
+    verification_spec: unspecified
   - id: null-safety-risk
     path: skills/null-safety-risk/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: post-merge-incident-learning
     path: skills/post-merge-incident-learning/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: pre-review-defect
     path: skills/pre-review-defect/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: production-premortem
     path: skills/production-premortem/SKILL.md
     risk_level: high
     model_tier: full
     execution_mode: read
     delegation_group: operations
+    capability: unspecified
+    verification_spec: unspecified
   - id: profile-selector
     path: skills/profile-selector/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: regression-selection
     path: skills/regression-selection/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: release-impact-summary
     path: skills/release-impact-summary/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: review-load-balancing
     path: skills/review-load-balancing/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: rollback-safety
     path: skills/rollback-safety/SKILL.md
     risk_level: high
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: rule-update-suggestion
     path: skills/rule-update-suggestion/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: service-boundary-fit
     path: skills/service-boundary-fit/SKILL.md
     risk_level: medium
     model_tier: full
     execution_mode: read
     delegation_group: architecture
+    capability: unspecified
+    verification_spec: unspecified
   - id: service-knowledge-capture
     path: skills/service-knowledge-capture/SKILL.md
     risk_level: medium
     model_tier: economy
     execution_mode: write
     delegation_group: documentation
+    capability: unspecified
+    verification_spec: unspecified
+  - id: shell-syntax-verification
+    path: skills/shell-syntax-verification/SKILL.md
+    risk_level: low
+    model_tier: economy
+    execution_mode: write
+    delegation_group: tests
+    capability: verification
+    verification_spec: verification.yaml
   - id: sonar-change-risk
     path: skills/sonar-change-risk/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: sonar-evidence-triage
     path: skills/sonar-evidence-triage/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: source-impact-map
     path: skills/source-impact-map/SKILL.md
     risk_level: medium
     model_tier: economy
     execution_mode: read
     delegation_group: source
+    capability: unspecified
+    verification_spec: unspecified
   - id: story-effort-estimation
     path: skills/story-effort-estimation/SKILL.md
     risk_level: medium
     model_tier: economy
     execution_mode: read
     delegation_group: requirements
+    capability: unspecified
+    verification_spec: unspecified
   - id: story-quality
     path: skills/story-quality/SKILL.md
     risk_level: low
     model_tier: economy
     execution_mode: read
     delegation_group: requirements
+    capability: unspecified
+    verification_spec: unspecified
   - id: team-execution-plan
     path: skills/team-execution-plan/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: technical-task-breakdown
     path: skills/technical-task-breakdown/SKILL.md
     risk_level: medium
     model_tier: economy
     execution_mode: read
     delegation_group: source
+    capability: unspecified
+    verification_spec: unspecified
   - id: test-gap
     path: skills/test-gap/SKILL.md
     risk_level: medium
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: test-quality
     path: skills/test-quality/SKILL.md
     risk_level: low
     model_tier: unspecified
     execution_mode: unspecified
     delegation_group: unspecified
+    capability: unspecified
+    verification_spec: unspecified
   - id: testbook-discovery
     path: skills/testbook-discovery/SKILL.md
     risk_level: low
     model_tier: economy
     execution_mode: read
     delegation_group: tests
+    capability: unspecified
+    verification_spec: unspecified
   - id: testbook-run-report
     path: skills/testbook-run-report/SKILL.md
     risk_level: medium
     model_tier: economy
     execution_mode: write
     delegation_group: tests
+    capability: unspecified
+    verification_spec: unspecified
   - id: trust-boundary-review
     path: skills/trust-boundary-review/SKILL.md
     risk_level: high
     model_tier: full
     execution_mode: read
     delegation_group: security
+    capability: unspecified
+    verification_spec: unspecified

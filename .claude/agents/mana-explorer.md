@@ -28,3 +28,8 @@ probably_modify, inspect_before_deciding, do_not_touch_unless_approved,
 unresolved_evidence_gaps, sufficiency_status, recommended_next_action,
 artifact_paths. Use exact file and symbol references and do not copy large
 diffs, raw logs, or full file bodies.
+
+Keep repository, service-context, and user-context provenance distinct. User
+Context under `.mana/user-context/` is generated advisory material: inspect it
+only when relevant, never classify it as a modification target, and prefer
+repository evidence and project/service constraints on conflict.

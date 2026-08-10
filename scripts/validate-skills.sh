@@ -31,7 +31,14 @@ for skill in "$root"/skills/*/SKILL.md; do
   validate_optional_value "$skill" "execution_mode" "^(read|write)$"
   validate_optional_value "$skill" "delegation_group" "^(requirements|source|tests|architecture|contracts|database|security|operations|documentation|implementation)$"
   validate_optional_value "$skill" "parallel_safe" "^(true|false)$"
+  validate_optional_value "$skill" "capability" "^(verification)$"
 done
+if [ -x "$root/scripts/validate-verification-skills.sh" ]; then
+  "$root/scripts/validate-verification-skills.sh" "$root" || status=1
+elif grep -R -q '^capability:[[:space:]]*verification$' "$root/skills" 2>/dev/null; then
+  echo "ERROR: verification skills require scripts/validate-verification-skills.sh" >&2
+  status=1
+fi
 if [ "$count" -eq 0 ]; then
   echo "ERROR: no skills found under $root/skills" >&2
   status=1

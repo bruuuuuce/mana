@@ -1,0 +1,1 @@
+{"schema":"mana.learning.concept/v1","id":"cpt_001","key":"polymorphism","category":"general-programming","aliases":["subtype polymorphism","runtime polymorphism","polymorphic dispatch"],"hint":"Selects behavior from an object's runtime type.","languages":[],"frameworks":[]}

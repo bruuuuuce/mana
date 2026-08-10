@@ -1,0 +1,1 @@
+{"schema":"mana.learning.concept/v1","id":"cpt_008","key":"spring-transactional-proxy","category":"framework","aliases":["@transactional","transaction proxy","spring proxy"],"hint":"Spring proxy that applies transactional behavior around a method.","languages":["java"],"frameworks":["spring"]}

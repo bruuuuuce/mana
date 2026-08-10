@@ -148,7 +148,7 @@ EOF
 
 collect_plan() {
   mana_execution_plan "$root" "$profile_file" || { fail "$MANA_PLAN_ERROR"; return 1; }
-  semantic_agents="$MANA_PLAN_AGENTS"; skills="$MANA_PLAN_SKILLS"; allowed_tools="$MANA_PLAN_TOOLS"; artifacts="$MANA_PLAN_ARTIFACTS"; model_routing="$MANA_PLAN_ROUTING"; runner_classes="$MANA_PLAN_RUNNERS"
+  semantic_agents="$MANA_PLAN_AGENTS"; skills="$MANA_PLAN_SKILLS"; allowed_tools="$MANA_PLAN_TOOLS"; artifacts="$MANA_PLAN_ARTIFACTS"; model_routing="$MANA_PLAN_ROUTING"; declared_effects="$MANA_PLAN_EFFECTS"; runner_classes="$MANA_PLAN_RUNNERS"
   external_systems=""
   while IFS= read -r tool; do add_external_system "$tool"; done <<EOF
 $allowed_tools
@@ -156,7 +156,7 @@ EOF
   blocking_conditions="$(mana_profile_list "$profile_file" blocking_conditions)"
   human_gates=""; [ "$(mana_profile_value "$profile_file" human_approval_requirement)" = true ] && human_gates="profile requires human approval for its governed decision; casting does not satisfy it"
   [ -n "$blocking_conditions" ] && human_gates="${human_gates}${human_gates:+$newline}profile blockers must stop execution when evidenced"
-  workspace_paths=".mana/global (existing Service Context)${newline}.mana/features/<feature-id> or .mana/sessions/<timestamp>-<branch>-$(mana_profile_section_value "$profile_file" artifact_workspace default_purpose)"
+  workspace_paths=".mana/global (existing Service Context)${newline}.mana/user-context (optional generated User Context; inspect-only)${newline}.mana/features/<feature-id> or .mana/sessions/<timestamp>-<branch>-$(mana_profile_section_value "$profile_file" artifact_workspace default_purpose)"
 }
 
 render_human() {
@@ -169,6 +169,7 @@ render_human() {
   echo 'Expected runner classes:'; printf '%s\n' "$runner_classes" | sed 's/^/- /'
   echo 'Model tiers:'; printf '%s\n' "$model_routing" | sed 's/^/- /'
   echo 'Tools that may be used:'; printf '%s\n' "${allowed_tools:-none}" | sed 's/^/- /'
+  echo 'Declared effects:'; printf '%s\n' "${declared_effects:-none}" | sed 's/^/- /'
   echo 'Human gates:'; printf '%s\n' "${human_gates:-none}" | sed 's/^/- /'
   echo 'Expected evidence artifacts:'; printf '%s\n' "${artifacts:-none}" | sed 's/^/- /'
   echo 'Blocking conditions:'; printf '%s\n' "${blocking_conditions:-none}" | sed 's/^/- /'
@@ -185,6 +186,7 @@ render_json() {
   printf ',"runnerClasses":'; json_list <<<"$runner_classes"
   printf ',"modelRouting":'; json_list <<<"$model_routing"
   printf ',"tools":'; json_list <<<"$allowed_tools"
+  printf ',"declaredEffects":'; json_list <<<"$declared_effects"
   printf ',"humanGates":'; json_list <<<"$human_gates"
   printf ',"expectedEvidence":'; json_list <<<"$artifacts"
   printf ',"blockingConditions":'; json_list <<<"$blocking_conditions"
