@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.4.1 - 2026-08-11
+- Renamed the standalone Learning Journey consumer to Mana Familiar and aligned
+  all producer contract references with the new name.
+
 ## 0.4.0 - 2026-08-10
 - Added an optional, read-only User Context Layer with bounded materialization,
   project-local mirrors, explicit precedence, and diagnostics.
