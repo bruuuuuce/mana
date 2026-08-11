@@ -16,7 +16,7 @@
   review, and promotion with explicit human approval gates.
 - Added producer-owned Mana Learning Journey, concept, scout, expansion,
   rationale, Git history, and diagram contracts and commands; extracted the
-  Flutter Learning Explorer into its own consumer repository.
+  Flutter consumer, now named Mana Familiar, into its own repository.
 - Preserved generated report wrappers when project bootstrap refreshes an
   existing Mana installation.
 

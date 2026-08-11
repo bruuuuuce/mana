@@ -73,4 +73,4 @@ state that selected Git evidence strengthens, weakens, or is inconclusive for
 an existing hypothesis without rewriting it.
 
 The standalone desktop consumer boundary is specified separately in
-`mana-learning-explorer-v0.md`.
+`mana-familiar-v0.md`.
