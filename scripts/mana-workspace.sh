@@ -247,7 +247,7 @@ canonical_branch: $canonical
 artifact_root: \"$workspace_relative\"
 story_trace: \"$workspace_relative/agent-memory/story-trace.md\"
 developer_choice_log: \"$workspace_relative/decisions/developer-choice-log.md\"
-framework_version: \"0.4.0\"
+framework_version: \"0.4.1\"
 policy:
   ai_may_modify_code: false
   require_human_approval_for_scope_expansion: true

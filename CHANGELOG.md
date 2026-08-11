@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.4.1 - 2026-08-11
+- Renamed the standalone Learning Journey consumer to Mana Familiar and aligned
+  all producer contract references with the new name.
+
 ## 0.4.0 - 2026-08-10
 - Added an optional, read-only User Context Layer with bounded materialization,
   project-local mirrors, explicit precedence, and diagnostics.
@@ -16,7 +20,7 @@
   review, and promotion with explicit human approval gates.
 - Added producer-owned Mana Learning Journey, concept, scout, expansion,
   rationale, Git history, and diagram contracts and commands; extracted the
-  Flutter Learning Explorer into its own consumer repository.
+  Flutter consumer, now named Mana Familiar, into its own repository.
 - Preserved generated report wrappers when project bootstrap refreshes an
   existing Mana installation.
 
