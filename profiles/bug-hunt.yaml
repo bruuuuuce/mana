@@ -1,0 +1,34 @@
+name: bug-hunt
+trigger: bounded_bug_hunt
+runner: codex
+artifact_workspace:
+  root: .mana
+  routing: feature_or_session
+  initialize_if_missing: false
+  default_purpose: bounded-bug-hunt
+service_context:
+  root: .mana/global
+  core_files:
+  - architecture.md
+  - engineering-guards.md
+  optional_files:
+  - integration-map.md
+  - testing-policy.md
+  - database-policy.md
+  missing_file_behavior: warn
+  guard_violation_behavior: route_to_owner
+agents:
+- bug-hunter-agent
+skills:
+- pre-review-defect
+- architecture-risk
+- cross-service-contract
+- concurrency-risk
+blocking_conditions:
+  - explicit target scope is missing, unsafe, or exceeds 25 files or 1500 non-blank lines
+  - branch or pull-request production-risk request must route to Jessica Fletcher or PR review
+warning_conditions:
+  - insufficient evidence for a candidate defect
+  - no_material_findings is not proof of correctness
+expected_max_duration: 20 minutes
+human_approval_requirement: true

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/schemas/mana-inspect-artifact-v1.schema.json",
+  "title": "Mana inspect artifact v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "artifact", "payload", "relations", "guarantees", "diagnostics"],
+  "properties": {
+    "schema": {"const": "mana.inspect.artifact/v1"},
+    "artifact": {"type": "object"},
+    "payload": {"type": "object"},
+    "relations": {"type": "array"},
+    "guarantees": {"type": "object"},
+    "diagnostics": {"type": "array"}
+  }
+}

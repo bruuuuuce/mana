@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/schemas/mana-inspect-project-v1.schema.json",
+  "title": "Mana inspect project v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "project_id", "framework", "mana", "git", "capabilities", "operations", "guarantees", "diagnostics"],
+  "properties": {
+    "schema": {"const": "mana.inspect.project/v1"},
+    "project_id": {"type": "string", "pattern": "^project:[0-9a-f]{64}$"},
+    "framework": {"type": "object", "required": ["version", "compatibility"]},
+    "mana": {"type": "object"},
+    "git": {"type": "object"},
+    "capabilities": {"type": "array", "items": {"type": "string"}},
+    "operations": {"type": "array"},
+    "guarantees": {"type": "object"},
+    "diagnostics": {"type": "array"}
+  }
+}

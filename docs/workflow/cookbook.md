@@ -144,6 +144,10 @@ README and `docs/examples/end-to-end-codex-flow.md` /
 - **Run a production pre-mortem:** use `profiles/jessica-fletcher.yaml` or
   `jessica-fletcher-agent` before commit/push to ask why the branch would fail
   in production.
+- **Investigate a bounded latent defect:** use `profiles/bug-hunt.yaml` with
+  explicit existing-code file paths and a scope rationale. It refuses more
+  than 25 files or 1,500 non-blank lines, proposes tests only, and routes
+  branch/PR failure questions to Jessica or PR review.
 - **Validate branch:** run the Branch Validation Agent to detect plan drift,
   unplanned files, missing tests, unresolved risks, and unsafe DB changes.
 - **Triage requested reviews:** use `profiles/requested-pr-review.yaml` to

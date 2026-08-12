@@ -1,0 +1,19 @@
+{
+  "schema": "mana.inspect.fixture-manifest/v1",
+  "volatileFields": ["project_id", "git.head", "updated_at.value"],
+  "representativeArtifacts": "representative-artifacts.json",
+  "cases": [
+    {"id":"no-mana","response":"no-mana-project.json"},
+    {"id":"minimal-project","response":"minimal-project.json"},
+    {"id":"mixed-workspaces","response":"mixed-artifacts.json"},
+    {"id":"verification-success-and-failure","response":"mixed-artifacts.json"},
+    {"id":"bounded-repair","response":"mixed-artifacts.json"},
+    {"id":"runtime-events","response":"mixed-artifacts.json"},
+    {"id":"pr-review-markdown","response":"mixed-artifacts.json"},
+    {"id":"user-learning","response":"mixed-artifacts.json"},
+    {"id":"journey-concept-diagram","response":"mixed-artifacts.json"},
+    {"id":"unknown-and-malformed","response":"mixed-artifacts.json"},
+    {"id":"stale-source","response":"stale-source.json"},
+    {"id":"missing-source","response":"missing-source.json"}
+  ]
+}
