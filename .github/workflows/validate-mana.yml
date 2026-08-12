@@ -58,3 +58,7 @@ jobs:
         run: tests/bounded-repair.sh
       - name: Bounded repair loop
         run: tests/bounded-repair-loop.sh
+      - name: Complete zero-token acceptance suite
+        run: tests/run-zero-token-acceptance.sh
+      - name: Release readiness documentation
+        run: tests/release-readiness.sh

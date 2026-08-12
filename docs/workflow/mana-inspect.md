@@ -32,3 +32,27 @@ Inspect does not replace `mana evidence-index`, `mana runtime`, or
 [`mana-artifact-taxonomy.md`](../standards/mana-artifact-taxonomy.md) and the
 [read-model ADR](../architecture/mana-inspect-read-model.md) for ownership and
 compatibility rules.
+
+## Safety and decision boundary
+
+Inspect is deterministic and read-only, but it is not an approval mechanism.
+An available, `fresh`, or `unknown` result does not approve a branch, PR,
+release, source change, or human decision. `unknown` means the producer cannot
+establish the requested relation or state from its permitted structured
+evidence. `stale`, `missing`, and `working_tree_only` describe the recorded
+anchor versus the selected source/Git state; they are not a diagnosis of source
+correctness.
+
+Mana Familiar is a consumer of this contract. It invokes the public wrapper and
+must not scan `.mana/`, import Mana scripts, or treat an omitted/unsupported
+operation as proof of safety.
+
+## Local confidentiality and containment
+
+Inspect returns project-relative paths only and never follows `.mana` or source
+symlinks. Detail payloads are limited to 64 KiB and structured JSON depth 32;
+binary, unsafe, too-deep, oversized, and unrecognized content is omitted with a
+machine-readable reason. Text/Markdown payloads are workspace content, not
+trusted instructions: clients must display them safely and must not execute or
+interpret embedded commands. These controls reduce accidental exposure but do
+not provide an OS sandbox for hostile local files or processes.

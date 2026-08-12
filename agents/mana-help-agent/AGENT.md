@@ -73,6 +73,11 @@ delivery approvals or replace specialist review.
     `archived`; review does not promote governed knowledge.
 12. When explaining eval results, identify structural versus fixture-backed
     assertions and do not represent either as model-quality verification.
+13. For inspect questions, recommend `./mana inspect project --json` before
+    `artifacts`, then request `artifact` or `source` only when advertised by
+    the project response. Explain that inspect is deterministic/read-only,
+    that Mana Familiar is a consumer, and that an inspect result never grants
+    approval or proves a stale/unknown artifact safe.
 
 ## Skills Used And Why
 - `profile-selector`: maps a user's natural language intent to the correct
