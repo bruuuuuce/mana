@@ -20,7 +20,7 @@ while [ "$#" -gt 0 ]; do
     --project-root) root="${2:-}"; [ -n "$root" ] || fail "--project-root requires a path"; shift 2 ;;
     --json) json=true; shift ;;
     --help|-h|help) usage; exit 0 ;;
-    project|artifacts|work-items) [ -z "$command" ] || fail "only one operation is allowed"; command="$1"; shift ;;
+    project|artifacts|work-items|project-context|activity) [ -z "$command" ] || fail "only one operation is allowed"; command="$1"; shift ;;
     artifact|source|work-item) [ -z "$command" ] || fail "only one operation is allowed"; command="$1"; target="${2:-}"; [ -n "$target" ] || fail "$command requires a target"; shift 2 ;;
     *) fail "unknown inspect argument: $1" ;;
   esac
@@ -251,6 +251,46 @@ semantic_workspaces() {
     while IFS= read -r -d '' dir; do wsid="$(basename "$dir")"; [[ "$wsid" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || continue; semantic_summary "$type" "$wsid" "$dir" "$entries"; done < <(find -P "$rootdir" -mindepth 1 -maxdepth 1 -type d -print0 | LC_ALL=C sort -z)
   done
 }
+context_response() {
+  local entries categories category selector artifacts
+  entries="$(catalog)"
+  categories='[]'
+  for category in architecture project_decisions integrations engineering_guards glossary learning_journeys testing_policy database_policy; do
+    case "$category" in architecture) selector=.mana/global/architecture.md;; project_decisions) selector=.mana/global/team-decisions/;; integrations) selector=.mana/global/integration-map.md;; engineering_guards) selector=.mana/global/engineering-guards.md;; glossary) selector=.mana/global/domain-glossary.md;; learning_journeys) selector=.mana/learning/journeys/;; testing_policy) selector=.mana/global/testing-policy.md;; database_policy) selector=.mana/global/database-policy.md;; esac
+    artifacts="$(jq -c --arg p "$selector" '[.[]|select(if ($p|endswith("/")) then (.path|startswith($p)) else .path==$p end)|{artifact_id,path,kind,status,work_item_id:null,section_id:null,label:null}]' <<<"$entries")"
+    categories="$(jq -c --arg c "$category" --argjson a "$artifacts" '.+[{category:$c,artifacts:$a,coverage:(if ($a|length)>0 then "canonical_path_category" else "missing" end)}]' <<<"$categories")"
+  done
+  jq -cn --argjson categories "$categories" '{schema:"mana.inspect.project-context/v1",categories:$categories,coverage:(if ($categories|map(.artifacts|length)|add)==0 then "none" else "canonical_global_context" end),diagnostics:[],guarantees:{model_calls:0,writes:false,semantic_inference:"canonical_structured_sources_only"}}'
+}
+activity_response() {
+  local entries events
+  entries="$(catalog)"
+  events="$(jq -cn --argjson e "$entries" --arg root "$root" '
+    [$e[] | select(.path|endswith(".json")) | . as $a |
+      ($root+"/"+$a.path) as $f |
+      try ([$f] | .[0]) catch empty ]' 2>/dev/null)"
+  # JSONL runtime events and structured verification timestamps are authoritative.
+  events='[]'
+  while IFS= read -r -d '' file; do
+    path="$(rel "$file")"; ws="$(workspace "$path")"; artifact="$(jq -r --arg p "$path" '.[]|select(.path==$p)|.artifact_id' <<<"$entries")"
+    while IFS= read -r line; do
+      jq -e '(.eventId|type=="string") and (.timestamp|type=="string")' <<<"$line" >/dev/null 2>&1 || continue
+      event="$(jq -cn --argjson v "$line" --arg artifact "$artifact" --argjson ws "$([ "$ws" = null ] && echo null || jq -Rn --arg x "$ws" '$x')" '{event_id:$v.eventId,timestamp:{value:$v.timestamp,provenance:"explicit_domain_timestamp"},event_kind:"unknown",work_item_id:$ws,related_artifact_ids:[$artifact],summary:null,provenance:"explicit_workspace_manifest"}')"
+      events="$(jq -c --argjson x "$event" '.+[$x]' <<<"$events")"
+    done < "$file"
+  done < <(find -P "$mana/runtime/events" -type f -name '*.jsonl' -print0 2>/dev/null | LC_ALL=C sort -z)
+  while IFS='|' read -r artifact path ws; do
+    file="$root/$path"; [ -f "$file" ] || continue
+    stamp="$(jq -r 'if .kind=="verification-result" then (.generatedAt // .finishedAt // empty) else empty end' "$file" 2>/dev/null)"
+    [ -n "$stamp" ] && jq -e --arg t "$stamp" '$t|fromdateiso8601' >/dev/null 2>&1 || continue
+    event="$(jq -cn --arg id "verification:$artifact" --arg t "$stamp" --arg artifact "$artifact" --argjson ws "$([ "$ws" = null ] && echo null || jq -Rn --arg x "$ws" '$x')" '{event_id:$id,timestamp:{value:$t,provenance:"explicit_domain_timestamp"},event_kind:"verification_completed",work_item_id:$ws,related_artifact_ids:[$artifact],summary:null,provenance:"explicit_workspace_manifest"}')"
+    events="$(jq -c --argjson x "$event" '.+[$x]' <<<"$events")"
+  done < <(jq -r '.[]|[.artifact_id,.path,(.workspace//"null")]|join("|")' <<<"$entries")
+  # Artifact updates are the only mtime fallback and retain that explicit basis.
+  fallback="$(jq -c '[.[]|select(.updated_at.provenance=="filesystem_mtime_epoch" and (.updated_at.value|test("^[0-9]+$")))|{event_id:("artifact-update:"+.artifact_id),timestamp:{value:.updated_at.value,provenance:"filesystem_mtime_epoch"},event_kind:"artifact_updated",work_item_id:.workspace,related_artifact_ids:[.artifact_id],summary:null,provenance:"conservative_fallback"}]' <<<"$entries")"
+  events="$(jq -c --argjson f "$fallback" '.+$f' <<<"$events")"
+  jq -cn --argjson e "$events" '{schema:"mana.inspect.activity/v1",events:($e|unique_by(.event_id)|sort_by((if .timestamp.provenance=="explicit_domain_timestamp" then (.timestamp.value|fromdateiso8601) else (.timestamp.value|tonumber) end),.event_id)),coverage:(if ($e|length)==0 then "none" elif any($e[]; .timestamp.provenance=="filesystem_mtime_epoch") then "explicit_and_filesystem_fallback" else "explicit_structured_events" end),diagnostics:[],guarantees:{model_calls:0,writes:false,semantic_inference:"canonical_structured_sources_only"}}'
+}
 work_items_response() {
   local entries items
   entries="$(catalog)"; items="$(semantic_workspaces "$entries" | jq -sc 'sort_by(.summary.work_item_id)')"
@@ -289,7 +329,7 @@ if [ "$command" = project ]; then
   remote="$(git -C "$root" remote get-url origin 2>/dev/null || true)"; [ -n "$remote" ] && id="project:$(hash_text "remote:$remote")" || id="project:$(hash_text "root:$root")"
   branch="$(git -C "$root" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unavailable)"; head="$(git -C "$root" rev-parse HEAD 2>/dev/null || echo unavailable)"; dirty=false; if git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1 && [ -n "$(git -C "$root" status --porcelain --untracked-files=normal 2>/dev/null)" ]; then dirty=true; fi
   active=null; if [ -f "$mana/active-workspace" ] && ! [ -L "$mana/active-workspace" ]; then value="$(sed -n '1p' "$mana/active-workspace")"; case "$value" in .mana/features/*|.mana/sessions/*) active="$(jq -Rn --arg x "$value" '$x')";; esac; fi
-  response="$(jq -cn --arg project_id "$id" --arg branch "$branch" --arg head "$head" --argjson dirty "$dirty" --argjson present "$([ -d "$mana" ] && echo true || echo false)" --argjson active "$active" '{schema:"mana.inspect.project/v1",project_id:$project_id,framework:{version:"0.4.1",compatibility:"mana-inspect/v1"},mana:{present:$present,active_workspace:$active},git:{branch:$branch,head:$head,working_tree_dirty:$dirty},capabilities:(if $present then ["workspace","artifact_catalog","artifact_detail","source_relations","semantic_work_items"] else [] end),operations:[{name:"project",schema:"mana.inspect.project/v1"},{name:"artifacts",schema:"mana.inspect.artifacts/v1"},{name:"artifact",schema:"mana.inspect.artifact/v1"},{name:"source",schema:"mana.inspect.source/v1"},{name:"work-items",schema:"mana.inspect.work-items/v1"},{name:"work-item",schema:"mana.inspect.work-item/v1"}],guarantees:{model_calls:0,writes:false,paths:"project_relative_only"},diagnostics:[]}')"
+  response="$(jq -cn --arg project_id "$id" --arg branch "$branch" --arg head "$head" --argjson dirty "$dirty" --argjson present "$([ -d "$mana" ] && echo true || echo false)" --argjson active "$active" '{schema:"mana.inspect.project/v1",project_id:$project_id,framework:{version:"0.4.1",compatibility:"mana-inspect/v1"},mana:{present:$present,active_workspace:$active},git:{branch:$branch,head:$head,working_tree_dirty:$dirty},capabilities:(if $present then ["workspace","artifact_catalog","artifact_detail","source_relations","semantic_work_items","semantic_project_context","semantic_activity"] else [] end),operations:[{name:"project",schema:"mana.inspect.project/v1"},{name:"artifacts",schema:"mana.inspect.artifacts/v1"},{name:"artifact",schema:"mana.inspect.artifact/v1"},{name:"source",schema:"mana.inspect.source/v1"},{name:"work-items",schema:"mana.inspect.work-items/v1"},{name:"work-item",schema:"mana.inspect.work-item/v1"},{name:"project-context",schema:"mana.inspect.project-context/v1"},{name:"activity",schema:"mana.inspect.activity/v1"}],guarantees:{model_calls:0,writes:false,paths:"project_relative_only"},diagnostics:[]}')"
   validate_and_emit "$response" project
 elif [ "$command" = artifacts ]; then
   entries="$(catalog)"; response="$(jq -cn --argjson artifacts "$entries" '{schema:"mana.inspect.artifacts/v1",artifacts:$artifacts,guarantees:{model_calls:0,writes:false,paths:"project_relative_only"},diagnostics:[]}')"; validate_and_emit "$response" artifacts
@@ -299,6 +339,10 @@ elif [ "$command" = work-items ]; then
   work_items_response
 elif [ "$command" = work-item ]; then
   work_item_response
+elif [ "$command" = project-context ]; then
+  context_response
+elif [ "$command" = activity ]; then
+  activity_response
 else
   source_detail
 fi

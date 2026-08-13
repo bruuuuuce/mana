@@ -52,6 +52,13 @@ jq -e '
 # Semantic work-item producer uses only canonical workspace roots and manifests.
 "$project/mana" inspect work-items --json > "$tmp/work-items-one.json"
 "$project/mana" inspect project --json | jq -e 'any(.operations[]; .name=="work-items" and .schema=="mana.inspect.work-items/v1") and any(.operations[]; .name=="work-item" and .schema=="mana.inspect.work-item/v1")' >/dev/null || fail 'semantic operations not advertised'
+"$project/mana" inspect project --json | jq -e 'any(.operations[]; .name=="project-context") and any(.operations[]; .name=="activity")' >/dev/null || fail 'project context/activity not advertised'
+"$project/mana" inspect project-context --json > "$tmp/project-context.json"
+jq -e '(.schema=="mana.inspect.project-context/v1") and ([.categories[].category]|sort)==["architecture","database_policy","engineering_guards","glossary","integrations","learning_journeys","project_decisions","testing_policy"] and all(.categories[].artifacts[]; .work_item_id==null and .section_id==null)' "$tmp/project-context.json" >/dev/null || fail 'project context categories failed'
+mkdir -p "$project/.mana/runtime/events"
+printf '%s\n' '{"eventId":"runtime-b","timestamp":"2026-01-01T00:00:00Z"}' '{"eventId":"runtime-a","timestamp":"2026-01-01T00:00:00Z"}' > "$project/.mana/runtime/events/sample.jsonl"
+"$project/mana" inspect activity --json > "$tmp/activity.json"
+jq -e '.schema=="mana.inspect.activity/v1" and any(.events[]; .event_id=="runtime-a" and .timestamp.provenance=="explicit_domain_timestamp") and any(.events[]; .timestamp.provenance=="filesystem_mtime_epoch" and .event_kind=="artifact_updated") and (([.events[]|select(.event_id=="runtime-a" or .event_id=="runtime-b")|.event_id])==["runtime-a","runtime-b"])' "$tmp/activity.json" >/dev/null || fail 'semantic activity ordering or provenance failed'
 "$project/mana" inspect work-items --json > "$tmp/work-items-two.json"
 cmp -s "$tmp/work-items-one.json" "$tmp/work-items-two.json" || fail 'work-item list is not byte-stable'
 jq -e '
