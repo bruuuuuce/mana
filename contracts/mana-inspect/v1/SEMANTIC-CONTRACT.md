@@ -39,6 +39,13 @@ Activity time is either an explicit domain timestamp or explicitly named
 `filesystem_mtime_epoch`; mtime only supports the honestly named
 `artifact_updated` fallback, never a meaningful-domain-event claim.
 
+Each work-list entry includes typed `attention_items` for project-level
+attention and a conservative `review` state. Review is `unknown` unless an
+exact structured canonical source supplies its bounded state. Every artifact
+reference identifies its owning work item and semantic section (or uses `null`
+for project-global context), so consumers can open it without rediscovering
+ownership from paths.
+
 ## Source-to-field mapping
 
 | Semantic field | Source | Mapping class |
@@ -49,6 +56,7 @@ Activity time is either an explicit domain timestamp or explicitly named
 | lifecycle/sections | documented directories and structured result status | canonical path/category |
 | pending decision | exact documented table headers/status values | conservative fallback |
 | failed/stale evidence | known structured evidence fields | explicit structured source |
+| review/PR state | exact canonical structured status field | explicit structured source |
 | global categories | `.mana/global/` canonical named files | canonical path/category |
 | activity | structured timestamps; mtime only as artifact update | explicit structured source / conservative fallback |
 | PR state, owner action, prose summaries | no canonical structured source | unavailable/unknown |
