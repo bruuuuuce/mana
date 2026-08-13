@@ -91,6 +91,9 @@ fi
 for f in "$root"/scripts/*.sh "$root"/hooks/pre-commit "$root"/hooks/pre-push; do
   [ -f "$f" ] || continue
   bash -n "$f" || status=1
+  if [ "$(uname -s)" = Darwin ] && [ -x /bin/bash ] && [ "$(command -v bash)" != /bin/bash ]; then
+    /bin/bash -n "$f" || status=1
+  fi
 done
 retired_skill_pattern='(^|[^[:alnum:]_-])(story-depth|story-consistency|unit-test-gap|integration-test-gap|sonar-configuration-guide)([^[:alnum:]_-]|$)'
 retired_skill_paths=(README.md CONTRIBUTING.md docs agents profiles skills templates hooks evals .codex .junie .claude)
