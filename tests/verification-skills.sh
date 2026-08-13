@@ -243,11 +243,23 @@ dedup_project="$tmp/dedup-project"; init_repo "$dedup_project"; printf '#!/usr/b
 dedup_json="$("$framework/scripts/mana-verify.sh" --project-root "$dedup_project" --skill shell-syntax-verification --skill shell-syntax-verification-copy --json)" || fail 'deduplicated verification failed'
 jq -e '(.checks|length)==2 and .cost.checksExecuted==1 and .cost.duplicateActionsSuppressed==1 and ([.checks[].skillId]|unique|length)==2 and ([.checks[].specDigest]|unique|length)==2 and ([.checks[].output.stdoutArtifact]|unique|length)==1 and ([.checks[]|select(.deduplicated)]|length)==1' <<<"$dedup_json" >/dev/null || fail 'deduplicated provenance incorrect'
 
-# Deleting a governance-relevant file remains applicable and uses the bounded
-# manifest-backed conservative scenario set.
+# Deleting a governance-relevant file remains applicable and uses the complete
+# manifest-backed conservative scenario set, including bug-hunt coverage.
 governance_project="$tmp/governance-targeting"; init_repo "$governance_project"; mkdir -p "$governance_project/scripts" "$governance_project/evals/scenarios" "$governance_project/profiles"; printf '#!/usr/bin/env bash\n' > "$governance_project/scripts/mana-eval.sh"; printf profile > "$governance_project/profiles/example.yaml"; printf keep > "$governance_project/evals/scenarios/.keep"; commit_all "$governance_project"; git -C "$governance_project" rm -q profiles/example.yaml
 governance_plan="$(verify "$governance_project" --dry-run --json)" || fail 'governance deletion plan failed'
-jq -e '(.selections|any(.skillId=="mana-governance-regression-verification" and .selected)) and ([.actions[]|select(.adapter=="mana_eval")]|length)==2' <<<"$governance_plan" >/dev/null || fail 'governance deletion targeting incorrect'
+jq -e '
+  (.selections | any(.skillId == "mana-governance-regression-verification" and .selected)) and
+  ([.actions[] | select(.adapter == "mana_eval") | .target] | sort) == [
+    "bug-hunt-concurrency-boundary",
+    "bug-hunt-false-positive",
+    "bug-hunt-insufficient-evidence",
+    "bug-hunt-large-scope",
+    "bug-hunt-latent-defect",
+    "bug-hunt-overlap-routing",
+    "conditional-contract-pr",
+    "risky-liquibase-change"
+  ]
+' <<<"$governance_plan" >/dev/null || fail 'governance deletion targeting incorrect'
 
 # The canonical result is atomically published and leaves no temporary files.
 ! find "$(dirname "$result_path")" -name '.*.tmp.*' -print | grep -q . || fail 'partial evidence publication file remained'
