@@ -6,4 +6,9 @@ copy="$(mktemp -d "${TMPDIR:-/tmp}/mana-inspect-contract.XXXXXX")"
 trap 'rm -rf "$copy"' EXIT
 cp -R "$root/contracts/mana-inspect/v1/." "$copy/"
 "$root/scripts/validate-inspect-contract.sh" --bundle "$copy"
+for schema in work-items work-item project-context activity; do
+  jq -e '."$schema"=="https://json-schema.org/draft/2020-12/schema" and .additionalProperties==false' "$root/contracts/mana-inspect/v1/schemas/$schema.schema.json" >/dev/null
+done
+grep -Fq 'mana inspect work-item <work-item-id> --json' "$root/contracts/mana-inspect/v1/SEMANTIC-CONTRACT.md"
+! rg -n 'work-items|work-item|project-context|activity' "$root/scripts/mana-inspect.sh" >/dev/null
 echo 'Mana inspect contract clean-room tests passed'

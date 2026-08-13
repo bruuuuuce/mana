@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/mana-inspect/v1/work-item.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "work_item", "sections", "attention_items", "coverage", "diagnostics", "guarantees"],
+  "properties": {
+    "schema": {"const": "mana.inspect.work-item/v1"},
+    "work_item": {"$ref": "work-items.schema.json#/$defs/workItemSummary"},
+    "sections": {"type": "array", "items": {"$ref": "#/$defs/section"}},
+    "attention_items": {"type": "array", "items": {"$ref": "#/$defs/attention"}},
+    "coverage": {"enum": ["canonical_workspace_artifacts", "unknown"]},
+    "diagnostics": {"type": "array", "items": {"$ref": "work-items.schema.json#/$defs/diagnostic"}},
+    "guarantees": {"$ref": "work-items.schema.json#/$defs/guarantees"}
+  },
+  "$defs": {
+    "section": {"type": "object", "additionalProperties": false, "required": ["section_id", "artifacts"], "properties": {"section_id": {"enum": ["overview", "requirements", "plan", "decisions", "evidence", "review", "timeline", "artifacts"]}, "artifacts": {"type": "array", "items": {"$ref": "work-items.schema.json#/$defs/artifactRef"}}, "summary": {"type": ["object", "null"]}}},
+    "attention": {"type": "object", "additionalProperties": false, "required": ["id", "category", "severity", "work_item_id", "related_artifact_ids", "provenance"], "properties": {"id": {"type": "string", "minLength": 1}, "category": {"enum": ["blocker", "failed_verification", "stale_evidence", "pending_decision", "owner_review", "review_required", "contract_diagnostic"]}, "severity": {"enum": ["info", "warning", "error", "critical"]}, "work_item_id": {"$ref": "work-items.schema.json#/$defs/workItemId"}, "label": {"type": ["string", "null"]}, "next_action": {"type": ["string", "null"]}, "related_artifact_ids": {"type": "array", "items": {"type": "string"}}, "provenance": {"$ref": "work-items.schema.json#/$defs/provenance"}}}
+  }
+}

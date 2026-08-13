@@ -19,7 +19,8 @@ Mana shell logic.
   whichever is longer. Security redaction may remove unsafe payload exposure
   earlier while preserving a machine-readable omission diagnostic.
 - A client may support only `project` and `artifacts`; it must feature-detect
-  `artifact` and `source`, disable unavailable views, and never treat missing
+  `artifact`, `source`, `work-items`, `work-item`, `project-context`, and
+  `activity`, disable unavailable views, and never treat missing
   detail/relations as evidence of safety.
 
 ## Error and Exit Model
@@ -46,12 +47,16 @@ aliases are intentionally omitted to avoid double counting a revision.
 ```json
 {
   "required": ["project", "artifacts"],
-  "optional": ["artifact", "source"],
+  "optional": ["artifact", "source", "work-items", "work-item", "project-context", "activity"],
   "acceptedSchemas": [
     "mana.inspect.project/v1",
     "mana.inspect.artifacts/v1",
     "mana.inspect.artifact/v1",
-    "mana.inspect.source/v1"
+    "mana.inspect.source/v1",
+    "mana.inspect.work-items/v1",
+    "mana.inspect.work-item/v1",
+    "mana.inspect.project-context/v1",
+    "mana.inspect.activity/v1"
   ]
 }
 ```
@@ -59,3 +64,16 @@ aliases are intentionally omitted to avoid double counting a revision.
 Call `mana inspect project --json`, check `framework.compatibility` and
 `operations`, then use only supported operations. Do not use an unrecognized
 schema response as a partially compatible object.
+
+## Semantic operation ownership
+
+The operations in `SEMANTIC-CONTRACT.md` are optional staged v1 operations. A
+live `project` response must not advertise them until a matching producer
+exists. Consumers treat unknown operation names, future work-item/event/
+attention kinds, and future enum values as unavailable or unknown safe state;
+they must not map unknown values to known ones. Additive fields may be ignored.
+Changing an existing enum meaning requires a new schema version.
+
+Mana alone maps canonical paths, manifests, structured evidence, and documented
+tables to semantic fields. Consumers render responses and references; they do
+not scan files or use lexical inference to reconstruct missing semantic data.

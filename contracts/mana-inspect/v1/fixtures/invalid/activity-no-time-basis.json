@@ -1,0 +1,1 @@
+{"schema":"mana.inspect.activity/v1","events":[{"event_id":"bad-time","timestamp":{"value":"","provenance":"filesystem_mtime"},"event_kind":"unknown","work_item_id":null,"related_artifact_ids":[],"provenance":"unavailable"}],"coverage":"unknown","diagnostics":[],"guarantees":{"model_calls":0,"writes":false,"semantic_inference":"canonical_structured_sources_only"}}
