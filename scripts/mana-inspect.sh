@@ -7,6 +7,8 @@ usage() { cat <<'USAGE'
 Usage: mana inspect <project|artifacts> --json
        mana inspect artifact <artifact-id-or-.mana/path> --json
        mana inspect source <project-relative-source-path> --json
+       mana inspect work-items --json
+       mana inspect work-item <feature:<workspace-id>|session:<workspace-id>> --json
 Exit codes: 0 success; 2 invalid input; 3 unsupported contract; 4 malformed workspace; 5 internal failure.
 USAGE
 }
@@ -18,8 +20,8 @@ while [ "$#" -gt 0 ]; do
     --project-root) root="${2:-}"; [ -n "$root" ] || fail "--project-root requires a path"; shift 2 ;;
     --json) json=true; shift ;;
     --help|-h|help) usage; exit 0 ;;
-    project|artifacts) [ -z "$command" ] || fail "only one operation is allowed"; command="$1"; shift ;;
-    artifact|source) [ -z "$command" ] || fail "only one operation is allowed"; command="$1"; target="${2:-}"; [ -n "$target" ] || fail "$command requires a target"; shift 2 ;;
+    project|artifacts|work-items) [ -z "$command" ] || fail "only one operation is allowed"; command="$1"; shift ;;
+    artifact|source|work-item) [ -z "$command" ] || fail "only one operation is allowed"; command="$1"; target="${2:-}"; [ -n "$target" ] || fail "$command requires a target"; shift 2 ;;
     *) fail "unknown inspect argument: $1" ;;
   esac
 done
@@ -186,6 +188,84 @@ source_detail() {
   response="$(jq -cn --arg path "$target" --arg availability "$availability" --argjson relations "$relations" '{schema:"mana.inspect.source/v1",source:{path:$path,availability:$availability},relations:$relations,coverage:(if ($relations|length)>0 then "explicit_journey_anchors" else "unknown" end),guarantees:{model_calls:0,writes:false,relation_coverage:"explicit_structured_only"},diagnostics:[]}')"
   validate_and_emit "$response" source
 }
+manifest_scalar() {
+  # Bounded parser for exact, single-line canonical manifest scalars only.
+  local file="$1" key="$2"
+  awk -v key="$key" '$0 ~ "^" key ":[[:space:]]*" { sub("^[^:]*:[[:space:]]*", ""); gsub(/^"|"$/, ""); print; exit }' "$file"
+}
+semantic_artifacts() {
+  local entries="$1" wid="$2" type wsid workspace_root
+  type="${wid%%:*}"; wsid="${wid#*:}"; workspace_root=".mana/${type}s/$wsid"
+  jq -c --arg wid "$wid" --arg workspace_root "$workspace_root" '
+    [.[] | select(.workspace==$wid and .class!="ephemeral" and .status!="quarantined") |
+      . + {work_item_id:$wid, section_id:(if .path==($workspace_root+"/index.md") then "overview"
+        elif (.path|test("/context/(story-context|epic-goal-contract|open-questions)\\.md$")) then "requirements"
+        elif (.path|test("/planning/")) then "plan"
+        elif .path|test("/decisions/") then "decisions"
+        elif .path|test("/(evidence|tests|validation)/") then "evidence"
+        elif .path|test("/pr/") then "review"
+        elif .path|test("/agent-memory/story-trace\\.md$") then "timeline"
+        else "artifacts" end)} |
+      {artifact_id,path,kind,status,work_item_id,section_id,label:null}]
+    | sort_by(.artifact_id,.path)' <<<"$entries"
+}
+active_work_item_id() {
+  local value
+  [ -f "$mana/active-workspace" ] && ! [ -L "$mana/active-workspace" ] || return 0
+  value="$(sed -n '1p' "$mana/active-workspace")"
+  case "$value" in
+    .mana/features/[A-Za-z0-9._-]*) [ "$(dirname "$value")" = .mana/features ] && printf 'feature:%s\n' "${value##*/}" ;;
+    .mana/sessions/[A-Za-z0-9._-]*) [ "$(dirname "$value")" = .mana/sessions ] && printf 'session:%s\n' "${value##*/}" ;;
+  esac
+}
+semantic_summary() {
+  local type="$1" wsid="$2" dir="$3" entries="$4" manifest="$dir/manifest.yaml" wid="$type:$wsid"
+  local branch purpose feature canonical artifacts diagnostics lifecycle attention review
+  diagnostics='[]'; branch=''; purpose=''; feature=''; canonical='null'
+  if [ -f "$manifest" ] && ! [ -L "$manifest" ]; then
+    [ "$(manifest_scalar "$manifest" workspace_type)" = "$type" ] && [ "$(manifest_scalar "$manifest" workspace_id)" = "$wsid" ] || diagnostics='[{"id":"manifest-identity","kind":"malformed_canonical_source","severity":"warning","provenance":"canonical_path","related_artifact_ids":[]}]'
+    branch="$(manifest_scalar "$manifest" branch)"; purpose="$(manifest_scalar "$manifest" purpose)"; feature="$(manifest_scalar "$manifest" feature_id)"; canonical="$(manifest_scalar "$manifest" canonical_branch)"
+  else diagnostics='[{"id":"manifest-unavailable","kind":"unavailable_source","severity":"warning","provenance":"canonical_path","related_artifact_ids":[]}]'; fi
+  case "$canonical" in true|false) ;; *) canonical=null;; esac
+  artifacts="$(semantic_artifacts "$entries" "$wid")"
+  lifecycle='{"state":"unknown","provenance":"unavailable","coverage":"unknown"}'
+  [ "$(active_work_item_id)" = "$wid" ] && lifecycle='{"state":"in_progress","provenance":"canonical_path","coverage":"explicit_structured_only"}'
+  jq -e 'any(.[]; .status=="failed")' <<<"$artifacts" >/dev/null && lifecycle='{"state":"failed","provenance":"explicit_workspace_manifest","coverage":"explicit_structured_only"}'
+  jq -e 'any(.[]; .status=="blocked")' <<<"$artifacts" >/dev/null && lifecycle='{"state":"blocked","provenance":"explicit_workspace_manifest","coverage":"explicit_structured_only"}'
+  attention="$(jq -c --arg wid "$wid" '[.[]|select(.status=="failed")|{id:("failed-verification:"+.artifact_id),category:"failed_verification",severity:"error",work_item_id:$wid,label:null,next_action:null,related_artifact_ids:[.artifact_id],provenance:"explicit_workspace_manifest"}]' <<<"$artifacts")"
+  while IFS='|' read -r artifact path; do
+    [ -f "$root/$path" ] && ! [ -L "$root/$path" ] && jq -e '.staleness=="stale"' "$root/$path" >/dev/null 2>&1 || continue
+    attention="$(jq -c --arg wid "$wid" --arg artifact "$artifact" '. + [{id:("stale-evidence:"+$artifact),category:"stale_evidence",severity:"warning",work_item_id:$wid,label:null,next_action:null,related_artifact_ids:[$artifact],provenance:"explicit_workspace_manifest"}]' <<<"$attention")"
+  done < <(jq -r '.[]|select(.path|endswith(".json"))|[.artifact_id,.path]|join("|")' <<<"$artifacts")
+  if [ -f "$dir/decisions/developer-choice-log.md" ] && ! [ -L "$dir/decisions/developer-choice-log.md" ] && grep -Fq '| needs_owner_review |' "$dir/decisions/developer-choice-log.md"; then
+    attention="$(jq -c --arg wid "$wid" '. + [{id:"pending-decision:developer-choice-log",category:"pending_decision",severity:"warning",work_item_id:$wid,label:null,next_action:null,related_artifact_ids:[("file:.mana/"+($wid|sub(":";"s/"))+"/decisions/developer-choice-log.md")],provenance:"conservative_fallback"}]' <<<"$attention")"
+  fi
+  review='{"state":"unknown","provenance":"unavailable","coverage":"unknown"}'
+  jq -cn --arg wid "$wid" --arg type "$type" --arg feature "$feature" --arg branch "$branch" --arg purpose "$purpose" --argjson canonical "$canonical" --argjson lifecycle "$lifecycle" --argjson review "$review" --argjson attention "$attention" --argjson artifacts "$artifacts" --argjson diagnostics "$diagnostics" '{summary:{work_item_id:$wid,work_item_type:$type,external_ticket_id:{value:(if $feature=="" or $feature=="null" then null else $feature end),provenance:(if $feature=="" or $feature=="null" then "unavailable" else "explicit_workspace_manifest" end)},title:{value:null,provenance:"unavailable"},purpose:{value:(if $purpose=="" then null else $purpose end),provenance:(if $purpose=="" then "unavailable" else "explicit_workspace_manifest" end)},branch:{value:(if $branch=="" then null else $branch end),provenance:(if $branch=="" then "unavailable" else "explicit_workspace_manifest" end)},canonical_branch:$canonical,lifecycle:$lifecycle,review:$review,attention_items:$attention,artifacts:$artifacts},diagnostics:$diagnostics}'
+}
+semantic_workspaces() {
+  local entries="$1" rootdir type dir wsid
+  for rootdir in "$mana/features" "$mana/sessions"; do
+    [ -d "$rootdir" ] && ! [ -L "$rootdir" ] || continue
+    type="$(basename "$rootdir")"; [ "$type" = features ] && type=feature || type=session
+    while IFS= read -r -d '' dir; do wsid="$(basename "$dir")"; [[ "$wsid" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || continue; semantic_summary "$type" "$wsid" "$dir" "$entries"; done < <(find -P "$rootdir" -mindepth 1 -maxdepth 1 -type d -print0 | LC_ALL=C sort -z)
+  done
+}
+work_items_response() {
+  local entries items
+  entries="$(catalog)"; items="$(semantic_workspaces "$entries" | jq -sc 'sort_by(.summary.work_item_id)')"
+  response="$(jq -cn --argjson items "$items" '{schema:"mana.inspect.work-items/v1",work_items:[$items[].summary],coverage:(if ($items|length)==0 then "none" else "canonical_workspace_manifests" end),diagnostics:[$items[].diagnostics[]],guarantees:{model_calls:0,writes:false,semantic_inference:"canonical_structured_sources_only"}}')"
+  printf '%s\n' "$response"
+}
+work_item_response() {
+  local entries type wsid dir item artifacts sections
+  [[ "$target" =~ ^(feature|session):[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || fail "unsafe or malformed work-item ID"
+  type="${target%%:*}"; wsid="${target#*:}"; dir="$mana/${type}s/$wsid"; [ -d "$dir" ] && ! [ -L "$dir" ] || fail "work item not found"
+  entries="$(catalog)"; item="$(semantic_summary "$type" "$wsid" "$dir" "$entries")"; artifacts="$(jq -c .summary.artifacts <<<"$item")"
+  sections="$(jq -cn --argjson a "$artifacts" '["overview","requirements","plan","decisions","evidence","review","timeline","artifacts"]|map(. as $section | {section_id:$section,artifacts:[$a[]|select(.section_id==$section)],summary:null})')"
+  response="$(jq -cn --argjson item "$item" --argjson sections "$sections" '{schema:"mana.inspect.work-item/v1",work_item:$item.summary,sections:$sections,attention_items:$item.summary.attention_items,coverage:"canonical_workspace_artifacts",diagnostics:$item.diagnostics,guarantees:{model_calls:0,writes:false,semantic_inference:"canonical_structured_sources_only"}}')"
+  printf '%s\n' "$response"
+}
 validate_and_emit() {
   local response="$1" contract="$2"
   case "$contract" in
@@ -209,12 +289,16 @@ if [ "$command" = project ]; then
   remote="$(git -C "$root" remote get-url origin 2>/dev/null || true)"; [ -n "$remote" ] && id="project:$(hash_text "remote:$remote")" || id="project:$(hash_text "root:$root")"
   branch="$(git -C "$root" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unavailable)"; head="$(git -C "$root" rev-parse HEAD 2>/dev/null || echo unavailable)"; dirty=false; if git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1 && [ -n "$(git -C "$root" status --porcelain --untracked-files=normal 2>/dev/null)" ]; then dirty=true; fi
   active=null; if [ -f "$mana/active-workspace" ] && ! [ -L "$mana/active-workspace" ]; then value="$(sed -n '1p' "$mana/active-workspace")"; case "$value" in .mana/features/*|.mana/sessions/*) active="$(jq -Rn --arg x "$value" '$x')";; esac; fi
-  response="$(jq -cn --arg project_id "$id" --arg branch "$branch" --arg head "$head" --argjson dirty "$dirty" --argjson present "$([ -d "$mana" ] && echo true || echo false)" --argjson active "$active" '{schema:"mana.inspect.project/v1",project_id:$project_id,framework:{version:"0.4.1",compatibility:"mana-inspect/v1"},mana:{present:$present,active_workspace:$active},git:{branch:$branch,head:$head,working_tree_dirty:$dirty},capabilities:(if $present then ["workspace","artifact_catalog","artifact_detail","source_relations"] else [] end),operations:[{name:"project",schema:"mana.inspect.project/v1"},{name:"artifacts",schema:"mana.inspect.artifacts/v1"},{name:"artifact",schema:"mana.inspect.artifact/v1"},{name:"source",schema:"mana.inspect.source/v1"}],guarantees:{model_calls:0,writes:false,paths:"project_relative_only"},diagnostics:[]}')"
+  response="$(jq -cn --arg project_id "$id" --arg branch "$branch" --arg head "$head" --argjson dirty "$dirty" --argjson present "$([ -d "$mana" ] && echo true || echo false)" --argjson active "$active" '{schema:"mana.inspect.project/v1",project_id:$project_id,framework:{version:"0.4.1",compatibility:"mana-inspect/v1"},mana:{present:$present,active_workspace:$active},git:{branch:$branch,head:$head,working_tree_dirty:$dirty},capabilities:(if $present then ["workspace","artifact_catalog","artifact_detail","source_relations","semantic_work_items"] else [] end),operations:[{name:"project",schema:"mana.inspect.project/v1"},{name:"artifacts",schema:"mana.inspect.artifacts/v1"},{name:"artifact",schema:"mana.inspect.artifact/v1"},{name:"source",schema:"mana.inspect.source/v1"},{name:"work-items",schema:"mana.inspect.work-items/v1"},{name:"work-item",schema:"mana.inspect.work-item/v1"}],guarantees:{model_calls:0,writes:false,paths:"project_relative_only"},diagnostics:[]}')"
   validate_and_emit "$response" project
 elif [ "$command" = artifacts ]; then
   entries="$(catalog)"; response="$(jq -cn --argjson artifacts "$entries" '{schema:"mana.inspect.artifacts/v1",artifacts:$artifacts,guarantees:{model_calls:0,writes:false,paths:"project_relative_only"},diagnostics:[]}')"; validate_and_emit "$response" artifacts
 elif [ "$command" = artifact ]; then
   artifact_detail
+elif [ "$command" = work-items ]; then
+  work_items_response
+elif [ "$command" = work-item ]; then
+  work_item_response
 else
   source_detail
 fi

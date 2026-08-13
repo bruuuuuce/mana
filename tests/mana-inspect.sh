@@ -11,6 +11,7 @@ project="$tmp/missing"; mkdir -p "$project"; git -C "$project" init -q
 jq -e '.schema=="mana.inspect.project/v1" and .framework.compatibility=="mana-inspect/v1" and .mana.present==false and .guarantees.model_calls==0 and .guarantees.writes==false' "$tmp/project.json" >/dev/null || fail 'missing workspace project contract failed'
 ! grep -Fq "$project" "$tmp/project.json" || fail 'project response leaked absolute path'
 "$inspect" --project-root "$project" artifacts --json | jq -e '.schema=="mana.inspect.artifacts/v1" and .artifacts==[]' >/dev/null || fail 'missing workspace catalog failed'
+"$inspect" --project-root "$project" work-items --json | jq -e '.schema=="mana.inspect.work-items/v1" and .work_items==[] and .coverage=="none"' >/dev/null || fail 'missing workspace work-item list failed'
 
 "$root/scripts/bootstrap-project.sh" --project-root "$project" --mana-root "$root" --no-jira-env >/dev/null
 "$root/scripts/mana-workspace.sh" init --root "$project" --feature FEAT-1 >/dev/null
@@ -22,6 +23,9 @@ cp "$project/.mana/features/FEAT-1/evidence/verification/run-1/result.json" "$pr
 printf '%s\n' '{not json' > "$project/.mana/legacy.json"
 printf '%s\n' 'opaque legacy data' > "$project/.mana/legacy.bin"
 ln -s /etc/passwd "$project/.mana/unsafe-link"
+mkdir -p "$project/.mana/features/FEAT-1/context" "$project/.mana/features/FEAT-1/planning"
+printf '%s\n' '# Story' > "$project/.mana/features/FEAT-1/context/story-context.md"
+printf '%s\n' '# Plan' > "$project/.mana/features/FEAT-1/planning/implementation-plan.md"
 
 before="$(find "$project/.mana" -type f -exec shasum -a 256 {} + | LC_ALL=C sort)"
 "$project/mana" inspect project --json > "$tmp/wrapper-project.json"
@@ -44,6 +48,48 @@ jq -e '
   all($r.artifacts[]; .path != ".mana/features/FEAT-1/evidence/verification/run-1/latest.json")
 ' "$tmp/catalog-one.json" >/dev/null || fail 'catalog fields, aliases, or safety classification failed'
 ! grep -Fq "$project" "$tmp/catalog-one.json" || fail 'catalog leaked absolute path'
+
+# Semantic work-item producer uses only canonical workspace roots and manifests.
+"$project/mana" inspect work-items --json > "$tmp/work-items-one.json"
+"$project/mana" inspect project --json | jq -e 'any(.operations[]; .name=="work-items" and .schema=="mana.inspect.work-items/v1") and any(.operations[]; .name=="work-item" and .schema=="mana.inspect.work-item/v1")' >/dev/null || fail 'semantic operations not advertised'
+"$project/mana" inspect work-items --json > "$tmp/work-items-two.json"
+cmp -s "$tmp/work-items-one.json" "$tmp/work-items-two.json" || fail 'work-item list is not byte-stable'
+jq -e '
+  .schema=="mana.inspect.work-items/v1" and
+  ([.work_items[].work_item_id]|index("feature:FEAT-1")) and
+  ([.work_items[].work_item_id]|index("session:session-1")) and
+  any(.work_items[]; .work_item_id=="feature:FEAT-1" and .work_item_type=="feature") and
+  any(.work_items[]; .work_item_id=="session:session-1" and .work_item_type=="session") and
+  any(.work_items[]; .work_item_id=="feature:FEAT-1" and .lifecycle.state=="in_progress") and
+  any(.work_items[]; .work_item_id=="session:session-1" and .lifecycle.state=="unknown") and
+  all(.work_items[]; .review.state=="unknown" and (.attention_items|type=="array"))
+' "$tmp/work-items-one.json" >/dev/null || fail 'semantic work-item list failed'
+"$project/mana" inspect work-item feature:FEAT-1 --json > "$tmp/work-item-feature.json"
+jq -e '
+  .schema=="mana.inspect.work-item/v1" and .work_item.work_item_id=="feature:FEAT-1" and
+  ([.sections[].section_id]|sort)==["artifacts","decisions","evidence","overview","plan","requirements","review","timeline"] and
+  all(.sections[].artifacts[]; .work_item_id=="feature:FEAT-1" and (.section_id|type=="string"))
+' "$tmp/work-item-feature.json" >/dev/null || fail 'semantic work-item detail failed'
+jq -e '
+  any(.sections[]; .section_id=="overview" and any(.artifacts[]; .path==".mana/features/FEAT-1/index.md")) and
+  any(.sections[]; .section_id=="requirements" and any(.artifacts[]; .path==".mana/features/FEAT-1/context/story-context.md")) and
+  any(.sections[]; .section_id=="plan" and any(.artifacts[]; .path==".mana/features/FEAT-1/planning/implementation-plan.md"))
+' "$tmp/work-item-feature.json" >/dev/null || fail 'canonical section mapping failed'
+printf '%s\n' '.mana/features/does-not-exist' > "$project/.mana/active-workspace"
+"$project/mana" inspect work-item feature:FEAT-1 --json | jq -e '.work_item.lifecycle.state=="unknown"' >/dev/null || fail 'invalid active workspace was not conservative'
+rm "$project/.mana/active-workspace"
+"$project/mana" inspect work-item feature:FEAT-1 --json | jq -e '.work_item.lifecycle.state=="unknown"' >/dev/null || fail 'missing active workspace was not conservative'
+printf '%s\n' '.mana/features/FEAT-1' > "$project/.mana/active-workspace"
+printf '%s\n' 'workspace_type: session' 'workspace_id: wrong-id' > "$project/.mana/sessions/session-1/manifest.yaml"
+"$project/mana" inspect work-item session:session-1 --json | jq -e '.work_item.work_item_id=="session:session-1" and any(.diagnostics[]; .id=="manifest-identity")' >/dev/null || fail 'manifest/path identity disagreement failed'
+if "$project/mana" inspect work-item feature:missing --json >/dev/null 2>&1; then fail 'unknown work item was accepted'; fi
+if "$project/mana" inspect work-item ../unsafe --json >/dev/null 2>&1; then fail 'unsafe work item ID was accepted'; fi
+printf '%s\n' '| x | needs_owner_review |' >> "$project/.mana/features/FEAT-1/decisions/developer-choice-log.md"
+printf '%s\n' '{"schemaVersion":"2","kind":"verification-result","runId":"run-failed","overallResult":"failed"}' > "$project/.mana/features/FEAT-1/evidence/verification/run-failed.json"
+printf '%s\n' '{"schemaVersion":"2","kind":"verification-result","runId":"run-stale","overallResult":"passed","staleness":"stale"}' > "$project/.mana/features/FEAT-1/evidence/verification/run-stale.json"
+"$project/mana" inspect work-item feature:FEAT-1 --json | jq -e 'any(.attention_items[]; .category=="pending_decision") and any(.attention_items[]; .category=="failed_verification") and any(.attention_items[]; .category=="stale_evidence") and .work_item.lifecycle.state=="failed"' >/dev/null || fail 'semantic attention or lifecycle failed'
+printf '%s\n' 'review decision evidence' > "$project/.mana/features/FEAT-1/unrelated-review-decision-evidence.md"
+"$project/mana" inspect work-item feature:FEAT-1 --json | jq -e 'all(.sections[].artifacts[]; .path != ".mana/features/FEAT-1/unrelated-review-decision-evidence.md" or .section_id=="artifacts")' >/dev/null || fail 'lexical filename inference occurred'
 
 mkdir -p "$project/.mana/sessions/session-1/evidence/verification/run-1"
 cp "$project/.mana/features/FEAT-1/evidence/verification/run-1/result.json" "$project/.mana/sessions/session-1/evidence/verification/run-1/result.json"
