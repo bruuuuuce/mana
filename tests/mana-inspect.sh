@@ -15,10 +15,21 @@ jq -e '.schema=="mana.inspect.project/v1" and .framework.compatibility=="mana-in
 
 "$root/scripts/bootstrap-project.sh" --project-root "$project" --mana-root "$root" --no-jira-env >/dev/null
 "$root/scripts/mana-workspace.sh" init --root "$project" --feature FEAT-1 >/dev/null
-mkdir -p "$project/.mana/sessions/session-1/validation" "$project/.mana/features/FEAT-1/evidence/verification/run-1"
+mkdir -p "$project/.mana/sessions/session-1/validation" \
+  "$project/.mana/features/FEAT-1/evidence/verification/run-1" \
+  "$project/.mana/features/FEAT-1/evidence/verification/run-generated" \
+  "$project/.mana/features/FEAT-1/evidence/verification/run-finished" \
+  "$project/.mana/features/FEAT-1/evidence/verification/run-both" \
+  "$project/.mana/features/FEAT-1/evidence/verification/run-malformed-generated" \
+  "$project/.mana/features/FEAT-1/evidence/verification/run-malformed-finished"
 printf '%s\n' 'workspace_type: session' 'workspace_id: session-1' > "$project/.mana/sessions/session-1/manifest.yaml"
 printf '%s\n' '# Review' > "$project/.mana/sessions/session-1/validation/review.md"
 printf '%s\n' '{"schemaVersion":"2","kind":"verification-result","runId":"run-1","overallResult":"passed"}' > "$project/.mana/features/FEAT-1/evidence/verification/run-1/result.json"
+printf '%s\n' '{"schemaVersion":"2","kind":"verification-result","runId":"run-generated","overallResult":"passed","generatedAt":"2026-01-02T03:04:05Z"}' > "$project/.mana/features/FEAT-1/evidence/verification/run-generated/result.json"
+printf '%s\n' '{"schemaVersion":"2","kind":"verification-result","runId":"run-finished","overallResult":"passed","finishedAt":"2026-01-03T04:05:06Z"}' > "$project/.mana/features/FEAT-1/evidence/verification/run-finished/result.json"
+printf '%s\n' '{"schemaVersion":"2","kind":"verification-result","runId":"run-both","overallResult":"passed","generatedAt":"2026-01-04T05:06:07Z","finishedAt":"2026-01-05T06:07:08Z"}' > "$project/.mana/features/FEAT-1/evidence/verification/run-both/result.json"
+printf '%s\n' '{"schemaVersion":"2","kind":"verification-result","runId":"run-malformed-generated","overallResult":"passed","generatedAt":"not-a-timestamp"}' > "$project/.mana/features/FEAT-1/evidence/verification/run-malformed-generated/result.json"
+printf '%s\n' '{"schemaVersion":"2","kind":"verification-result","runId":"run-malformed-finished","overallResult":"passed","finishedAt":"not-a-timestamp"}' > "$project/.mana/features/FEAT-1/evidence/verification/run-malformed-finished/result.json"
 cp "$project/.mana/features/FEAT-1/evidence/verification/run-1/result.json" "$project/.mana/features/FEAT-1/evidence/verification/run-1/latest.json"
 printf '%s\n' '{not json' > "$project/.mana/legacy.json"
 printf '%s\n' 'opaque legacy data' > "$project/.mana/legacy.bin"
@@ -58,7 +69,20 @@ jq -e '(.schema=="mana.inspect.project-context/v1") and ([.categories[].category
 mkdir -p "$project/.mana/runtime/events"
 printf '%s\n' '{"eventId":"runtime-b","timestamp":"2026-01-01T00:00:00Z"}' '{"eventId":"runtime-a","timestamp":"2026-01-01T00:00:00Z"}' > "$project/.mana/runtime/events/sample.jsonl"
 "$project/mana" inspect activity --json > "$tmp/activity.json"
-jq -e '.schema=="mana.inspect.activity/v1" and any(.events[]; .event_id=="runtime-a" and .timestamp.provenance=="explicit_domain_timestamp") and any(.events[]; .timestamp.provenance=="filesystem_mtime_epoch" and .event_kind=="artifact_updated") and (([.events[]|select(.event_id=="runtime-a" or .event_id=="runtime-b")|.event_id])==["runtime-a","runtime-b"])' "$tmp/activity.json" >/dev/null || fail 'semantic activity ordering or provenance failed'
+"$project/mana" inspect activity --json > "$tmp/activity-repeat.json"
+cmp -s "$tmp/activity.json" "$tmp/activity-repeat.json" || fail 'activity is not byte-stable'
+jq -e '
+  .schema=="mana.inspect.activity/v1" and
+  any(.events[]; .event_id=="runtime-a" and .timestamp.provenance=="explicit_domain_timestamp") and
+  any(.events[]; .event_id=="verification:verification:run-generated" and .event_kind=="verification_completed" and .timestamp.value=="2026-01-02T03:04:05Z" and .timestamp.provenance=="explicit_domain_timestamp") and
+  any(.events[]; .event_id=="verification:verification:run-finished" and .event_kind=="verification_completed" and .timestamp.value=="2026-01-03T04:05:06Z" and .timestamp.provenance=="explicit_domain_timestamp") and
+  any(.events[]; .event_id=="verification:verification:run-both" and .timestamp.value=="2026-01-04T05:06:07Z") and
+  (all(.events[]; .event_id != "verification:verification:run-malformed-generated" and .event_id != "verification:verification:run-malformed-finished")) and
+  any(.events[]; .event_id=="artifact-update:verification:run-malformed-generated" and .timestamp.provenance=="filesystem_mtime_epoch" and .event_kind=="artifact_updated") and
+  any(.events[]; .event_id=="artifact-update:verification:run-malformed-finished" and .timestamp.provenance=="filesystem_mtime_epoch" and .event_kind=="artifact_updated") and
+  any(.events[]; .timestamp.provenance=="filesystem_mtime_epoch" and .event_kind=="artifact_updated") and
+  (([.events[]|select(.event_id=="runtime-a" or .event_id=="runtime-b")|.event_id])==["runtime-a","runtime-b"])
+' "$tmp/activity.json" >/dev/null || fail 'semantic verification activity timestamps, ordering, or fallback provenance failed'
 "$project/mana" inspect work-items --json > "$tmp/work-items-two.json"
 cmp -s "$tmp/work-items-one.json" "$tmp/work-items-two.json" || fail 'work-item list is not byte-stable'
 jq -e '

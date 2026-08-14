@@ -282,7 +282,8 @@ activity_response() {
   while IFS='|' read -r artifact path ws; do
     file="$root/$path"; [ -f "$file" ] || continue
     stamp="$(jq -r 'if .kind=="verification-result" then (.generatedAt // .finishedAt // empty) else empty end' "$file" 2>/dev/null)"
-    [ -n "$stamp" ] && jq -e --arg t "$stamp" '$t|fromdateiso8601' >/dev/null 2>&1 || continue
+    # -n prevents jq from consuming the outer record stream on stdin.
+    [ -n "$stamp" ] && jq -ne --arg t "$stamp" '$t|fromdateiso8601' >/dev/null 2>&1 || continue
     event="$(jq -cn --arg id "verification:$artifact" --arg t "$stamp" --arg artifact "$artifact" --argjson ws "$([ "$ws" = null ] && echo null || jq -Rn --arg x "$ws" '$x')" '{event_id:$id,timestamp:{value:$t,provenance:"explicit_domain_timestamp"},event_kind:"verification_completed",work_item_id:$ws,related_artifact_ids:[$artifact],summary:null,provenance:"explicit_workspace_manifest"}')"
     events="$(jq -c --argjson x "$event" '.+[$x]' <<<"$events")"
   done < <(jq -r '.[]|[.artifact_id,.path,(.workspace//"null")]|join("|")' <<<"$entries")
