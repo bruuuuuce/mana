@@ -1,7 +1,7 @@
 # Mana inspect semantic read contract v1
 
-This document reserves optional v1 CLI operations. They are not implemented or
-advertised by this bundle's current producer; consumers negotiate them from
+This document defines optional v1 CLI operations. Producers advertise the
+operations they implement, and consumers negotiate them from
 `project.operations` before calling them.
 
 ```text

@@ -9,6 +9,8 @@ Usage: mana inspect <project|artifacts> --json
        mana inspect source <project-relative-source-path> --json
        mana inspect work-items --json
        mana inspect work-item <feature:<workspace-id>|session:<workspace-id>> --json
+       mana inspect project-context --json
+       mana inspect activity --json
 Exit codes: 0 success; 2 invalid input; 3 unsupported contract; 4 malformed workspace; 5 internal failure.
 USAGE
 }
@@ -76,7 +78,7 @@ status() {
   echo available
 }
 entry() {
-  local file="$1" path fam cls typ art rev ws stat sch updated size diagnostic=null meta json_kind json_schema json_version json_id json_status
+  local file="$1" path fam cls typ art rev ws stat sch updated size diagnostic=null json_kind json_schema json_version json_id json_status
   path="$(rel "$file")" || return
   fam="$(family "$path")"; cls="$(class "$path")"; typ="$(kind "$path")"; rev="sha256:$(hash_file "$file")"; ws="$(workspace "$path")"; updated="$(mtime "$file")"; size="$(wc -c < "$file" | tr -d ' ')"
   if [[ "$path" == *.json ]] && jq -e . "$file" >/dev/null 2>&1; then
@@ -219,7 +221,8 @@ active_work_item_id() {
   esac
 }
 semantic_summary() {
-  local type="$1" wsid="$2" dir="$3" entries="$4" manifest="$dir/manifest.yaml" wid="$type:$wsid"
+  local type="$1" wsid="$2" dir="$3" entries="$4"
+  local manifest="$dir/manifest.yaml" wid="$type:$wsid"
   local branch purpose feature canonical artifacts diagnostics lifecycle attention review
   diagnostics='[]'; branch=''; purpose=''; feature=''; canonical='null'
   if [ -f "$manifest" ] && ! [ -L "$manifest" ]; then
@@ -257,24 +260,23 @@ context_response() {
   categories='[]'
   for category in architecture project_decisions integrations engineering_guards glossary learning_journeys testing_policy database_policy; do
     case "$category" in architecture) selector=.mana/global/architecture.md;; project_decisions) selector=.mana/global/team-decisions/;; integrations) selector=.mana/global/integration-map.md;; engineering_guards) selector=.mana/global/engineering-guards.md;; glossary) selector=.mana/global/domain-glossary.md;; learning_journeys) selector=.mana/learning/journeys/;; testing_policy) selector=.mana/global/testing-policy.md;; database_policy) selector=.mana/global/database-policy.md;; esac
-    artifacts="$(jq -c --arg p "$selector" '[.[]|select(if ($p|endswith("/")) then (.path|startswith($p)) else .path==$p end)|{artifact_id,path,kind,status,work_item_id:null,section_id:null,label:null}]' <<<"$entries")"
+    artifacts="$(jq -c --arg p "$selector" '[.[]|select(.status!="quarantined" and .class!="ephemeral")|select(if ($p|endswith("/")) then (.path|startswith($p)) else .path==$p end)|{artifact_id,path,kind,status,work_item_id:null,section_id:null,label:null}]' <<<"$entries")"
     categories="$(jq -c --arg c "$category" --argjson a "$artifacts" '.+[{category:$c,artifacts:$a,coverage:(if ($a|length)>0 then "canonical_path_category" else "missing" end)}]' <<<"$categories")"
   done
   jq -cn --argjson categories "$categories" '{schema:"mana.inspect.project-context/v1",categories:$categories,coverage:(if ($categories|map(.artifacts|length)|add)==0 then "none" else "canonical_global_context" end),diagnostics:[],guarantees:{model_calls:0,writes:false,semantic_inference:"canonical_structured_sources_only"}}'
 }
 activity_response() {
-  local entries events
+  local entries events file path ws artifact line stamp event fallback
   entries="$(catalog)"
-  events="$(jq -cn --argjson e "$entries" --arg root "$root" '
-    [$e[] | select(.path|endswith(".json")) | . as $a |
-      ($root+"/"+$a.path) as $f |
-      try ([$f] | .[0]) catch empty ]' 2>/dev/null)"
   # JSONL runtime events and structured verification timestamps are authoritative.
   events='[]'
   while IFS= read -r -d '' file; do
     path="$(rel "$file")"; ws="$(workspace "$path")"; artifact="$(jq -r --arg p "$path" '.[]|select(.path==$p)|.artifact_id' <<<"$entries")"
     while IFS= read -r line; do
       jq -e '(.eventId|type=="string") and (.timestamp|type=="string")' <<<"$line" >/dev/null 2>&1 || continue
+      stamp="$(jq -r '.timestamp' <<<"$line")"
+      # -n keeps timestamp validation from consuming the JSONL loop's stdin.
+      jq -ne --arg t "$stamp" '$t|fromdateiso8601' >/dev/null 2>&1 || continue
       event="$(jq -cn --argjson v "$line" --arg artifact "$artifact" --argjson ws "$([ "$ws" = null ] && echo null || jq -Rn --arg x "$ws" '$x')" '{event_id:$v.eventId,timestamp:{value:$v.timestamp,provenance:"explicit_domain_timestamp"},event_kind:"unknown",work_item_id:$ws,related_artifact_ids:[$artifact],summary:null,provenance:"explicit_workspace_manifest"}')"
       events="$(jq -c --argjson x "$event" '.+[$x]' <<<"$events")"
     done < "$file"
