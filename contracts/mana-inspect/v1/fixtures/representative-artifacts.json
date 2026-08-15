@@ -1,0 +1,12 @@
+[
+  {"family":"workspace","kind":"verification-result","status":"passed","path":".mana/features/FEAT-1/evidence/verification/run-passed/result.json"},
+  {"family":"workspace","kind":"verification-result","status":"failed","path":".mana/features/FEAT-1/evidence/verification/run-failed/result.json"},
+  {"family":"workspace","kind":"repair-attempt-result","status":"available","path":".mana/features/FEAT-1/evidence/repair/repair-attempt-1/result.json"},
+  {"family":"runtime","kind":"runtime_events","status":"available","path":".mana/runtime/events/execution-1.jsonl"},
+  {"family":"workspace","kind":"markdown","status":"available","path":".mana/sessions/run-1/pr/review.md"},
+  {"family":"learning","kind":"file","status":"candidate","path":".mana/learning/candidates/project-local-fixture.json"},
+  {"family":"knowledge","kind":"journey","status":"available","path":".mana/learning/journeys/jrn_000000000000000000000000/journey.yaml"},
+  {"family":"knowledge","kind":"journey_record","status":"available","path":".mana/learning/journeys/jrn_000000000000000000000000/records/occ_000000000000000000000000-concept_occurrence.yaml"},
+  {"family":"knowledge","kind":"journey_record","status":"available","path":".mana/learning/journeys/jrn_000000000000000000000000/records/dia_000000000000000000000000-diagram.yaml"},
+  {"family":"unknown","kind":"unknown","status":"malformed","path":".mana/legacy.json"}
+]

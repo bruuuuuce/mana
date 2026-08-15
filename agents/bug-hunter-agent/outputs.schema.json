@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "bug-hunter-agent outputs",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["status", "findings"],
+  "properties": {
+    "status": {"enum": ["completed", "needs_scope_narrowing", "routed", "insufficient_evidence", "no_material_findings"]},
+    "bug_hunt_report": {"type": "string"},
+    "bug_hunt_findings": {"type": "string"},
+    "bug_hunt_reproducer_plan": {"type": "string"},
+    "findings": {"type": "array", "items": {"type": "object", "required": ["severity", "confidence", "classification", "source_evidence", "failure_preconditions", "observable_symptom", "affected_path", "suggested_reproducer_or_test"], "properties": {"severity": {"enum": ["blocker", "warning", "info"]}, "confidence": {"enum": ["high", "medium", "low"]}, "classification": {"enum": ["confirmed", "probable", "hypothesis"]}, "source_evidence": {"type": "string"}, "failure_preconditions": {"type": "string"}, "observable_symptom": {"type": "string"}, "affected_path": {"type": "string"}, "suggested_reproducer_or_test": {"type": "string"}}}}
+  }
+}

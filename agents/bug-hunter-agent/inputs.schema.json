@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "bug-hunter-agent inputs",
+  "type": "object",
+  "required": ["target_paths", "scope_rationale"],
+  "additionalProperties": true,
+  "properties": {
+    "target_paths": {"type": "array", "minItems": 1, "maxItems": 25, "items": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+$"}, "description": "Explicit repository-relative regular-file paths; maximum 25 files and 1,500 non-blank lines. The runner must resolve and reject non-regular, symlinked, escaped, generated/vendor, and excluded framework paths."},
+    "scope_rationale": {"type": "string", "minLength": 1},
+    "service_context": {"type": "string"},
+    "existing_test_evidence": {"type": "string"}
+  }
+}

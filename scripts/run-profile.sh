@@ -934,7 +934,7 @@ Model routing: root=economy; full-tier candidates=${model_escalation_skills:-non
 Runtime limits: Codex subagents=$codex_subagents/$codex_max_threads; Claude subagents=$claude_subagents/$claude_max_threads; OpenCode subagents=$opencode_subagents/$opencode_max_threads.
 User Context: available=$user_context_available; generated root=.mana/user-context; entry points=$user_context_entries.
 
-Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'. Follow docs/policies/runtime-execution-contract.md and docs/standards/output-contract.md. The profile's skill_activation block is authoritative: begin with baseline skills, then load a conditional skill only after filtered evidence matches its signal. Use skills/index.yaml for metadata; read only the selected skill bodies.
+Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'. Follow docs/policies/runtime-execution-contract.md and docs/standards/output-contract.md. The skill_activation block of the profile is authoritative: begin with baseline skills, then load a conditional skill only after filtered evidence matches its signal. Use skills/index.yaml for metadata; read only the selected skill bodies.
 
 Read only the selected agent AGENT.md and playbook, core service-context files, and evidence required for a concrete hypothesis. Do not recursively invoke Mana. Keep evidence compact and return artifact paths rather than transcripts.
 

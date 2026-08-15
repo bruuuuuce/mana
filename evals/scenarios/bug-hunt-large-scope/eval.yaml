@@ -1,0 +1,6 @@
+version: 1
+assertions:
+  - type: must_stop_with
+    value: exceeds 25 files or 1500 non-blank lines
+  - type: must_not_modify
+    value: true

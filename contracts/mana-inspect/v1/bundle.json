@@ -1,0 +1,20 @@
+{
+  "bundle": "mana-inspect-contract",
+  "version": "v1",
+  "owner": "Mana",
+  "schemas": [
+    "schemas/project.schema.json",
+    "schemas/artifacts.schema.json",
+    "schemas/artifact.schema.json",
+    "schemas/source.schema.json",
+    "schemas/work-items.schema.json",
+    "schemas/work-item.schema.json",
+    "schemas/project-context.schema.json",
+    "schemas/activity.schema.json"
+  ],
+  "fixtureManifest": "fixtures/fixture-manifest.json",
+  "compatibility": "COMPATIBILITY.md",
+  "validation": "scripts/validate-inspect-contract.sh",
+  "modelCalls": 0,
+  "network": false
+}

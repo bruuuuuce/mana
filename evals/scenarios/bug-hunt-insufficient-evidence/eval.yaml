@@ -1,0 +1,10 @@
+version: 1
+assertions:
+  - type: must_produce_artifact
+    value: bug-hunter-agent: bug-hunt-reproducer-plan.md
+  - type: must_stop_with
+    value: insufficient evidence for a candidate defect
+  - type: must_not_flag
+    value: confirmed-without-reproducer
+  - type: must_not_modify
+    value: true

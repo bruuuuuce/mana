@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/schemas/mana-inspect-source-v1.schema.json",
+  "title": "Mana inspect source v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "source", "relations", "coverage", "guarantees", "diagnostics"],
+  "properties": {
+    "schema": {"const": "mana.inspect.source/v1"},
+    "source": {"type": "object", "required": ["path", "availability"]},
+    "relations": {"type": "array"},
+    "coverage": {"enum": ["explicit_journey_anchors", "unknown"]},
+    "guarantees": {"type": "object"},
+    "diagnostics": {"type": "array"}
+  }
+}

@@ -27,6 +27,20 @@ only add provider-specific configuration.
 - Keep provenance distinct: repository evidence, project/service context, and
   User Context are different sources.
 
+## Authoritative Implementation Contracts
+- When a story or supplied implementation contract declares inputs
+  authoritative, consume those values directly. Do not add database,
+  configuration, or service lookups merely to re-derive them.
+- Treat forbidden reads, forbidden changes, and non-goals as hard planning
+  boundaries. If repository evidence conflicts, stop with the exact conflict;
+  do not replace the requested design with a generic safer-looking design.
+- A technical task must cite a requirement or acceptance criterion, a candidate
+  file or seam, and direct test evidence. Approval, branch alignment, review,
+  and evidence collection are readiness items, not implementation tasks.
+- Produce numeric estimates only after explicit request, confirmed scope, and
+  no blockers. Estimate code changes and direct automated tests only; report
+  readiness lead time separately.
+
 ## Routing And Escalation
 - The economy root routes, inventories evidence, performs low-risk checks, and
   synthesizes results.

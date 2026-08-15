@@ -102,7 +102,8 @@ printf '%s' "$codex_bad_candidate" | jq -e '.modelCalls==1 and .candidateResults
 unsorted_flat="$(jq -c '.relatedClusterIds |= reverse | .supportingSignalIds |= reverse | .limitations=["Second limitation.","First limitation."]' <<<"$flat_candidate")"
 unsorted_result="$(PATH="$tmp:$PATH" MANA_USER_STATE_HOME="$state" MANA_USER_LEARNING_DIAGNOSTICS_DIR="$tmp/unsorted-diagnostics" MANA_USER_LEARNING_DIAGNOSTIC_SCENARIO=unsorted-valid-provenance MANA_USER_LEARNING_T1_PROVIDER=codex MANA_USER_LEARNING_T1_MODEL=fixture M3_CODEX_RESPONSE="$unsorted_flat" M3_CODEX_ARGS="$tmp/codex-args" "$root/scripts/mana-user-learning.sh" --project-root "$project" synthesize --force --json)"
 printf '%s' "$unsorted_result" | jq -e '.modelCalls==1 and .candidateResults==1 and .invalidProviderResponses==0' >/dev/null || fail 'unsorted_valid_provenance_is_accepted'
-unsorted_diagnostic="$(find "$tmp/unsorted-diagnostics" -type f -name '*.json' -print -quit)"
+unsorted_diagnostic="$(jq -r 'select(.acceptedResult != null) | input_filename' "$tmp/unsorted-diagnostics"/*.json | LC_ALL=C sort | head -n 1)"
+[ -n "$unsorted_diagnostic" ] || fail 'accepted unsorted diagnostic was not recorded'
 jq -e '(.acceptedResult.relatedClusterIds == (.acceptedResult.relatedClusterIds|sort)) and (.acceptedResult.supportingSignalIds == (.acceptedResult.supportingSignalIds|sort))' "$unsorted_diagnostic" >/dev/null || fail 'unsorted_valid_provenance_is_canonicalized'
 jq -e '.acceptedResult.limitations==["Second limitation.","First limitation."]' "$unsorted_diagnostic" >/dev/null || fail 'non_provenance_arrays_are_not_reordered'
 jq -e '.supportingSignalIds == (.supportingSignalIds|sort) and .synthesis.limitations==["Second limitation.","First limitation."]' "$candidate_file" >/dev/null || fail 'canonical provenance was not persisted without reordering limitations'
@@ -110,7 +111,8 @@ jq -e '.supportingSignalIds == (.supportingSignalIds|sort) and .synthesis.limita
 sorted_flat="$(jq -c '.relatedClusterIds |= sort | .supportingSignalIds |= sort' <<<"$unsorted_flat")"
 stable_result="$(PATH="$tmp:$PATH" MANA_USER_STATE_HOME="$state" MANA_USER_LEARNING_DIAGNOSTICS_DIR="$tmp/stable-diagnostics" MANA_USER_LEARNING_DIAGNOSTIC_SCENARIO=stable-canonical-provenance MANA_USER_LEARNING_T1_PROVIDER=codex MANA_USER_LEARNING_T1_MODEL=fixture M3_CODEX_RESPONSE="$sorted_flat" M3_CODEX_ARGS="$tmp/codex-args" "$root/scripts/mana-user-learning.sh" --project-root "$project" synthesize --force --json)"
 printf '%s' "$stable_result" | jq -e '.modelCalls==1 and .candidateResults==1 and .invalidProviderResponses==0' >/dev/null || fail 'sorted provenance control response was rejected'
-stable_diagnostic="$(find "$tmp/stable-diagnostics" -type f -name '*.json' -print -quit)"
+stable_diagnostic="$(jq -r 'select(.acceptedResult != null) | input_filename' "$tmp/stable-diagnostics"/*.json | LC_ALL=C sort | head -n 1)"
+[ -n "$stable_diagnostic" ] || fail 'accepted stable diagnostic was not recorded'
 [ "$(jq -cS .acceptedResult "$unsorted_diagnostic")" = "$(jq -cS .acceptedResult "$stable_diagnostic")" ] || fail 'canonical_provenance_output_is_stable'
 
 duplicate_flat="$(jq -c '.supportingSignalIds=[.supportingSignalIds[0],.supportingSignalIds[0]]' <<<"$flat_candidate")"

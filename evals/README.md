@@ -110,6 +110,12 @@ database runner checks. Run `scripts/run-validation-fixtures.sh` to verify that
 unapproved GUI/API entries and mutating database SQL are blocked without
 requiring Playwright, Newman, Docker, or PostgreSQL.
 
+Fixture catalogs keep `project_root` as the portable
+`__MANA_FIXTURE_PROJECT_ROOT__` placeholder. The validation script renders
+temporary catalogs with the local fixture path. Replace the placeholder with
+the canonical absolute root of an isolated target before an opt-in positive
+execution; do not commit machine-local paths.
+
 Positive executions are intentionally opt-in: they require a real isolated
 target and the relevant runtime. Do not convert these fixtures into a shared
 application or add credentials to them.

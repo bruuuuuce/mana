@@ -1,7 +1,7 @@
 ---
 name: story-effort-estimation
-version: 1.1.0
-description: Estimates Agile story points and time ranges for stories and split technical tasks using complexity, uncertainty, risk, dependencies, and test effort. Historical calibration is optional and requires explicit user approval.
+version: 1.2.0
+description: Estimates Agile story points and implementation-only time ranges for stories and split technical tasks using confirmed scope, complexity, uncertainty, risk, dependencies, and direct test effort. Historical calibration is optional and requires explicit user approval.
 compatibility:
   - codex
   - junie
@@ -20,6 +20,8 @@ inputs:
   - source_impact_map
   - risk_register
   - team_constraints
+  - implementation_contract
+  - estimation_requested
   - historical_calibration_approved
 outputs:
   - story_effort_estimate
@@ -60,6 +62,11 @@ This skill supports planning decisions. It does not replace team planning poker,
 - Do not estimate from title-only stories unless the output is explicitly marked `insufficient_evidence`.
 - Do not hide missing requirements inside a larger estimate; report blockers or questions.
 - Do not sum task story points mechanically to override the story-level estimate.
+- Do not produce story points or a numeric time range unless estimation was
+  explicitly requested, the scope is confirmed, and blockers are resolved.
+- Do not include approvals, discovery, branch alignment, review queue time, or
+  evidence collection in implementation effort. Report them separately as
+  readiness lead-time risks when relevant.
 
 ## Inputs
 - story
@@ -68,6 +75,8 @@ This skill supports planning decisions. It does not replace team planning poker,
 - source_impact_map
 - risk_register
 - team_constraints
+- implementation_contract
+- estimation_requested: optional boolean, defaults to `false`.
 - historical_calibration_approved: optional boolean, defaults to `false`. It
   permits read-only comparison with historical team-level delivery evidence.
 
@@ -77,6 +86,14 @@ This skill supports planning decisions. It does not replace team planning poker,
 - estimation_rationale
 - estimation_risks
 - calibration_status
+
+## Decision Rules
+- `blocker`: estimate cannot be made responsibly because acceptance criteria,
+  scope, dependency, owner decision, or implementation-contract conflict is
+  missing or unresolved.
+- `warning`: story is `13` or `>13`, confidence is low, time range is wide,
+  task split is uneven, or a task is not independently testable.
+- `info`: estimate is usable with normal uncertainty.
 
 ## Optional Historical Calibration
 The default estimate uses only the current story, technical analysis, service
@@ -121,32 +138,36 @@ Score using evidence, not optimism:
 - Legacy complexity, low observability, or fragile existing behavior.
 
 ## Execution Logic
-1. Confirm requirement evidence is sufficient. If not, return `insufficient_evidence` with questions instead of a confident estimate.
-2. Estimate the story first using the point scale and rationale. Mark whether the story should be split.
-3. If `technical_task_breakdown` is present, estimate each task separately with:
+1. Confirm `estimation_requested: true`, confirmed scope, sufficient requirement
+   evidence, and no unresolved blockers. If any condition fails, return
+   `not_requested` or `not_estimable` with `story_points: null` and
+   `time_range: null`; do not turn uncertainty into a larger estimate.
+2. Respect the implementation contract. An authoritative input must not be
+   re-derived, and a forbidden read or change cannot be included in the estimate.
+3. Estimate the story first using the point scale and rationale. Mark whether the story should be split.
+4. If `technical_task_breakdown` is present, estimate each task separately with:
    - task name or id
    - story points when the task is independently assignable
    - time range
    - confidence
    - dependencies
    - main uncertainty driver
-4. Produce a time range separately from story points. Use person-time ranges such as `0.5-1 day`, `1-2 days`, `3-5 days`, or `1-2 weeks`. Include analysis, implementation, testing, review rework, and evidence collection when relevant.
-5. Explain why the time range differs from the story point signal when it does; for example, low complexity but slow external dependency.
-6. Call out split recommendations when any task is too large, too risky, or not independently testable.
-7. Set `calibration_status` to `not_requested` unless explicit approval was
+5. Produce an implementation-only person-time range: code changes and direct
+   automated tests. Use ranges such as `0.5-1 day`, `1-2 days`, `3-5 days`, or
+   `1-2 weeks`. Keep discovery, approvals, review rework, and evidence
+   collection in a separate readiness section and never add them to this range.
+6. Explain why the time range differs from the story point signal when it does; for example, low complexity but slow external dependency.
+7. Call out split recommendations when any task is too large, too risky, or not independently testable.
+8. Set `calibration_status` to `not_requested` unless explicit approval was
    provided. If approved, perform the bounded team-level comparison and set it
    to `performed`, `insufficient_history`, or `access_limited`.
-
-## Decision Rules
-- `blocker`: estimate cannot be made responsibly because acceptance criteria, scope, dependency, or owner decision is missing.
-- `warning`: story is `13` or `>13`, confidence is low, time range is wide, task split is uneven, or a task is not independently testable.
-- `info`: estimate is usable with normal uncertainty.
 
 ## Required Output Shape
 Use this structure inside the standard Mana report:
 
 ```yaml
 story_estimate:
+  status: ready
   story_points: 5
   time_range: "3-5 days"
   confidence: medium
@@ -160,6 +181,9 @@ task_estimates:
     uncertainty_driver: "error mapping details"
 estimation_risks:
   - "Integration test environment may widen the time range."
+readiness_lead_time:
+  excluded_items:
+    - "Owner approval and review queue are tracked separately from implementation effort."
 calibration_status:
   state: not_requested
   reason: "Historical calibration requires explicit user approval."
@@ -186,12 +210,13 @@ Internal reasoning must use compact caveman mode: terse fragments, evidence-firs
 ```yaml
 skill: story-effort-estimation
 status: warning
-summary: "Story is estimated at 8 points with a 5-8 day range; one integration task should be split."
+summary: "Story is estimated at 2 points with a 0.5-1 day implementation-only range."
 story_estimate:
-  story_points: 8
-  time_range: "5-8 days"
-  confidence: medium
-  split_recommendation: "split integration setup from implementation"
+  status: ready
+  story_points: 2
+  time_range: "0.5-1 day"
+  confidence: high
+  split_recommendation: "not needed"
 outputs:
   - story_effort_estimate
   - task_effort_estimates

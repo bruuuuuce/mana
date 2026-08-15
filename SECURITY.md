@@ -29,3 +29,13 @@ supported line.
 - Generated `.mana/` artifacts should be reviewed before sharing or committing.
 - Production data must be redacted before it is used in prompts, reports, or
   examples.
+- `mana inspect` is deterministic and read-only, uses project-relative paths,
+  and quarantines rather than follows workspace/source symlinks. It bounds
+  exposed detail payloads to 64 KiB and JSON depth 32; consumers must treat
+  returned Markdown/text as untrusted content and never execute it.
+- Inspect and pilot-feedback data are local workspace artifacts, not uploads or
+  background telemetry. Review their contents before sharing; pilot aggregates
+  intentionally omit raw references and notes.
+- Path containment, redaction, and payload limits reduce accidental exposure;
+  Mana does not claim to be an OS sandbox against hostile files, processes, or
+  a compromised local checkout.
