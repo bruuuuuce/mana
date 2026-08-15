@@ -195,21 +195,66 @@ manifest_scalar() {
   local file="$1" key="$2"
   awk -v key="$key" '$0 ~ "^" key ":[[:space:]]*" { sub("^[^:]*:[[:space:]]*", ""); gsub(/^"|"$/, ""); print; exit }' "$file"
 }
-semantic_artifacts() {
-  local entries="$1" wid="$2" type wsid workspace_root
+document_display_label() {
+  # A display label is metadata, not semantic classification. Inspect only a
+  # bounded prefix and accept the first explicit level-one Markdown heading.
+  local file="$1" path="$2" limit=8192
+  case "$path" in *.md) ;; *) return 0 ;; esac
+  [ -f "$file" ] && [ -r "$file" ] && ! [ -L "$file" ] || return 0
+  LC_ALL=C head -c "$limit" "$file" | LC_ALL=C grep -Iq . || return 0
+  if command -v iconv >/dev/null 2>&1; then
+    head -c "$limit" "$file" | iconv -f UTF-8 -t UTF-8 >/dev/null 2>&1 || return 0
+  fi
+  LC_ALL=C head -c "$limit" "$file" | awk '
+    NR <= 64 && /^```/ { if (fence == "backtick") fence = ""; else if (fence == "") fence = "backtick"; next }
+    NR <= 64 && /^~~~/ { if (fence == "tilde") fence = ""; else if (fence == "") fence = "tilde"; next }
+    NR <= 64 && fence == "" && /^#[[:space:]]+/ {
+      sub(/^#[[:space:]]+/, "")
+      sub(/[[:space:]]+#+[[:space:]]*$/, "")
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "")
+      gsub(/[[:space:]]+/, " ")
+      if (length($0) > 0 && length($0) <= 256) print
+      exit
+    }
+    NR >= 64 { exit }
+  '
+}
+semantic_section_for() {
+  local path="$1" wid="$2" type wsid workspace_root
   type="${wid%%:*}"; wsid="${wid#*:}"; workspace_root=".mana/${type}s/$wsid"
-  jq -c --arg wid "$wid" --arg workspace_root "$workspace_root" '
-    [.[] | select(.workspace==$wid and .class!="ephemeral" and .status!="quarantined") |
-      . + {work_item_id:$wid, section_id:(if .path==($workspace_root+"/index.md") then "overview"
-        elif (.path|test("/context/(story-context|epic-goal-contract|open-questions)\\.md$")) then "requirements"
-        elif (.path|test("/planning/")) then "plan"
-        elif .path|test("/decisions/") then "decisions"
-        elif .path|test("/(evidence|tests|validation)/") then "evidence"
-        elif .path|test("/pr/") then "review"
-        elif .path|test("/agent-memory/story-trace\\.md$") then "timeline"
-        else "artifacts" end)} |
-      {artifact_id,path,kind,status,work_item_id,section_id,label:null}]
-    | sort_by(.artifact_id,.path)' <<<"$entries"
+  case "$path" in
+    "$workspace_root/index.md") echo overview ;;
+    "$workspace_root/context/story-context.md"|"$workspace_root/context/epic-goal-contract.md"|"$workspace_root/context/open-questions.md") echo requirements ;;
+    "$workspace_root/planning/"*) echo plan ;;
+    "$workspace_root/decisions/"*) echo decisions ;;
+    "$workspace_root/evidence/"*|"$workspace_root/tests/"*|"$workspace_root/validation/"*) echo evidence ;;
+    "$workspace_root/pr/"*) echo review ;;
+    "$workspace_root/agent-memory/story-trace.md") echo timeline ;;
+    *) echo artifacts ;;
+  esac
+}
+project_context_category_for() {
+  case "$1" in
+    .mana/global/architecture.md) echo architecture ;;
+    .mana/global/team-decisions/*) echo project_decisions ;;
+    .mana/global/integration-map.md) echo integrations ;;
+    .mana/global/engineering-guards.md) echo engineering_guards ;;
+    .mana/global/domain-glossary.md) echo glossary ;;
+    .mana/learning/journeys/*) echo learning_journeys ;;
+    .mana/global/testing-policy.md) echo testing_policy ;;
+    .mana/global/database-policy.md) echo database_policy ;;
+  esac
+}
+semantic_artifacts() {
+  local entries="$1" wid="$2" ref path section label
+  while IFS= read -r ref; do
+    [ -n "$ref" ] || continue
+    path="$(jq -r .path <<<"$ref")"
+    section="$(semantic_section_for "$path" "$wid")"
+    label="$(document_display_label "$root/$path" "$path")"
+    jq -c --arg wid "$wid" --arg section "$section" --arg label "$label" \
+      '{artifact_id,path,kind,status,work_item_id:$wid,section_id:$section,label:(if $label=="" then null else $label end)}' <<<"$ref"
+  done < <(jq -c --arg wid "$wid" '.[]|select(.workspace==$wid and .class!="ephemeral" and .status!="quarantined")' <<<"$entries") | jq -sc 'sort_by(.artifact_id,.path)'
 }
 active_work_item_id() {
   local value
@@ -254,20 +299,57 @@ semantic_workspaces() {
     while IFS= read -r -d '' dir; do wsid="$(basename "$dir")"; [[ "$wsid" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || continue; semantic_summary "$type" "$wsid" "$dir" "$entries"; done < <(find -P "$rootdir" -mindepth 1 -maxdepth 1 -type d -print0 | LC_ALL=C sort -z)
   done
 }
+semantic_context_artifacts() {
+  local entries="$1" category="$2" selector ref path label
+  case "$category" in
+    architecture) selector=.mana/global/architecture.md ;;
+    project_decisions) selector=.mana/global/team-decisions/ ;;
+    integrations) selector=.mana/global/integration-map.md ;;
+    engineering_guards) selector=.mana/global/engineering-guards.md ;;
+    glossary) selector=.mana/global/domain-glossary.md ;;
+    learning_journeys) selector=.mana/learning/journeys/ ;;
+    testing_policy) selector=.mana/global/testing-policy.md ;;
+    database_policy) selector=.mana/global/database-policy.md ;;
+    *) echo '[]'; return ;;
+  esac
+  while IFS= read -r ref; do
+    [ -n "$ref" ] || continue
+    path="$(jq -r .path <<<"$ref")"
+    label="$(document_display_label "$root/$path" "$path")"
+    jq -c --arg label "$label" \
+      '{artifact_id,path,kind,status,work_item_id:null,section_id:null,label:(if $label=="" then null else $label end)}' <<<"$ref"
+  done < <(jq -c --arg p "$selector" '.[]|select(.status!="quarantined" and .class!="ephemeral")|select(if ($p|endswith("/")) then (.path|startswith($p)) else .path==$p end)' <<<"$entries") | jq -sc 'sort_by(.artifact_id,.path)'
+}
 context_response() {
-  local entries categories category selector artifacts
+  local entries categories category artifacts
   entries="$(catalog)"
   categories='[]'
   for category in architecture project_decisions integrations engineering_guards glossary learning_journeys testing_policy database_policy; do
-    case "$category" in architecture) selector=.mana/global/architecture.md;; project_decisions) selector=.mana/global/team-decisions/;; integrations) selector=.mana/global/integration-map.md;; engineering_guards) selector=.mana/global/engineering-guards.md;; glossary) selector=.mana/global/domain-glossary.md;; learning_journeys) selector=.mana/learning/journeys/;; testing_policy) selector=.mana/global/testing-policy.md;; database_policy) selector=.mana/global/database-policy.md;; esac
-    artifacts="$(jq -c --arg p "$selector" '[.[]|select(.status!="quarantined" and .class!="ephemeral")|select(if ($p|endswith("/")) then (.path|startswith($p)) else .path==$p end)|{artifact_id,path,kind,status,work_item_id:null,section_id:null,label:null}]' <<<"$entries")"
+    artifacts="$(semantic_context_artifacts "$entries" "$category")"
     categories="$(jq -c --arg c "$category" --argjson a "$artifacts" '.+[{category:$c,artifacts:$a,coverage:(if ($a|length)>0 then "canonical_path_category" else "missing" end)}]' <<<"$categories")"
   done
   jq -cn --argjson categories "$categories" '{schema:"mana.inspect.project-context/v1",categories:$categories,coverage:(if ($categories|map(.artifacts|length)|add)==0 then "none" else "canonical_global_context" end),diagnostics:[],guarantees:{model_calls:0,writes:false,semantic_inference:"canonical_structured_sources_only"}}'
 }
+activity_target_index() {
+  local entries="$1" targets='[]' refs wid category
+  while IFS= read -r wid; do
+    [ -n "$wid" ] || continue
+    refs="$(semantic_artifacts "$entries" "$wid")"
+    targets="$(jq -c --argjson refs "$refs" '. + [$refs[]|{artifact_id,work_item_id,section_id,project_context_category:null,label}]' <<<"$targets")"
+  done < <(jq -r '[.[].workspace // empty]|unique[]' <<<"$entries")
+  for category in architecture project_decisions integrations engineering_guards glossary learning_journeys testing_policy database_policy; do
+    refs="$(semantic_context_artifacts "$entries" "$category")"
+    targets="$(jq -c --arg category "$category" --argjson refs "$refs" '. + [$refs[]|{artifact_id,work_item_id:null,section_id:null,project_context_category:$category,label}]' <<<"$targets")"
+  done
+  jq -cn --argjson entries "$entries" --argjson targets "$targets" '
+    ($targets + [$entries[] |
+      select(.artifact_id as $id | any($targets[]; .artifact_id==$id) | not) |
+      {artifact_id,work_item_id:.workspace,section_id:null,project_context_category:null,label:null}]) |
+    sort_by(.artifact_id)'
+}
 activity_response() {
-  local entries events file path ws artifact line stamp event fallback
-  entries="$(catalog)"
+  local entries targets events file path ws artifact line stamp event fallback target
+  entries="$(catalog)"; targets="$(activity_target_index "$entries")"
   # JSONL runtime events and structured verification timestamps are authoritative.
   events='[]'
   while IFS= read -r -d '' file; do
@@ -277,7 +359,8 @@ activity_response() {
       stamp="$(jq -r '.timestamp' <<<"$line")"
       # -n keeps timestamp validation from consuming the JSONL loop's stdin.
       jq -ne --arg t "$stamp" '$t|fromdateiso8601' >/dev/null 2>&1 || continue
-      event="$(jq -cn --argjson v "$line" --arg artifact "$artifact" --argjson ws "$([ "$ws" = null ] && echo null || jq -Rn --arg x "$ws" '$x')" '{event_id:$v.eventId,timestamp:{value:$v.timestamp,provenance:"explicit_domain_timestamp"},event_kind:"unknown",work_item_id:$ws,related_artifact_ids:[$artifact],summary:null,provenance:"explicit_workspace_manifest"}')"
+      target="$(jq -c --arg id "$artifact" '.[]|select(.artifact_id==$id)' <<<"$targets")"
+      event="$(jq -cn --argjson v "$line" --arg artifact "$artifact" --argjson ws "$([ "$ws" = null ] && echo null || jq -Rn --arg x "$ws" '$x')" --argjson target "$target" '{event_id:$v.eventId,timestamp:{value:$v.timestamp,provenance:"explicit_domain_timestamp"},event_kind:"unknown",work_item_id:$ws,related_artifact_ids:[$artifact],target:$target,summary:null,provenance:"explicit_workspace_manifest"}')"
       events="$(jq -c --argjson x "$event" '.+[$x]' <<<"$events")"
     done < "$file"
   done < <(find -P "$mana/runtime/events" -type f -name '*.jsonl' -print0 2>/dev/null | LC_ALL=C sort -z)
@@ -286,11 +369,16 @@ activity_response() {
     stamp="$(jq -r 'if .kind=="verification-result" then (.generatedAt // .finishedAt // empty) else empty end' "$file" 2>/dev/null)"
     # -n prevents jq from consuming the outer record stream on stdin.
     [ -n "$stamp" ] && jq -ne --arg t "$stamp" '$t|fromdateiso8601' >/dev/null 2>&1 || continue
-    event="$(jq -cn --arg id "verification:$artifact" --arg t "$stamp" --arg artifact "$artifact" --argjson ws "$([ "$ws" = null ] && echo null || jq -Rn --arg x "$ws" '$x')" '{event_id:$id,timestamp:{value:$t,provenance:"explicit_domain_timestamp"},event_kind:"verification_completed",work_item_id:$ws,related_artifact_ids:[$artifact],summary:null,provenance:"explicit_workspace_manifest"}')"
+    target="$(jq -c --arg id "$artifact" '.[]|select(.artifact_id==$id)' <<<"$targets")"
+    event="$(jq -cn --arg id "verification:$artifact" --arg t "$stamp" --arg artifact "$artifact" --argjson ws "$([ "$ws" = null ] && echo null || jq -Rn --arg x "$ws" '$x')" --argjson target "$target" '{event_id:$id,timestamp:{value:$t,provenance:"explicit_domain_timestamp"},event_kind:"verification_completed",work_item_id:$ws,related_artifact_ids:[$artifact],target:$target,summary:null,provenance:"explicit_workspace_manifest"}')"
     events="$(jq -c --argjson x "$event" '.+[$x]' <<<"$events")"
   done < <(jq -r '.[]|[.artifact_id,.path,(.workspace//"null")]|join("|")' <<<"$entries")
   # Artifact updates are the only mtime fallback and retain that explicit basis.
-  fallback="$(jq -c '[.[]|select(.updated_at.provenance=="filesystem_mtime_epoch" and (.updated_at.value|test("^[0-9]+$")))|{event_id:("artifact-update:"+.artifact_id),timestamp:{value:.updated_at.value,provenance:"filesystem_mtime_epoch"},event_kind:"artifact_updated",work_item_id:.workspace,related_artifact_ids:[.artifact_id],summary:null,provenance:"conservative_fallback"}]' <<<"$entries")"
+  fallback="$(jq -cn --argjson entries "$entries" --argjson targets "$targets" '[
+    $entries[] | select(.updated_at.provenance=="filesystem_mtime_epoch" and (.updated_at.value|test("^[0-9]+$"))) | . as $entry |
+    ([$targets[]|select(.artifact_id==$entry.artifact_id)][0]) as $target |
+    {event_id:("artifact-update:"+$entry.artifact_id),timestamp:{value:$entry.updated_at.value,provenance:"filesystem_mtime_epoch"},event_kind:"artifact_updated",work_item_id:$entry.workspace,related_artifact_ids:[$entry.artifact_id],target:$target,summary:null,provenance:"conservative_fallback"}
+  ]')"
   events="$(jq -c --argjson f "$fallback" '.+$f' <<<"$events")"
   jq -cn --argjson e "$events" '{schema:"mana.inspect.activity/v1",events:($e|unique_by(.event_id)|sort_by((if .timestamp.provenance=="explicit_domain_timestamp" then (.timestamp.value|fromdateiso8601) else (.timestamp.value|tonumber) end),.event_id)),coverage:(if ($e|length)==0 then "none" elif any($e[]; .timestamp.provenance=="filesystem_mtime_epoch") then "explicit_and_filesystem_fallback" else "explicit_structured_events" end),diagnostics:[],guarantees:{model_calls:0,writes:false,semantic_inference:"canonical_structured_sources_only"}}'
 }

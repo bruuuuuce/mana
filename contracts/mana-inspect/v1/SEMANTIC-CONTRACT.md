@@ -46,6 +46,25 @@ reference identifies its owning work item and semantic section (or uses `null`
 for project-global context), so consumers can open it without rediscovering
 ownership from paths.
 
+Artifact references may also carry the existing optional `label` as a
+producer-owned display title. For Markdown, Mana derives it only from the first
+explicit level-one ATX heading found outside fenced code within the first 8 KiB
+and 64 lines. The
+normalized title is at most 256 bytes. Extraction requires readable UTF-8 text,
+does not follow symlinks, and does not interpret the heading as section, kind,
+status, lifecycle, or other semantic meaning. Missing, malformed, binary, or
+untitled content yields `null`; consumers must not reconstruct a label from a
+path or filename.
+
+Artifact-backed Activity events may add `target`, a compact typed navigation
+reference containing the stable artifact ID, owning work item, dossier section
+or project-context category, and the same optional display label. Null fields
+mean that ownership or semantic placement is unavailable. The existing
+`related_artifact_ids` remains authoritative and unchanged for older
+consumers. In particular, an `artifact_updated` event based on filesystem mtime
+identifies only which document had that timestamp; it does not describe a diff
+or claim what changed.
+
 ## Source-to-field mapping
 
 | Semantic field | Source | Mapping class |
@@ -58,7 +77,8 @@ ownership from paths.
 | failed/stale evidence | known structured evidence fields | explicit structured source |
 | review/PR state | exact canonical structured status field | explicit structured source |
 | global categories | `.mana/global/` canonical named files | canonical path/category |
-| activity | structured timestamps; mtime only as artifact update | explicit structured source / conservative fallback |
+| document display label | bounded explicit Markdown H1 | deterministic display metadata only |
+| activity | structured timestamps; mtime only as artifact update; optional typed artifact target | explicit structured source / conservative fallback |
 | PR state, owner action, prose summaries | no canonical structured source | unavailable/unknown |
 
 Mana alone maps sources to semantic fields. Consumers render supplied responses

@@ -22,6 +22,11 @@ Mana shell logic.
   `artifact`, `source`, `work-items`, `work-item`, `project-context`, and
   `activity`, disable unavailable views, and never treat missing
   detail/relations as evidence of safety.
+- `artifactRef.label` is an existing optional producer-owned display field.
+  Consumers may render it when present and must keep it unavailable when absent
+  rather than deriving it from paths or filenames. Activity's optional
+  `target` is an additive compact navigation reference; older consumers may
+  continue using `related_artifact_ids` and ignore `target`.
 
 ## Error and Exit Model
 

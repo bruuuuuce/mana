@@ -34,9 +34,15 @@ cp "$project/.mana/features/FEAT-1/evidence/verification/run-1/result.json" "$pr
 printf '%s\n' '{not json' > "$project/.mana/legacy.json"
 printf '%s\n' 'opaque legacy data' > "$project/.mana/legacy.bin"
 ln -s /etc/passwd "$project/.mana/unsafe-link"
-mkdir -p "$project/.mana/features/FEAT-1/context" "$project/.mana/features/FEAT-1/planning"
-printf '%s\n' '# Story' > "$project/.mana/features/FEAT-1/context/story-context.md"
-printf '%s\n' '# Plan' > "$project/.mana/features/FEAT-1/planning/implementation-plan.md"
+mkdir -p "$project/.mana/features/FEAT-1/context" "$project/.mana/features/FEAT-1/planning" "$project/.mana/features/FEAT-1/decisions"
+printf '%s\n' '# Workspace Overview' > "$project/.mana/features/FEAT-1/index.md"
+printf '%s\n' '# Open Questions' > "$project/.mana/features/FEAT-1/context/story-context.md"
+printf '%s\n' '# Technical Task Breakdown' > "$project/.mana/features/FEAT-1/planning/implementation-plan.md"
+printf '%s\n' '# Decision Log' > "$project/.mana/features/FEAT-1/decisions/decision-log.md"
+printf '%s\n' 'Body without an explicit document heading.' > "$project/.mana/features/FEAT-1/planning/title-from-filename.md"
+printf '# Invalid\000 title\n' > "$project/.mana/features/FEAT-1/planning/malformed-title.md"
+printf '%s\n' '```text' '# Not a document title' '```' > "$project/.mana/features/FEAT-1/planning/fenced-heading.md"
+ln -s /etc/passwd "$project/.mana/features/FEAT-1/planning/unreadable-title.md"
 
 before="$(find "$project/.mana" -type f -exec shasum -a 256 {} + | LC_ALL=C sort)"
 "$project/mana" inspect project --json > "$tmp/wrapper-project.json"
@@ -67,7 +73,7 @@ jq -e '
 mkdir -p "$project/.mana/global/team-decisions"
 ln -s /etc/passwd "$project/.mana/global/team-decisions/unsafe.md"
 "$project/mana" inspect project-context --json > "$tmp/project-context.json"
-jq -e '(.schema=="mana.inspect.project-context/v1") and ([.categories[].category]|sort)==["architecture","database_policy","engineering_guards","glossary","integrations","learning_journeys","project_decisions","testing_policy"] and all(.categories[].artifacts[]; .work_item_id==null and .section_id==null and .status!="quarantined") and all(.categories[].artifacts[]; .path!=".mana/global/team-decisions/unsafe.md")' "$tmp/project-context.json" >/dev/null || fail 'project context categories or symlink containment failed'
+jq -e '(.schema=="mana.inspect.project-context/v1") and ([.categories[].category]|sort)==["architecture","database_policy","engineering_guards","glossary","integrations","learning_journeys","project_decisions","testing_policy"] and all(.categories[].artifacts[]; .work_item_id==null and .section_id==null and .status!="quarantined") and all(.categories[].artifacts[]; .path!=".mana/global/team-decisions/unsafe.md") and any(.categories[]; .category=="architecture" and any(.artifacts[]; .label=="Service Architecture"))' "$tmp/project-context.json" >/dev/null || fail 'project context categories, display labels, or symlink containment failed'
 mkdir -p "$project/.mana/runtime/events"
 printf '%s\n' '{"eventId":"runtime-b","timestamp":"2026-01-01T00:00:00Z"}' '{"eventId":"runtime-a","timestamp":"2026-01-01T00:00:00Z"}' '{"eventId":"runtime-malformed","timestamp":"not-a-timestamp"}' > "$project/.mana/runtime/events/sample.jsonl"
 "$project/mana" inspect activity --json > "$tmp/activity.json"
@@ -83,6 +89,9 @@ jq -e '
   (all(.events[]; .event_id != "verification:verification:run-malformed-generated" and .event_id != "verification:verification:run-malformed-finished")) and
   any(.events[]; .event_id=="artifact-update:verification:run-malformed-generated" and .timestamp.provenance=="filesystem_mtime_epoch" and .event_kind=="artifact_updated") and
   any(.events[]; .event_id=="artifact-update:verification:run-malformed-finished" and .timestamp.provenance=="filesystem_mtime_epoch" and .event_kind=="artifact_updated") and
+  any(.events[]; .event_kind=="artifact_updated" and .target.artifact_id=="file:.mana/features/FEAT-1/planning/implementation-plan.md" and .target.work_item_id=="feature:FEAT-1" and .target.section_id=="plan" and .target.project_context_category==null and .target.label=="Technical Task Breakdown") and
+  any(.events[]; .event_kind=="artifact_updated" and .target.artifact_id=="file:.mana/global/architecture.md" and .target.work_item_id==null and .target.section_id==null and .target.project_context_category=="architecture" and .target.label=="Service Architecture") and
+  all(.events[]; (.target.artifact_id as $target | .related_artifact_ids|index($target)) and (.target|has("path")|not)) and
   any(.events[]; .timestamp.provenance=="filesystem_mtime_epoch" and .event_kind=="artifact_updated") and
   (([.events[]|select(.event_id=="runtime-a" or .event_id=="runtime-b")|.event_id])==["runtime-a","runtime-b"])
 ' "$tmp/activity.json" >/dev/null || fail 'semantic verification activity timestamps, ordering, or fallback provenance failed'
@@ -107,8 +116,17 @@ jq -e '
 jq -e '
   any(.sections[]; .section_id=="overview" and any(.artifacts[]; .path==".mana/features/FEAT-1/index.md")) and
   any(.sections[]; .section_id=="requirements" and any(.artifacts[]; .path==".mana/features/FEAT-1/context/story-context.md")) and
-  any(.sections[]; .section_id=="plan" and any(.artifacts[]; .path==".mana/features/FEAT-1/planning/implementation-plan.md"))
-' "$tmp/work-item-feature.json" >/dev/null || fail 'canonical section mapping failed'
+  any(.sections[]; .section_id=="plan" and any(.artifacts[]; .path==".mana/features/FEAT-1/planning/implementation-plan.md")) and
+  any(.sections[].artifacts[]; .path==".mana/features/FEAT-1/index.md" and .label=="Workspace Overview") and
+  any(.sections[].artifacts[]; .path==".mana/features/FEAT-1/context/story-context.md" and .label=="Open Questions") and
+  any(.sections[].artifacts[]; .path==".mana/features/FEAT-1/planning/implementation-plan.md" and .label=="Technical Task Breakdown") and
+  any(.sections[].artifacts[]; .path==".mana/features/FEAT-1/decisions/decision-log.md" and .label=="Decision Log") and
+  any(.sections[].artifacts[]; .path==".mana/features/FEAT-1/planning/title-from-filename.md" and .label==null) and
+  any(.sections[].artifacts[]; .path==".mana/features/FEAT-1/planning/malformed-title.md" and .label==null) and
+  any(.sections[].artifacts[]; .path==".mana/features/FEAT-1/planning/fenced-heading.md" and .label==null) and
+  all(.sections[].artifacts[]; .path!=".mana/features/FEAT-1/planning/unreadable-title.md") and
+  ([.sections[].artifacts[]|select(.label!=null)|.label]|unique|length)>=4
+' "$tmp/work-item-feature.json" >/dev/null || fail 'canonical section mapping or bounded display-title extraction failed'
 printf '%s\n' '.mana/features/does-not-exist' > "$project/.mana/active-workspace"
 "$project/mana" inspect work-item feature:FEAT-1 --json | jq -e '.work_item.lifecycle.state=="unknown"' >/dev/null || fail 'invalid active workspace was not conservative'
 rm "$project/.mana/active-workspace"

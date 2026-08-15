@@ -19,6 +19,8 @@ jq -e '([.[].family]|sort|unique)==["knowledge","learning","runtime","unknown","
 while IFS= read -r schema; do
   jq -e '."$schema"=="https://json-schema.org/draft/2020-12/schema" and .type=="object" and .additionalProperties==false' "$bundle/$schema" >/dev/null
 done < <(jq -r '.schemas[]' "$bundle/bundle.json")
+jq -e '(."$defs".artifactRef.required|index("label")|not)' "$bundle/schemas/work-items.schema.json" >/dev/null
+jq -e '(.properties.events.items.required|index("target")|not)' "$bundle/schemas/activity.schema.json" >/dev/null
 while IFS= read -r response; do
   [ -f "$bundle/fixtures/$response" ] || { echo "ERROR: missing fixture response: $response" >&2; exit 4; }
   jq -e 'type=="object" and (.schema|type=="string" and test("^mana\\.inspect\\."))' "$bundle/fixtures/$response" >/dev/null
@@ -26,9 +28,10 @@ while IFS= read -r response; do
 done < <(jq -r '.cases[].response' "$bundle/fixtures/fixture-manifest.json" | LC_ALL=C sort -u)
 jq -e '.schema=="mana.inspect.work-items/v1" and ([.work_items[].work_item_id]|length)==([.work_items[].work_item_id]|unique|length) and all(.work_items[]; (.work_item_id|test("^(feature|session):[A-Za-z0-9][A-Za-z0-9._-]*$")) and (.review.state|IN("not_requested","pending","approved","changes_requested","merged","closed","unknown")) and (.attention_items|type=="array"))' "$bundle/fixtures/work-items.json" "$bundle/fixtures/empty-work-items.json" >/dev/null
 jq -e '.schema=="mana.inspect.work-item/v1" and all(.sections[]; .section_id|IN("overview","requirements","plan","decisions","evidence","review","timeline","artifacts")) and all(.attention_items[]; .category|IN("blocker","failed_verification","stale_evidence","pending_decision","owner_review","review_required","contract_diagnostic"))' "$bundle/fixtures/feature-work-item.json" "$bundle/fixtures/session-work-item.json" "$bundle/fixtures/sparse-work-item.json" >/dev/null
+jq -e 'any(.sections[].artifacts[]; (.label|type)=="string" and (.label|length)>0) and all(.sections[].artifacts[]; (.label==null) or ((.label|type)=="string" and (.label|length)>0))' "$bundle/fixtures/feature-work-item.json" >/dev/null
 jq -e '.schema=="mana.inspect.project-context/v1" and ([.categories[].category]|sort|unique)==["architecture","database_policy","engineering_guards","glossary","integrations","learning_journeys","project_decisions","testing_policy"]' "$bundle/fixtures/project-context.json" >/dev/null
 jq -e 'all(.work_items[].artifacts[]; (.work_item_id == "feature:PROJ-24342") and (.section_id == "artifacts"))' "$bundle/fixtures/work-items.json" >/dev/null
-jq -e '.schema=="mana.inspect.activity/v1" and all(.events[]; ((.timestamp.value|length)>0) and (.timestamp.provenance|IN("explicit_domain_timestamp","filesystem_mtime_epoch")))' "$bundle/fixtures/activity.json" >/dev/null
+jq -e '.schema=="mana.inspect.activity/v1" and all(.events[]; ((.timestamp.value|length)>0) and (.timestamp.provenance|IN("explicit_domain_timestamp","filesystem_mtime_epoch")) and ((.target.artifact_id as $target | .related_artifact_ids|index($target)) != null)) and any(.events[]; .target.work_item_id=="feature:PROJ-24342" and .target.section_id=="plan" and .target.label=="Technical Task Breakdown") and any(.events[]; .target.work_item_id==null and .target.project_context_category=="architecture")' "$bundle/fixtures/activity.json" >/dev/null
 for invalid in fixtures/invalid/unstable-work-item-id.json fixtures/invalid/unsafe-artifact-path.json fixtures/invalid/activity-no-time-basis.json fixtures/invalid/undeclared-enum.json fixtures/invalid/duplicate-event-ids.json; do
   [ -f "$bundle/$invalid" ] || { echo "ERROR: missing invalid fixture: $invalid" >&2; exit 4; }
 done
