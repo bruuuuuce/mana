@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.0 - 2026-08-15
+
 - Added the deterministic, read-only `mana inspect` v1 contract bundle and
   project-local wrapper operations for project, catalog, artifact detail, and
   explicit Journey source relations. Mana Familiar consumes this contract
@@ -10,8 +12,9 @@
   feedback aggregation. Both require explicit human input/scope and make no
   model, network, or automatic approval decision.
 - Added compatibility, privacy, path-containment, payload-bound, and release
-  readiness validation for the productization track. No release version is
-  selected by this entry.
+  readiness validation for the productization track.
+- Constrained `story-start` planning to activated skills and explicit scope
+  contracts, separating implementation effort from readiness lead time.
 
 ## 0.4.1 - 2026-08-11
 - Renamed the standalone Learning Journey consumer to Mana Familiar and aligned
