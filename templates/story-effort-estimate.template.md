@@ -7,15 +7,20 @@
 - Story: `{{story_id}}`
 - Estimation scale: `{{scale}}`
 - Owner: `{{owner}}`
+- Estimation requested: `{{true / false}}`
 - Historical calibration: `{{not_requested / approved / performed / insufficient_history / access_limited}}`
 
-## Story Estimate
-| Story Points | Time Range | Confidence | Split Recommendation |
+## Estimation Status
+- Status: `{{ready / not_requested / not_estimable}}`
+- Reason: `{{reason_or_blocker}}`
+
+## Implementation-Only Story Estimate
+| Story Points | Code + Direct Automated Tests | Confidence | Split Recommendation |
 |---|---|---|---|
 | `{{points}}` | `{{time_range}}` | `{{confidence}}` | `{{split_recommendation}}` |
 
 ## Task Estimates
-| Task | Points | Time Range | Confidence | Dependency | Uncertainty Driver |
+| Task | Points | Code + Direct Automated Tests | Confidence | Dependency | Uncertainty Driver |
 |---|---:|---|---|---|---|
 | `{{task}}` | `{{points}}` | `{{time_range}}` | `{{confidence}}` | `{{dependency}}` | `{{uncertainty}}` |
 
@@ -24,6 +29,9 @@
 
 ## Risks And Open Items
 - `{{risks_and_open_items}}`
+
+## Readiness Lead Time Excluded From Estimate
+- `{{approvals_discovery_review_or_evidence}}`
 
 ## Historical Calibration
 - Approval: `{{explicit user approval / not requested}}`

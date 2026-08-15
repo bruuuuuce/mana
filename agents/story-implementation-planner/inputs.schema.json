@@ -23,6 +23,15 @@
     "repository_snapshot": {
       "type": "string"
     },
+    "implementation_contract": {
+      "type": "string",
+      "description": "Path or inline YAML using templates/implementation-contract.template.yaml. Its authoritative inputs, forbidden reads/changes, required behavior, and non-goals constrain planning."
+    },
+    "estimation_requested": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enables a numeric implementation estimate only after scope is confirmed and blockers are resolved."
+    },
     "historical_calibration_approved": {
       "type": "boolean",
       "default": false,

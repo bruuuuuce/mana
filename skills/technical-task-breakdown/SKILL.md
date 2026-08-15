@@ -1,7 +1,7 @@
 ---
 name: technical-task-breakdown
-version: 1.0.0
-description: Splits a story into technical subtasks with tests, risks, and definition of done.
+version: 1.1.0
+description: Splits confirmed story scope into traceable technical subtasks with direct tests, risks, and definition of done.
 compatibility:
   - codex
   - junie
@@ -19,6 +19,7 @@ inputs:
   - source_impact_map
   - risk_register
   - green_border_plan
+  - implementation_contract
 outputs:
   - technical_task_breakdown
   - implementation_plan
@@ -60,16 +61,24 @@ This skill exists to reduce delivery churn by making a narrow, reusable judgemen
 - source_impact_map
 - risk_register
 - green_border_plan
+- implementation_contract
 
 ## Outputs
 - technical_task_breakdown
 - implementation_plan
 
 ## Execution Logic
-1. Group work by technical seam.
-2. Keep each task independently reviewable where possible.
-3. Attach tests and risks to every task.
-4. Mark human approval where the task crosses planned boundaries.
+1. Respect the implementation contract when supplied. Do not re-derive an
+   authoritative input or add a forbidden read/change to a task.
+2. Group work by technical seam.
+3. For every task, cite the source requirement or acceptance criterion, a
+   candidate file or seam, and its direct test evidence.
+4. Keep each task independently reviewable where possible.
+5. Attach tests and risks to every task.
+6. Record approvals, branch alignment, and evidence collection as readiness
+   items, never as technical implementation tasks.
+7. Mark human approval where the task crosses planned boundaries. A conflict
+   with the contract is a blocker, not a reason to propose an alternative task.
 
 ## Decision Rules
 - `blocker`: unresolved high-risk issue, missing critical input, unsafe database/security/architecture condition, or untestable requirement that prevents responsible delivery.

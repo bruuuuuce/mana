@@ -33,8 +33,28 @@ skills:
 - story-effort-estimation
 - story-quality
 - technical-task-breakdown
+skill_activation:
+  baseline:
+  - story-quality
+  - acceptance-criteria-testability
+  - jira-acceptance-criteria-normalizer
+  - source-impact-map
+  conditional:
+    epic_or_parent_objective_present: epic-goal-extraction
+    implementation_scope_confirmed: technical-task-breakdown
+    implementation_scope_and_test_requirements_confirmed: green-border-plan
+    estimation_explicitly_requested_and_scope_confirmed: story-effort-estimation
+    architecture_boundary_change: architecture-risk
+    api_event_or_client_contract_change: cross-service-contract
+    migration_or_schema_change: liquibase-production-risk
+implementation_contract:
+  authoritative_input_behavior: do_not_rederive_or_reload
+  contract_conflict_behavior: block_without_alternate_design
+  numeric_estimate_behavior_when_blocked: not_estimable
+  implementation_effort_scope: code_and_direct_automated_tests_only
 blocking_conditions:
   - unresolved blocker findings
+  - explicit implementation contract conflicts with the proposed plan
   - missing required artifacts
   - unsafe database, security, architecture, or cross-service risk without owner approval
 warning_conditions:
