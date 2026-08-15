@@ -30,10 +30,10 @@ Initialize the file from the Mana template:
 Example properties:
 
 ```properties
-sonar.projectKey=phoenix-quality-test
-sonar.projectName=Phoenix Quality Test
-sonar.sources=phoenix
-sonar.java.binaries=phoenix/build/classes/java/main
+sonar.projectKey=example-service-quality-test
+sonar.projectName=Example Service Quality Test
+sonar.sources=service
+sonar.java.binaries=service/build/classes/java/main
 sonar.sourceEncoding=UTF-8
 sonar.scm.provider=git
 sonar.exclusions=**/.git/**,**/.gradle/**,**/build/generated/**,**/build/resources/**,**/node_modules/**,**/.mana/**

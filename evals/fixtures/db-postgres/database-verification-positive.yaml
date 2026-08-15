@@ -1,5 +1,5 @@
 schema_version: 1
-project_root: "/Users/zel/projects/mana/evals/fixtures/db-postgres"
+project_root: "__MANA_FIXTURE_PROJECT_ROOT__"
 target:
   reference: "fixture-db"
   classification: "isolated_test"
