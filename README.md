@@ -101,6 +101,10 @@ cd /path/to/project
 ./mana runtime sessions
 ./mana dependency-evidence --collect
 ./mana evidence-index
+./mana inspect project --json
+./mana inspect artifacts --json
+./mana pilot-feedback report --json
+scripts/validate-inspect-contract.sh
 ./mana verify --dry-run --explain
 ```
 
@@ -120,6 +124,10 @@ human approval.
 
 Execution audit records are local-only and privacy-preserving; inspect them
 with `mana runtime` as documented in [Mana Runtime Events](docs/workflow/runtime-events.md).
+
+Optional human pilot dispositions are separate from runtime events and User
+Learning. They remain locally in `.mana/pilot-feedback/` and aggregate without
+source or identity data; see [Pilot Feedback](docs/workflow/pilot-feedback.md).
 
 ## What Mana Is
 - An evidence-driven delivery framework.
@@ -179,6 +187,7 @@ lower total tokens.
 |---|---|---|---|---|
 | Team Leader / Tech Lead | Before assigning or sequencing work | `story-ready-for-dev`, `team-planning`, `team-coaching-review` | Readiness report, story effort estimate, execution sequence, delivery risks, review-load plan, coaching report | Start/no-start, task split, sizing, ownership, reviewer focus, coaching priorities |
 | Developer | Before and during implementation | `story-start`, `dev-assist`, `pre-commit`, `.junie/profiles/technical-task-execution.md` | Story context, source impact map, implementation plan, test plan, development summary, handoff notes | What to build, what not to touch, which tests prove the change |
+| Developer / component owner | When investigating a suspected defect in named existing code | `bug-hunt` | Evidence-backed latent-defect findings and reproducer suggestions | Whether to investigate or implement a separately approved repair |
 | Reviewer | When review is requested or PR package is needed | `requested-pr-review`, `pr-ready`, `branch-ready` | PR risk report, reviewer focus, defect findings, test evidence, PR package | Which PR to review first, which findings block, what evidence is missing |
 | Architect | When design, boundary, NFR, trust, contract, or database risk is material | `architecture-review` | Architecture review report, ADR material, NFR and drift findings, approval questions | Approve, reject, or require mitigation for architectural trade-offs |
 | AM / Release Owner | Before release or go/no-go discussion | `am-release-ready` | Release impact, continuity, incident-risk, rollback, support, communication evidence | Release readiness, operational mitigations, stakeholder communication |

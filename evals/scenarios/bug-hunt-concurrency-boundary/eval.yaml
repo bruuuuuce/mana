@@ -1,0 +1,10 @@
+version: 1
+assertions:
+  - type: must_use_skill
+    value: concurrency-risk
+  - type: must_use_skill
+    value: cross-service-contract
+  - type: must_flag
+    value: duplicate-delivery-contract-boundary
+  - type: must_not_modify
+    value: true

@@ -10,6 +10,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Install validation dependencies
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
       - name: Shell syntax
         run: bash -n scripts/*.sh hooks/pre-commit hooks/pre-push
       - name: Validate repository
@@ -58,3 +60,7 @@ jobs:
         run: tests/bounded-repair.sh
       - name: Bounded repair loop
         run: tests/bounded-repair-loop.sh
+      - name: Complete zero-token acceptance suite
+        run: tests/run-zero-token-acceptance.sh
+      - name: Release readiness documentation
+        run: tests/release-readiness.sh

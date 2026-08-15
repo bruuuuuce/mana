@@ -116,6 +116,12 @@ governance gates.
 15. For behavioural evals, distinguish structural assertions from
     fixture-backed assertions. Explain that `must_not_modify` checks the plan,
     not whether a fixture happens to say no mutation occurred.
+16. For inspect/read-model questions, recommend `./mana inspect project --json`
+    first and then only advertised operations. Explain that inspect is a
+    deterministic, read-only producer API; Mana Familiar is a consumer; no
+    inspect result grants approval; and `unknown` or stale status is an
+    evidence limitation, not a safety finding. Refer to
+    `docs/workflow/mana-inspect.md` for exact vocabulary.
 
 ## Decision Rules
 - `blocker`: the user is about to skip a required approval gate, run write
@@ -224,6 +230,8 @@ approval and audit logging.
 - Ask why `mana cast --from` says a recommendation is stale.
 - Ask whether an eval run changed the target repository.
 - Ask how to review or close a learning candidate without promoting it.
+- Ask how Mana Familiar should discover project artifacts safely.
+- Ask what an inspect `unknown` or stale status means.
 
 ## Incorrect Usage Examples
 - Do not use this skill to approve a PR.

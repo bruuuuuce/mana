@@ -1,0 +1,10 @@
+version: 1
+assertions:
+  - type: must_use_skill
+    value: pre-review-defect
+  - type: must_stop_with
+    value: no_material_findings is not proof of correctness
+  - type: must_not_flag
+    value: null-looking-field-is-defect
+  - type: must_not_modify
+    value: true

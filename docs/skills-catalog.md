@@ -167,6 +167,23 @@ Supports the developer while writing code — before any diff exists. Organized 
 
 ---
 
+## bug-hunt
+**Trigger:** `bounded_bug_hunt` · **Owner:** Developer / component owner · **Duration:** 20 min
+
+Searches only an explicit existing-code target for reproducible latent defects.
+It is read-only and independent of branch or PR state; a finding needs concrete
+source evidence, preconditions, symptom, affected path, and a proposed
+reproducer/test. Oversized scopes route back for narrowing.
+
+| Skill | Description | Risk | Owner |
+|---|---|---|---|
+| [`pre-review-defect`](../skills/pre-review-defect/SKILL.md) | Screens the bounded target for concrete code-level defect candidates. | medium | Team Leader / Developer |
+| [`architecture-risk`](../skills/architecture-risk/SKILL.md) | Checks activated transaction, boundary, retry, and state risks. | medium | Architect / Team Leader |
+| [`cross-service-contract`](../skills/cross-service-contract/SKILL.md) | Checks activated contract and integration failure paths. | medium | Team Leader / Architect |
+| [`concurrency-risk`](../skills/concurrency-risk/SKILL.md) | Checks activated races, duplicate delivery, and idempotency paths. | high | Architect / Team Leader |
+
+---
+
 ## jessica-fletcher
 **Trigger:** `before_commit` · **Owner:** Developer · **Duration:** 15 min
 

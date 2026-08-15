@@ -27,6 +27,11 @@ Follow `docs/standards/agent-skill-output-standard.md`. Use compact caveman work
    Mana-local artifact writes from target-repository modifications.
 10. For learning, show the canonical status transition and state that no
     automatic promotion exists.
+11. For a read-model or Mana Familiar question, recommend `./mana inspect
+    project --json` followed by the advertised operation. State that inspect
+    is deterministic and read-only, uses project-relative paths, and cannot
+    approve a delivery decision; direct users to `docs/workflow/mana-inspect.md`
+    for stale/unknown and consumer-compatibility meanings.
 
 - Update or reference `agent-memory/story-trace.md` with concise evidence, assumptions, decisions, approval gates, handoffs, and generated artifact links for the active Jira story or feature.
 

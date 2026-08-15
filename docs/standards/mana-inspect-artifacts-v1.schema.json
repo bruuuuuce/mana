@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/schemas/mana-inspect-artifacts-v1.schema.json",
+  "title": "Mana inspect artifacts v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "artifacts", "guarantees", "diagnostics"],
+  "properties": {
+    "schema": {"const": "mana.inspect.artifacts/v1"},
+    "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact"}},
+    "guarantees": {"type": "object"},
+    "diagnostics": {"type": "array"}
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "revision_id", "family", "class", "kind", "path", "schema", "workspace", "status", "updated_at", "content_type", "byte_size", "relations", "diagnostic"],
+      "properties": {
+        "artifact_id": {"type": "string"}, "revision_id": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "family": {"type": "string"}, "class": {"type": "string"}, "kind": {"type": "string"},
+        "path": {"type": "string", "pattern": "^\\.mana/"}, "schema": {"type": "string"},
+        "workspace": {"type": ["string", "null"]}, "status": {"type": "string"}, "updated_at": {"type": "object"},
+        "content_type": {"type": "string"}, "byte_size": {"type": "integer", "minimum": 0},
+        "relations": {"type": "array"}, "diagnostic": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

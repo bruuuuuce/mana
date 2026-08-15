@@ -255,6 +255,7 @@ Usage:
   ./mana divination "<intent>" [opts]    Recommend a profile without running it.
   ./mana cast <profile> [opts]           Validate and execute a Mana profile.
   ./mana explore "<question>" [opts]     Run bounded read-only explorer retrieval.
+  ./mana inspect <cmd> --json            Inspect project, artifacts, detail, or source relations.
   ./mana context <cmd> [args...]         Inspect or refresh optional User Context.
   ./mana doctor [args...]                Diagnose Mana and this linked project.
   ./mana learning <cmd> [args...]        Inspect governed learning candidates.
@@ -266,6 +267,7 @@ Usage:
   ./mana history <cmd> [args...]         Add scoped Git archaeology to a Journey node.
   ./mana diagram <cmd> [args...]         Generate a selected Journey-region PlantUML diagram.
   ./mana user-learning <cmd> [args...]   Capture, aggregate, or synthesize external User Learning proposals.
+  ./mana pilot-feedback <cmd> [args...]  Record and aggregate explicit local pilot feedback.
   ./mana eval run [scenario] [opts]       Run deterministic behavioural evaluations.
   ./mana eval compare <base> <candidate>  Compare persisted evaluation results.
   ./mana verify [opts]                   Run deterministic Verification Skills.
@@ -290,6 +292,10 @@ Examples:
   ./mana cast architecture-review --dry-run
   ./mana runtime sessions
   ./mana explore "Where is the Kafka contract?"
+  ./mana inspect project --json
+  ./mana inspect artifacts --json
+  ./mana inspect artifact <artifact-id> --json
+  ./mana inspect source src/Example.java --json
   ./mana context status
   ./mana context refresh
   ./mana learning candidates
@@ -304,6 +310,8 @@ Examples:
   ./mana user-learning candidates
   ./mana user-learning review <candidate-id> --accept
   ./mana user-learning promote <review-id>
+  ./mana pilot-feedback record --run-ref run-42 --finding-ref finding-7 --profile requested-pr-review --disposition accepted --changed-before-pr yes --would-reviewer-find-anyway maybe --reason bug
+  ./mana pilot-feedback report --json
   ./mana eval run conditional-contract-pr
   ./mana verify --dry-run --explain
   ./mana repair --from <result.json> --check <id> --allow-path <file> --runner codex --once --dry-run
@@ -331,6 +339,9 @@ USAGE
     ;;
   explore)
     exec "$MANA_HOME/scripts/mana-explore.sh" --project-root "$project_root" "$@"
+    ;;
+  inspect)
+    exec "$MANA_HOME/scripts/mana-inspect.sh" --project-root "$project_root" "$@"
     ;;
   context)
     exec "$MANA_HOME/scripts/mana-context.sh" "$@" --project-root "$project_root"
@@ -364,6 +375,9 @@ USAGE
     ;;
   user-learning)
     exec "$MANA_HOME/scripts/mana-user-learning.sh" --project-root "$project_root" "$@"
+    ;;
+  pilot-feedback)
+    exec "$MANA_HOME/scripts/mana-pilot-feedback.sh" --project-root "$project_root" "$@"
     ;;
   eval)
     exec "$MANA_HOME/scripts/mana-eval.sh" --project-root "$project_root" "$@"

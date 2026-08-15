@@ -1,0 +1,12 @@
+version: 1
+assertions:
+  - type: must_use_skill
+    value: pre-review-defect
+  - type: must_use_skill
+    value: concurrency-risk
+  - type: must_produce_artifact
+    value: bug-hunter-agent: bug-hunt-findings.md
+  - type: must_flag
+    value: existing-code-duplicate-delivery-path
+  - type: must_not_modify
+    value: true

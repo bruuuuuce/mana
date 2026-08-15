@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/mana-inspect/v1/work-items.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "work_items", "coverage", "diagnostics", "guarantees"],
+  "properties": {
+    "schema": {"const": "mana.inspect.work-items/v1"},
+    "work_items": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/workItemSummary"}},
+    "coverage": {"enum": ["canonical_workspace_manifests", "none", "unknown"]},
+    "diagnostics": {"type": "array", "items": {"$ref": "#/$defs/diagnostic"}},
+    "guarantees": {"$ref": "#/$defs/guarantees"}
+  },
+  "$defs": {
+    "workItemId": {"type": "string", "pattern": "^(feature|session):[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "provenance": {"type": "string", "enum": ["explicit_workspace_manifest", "canonical_path", "conservative_fallback", "unavailable"]},
+    "field": {"type": "object", "additionalProperties": false, "required": ["value", "provenance"], "properties": {"value": {"type": ["string", "null"]}, "provenance": {"$ref": "#/$defs/provenance"}}},
+    "artifactRef": {"type": "object", "additionalProperties": false, "required": ["artifact_id", "path", "kind", "status", "work_item_id", "section_id"], "properties": {"artifact_id": {"type": "string", "minLength": 1}, "path": {"type": "string", "pattern": "^\\.mana/(?!\\.{1,2}(?:/|$))(?!.*?/\\.{1,2}(?:/|$))[A-Za-z0-9._/-]+$"}, "kind": {"type": "string", "minLength": 1}, "status": {"type": "string", "minLength": 1}, "work_item_id": {"anyOf": [{"$ref": "#/$defs/workItemId"}, {"type": "null"}]}, "section_id": {"enum": ["overview", "requirements", "plan", "decisions", "evidence", "review", "timeline", "artifacts", null]}, "label": {"description": "Optional producer-owned human display title; null or absent means unavailable and must not be reconstructed from paths.", "type": ["string", "null"], "minLength": 1, "maxLength": 256}}},
+    "lifecycle": {"type": "object", "additionalProperties": false, "required": ["state", "provenance", "coverage"], "properties": {"state": {"enum": ["not_started", "in_progress", "completed", "blocked", "failed", "stale", "unknown"]}, "provenance": {"$ref": "#/$defs/provenance"}, "coverage": {"enum": ["explicit_structured_only", "canonical_artifact_presence", "unknown"]}}},
+    "review": {"type": "object", "additionalProperties": false, "required": ["state", "provenance", "coverage"], "properties": {"state": {"enum": ["not_requested", "pending", "approved", "changes_requested", "merged", "closed", "unknown"]}, "provenance": {"$ref": "#/$defs/provenance"}, "coverage": {"enum": ["explicit_structured_only", "unknown"]}}},
+    "attention": {"type": "object", "additionalProperties": false, "required": ["id", "category", "severity", "work_item_id", "related_artifact_ids", "provenance"], "properties": {"id": {"type": "string", "minLength": 1}, "category": {"enum": ["blocker", "failed_verification", "stale_evidence", "pending_decision", "owner_review", "review_required", "contract_diagnostic"]}, "severity": {"enum": ["info", "warning", "error", "critical"]}, "work_item_id": {"$ref": "#/$defs/workItemId"}, "label": {"type": ["string", "null"]}, "next_action": {"type": ["string", "null"]}, "related_artifact_ids": {"type": "array", "items": {"type": "string"}}, "provenance": {"$ref": "#/$defs/provenance"}}},
+    "workItemSummary": {"type": "object", "additionalProperties": false, "required": ["work_item_id", "work_item_type", "external_ticket_id", "title", "purpose", "branch", "canonical_branch", "lifecycle", "review", "attention_items", "artifacts"], "properties": {"work_item_id": {"$ref": "#/$defs/workItemId"}, "work_item_type": {"enum": ["feature", "session", "unknown"]}, "external_ticket_id": {"$ref": "#/$defs/field"}, "title": {"$ref": "#/$defs/field"}, "purpose": {"$ref": "#/$defs/field"}, "branch": {"$ref": "#/$defs/field"}, "canonical_branch": {"type": ["boolean", "null"]}, "lifecycle": {"$ref": "#/$defs/lifecycle"}, "review": {"$ref": "#/$defs/review"}, "attention_items": {"type": "array", "items": {"$ref": "#/$defs/attention"}}, "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifactRef"}}}},
+    "diagnostic": {"type": "object", "additionalProperties": false, "required": ["id", "kind", "severity", "provenance"], "properties": {"id": {"type": "string", "minLength": 1}, "kind": {"enum": ["malformed_canonical_source", "unsupported_value", "unavailable_source"]}, "severity": {"enum": ["info", "warning", "error"]}, "provenance": {"$ref": "#/$defs/provenance"}, "related_artifact_ids": {"type": "array", "items": {"type": "string"}}}},
+    "guarantees": {"type": "object", "additionalProperties": false, "required": ["model_calls", "writes", "semantic_inference"], "properties": {"model_calls": {"const": 0}, "writes": {"const": false}, "semantic_inference": {"const": "canonical_structured_sources_only"}}}
+  }
+}
