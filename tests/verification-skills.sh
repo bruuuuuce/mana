@@ -47,7 +47,7 @@ result_path="$(find "$shell_project/.mana" -path '*/evidence/verification/*/resu
 verification_result_validate "$result_path" || fail 'canonical result validation failed'; jq 'del(.checks[0].targetFingerprint)' "$result_path" > "$tmp/malformed-result.json"; verification_result_validate "$tmp/malformed-result.json" && fail 'malformed result envelope was accepted'
 jq '.checks[0].deduplicated=true' "$result_path" > "$tmp/malformed-dedup-result.json"; verification_result_validate "$tmp/malformed-dedup-result.json" && fail 'ambiguous deduplication provenance was accepted'
 jq '.checks += [.checks[0]]' "$result_path" > "$tmp/duplicate-check-result.json"; verification_result_validate "$tmp/duplicate-check-result.json" && fail 'duplicate check identity was accepted'
-[ "$(stat -f '%Lp' "$result_path" 2>/dev/null || stat -c '%a' "$result_path")" = 600 ] || fail 'result permissions are not private'
+[ "$(stat -c '%a' "$result_path" 2>/dev/null || stat -f '%Lp' "$result_path")" = 600 ] || fail 'result permissions are not private'
 runtime_file="$(find "$shell_project/.mana/runtime/events" -name '*.jsonl' -type f | tail -n1)"; grep -Fq '"eventType":"verification.started"' "$runtime_file" || fail 'verification runtime start missing'; grep -Fq '"eventType":"evidence.created"' "$runtime_file" || fail 'verification evidence link missing'; ! grep -Eqi 'secret-value|prompt|model response' "$runtime_file" || fail 'runtime event leaked output'
 
 # Syntax failure remains evidence and preserves the parser excerpt.
