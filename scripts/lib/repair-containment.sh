@@ -7,7 +7,7 @@ MANA_REPAIR_CONTAINMENT_BACKEND="disposable-workspace"
 MANA_REPAIR_PROJECTION_EXCLUSIONS='.git/,.mana/,untracked target/,build/,out/,.gradle/,node_modules/'
 
 repair_file_mode() {
-  stat -f '%Lp' "$1" 2>/dev/null || stat -c '%a' "$1" 2>/dev/null
+  stat -c '%a' "$1" 2>/dev/null || stat -f '%Lp' "$1" 2>/dev/null
 }
 
 repair_projection_generated_path() {

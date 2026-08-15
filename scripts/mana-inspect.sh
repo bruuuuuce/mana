@@ -41,7 +41,7 @@ hash_file() {
 rel() { case "$1" in "$root"/*) printf '%s' "${1#"$root"/}" ;; *) return 1 ;; esac; }
 mtime() {
   if [ -n "${MANA_INSPECT_MTIME_MAP:-}" ]; then grep -F "  $1" "$MANA_INSPECT_MTIME_MAP" | tail -n 1 | awk '{print $1}'
-  elif stat -f '%m' "$1" >/dev/null 2>&1; then stat -f '%m' "$1"; else stat -c '%Y' "$1" 2>/dev/null || printf unavailable; fi
+  elif stat -c '%Y' "$1" >/dev/null 2>&1; then stat -c '%Y' "$1"; else stat -f '%m' "$1" 2>/dev/null || printf unavailable; fi
 }
 ctype() { case "$1" in *.json|*.jsonl) echo application/json;; *.md) echo text/markdown;; *.yaml|*.yml) echo application/yaml;; *.log|*.txt|*.puml) echo text/plain;; *) echo application/octet-stream;; esac; }
 workspace() { case "$1" in .mana/features/*) printf '%s' "$1" | awk -F/ '{print "feature:"$3}';; .mana/sessions/*) printf '%s' "$1" | awk -F/ '{print "session:"$3}';; *) echo null;; esac; }
@@ -108,7 +108,7 @@ catalog() {
   if [ -s "$tmp.files" ]; then
     if command -v sha256sum >/dev/null; then xargs -0 sha256sum < "$tmp.files" > "$tmp.digests"; else xargs -0 shasum -a 256 < "$tmp.files" > "$tmp.digests"; fi
     MANA_INSPECT_DIGEST_MAP="$tmp.digests"
-    if stat -f '%m' "$mana" >/dev/null 2>&1; then xargs -0 stat -f '%m  %N' < "$tmp.files" > "$tmp.mtimes"; else xargs -0 stat -c '%Y  %n' < "$tmp.files" > "$tmp.mtimes"; fi
+    if stat -c '%Y' "$mana" >/dev/null 2>&1; then xargs -0 stat -c '%Y  %n' < "$tmp.files" > "$tmp.mtimes"; else xargs -0 stat -f '%m  %N' < "$tmp.files" > "$tmp.mtimes"; fi
     MANA_INSPECT_MTIME_MAP="$tmp.mtimes"
   fi
   while IFS= read -r -d '' file; do

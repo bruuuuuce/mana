@@ -73,10 +73,10 @@ after_source="$(find "$source_root" -type f -exec git hash-object {} \; | LC_ALL
 grep -Fq "$source_root" "$project/.mana/user-context-state" && fail 'state leaked source path'
 
 first_digest="$(awk -F= '$1=="digest" {print $2}' "$project/.mana/user-context-state")"
-first_inode="$(stat -f '%i' "$project/.mana/user-context" 2>/dev/null || stat -c '%i' "$project/.mana/user-context")"
+first_inode="$(stat -c '%i' "$project/.mana/user-context" 2>/dev/null || stat -f '%i' "$project/.mana/user-context")"
 HOME="$tmp/home" XDG_CONFIG_HOME="$xdg" "$root/scripts/mana-context.sh" refresh --project-root "$project" >/dev/null || fail 'idempotent refresh'
 second_digest="$(awk -F= '$1=="digest" {print $2}' "$project/.mana/user-context-state")"
-second_inode="$(stat -f '%i' "$project/.mana/user-context" 2>/dev/null || stat -c '%i' "$project/.mana/user-context")"
+second_inode="$(stat -c '%i' "$project/.mana/user-context" 2>/dev/null || stat -f '%i' "$project/.mana/user-context")"
 [ "$first_digest" = "$second_digest" ] || fail 'unchanged refresh digest changed'
 [ "$first_inode" = "$second_inode" ] || fail 'unchanged refresh replaced the mirror'
 
