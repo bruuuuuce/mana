@@ -1,6 +1,6 @@
 ---
 name: story-implementation-planner-agent
-version: 1.0.0
+version: 1.1.0
 description: Orchestrates requirement, architecture, source-impact, task-breakdown, and test-planning skills before implementation.
 preferred_runner: codex
 compatible_runners:
@@ -35,6 +35,8 @@ inputs:
   - linked_docs
   - epic_story_pack
   - repository_snapshot
+  - implementation_contract
+  - estimation_requested
 outputs:
   - 00-story-context.md
   - 01-source-impact-map.md
@@ -61,28 +63,41 @@ Orchestrates requirement, architecture, source-impact, task-breakdown, and test-
 ## Workflow
 1. Load the Jira story or Markdown story-pack requirement source before
    planning whenever issue keys or story context are available.
-2. Check story feasibility before implementation planning: verify that the
+2. Load the explicit implementation contract when supplied. It records
+   authoritative inputs, forbidden reads and changes, required behavior, and
+   non-goals. Do not re-derive an authoritative input from a database,
+   configuration source, or a second service call. If repository evidence
+   conflicts with the contract, record the exact conflict as a blocker and do
+   not propose an alternate design.
+3. Check story feasibility before implementation planning: verify that the
    requested behavior is coherent, implementable, testable, bounded, and has the
    required owners, dependencies, data, mocks, approvals, and acceptance
    criteria. Stop with open questions instead of inventing missing requirements.
-3. Load only the planning skills needed for the available story inputs.
-4. Use `story-quality` and `acceptance-criteria-testability` when story text or
+4. Load only the planning skills selected by the active profile's
+   `skill_activation` rules. A listed skill without an activation signal is not
+   selected for this run.
+5. Use `story-quality` and `acceptance-criteria-testability` when story text or
    acceptance criteria are present.
-5. Use `epic-goal-extraction` only when an epic, parent objective, or linked
+6. Use `epic-goal-extraction` only when an epic, parent objective, or linked
    roadmap context is present.
-6. Use `source-impact-map` when repository areas, components, or likely changed
+7. Use `source-impact-map` when repository areas, components, or likely changed
    files must be identified.
-7. Use `technical-task-breakdown` and `green-border-plan` after scope is clear
+8. Use `technical-task-breakdown` and `green-border-plan` after scope is clear
    enough to plan implementation tasks and tests.
-8. Use `story-effort-estimation` after `technical-task-breakdown` when the
-   story or split tasks need story points, time ranges, or split-size warnings.
-   Use current-story evidence by default; request explicit user approval before
-   reading historical delivery evidence for calibration.
-9. Use `architecture-risk`, `cross-service-contract`, and
+9. Use `story-effort-estimation` only when `estimation_requested: true`, the
+   scope is confirmed, and there are no unresolved blockers. Otherwise write
+   `not_requested` or `not_estimable`, never a numeric range. Use current-story
+   evidence by default; request explicit user approval before reading historical
+   delivery evidence for calibration.
+10. Use `architecture-risk`, `cross-service-contract`, and
    `liquibase-production-risk` only when the planned scope touches architecture
    boundaries, integrations/contracts, or database changes.
-10. Aggregate blocker, warning, and info findings into the expected artifacts.
-11. Stop at human approval gates when blockers or out-of-policy actions are detected.
+11. Every implementation task must cite a story requirement or acceptance
+    criterion, a candidate file or seam, and its test evidence. Treat approval,
+    branch alignment, and evidence collection as readiness items, not technical
+    implementation tasks or implementation effort.
+12. Aggregate blocker, warning, and info findings into the expected artifacts.
+13. Stop at human approval gates when blockers or out-of-policy actions are detected.
 
 ## Jira Fallback
 When Jira MCP access is unavailable, incomplete, or intentionally disabled, load
@@ -154,6 +169,7 @@ Junie is preferred for IDE-local implementation, local test generation, local te
 
 ## Blocking Conditions
 - Missing required input artifacts.
+- An explicit implementation contract conflicts with the proposed plan.
 - Unresolved high-risk database, security, architecture, or cross-service issue.
 - Missing green-border tests for critical behavior.
 - Plan drift that changes scope without approval.
@@ -173,6 +189,12 @@ Junie is preferred for IDE-local implementation, local test generation, local te
 - 05-green-border-plan.md
 - 06-risk-register.md
 - 07-story-effort-estimate.md
+
+When scope is not confirmed, write the story context, source-impact evidence,
+and open questions only. A task breakdown, green-border plan, risk register,
+and numeric estimate are conditional artifacts and must state why they were not
+created. Do not create placeholder implementation tasks merely to satisfy an
+artifact checklist.
 
 ## Correct Usage Examples
 - Run the agent at its documented trigger point with complete planning or branch artifacts.

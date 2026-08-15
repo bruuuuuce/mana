@@ -1,0 +1,10 @@
+# Optional input for story-start. Omit fields that the story does not constrain.
+version: 1
+authoritative_inputs: []
+forbidden_reads: []
+forbidden_changes: []
+required_behavior: []
+non_goals: []
+
+# Numeric estimates require an explicit request and a confirmed, unblocked scope.
+estimation_requested: false

@@ -1,7 +1,7 @@
 ---
 name: green-border-plan
-version: 1.0.0
-description: Generates the minimal tests required to protect old and new behavior.
+version: 1.1.0
+description: Generates the minimal acceptance-criterion and risk-traceable tests required to protect old and new behavior.
 compatibility:
   - codex
   - junie
@@ -22,6 +22,7 @@ inputs:
   - source_impact_map
   - risk_register
   - existing_tests
+  - implementation_contract
 outputs:
   - green_border_plan
   - test_gap_analysis
@@ -65,6 +66,7 @@ This skill exists to reduce delivery churn by making a narrow, reusable judgemen
 - source_impact_map
 - risk_register
 - existing_tests
+- implementation_contract
 
 ## Outputs
 - green_border_plan
@@ -72,10 +74,13 @@ This skill exists to reduce delivery churn by making a narrow, reusable judgemen
 - test_skeleton_suggestions
 
 ## Execution Logic
-1. Derive scenarios from acceptance criteria and risks.
-2. Map scenarios to test levels.
-3. Protect legacy behavior around touched seams.
-4. Keep the plan minimal but risk-driven.
+1. Respect the implementation contract when supplied. Do not add tests for
+   forbidden reads, changes, or speculative alternate designs.
+2. Derive scenarios from acceptance criteria and explicit risks.
+3. Map each scenario to a test level and its cited acceptance criterion or risk.
+4. Protect legacy behavior around touched seams.
+5. Keep the plan minimal. A scenario without an acceptance-criterion or
+   explicit-risk citation is optional and excluded from base implementation effort.
 
 ## Decision Rules
 - `blocker`: unresolved high-risk issue, missing critical input, unsafe database/security/architecture condition, or untestable requirement that prevents responsible delivery.
