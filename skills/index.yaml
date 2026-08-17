@@ -489,6 +489,14 @@ skills:
     delegation_group: requirements
     capability: unspecified
     verification_spec: unspecified
+  - id: story-start-discovery-v2
+    path: skills/story-start-discovery-v2/SKILL.md
+    risk_level: medium
+    model_tier: economy
+    execution_mode: read
+    delegation_group: source
+    capability: unspecified
+    verification_spec: unspecified
   - id: team-execution-plan
     path: skills/team-execution-plan/SKILL.md
     risk_level: medium

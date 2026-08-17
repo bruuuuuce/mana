@@ -31,6 +31,7 @@
   "findings": [
     {
       "id": "finding_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "findingKind": "existing_configuration",
       "summary": "The requested capability is already present in synthetic configuration.",
       "evidenceRefs": [
         "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -40,10 +41,12 @@
       ],
       "mandatoryConstraintRefs": [],
       "decisionRefs": [],
-      "storyCausality": "not_applicable"
+      "storyCausality": "not_applicable",
+      "suggestedOwner": null
     }
   ],
   "decisions": [],
+  "openQuestions": [],
   "provenance": [
     {
       "id": "provenance_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",

@@ -35,6 +35,7 @@ tests=(
   story-start-deterministic-planning.sh
   story-start-scope-v2-fixture.sh
   story-start-scope-v2-schemas.sh
+  story-start-scope-v2-discovery.sh
   testbook-tools.sh
   user-context.sh
   user-learning-aggregation.sh

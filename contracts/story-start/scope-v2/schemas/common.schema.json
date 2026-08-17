@@ -70,6 +70,10 @@
       "type": "string",
       "pattern": "^expansion_[0-9a-f]{64}$"
     },
+    "openQuestionId": {
+      "type": "string",
+      "pattern": "^question_[0-9a-f]{64}$"
+    },
     "genericArtifactId": {
       "type": "string",
       "pattern": "^(discovery|triage|decisions|plan|estimates|provenance)_[0-9a-f]{64}$"
@@ -238,16 +242,32 @@
       "additionalProperties": false,
       "required": [
         "id",
+        "findingKind",
         "summary",
         "evidenceRefs",
         "acceptanceCriterionRefs",
         "mandatoryConstraintRefs",
         "decisionRefs",
-        "storyCausality"
+        "storyCausality",
+        "suggestedOwner"
       ],
       "properties": {
         "id": {
           "$ref": "#/$defs/findingId"
+        },
+        "findingKind": {
+          "enum": [
+            "verified_fact",
+            "repository_constraint",
+            "existing_configuration",
+            "defect",
+            "suspected_defect",
+            "risk",
+            "ambiguity",
+            "readiness",
+            "evidence_gap",
+            "optional_opportunity"
+          ]
         },
         "summary": {
           "$ref": "#/$defs/nonEmptyText"
@@ -290,6 +310,58 @@
             "not_applicable",
             "unknown"
           ]
+        },
+        "suggestedOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 500
+        }
+      }
+    },
+    "openQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "question",
+        "suggestedOwner",
+        "evidenceRefs",
+        "acceptanceCriterionRefs",
+        "decisionNeeded"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/openQuestionId"
+        },
+        "question": {
+          "$ref": "#/$defs/nonEmptyText"
+        },
+        "suggestedOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 500
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidenceId"
+          }
+        },
+        "acceptanceCriterionRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/acceptanceCriterionId"
+          }
+        },
+        "decisionNeeded": {
+          "type": "boolean"
         }
       }
     },

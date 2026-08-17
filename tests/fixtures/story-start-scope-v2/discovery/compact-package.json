@@ -1,0 +1,6 @@
+{
+  "packageVersion": "mana.story-start.discovery-package/v1",
+  "storyId": "story-synthetic-alert-001",
+  "sourceTopology": "regression-topology-v1",
+  "note": "Synthetic compact evidence package for the internal Discovery v2 phase; no repository contents are embedded."
+}

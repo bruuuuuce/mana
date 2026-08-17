@@ -29,7 +29,7 @@ The bundle contains these root schemas:
 
 | Artifact | Schema | Responsibility |
 |---|---|---|
-| Discovery inventory | `schemas/discovery-inventory.schema.json` | Neutral acceptance criteria, constraints, evidence, findings, decisions, and provenance; no tasks or estimates |
+| Discovery inventory | `schemas/discovery-inventory.schema.json` | Neutral acceptance criteria, constraints, evidence, typed findings, open questions, decisions, and provenance; no tasks or estimates |
 | Scope triage | `schemas/scope-triage.schema.json` | Classification and inclusion/exclusion reasoning; no implementation plan |
 | Decision register | `schemas/decision-register.schema.json` | Open/resolved decisions and explicit options |
 | Implementation plan | `schemas/implementation-plan.schema.json` | Base tasks, enablers, branches, readiness, approved expansions, related findings, and scenario estimates in separate structures |
@@ -124,8 +124,10 @@ it does not mutate the historical classification.
    and provenance.
 2. **Evidence record:** epistemic state, capability state, pre-existing state,
    bounded summary, and provenance IDs.
-3. **Finding:** evidence-backed observation with causality, AC/constraint links,
-   and optional decision links.
+3. **Finding:** typed, evidence-backed observation (fact, configuration,
+   constraint, defect, risk, ambiguity, readiness, evidence gap, or optional
+   opportunity) with causality, owner, AC/constraint links, and optional
+   decision links.
 4. **Decision and options:** owner, question, materiality, status, options, and
    selected option only when resolved.
 5. **Scope classification:** category, finding/evidence links, inclusion flag,
@@ -154,7 +156,9 @@ it does not mutate the historical classification.
     violation codes, review state, owner, and reason.
 16. **Artifact/schema version metadata:** exact root schema string,
     `artifactVersion: 2`, typed artifact ID, and story ID.
-17. **Scope expansion:** append-only human decision linking original
+17. **Open question:** evidence-backed unknown with optional AC relation,
+   suggested owner, and an explicit decision-needed flag.
+18. **Scope expansion:** append-only human decision linking original
     classification to separately estimated additional work.
 
 ## Effort And Calendar Representation
