@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "mana.story-start.decision-register/v2",
+  "artifactVersion": 2,
+  "artifactId": "decisions_8888888888888888888888888888888888888888888888888888888888888888",
+  "storyId": "SS01-SYNTHETIC-001",
+  "decisions": [
+    {
+      "id": "decision_8888888888888888888888888888888888888888888888888888888888888888",
+      "question": "Which one of the two synthetic delivery modes should be implemented?",
+      "owner": "story-owner",
+      "status": "open",
+      "materiality": "material",
+      "options": [
+        {
+          "id": "option_9999999999999999999999999999999999999999999999999999999999999999",
+          "label": "Mode A",
+          "summary": "Use the first mutually exclusive synthetic branch."
+        },
+        {
+          "id": "option_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "label": "Mode B",
+          "summary": "Use the second mutually exclusive synthetic branch."
+        }
+      ],
+      "selectedOptionId": null,
+      "evidenceRefs": [
+        "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    }
+  ],
+  "validationStatus": {
+    "schemaValidation": "valid",
+    "semanticValidation": "not_run",
+    "violationCodes": [],
+    "ownerReview": {
+      "state": "required",
+      "owner": "story-owner",
+      "reason": "A material mutually exclusive choice is still open."
+    }
+  }
+}

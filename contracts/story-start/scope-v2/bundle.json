@@ -1,0 +1,28 @@
+{
+  "bundle": "mana-story-start-scope-contract",
+  "version": "v2",
+  "owner": "Mana",
+  "schemas": [
+    "schemas/common.schema.json",
+    "schemas/discovery-inventory.schema.json",
+    "schemas/scope-triage.schema.json",
+    "schemas/decision-register.schema.json",
+    "schemas/implementation-plan.schema.json",
+    "schemas/scenario-estimates.schema.json",
+    "schemas/provenance.schema.json"
+  ],
+  "fixtures": [
+    "fixtures/valid/discovery-existing-configuration.json",
+    "fixtures/valid/triage-independent-defect.json",
+    "fixtures/valid/decision-register-open-exclusive.json",
+    "fixtures/valid/implementation-plan-separated-scope.json",
+    "fixtures/valid/scenario-estimates-open-decision.json",
+    "fixtures/valid/provenance.json"
+  ],
+  "compatibility": "COMPATIBILITY.md",
+  "semanticContract": "SEMANTIC-CONTRACT.md",
+  "validation": "scripts/validate-story-start-scope-v2-contract.sh",
+  "modelCalls": 0,
+  "network": false,
+  "runtimeEnabled": false
+}

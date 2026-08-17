@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "mana.story-start.scenario-estimates/v2",
+  "artifactVersion": 2,
+  "artifactId": "estimates_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "storyId": "SS01-SYNTHETIC-001",
+  "estimateSet": {
+    "baseEffort": {
+      "estimateKind": "base_effort",
+      "unit": "person_hours",
+      "minimumPersonHours": 4,
+      "additionalPersonHours": 2,
+      "confidence": "medium",
+      "rationale": "Shared synthetic base effort."
+    },
+    "requiredEnablerDeltas": [],
+    "openMaterialDecisionRefs": [
+      "decision_8888888888888888888888888888888888888888888888888888888888888888"
+    ],
+    "scenarios": [
+      {
+        "id": "scenario_6666666666666666666666666666666666666666666666666666666666666666",
+        "name": "Mode A selected",
+        "selectedBranchRefs": [
+          "branch_1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "baseEffort": {
+          "estimateKind": "base_effort",
+          "unit": "person_hours",
+          "minimumPersonHours": 4,
+          "additionalPersonHours": 2,
+          "confidence": "medium",
+          "rationale": "Shared synthetic base effort."
+        },
+        "mandatoryDeltas": [],
+        "conditionalDeltas": [
+          {
+            "branchRef": "branch_1111111111111111111111111111111111111111111111111111111111111111",
+            "effort": {
+              "estimateKind": "conditional_delta",
+              "unit": "person_hours",
+              "minimumPersonHours": 3,
+              "additionalPersonHours": 1,
+              "confidence": "medium",
+              "rationale": "Synthetic Mode A delta."
+            }
+          }
+        ],
+        "approvedScopeDeltas": [],
+        "engineeringTotal": {
+          "estimateKind": "scenario_total",
+          "unit": "person_hours",
+          "minimumPersonHours": 7,
+          "additionalPersonHours": 3,
+          "confidence": "medium",
+          "rationale": "Base plus Mode A."
+        },
+        "calendarImpacts": [],
+        "finality": "scenario_only"
+      }
+    ],
+    "finalCommittedEstimate": null
+  },
+  "validationStatus": {
+    "schemaValidation": "valid",
+    "semanticValidation": "not_run",
+    "violationCodes": [],
+    "ownerReview": {
+      "state": "required",
+      "owner": "story-owner",
+      "reason": "A material decision remains open, so only scenario estimates are valid."
+    }
+  }
+}

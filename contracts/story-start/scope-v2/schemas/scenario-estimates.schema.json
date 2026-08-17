@@ -1,0 +1,278 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/story-start/scope-v2/schemas/scenario-estimates.schema.json",
+  "title": "Mana Story Start scenario estimates v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactVersion",
+    "artifactId",
+    "storyId",
+    "estimateSet",
+    "validationStatus"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "mana.story-start.scenario-estimates/v2"
+    },
+    "artifactVersion": {
+      "const": 2
+    },
+    "artifactId": {
+      "type": "string",
+      "pattern": "^estimates_[0-9a-f]{64}$"
+    },
+    "storyId": {
+      "$ref": "common.schema.json#/$defs/storyId"
+    },
+    "estimateSet": {
+      "$ref": "#/$defs/scenarioEstimateSet"
+    },
+    "validationStatus": {
+      "$ref": "common.schema.json#/$defs/validationStatus"
+    }
+  },
+  "$defs": {
+    "baseEffort": {
+      "$ref": "common.schema.json#/$defs/effortContribution",
+      "properties": {
+        "estimateKind": {
+          "const": "base_effort"
+        }
+      }
+    },
+    "mandatoryDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enablerRef",
+        "effort"
+      ],
+      "properties": {
+        "enablerRef": {
+          "$ref": "common.schema.json#/$defs/enablerId"
+        },
+        "effort": {
+          "$ref": "common.schema.json#/$defs/effortContribution",
+          "properties": {
+            "estimateKind": {
+              "const": "mandatory_delta"
+            }
+          }
+        }
+      }
+    },
+    "conditionalDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branchRef",
+        "effort"
+      ],
+      "properties": {
+        "branchRef": {
+          "$ref": "common.schema.json#/$defs/branchId"
+        },
+        "effort": {
+          "$ref": "common.schema.json#/$defs/effortContribution",
+          "properties": {
+            "estimateKind": {
+              "const": "conditional_delta"
+            }
+          }
+        }
+      }
+    },
+    "approvedScopeDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scopeExpansionRef",
+        "effort"
+      ],
+      "properties": {
+        "scopeExpansionRef": {
+          "$ref": "common.schema.json#/$defs/scopeExpansionId"
+        },
+        "effort": {
+          "$ref": "common.schema.json#/$defs/effortContribution",
+          "properties": {
+            "estimateKind": {
+              "const": "approved_scope_delta"
+            }
+          }
+        }
+      }
+    },
+    "calendarContribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readinessRef",
+        "impact"
+      ],
+      "properties": {
+        "readinessRef": {
+          "$ref": "common.schema.json#/$defs/readinessId"
+        },
+        "impact": {
+          "$ref": "common.schema.json#/$defs/calendarImpact"
+        }
+      }
+    },
+    "scenarioEstimate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "selectedBranchRefs",
+        "baseEffort",
+        "mandatoryDeltas",
+        "conditionalDeltas",
+        "approvedScopeDeltas",
+        "engineeringTotal",
+        "calendarImpacts",
+        "finality"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/scenarioId"
+        },
+        "name": {
+          "$ref": "common.schema.json#/$defs/shortText"
+        },
+        "selectedBranchRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/branchId"
+          }
+        },
+        "baseEffort": {
+          "$ref": "#/$defs/baseEffort"
+        },
+        "mandatoryDeltas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mandatoryDelta"
+          }
+        },
+        "conditionalDeltas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/conditionalDelta"
+          }
+        },
+        "approvedScopeDeltas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/approvedScopeDelta"
+          }
+        },
+        "engineeringTotal": {
+          "$ref": "common.schema.json#/$defs/effortContribution",
+          "properties": {
+            "estimateKind": {
+              "const": "scenario_total"
+            }
+          }
+        },
+        "calendarImpacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/calendarContribution"
+          }
+        },
+        "finality": {
+          "enum": [
+            "scenario_only",
+            "committed"
+          ]
+        }
+      }
+    },
+    "scenarioEstimateSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseEffort",
+        "requiredEnablerDeltas",
+        "openMaterialDecisionRefs",
+        "scenarios",
+        "finalCommittedEstimate"
+      ],
+      "properties": {
+        "baseEffort": {
+          "$ref": "#/$defs/baseEffort"
+        },
+        "requiredEnablerDeltas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mandatoryDelta"
+          }
+        },
+        "openMaterialDecisionRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/decisionId"
+          }
+        },
+        "scenarios": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/scenarioEstimate"
+          }
+        },
+        "finalCommittedEstimate": {
+          "oneOf": [
+            {
+              "$ref": "common.schema.json#/$defs/effortContribution",
+              "properties": {
+                "estimateKind": {
+                  "const": "final_committed_total"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "openMaterialDecisionRefs": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "openMaterialDecisionRefs"
+            ]
+          },
+          "then": {
+            "properties": {
+              "finalCommittedEstimate": {
+                "type": "null"
+              },
+              "scenarios": {
+                "items": {
+                  "properties": {
+                    "finality": {
+                      "const": "scenario_only"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

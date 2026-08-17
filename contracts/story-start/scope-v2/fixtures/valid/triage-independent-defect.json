@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "mana.story-start.scope-triage/v2",
+  "artifactVersion": 2,
+  "artifactId": "triage_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "storyId": "SS01-SYNTHETIC-001",
+  "sourceDiscoveryArtifactRef": "discovery_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "classifications": [
+    {
+      "id": "classification_4444444444444444444444444444444444444444444444444444444444444444",
+      "findingRef": "finding_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "category": "RELATED_DEFECT",
+      "evidenceRefs": [
+        "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "acceptanceCriterionRefs": [],
+      "mandatoryConstraintRefs": [],
+      "decisionRef": null,
+      "condition": null,
+      "mandatoryReason": null,
+      "includedInBasePlan": false,
+      "rationale": "The synthetic defect predates the story and no approved criterion requires its remediation.",
+      "scopeExpansionRef": null
+    },
+    {
+      "id": "classification_5555555555555555555555555555555555555555555555555555555555555555",
+      "findingRef": "finding_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "category": "VERIFIED_FACT",
+      "evidenceRefs": [
+        "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "acceptanceCriterionRefs": [
+        "ac_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "mandatoryConstraintRefs": [],
+      "decisionRef": null,
+      "condition": null,
+      "mandatoryReason": null,
+      "includedInBasePlan": false,
+      "rationale": "Observed synthetic configuration is recorded as a fact, not implementation work.",
+      "scopeExpansionRef": null
+    }
+  ],
+  "decisions": [],
+  "scopeExpansions": [],
+  "validationStatus": {
+    "schemaValidation": "valid",
+    "semanticValidation": "not_run",
+    "violationCodes": [],
+    "ownerReview": {
+      "state": "not_required",
+      "owner": null,
+      "reason": null
+    }
+  }
+}

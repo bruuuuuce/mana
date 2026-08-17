@@ -34,6 +34,7 @@ tests=(
   service-knowledge-bootstrap.sh
   story-start-deterministic-planning.sh
   story-start-scope-v2-fixture.sh
+  story-start-scope-v2-schemas.sh
   testbook-tools.sh
   user-context.sh
   user-learning-aggregation.sh

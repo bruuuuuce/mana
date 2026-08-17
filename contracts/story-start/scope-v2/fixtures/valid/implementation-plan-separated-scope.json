@@ -1,0 +1,391 @@
+{
+  "schemaVersion": "mana.story-start.implementation-plan/v2",
+  "artifactVersion": 2,
+  "artifactId": "plan_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "storyId": "SS01-SYNTHETIC-001",
+  "sourceTriageArtifactRef": "triage_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "readinessPrerequisites": [
+    {
+      "id": "readiness_4444444444444444444444444444444444444444444444444444444444444444",
+      "classificationRef": "classification_3333333333333333333333333333333333333333333333333333333333333333",
+      "originCategory": "READINESS_PREREQUISITE",
+      "summary": "The synthetic test environment must be made available by its owner.",
+      "owner": "environment-owner",
+      "status": "pending",
+      "evidenceRefs": [
+        "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "engineeringEffort": {
+        "estimateKind": "readiness_engineering_effort",
+        "unit": "person_hours",
+        "minimumPersonHours": 0,
+        "additionalPersonHours": 0,
+        "confidence": "high",
+        "rationale": "Availability is externally owned and adds no engineering work."
+      },
+      "calendarImpact": {
+        "status": "unknown",
+        "reason": "The external owner has not supplied an availability window."
+      }
+    }
+  ],
+  "basePlan": [
+    {
+      "id": "task_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "classificationRef": "classification_0000000000000000000000000000000000000000000000000000000000000000",
+      "originCategory": "CORE_SCOPE",
+      "title": "Implement the approved synthetic behavior",
+      "description": "Change only the behavior explicitly required by AC-1.",
+      "evidenceRefs": [
+        "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "acceptanceCriterionRefs": [
+        "ac_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "mandatoryConstraintRefs": [],
+      "sourceTargets": [
+        "fixtures/synthetic/core-component"
+      ],
+      "testEvidenceRefs": [
+        "ev_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      ],
+      "effort": {
+        "estimateKind": "base_effort",
+        "unit": "person_hours",
+        "minimumPersonHours": 4,
+        "additionalPersonHours": 2,
+        "confidence": "medium",
+        "rationale": "Synthetic base work ranges from four to six person-hours."
+      }
+    }
+  ],
+  "requiredEnablers": [
+    {
+      "id": "enabler_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "classificationRef": "classification_1111111111111111111111111111111111111111111111111111111111111111",
+      "originCategory": "REQUIRED_ENABLER",
+      "title": "Preserve the approved criterion during migration",
+      "mandatoryReason": "story_regression_prevention",
+      "evidenceRefs": [
+        "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "acceptanceCriterionRefs": [
+        "ac_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "mandatoryConstraintRefs": [],
+      "tasks": [
+        {
+          "id": "task_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "title": "Add the regression guard",
+          "description": "Create a deterministic test that protects AC-1.",
+          "evidenceRefs": [
+            "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ],
+          "sourceTargets": [
+            "fixtures/synthetic/core-component-test"
+          ],
+          "testEvidenceRefs": [
+            "ev_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          ]
+        }
+      ],
+      "effort": {
+        "estimateKind": "mandatory_delta",
+        "unit": "person_hours",
+        "minimumPersonHours": 2,
+        "additionalPersonHours": 1,
+        "confidence": "high",
+        "rationale": "The regression guard adds two to three person-hours."
+      }
+    }
+  ],
+  "conditionalBranches": [
+    {
+      "id": "branch_1111111111111111111111111111111111111111111111111111111111111111",
+      "classificationRef": "classification_2222222222222222222222222222222222222222222222222222222222222222",
+      "originCategory": "CONDITIONAL_SCOPE",
+      "decisionRef": "decision_8888888888888888888888888888888888888888888888888888888888888888",
+      "condition": "The story owner selects Mode A.",
+      "relationship": "mutually_exclusive",
+      "groupRef": "branchgroup_3333333333333333333333333333333333333333333333333333333333333333",
+      "tasks": [
+        {
+          "id": "task_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "title": "Implement Mode A",
+          "description": "Implement only the first delivery mode.",
+          "evidenceRefs": [
+            "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ],
+          "sourceTargets": [
+            "fixtures/synthetic/mode-a"
+          ],
+          "testEvidenceRefs": [
+            "ev_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          ]
+        }
+      ],
+      "effort": {
+        "estimateKind": "conditional_delta",
+        "unit": "person_hours",
+        "minimumPersonHours": 3,
+        "additionalPersonHours": 1,
+        "confidence": "medium",
+        "rationale": "Mode A adds three to four person-hours."
+      }
+    },
+    {
+      "id": "branch_2222222222222222222222222222222222222222222222222222222222222222",
+      "classificationRef": "classification_2222222222222222222222222222222222222222222222222222222222222222",
+      "originCategory": "CONDITIONAL_SCOPE",
+      "decisionRef": "decision_8888888888888888888888888888888888888888888888888888888888888888",
+      "condition": "The story owner selects Mode B.",
+      "relationship": "mutually_exclusive",
+      "groupRef": "branchgroup_3333333333333333333333333333333333333333333333333333333333333333",
+      "tasks": [
+        {
+          "id": "task_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "title": "Implement Mode B",
+          "description": "Implement only the second delivery mode.",
+          "evidenceRefs": [
+            "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ],
+          "sourceTargets": [
+            "fixtures/synthetic/mode-b"
+          ],
+          "testEvidenceRefs": [
+            "ev_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          ]
+        }
+      ],
+      "effort": {
+        "estimateKind": "conditional_delta",
+        "unit": "person_hours",
+        "minimumPersonHours": 5,
+        "additionalPersonHours": 2,
+        "confidence": "low",
+        "rationale": "Mode B adds five to seven person-hours."
+      }
+    }
+  ],
+  "branchGroups": [
+    {
+      "id": "branchgroup_3333333333333333333333333333333333333333333333333333333333333333",
+      "decisionRef": "decision_8888888888888888888888888888888888888888888888888888888888888888",
+      "relationship": "mutually_exclusive",
+      "selectionRule": "exactly_one",
+      "branchRefs": [
+        "branch_1111111111111111111111111111111111111111111111111111111111111111",
+        "branch_2222222222222222222222222222222222222222222222222222222222222222"
+      ]
+    }
+  ],
+  "approvedScopeExpansions": [],
+  "scenarioEstimates": {
+    "baseEffort": {
+      "estimateKind": "base_effort",
+      "unit": "person_hours",
+      "minimumPersonHours": 4,
+      "additionalPersonHours": 2,
+      "confidence": "medium",
+      "rationale": "Shared base effort for every scenario."
+    },
+    "requiredEnablerDeltas": [
+      {
+        "enablerRef": "enabler_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "effort": {
+          "estimateKind": "mandatory_delta",
+          "unit": "person_hours",
+          "minimumPersonHours": 2,
+          "additionalPersonHours": 1,
+          "confidence": "high",
+          "rationale": "Mandatory regression-prevention delta."
+        }
+      }
+    ],
+    "openMaterialDecisionRefs": [
+      "decision_8888888888888888888888888888888888888888888888888888888888888888"
+    ],
+    "scenarios": [
+      {
+        "id": "scenario_6666666666666666666666666666666666666666666666666666666666666666",
+        "name": "Mode A selected",
+        "selectedBranchRefs": [
+          "branch_1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "baseEffort": {
+          "estimateKind": "base_effort",
+          "unit": "person_hours",
+          "minimumPersonHours": 4,
+          "additionalPersonHours": 2,
+          "confidence": "medium",
+          "rationale": "Shared base effort."
+        },
+        "mandatoryDeltas": [
+          {
+            "enablerRef": "enabler_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "effort": {
+              "estimateKind": "mandatory_delta",
+              "unit": "person_hours",
+              "minimumPersonHours": 2,
+              "additionalPersonHours": 1,
+              "confidence": "high",
+              "rationale": "Mandatory regression-prevention delta."
+            }
+          }
+        ],
+        "conditionalDeltas": [
+          {
+            "branchRef": "branch_1111111111111111111111111111111111111111111111111111111111111111",
+            "effort": {
+              "estimateKind": "conditional_delta",
+              "unit": "person_hours",
+              "minimumPersonHours": 3,
+              "additionalPersonHours": 1,
+              "confidence": "medium",
+              "rationale": "Mode A delta."
+            }
+          }
+        ],
+        "approvedScopeDeltas": [],
+        "engineeringTotal": {
+          "estimateKind": "scenario_total",
+          "unit": "person_hours",
+          "minimumPersonHours": 9,
+          "additionalPersonHours": 4,
+          "confidence": "medium",
+          "rationale": "Base plus enabler plus Mode A."
+        },
+        "calendarImpacts": [
+          {
+            "readinessRef": "readiness_4444444444444444444444444444444444444444444444444444444444444444",
+            "impact": {
+              "status": "unknown",
+              "reason": "The external availability window is unknown."
+            }
+          }
+        ],
+        "finality": "scenario_only"
+      },
+      {
+        "id": "scenario_7777777777777777777777777777777777777777777777777777777777777777",
+        "name": "Mode B selected",
+        "selectedBranchRefs": [
+          "branch_2222222222222222222222222222222222222222222222222222222222222222"
+        ],
+        "baseEffort": {
+          "estimateKind": "base_effort",
+          "unit": "person_hours",
+          "minimumPersonHours": 4,
+          "additionalPersonHours": 2,
+          "confidence": "medium",
+          "rationale": "Shared base effort."
+        },
+        "mandatoryDeltas": [
+          {
+            "enablerRef": "enabler_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "effort": {
+              "estimateKind": "mandatory_delta",
+              "unit": "person_hours",
+              "minimumPersonHours": 2,
+              "additionalPersonHours": 1,
+              "confidence": "high",
+              "rationale": "Mandatory regression-prevention delta."
+            }
+          }
+        ],
+        "conditionalDeltas": [
+          {
+            "branchRef": "branch_2222222222222222222222222222222222222222222222222222222222222222",
+            "effort": {
+              "estimateKind": "conditional_delta",
+              "unit": "person_hours",
+              "minimumPersonHours": 5,
+              "additionalPersonHours": 2,
+              "confidence": "low",
+              "rationale": "Mode B delta."
+            }
+          }
+        ],
+        "approvedScopeDeltas": [],
+        "engineeringTotal": {
+          "estimateKind": "scenario_total",
+          "unit": "person_hours",
+          "minimumPersonHours": 11,
+          "additionalPersonHours": 5,
+          "confidence": "low",
+          "rationale": "Base plus enabler plus Mode B."
+        },
+        "calendarImpacts": [
+          {
+            "readinessRef": "readiness_4444444444444444444444444444444444444444444444444444444444444444",
+            "impact": {
+              "status": "unknown",
+              "reason": "The external availability window is unknown."
+            }
+          }
+        ],
+        "finality": "scenario_only"
+      }
+    ],
+    "finalCommittedEstimate": null
+  },
+  "decisionRegister": [
+    {
+      "id": "decision_8888888888888888888888888888888888888888888888888888888888888888",
+      "question": "Which one of the two synthetic delivery modes should be implemented?",
+      "owner": "story-owner",
+      "status": "open",
+      "materiality": "material",
+      "options": [
+        {
+          "id": "option_9999999999999999999999999999999999999999999999999999999999999999",
+          "label": "Mode A",
+          "summary": "Use the first mutually exclusive synthetic branch."
+        },
+        {
+          "id": "option_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "label": "Mode B",
+          "summary": "Use the second mutually exclusive synthetic branch."
+        }
+      ],
+      "selectedOptionId": null,
+      "evidenceRefs": [
+        "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ]
+    }
+  ],
+  "relatedFindings": [
+    {
+      "id": "related_5555555555555555555555555555555555555555555555555555555555555555",
+      "classificationRef": "classification_4444444444444444444444444444444444444444444444444444444444444444",
+      "originCategory": "RELATED_DEFECT",
+      "summary": "A pre-existing independent synthetic defect remains outside the base plan.",
+      "evidenceRefs": [
+        "ev_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ],
+      "owner": null,
+      "followUp": "Track separately if the owner chooses to address it.",
+      "excludedFromBasePlan": true
+    }
+  ],
+  "evidenceAndProvenance": {
+    "evidenceRefs": [
+      "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "ev_cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "ev_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    ],
+    "provenanceRefs": [
+      "provenance_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    ]
+  },
+  "validationStatus": {
+    "schemaValidation": "valid",
+    "semanticValidation": "not_run",
+    "violationCodes": [],
+    "ownerReview": {
+      "state": "required",
+      "owner": "story-owner",
+      "reason": "The material delivery-mode decision is open."
+    }
+  }
+}

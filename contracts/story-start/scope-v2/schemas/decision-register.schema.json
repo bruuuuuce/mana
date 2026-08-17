@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/story-start/scope-v2/schemas/decision-register.schema.json",
+  "title": "Mana Story Start decision register v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactVersion",
+    "artifactId",
+    "storyId",
+    "decisions",
+    "validationStatus"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "mana.story-start.decision-register/v2"
+    },
+    "artifactVersion": {
+      "const": 2
+    },
+    "artifactId": {
+      "type": "string",
+      "pattern": "^decisions_[0-9a-f]{64}$"
+    },
+    "storyId": {
+      "$ref": "common.schema.json#/$defs/storyId"
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/decision"
+      }
+    },
+    "validationStatus": {
+      "$ref": "common.schema.json#/$defs/validationStatus"
+    }
+  }
+}

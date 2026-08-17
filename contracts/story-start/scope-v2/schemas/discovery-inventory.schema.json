@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/story-start/scope-v2/schemas/discovery-inventory.schema.json",
+  "title": "Mana Story Start discovery inventory v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactVersion",
+    "artifactId",
+    "storyId",
+    "acceptanceCriteria",
+    "mandatoryConstraints",
+    "evidence",
+    "findings",
+    "decisions",
+    "provenance",
+    "validationStatus"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "mana.story-start.discovery-inventory/v2"
+    },
+    "artifactVersion": {
+      "const": 2
+    },
+    "artifactId": {
+      "type": "string",
+      "pattern": "^discovery_[0-9a-f]{64}$"
+    },
+    "storyId": {
+      "$ref": "common.schema.json#/$defs/storyId"
+    },
+    "acceptanceCriteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/acceptanceCriterion"
+      }
+    },
+    "mandatoryConstraints": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/mandatoryConstraint"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/evidenceRecord"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/finding"
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/decision"
+      }
+    },
+    "provenance": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/provenanceRecord"
+      }
+    },
+    "validationStatus": {
+      "$ref": "common.schema.json#/$defs/validationStatus"
+    }
+  }
+}
