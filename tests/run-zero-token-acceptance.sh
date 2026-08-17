@@ -36,6 +36,7 @@ tests=(
   story-start-scope-v2-fixture.sh
   story-start-scope-v2-schemas.sh
   story-start-scope-v2-discovery.sh
+  story-start-scope-v2-triage.sh
   testbook-tools.sh
   user-context.sh
   user-learning-aggregation.sh

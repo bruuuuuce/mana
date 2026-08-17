@@ -2,9 +2,10 @@
 
 ## Status
 
-`contract_only`. This SS01 contract defines machine-readable Story Start Scope
-v2 structures. It does not implement discovery, triage, planning, governance,
-rendering, provider calls, or public runtime selection.
+`internal_only`. SS01 defines the machine-readable Story Start Scope v2
+structures; SS02 and SS03 implement internal Discovery and Scope Triage phases.
+Planning, governance, rendering, correction loops, and public runtime selection
+remain inactive.
 
 ## Product Principle
 
@@ -131,8 +132,9 @@ it does not mutate the historical classification.
 4. **Decision and options:** owner, question, materiality, status, options, and
    selected option only when resolved.
 5. **Scope classification:** category, finding/evidence links, inclusion flag,
-   rationale, AC/constraint links, condition/decision for conditional work, and
-   mandatory reason for enablers.
+   rationale, AC/constraint links, condition/decision for conditional work,
+   mandatory reason for enablers, suggested owner, and a structural promotion
+   assessment for `CORE_SCOPE` or `REQUIRED_ENABLER`.
 6. **Base-plan task:** `CORE_SCOPE` origin, AC/constraint references, evidence,
    source targets, tests, and base effort.
 7. **Required enabler:** mandatory cause, evidence, AC/constraint references,
@@ -160,6 +162,29 @@ it does not mutate the historical classification.
    suggested owner, and an explicit decision-needed flag.
 18. **Scope expansion:** append-only human decision linking original
     classification to separately estimated additional work.
+19. **Decision option group:** stable decision/options relationship with an
+    explicit selection rule, preserving mutually exclusive alternatives.
+
+## Internal Scope Triage Boundary
+
+Scope Triage consumes only the compact normalized story and a validated,
+normalized Discovery artifact. It does not reread the repository, raw provider
+context, ticket systems, or the network. It classifies every Discovery finding
+exactly once and creates no implementation task or estimate.
+
+Before classifying work as `CORE_SCOPE` or `REQUIRED_ENABLER`, the producer
+records which AC or mandatory constraint fails, the evidence supporting the
+dependency, whether the issue is pre-existing, any unresolved decision, and
+whether the story introduces or materially aggravates the issue. Without an
+AC/constraint reference and dependency evidence, promotion is structurally
+invalid. Other categories carry no promotion assessment.
+
+Open decisions remain open with no selected option. Options are preserved as
+separate records and grouped with stable IDs; `exactly_one` groups are mutually
+exclusive and contain at least two options. Missing evidence remains an
+evidence gap and forces explicit owner review instead of inferred certainty.
+Host normalization derives artifact/entity IDs and canonical ordering, checks
+Discovery reference coverage, and rejects free-form provider output.
 
 ## Effort And Calendar Representation
 
@@ -213,6 +238,11 @@ enforce:
   verified-fact classifications are excluded from the base plan;
 - conditional classifications and branches require a decision and condition;
 - required enablers require evidence and at least one AC/constraint reference;
+- core scope and required enablers require a structured promotion assessment
+  with dependency evidence and at least one failing AC/mandatory constraint;
+- all other classifications require `promotionAssessment: null`;
+- exactly-one decision option groups are mutually exclusive and contain at
+  least two options;
 - base tasks declare `originCategory: CORE_SCOPE` and require AC/constraint
   references;
 - open decisions have `selectedOptionId: null`; resolved decisions require a
@@ -267,7 +297,7 @@ does not weaken the required separation.
 
 ## Compatibility And Failure Behavior
 
-See `COMPATIBILITY.md`. V2 is additive and inactive in SS01. Structural failure
-must eventually fail closed; no invalid v2 document may be treated as legacy
-free-form output. Correction, semantic governance, public selection, and
-rendering are explicitly later phases.
+See `COMPATIBILITY.md`. V2 remains additive and non-default. The internal SS02
+and SS03 phases fail closed: no invalid v2 document is treated as legacy
+free-form output. Correction, planning, semantic governance, public selection,
+and rendering are explicitly later phases.

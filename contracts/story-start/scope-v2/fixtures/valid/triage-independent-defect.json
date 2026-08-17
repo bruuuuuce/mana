@@ -19,7 +19,9 @@
       "mandatoryReason": null,
       "includedInBasePlan": false,
       "rationale": "The synthetic defect predates the story and no approved criterion requires its remediation.",
-      "scopeExpansionRef": null
+      "scopeExpansionRef": null,
+      "suggestedOwner": null,
+      "promotionAssessment": null
     },
     {
       "id": "classification_5555555555555555555555555555555555555555555555555555555555555555",
@@ -37,10 +39,13 @@
       "mandatoryReason": null,
       "includedInBasePlan": false,
       "rationale": "Observed synthetic configuration is recorded as a fact, not implementation work.",
-      "scopeExpansionRef": null
+      "scopeExpansionRef": null,
+      "suggestedOwner": null,
+      "promotionAssessment": null
     }
   ],
   "decisions": [],
+  "optionGroups": [],
   "scopeExpansions": [],
   "validationStatus": {
     "schemaValidation": "valid",

@@ -2,15 +2,16 @@
 
 ## Development State
 
-This bundle is an additive, non-runtime contract created in SS01. It does not
-change `profiles/story-start.yaml`, `scripts/run-profile.sh`, the current Story
+This bundle is an additive v2 contract created in SS01 with internal-only
+Discovery and Scope Triage producers added in SS02 and SS03. It does not change
+`profiles/story-start.yaml`, `scripts/run-profile.sh`, the current Story
 Implementation Planner agent, its permissive input/output schemas, current
 Markdown filenames, or public invocation behavior.
 
-Until SS06, v2 artifacts are contract and fixture material only. A current
-Story Start run continues to produce the existing unversioned Markdown files.
-No current consumer is allowed to infer that those Markdown files conform to
-v2.
+Until SS06, v2 artifacts are internal phase outputs and fixture material only;
+no public command selects or publishes them. A current Story Start run
+continues to produce the existing unversioned Markdown files. No current
+consumer is allowed to infer that those Markdown files conform to v2.
 
 ## Coexistence
 

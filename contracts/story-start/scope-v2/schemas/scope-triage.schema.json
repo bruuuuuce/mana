@@ -12,6 +12,7 @@
     "sourceDiscoveryArtifactRef",
     "classifications",
     "decisions",
+    "optionGroups",
     "scopeExpansions",
     "validationStatus"
   ],
@@ -44,6 +45,12 @@
       "type": "array",
       "items": {
         "$ref": "common.schema.json#/$defs/decision"
+      }
+    },
+    "optionGroups": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/decisionOptionGroup"
       }
     },
     "scopeExpansions": {

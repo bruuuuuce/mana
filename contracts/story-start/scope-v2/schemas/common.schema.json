@@ -74,6 +74,10 @@
       "type": "string",
       "pattern": "^question_[0-9a-f]{64}$"
     },
+    "decisionOptionGroupId": {
+      "type": "string",
+      "pattern": "^optiongroup_[0-9a-f]{64}$"
+    },
     "genericArtifactId": {
       "type": "string",
       "pattern": "^(discovery|triage|decisions|plan|estimates|provenance)_[0-9a-f]{64}$"
@@ -504,7 +508,9 @@
         "mandatoryReason",
         "includedInBasePlan",
         "rationale",
-        "scopeExpansionRef"
+        "scopeExpansionRef",
+        "suggestedOwner",
+        "promotionAssessment"
       ],
       "properties": {
         "id": {
@@ -597,6 +603,23 @@
               "type": "null"
             }
           ]
+        },
+        "suggestedOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 500
+        },
+        "promotionAssessment": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/promotionAssessment"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "allOf": [
@@ -631,6 +654,11 @@
             ]
           },
           "then": {
+            "properties": {
+              "promotionAssessment": {
+                "$ref": "#/$defs/promotionAssessment"
+              }
+            },
             "anyOf": [
               {
                 "properties": {
@@ -667,6 +695,9 @@
               },
               "mandatoryReason": {
                 "type": "string"
+              },
+              "promotionAssessment": {
+                "$ref": "#/$defs/promotionAssessment"
               }
             },
             "anyOf": [
@@ -708,6 +739,9 @@
               },
               "condition": {
                 "$ref": "#/$defs/nonEmptyText"
+              },
+              "promotionAssessment": {
+                "type": "null"
               }
             }
           }
@@ -733,6 +767,160 @@
             "properties": {
               "includedInBasePlan": {
                 "const": false
+              },
+              "promotionAssessment": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "promotionAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "failingAcceptanceCriterionRefs",
+        "failingMandatoryConstraintRefs",
+        "dependencyEvidenceRefs",
+        "preExistingStatus",
+        "unresolvedDecisionRef",
+        "storyImpact",
+        "conclusion"
+      ],
+      "properties": {
+        "failingAcceptanceCriterionRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/acceptanceCriterionId"
+          }
+        },
+        "failingMandatoryConstraintRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/mandatoryConstraintId"
+          }
+        },
+        "dependencyEvidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidenceId"
+          }
+        },
+        "preExistingStatus": {
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ]
+        },
+        "unresolvedDecisionRef": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/decisionId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "storyImpact": {
+          "enum": [
+            "direct_requirement",
+            "introduces_regression",
+            "aggravates_pre_existing_issue",
+            "mandatory_constraint_failure",
+            "none",
+            "unknown"
+          ]
+        },
+        "conclusion": {
+          "enum": [
+            "core_scope_supported",
+            "required_enabler_supported"
+          ]
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "failingAcceptanceCriterionRefs": {
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "properties": {
+            "failingMandatoryConstraintRefs": {
+              "minItems": 1
+            }
+          }
+        }
+      ]
+    },
+    "decisionOptionGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "decisionRef",
+        "relationship",
+        "selectionRule",
+        "optionRefs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/decisionOptionGroupId"
+        },
+        "decisionRef": {
+          "$ref": "#/$defs/decisionId"
+        },
+        "relationship": {
+          "enum": [
+            "mutually_exclusive",
+            "combinable",
+            "dependent"
+          ]
+        },
+        "selectionRule": {
+          "enum": [
+            "exactly_one",
+            "zero_or_one",
+            "all_applicable"
+          ]
+        },
+        "optionRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/decisionOptionId"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "selectionRule": {
+                "const": "exactly_one"
+              }
+            },
+            "required": [
+              "selectionRule"
+            ]
+          },
+          "then": {
+            "properties": {
+              "relationship": {
+                "const": "mutually_exclusive"
+              },
+              "optionRefs": {
+                "minItems": 2
               }
             }
           }

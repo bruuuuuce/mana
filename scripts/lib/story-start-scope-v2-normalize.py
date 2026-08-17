@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Deterministically normalize a schema-valid Story Start Scope v2 discovery.
+"""Deterministically normalize schema-valid Story Start Scope v2 artifacts.
 
-This is internal SS02 host support. It deliberately consumes only the compact
-provider artifact; it never traverses a repository or decides final scope.
+This is internal SS02/SS03 host support. It deliberately consumes only compact
+artifacts; it never traverses a repository or creates implementation work.
 """
 
 from __future__ import annotations
@@ -219,19 +219,247 @@ def normalize_discovery(raw: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def normalized_decision(decision: dict[str, Any]) -> dict[str, Any]:
+    result = copy.deepcopy(decision)
+    result["options"] = sorted(result["options"], key=lambda value: value["id"])
+    result["evidenceRefs"] = sorted(set(result["evidenceRefs"]))
+    return result
+
+
+def normalize_triage(raw: dict[str, Any], discovery: dict[str, Any]) -> dict[str, Any]:
+    if raw["storyId"] != discovery["storyId"]:
+        raise NormalizationError("triage storyId does not match discovery")
+    if raw["sourceDiscoveryArtifactRef"] != discovery["artifactId"]:
+        raise NormalizationError("triage sourceDiscoveryArtifactRef does not match discovery")
+
+    evidence_ids = {item["id"] for item in discovery["evidence"]}
+    acceptance_ids = {item["id"] for item in discovery["acceptanceCriteria"]}
+    constraint_ids = {item["id"] for item in discovery["mandatoryConstraints"]}
+    finding_ids = {item["id"] for item in discovery["findings"]}
+    findings_by_id = {item["id"]: item for item in discovery["findings"]}
+    decisions = sorted(
+        [normalized_decision(item) for item in raw["decisions"]],
+        key=lambda value: value["id"],
+    )
+    discovery_decisions = sorted(
+        [normalized_decision(item) for item in discovery["decisions"]],
+        key=lambda value: value["id"],
+    )
+    if canonical(decisions) != canonical(discovery_decisions):
+        raise NormalizationError("triage must preserve discovery decisions exactly")
+    decision_ids = {item["id"] for item in decisions}
+    decision_status_by_id = {item["id"]: item["status"] for item in decisions}
+    option_ids_by_decision = {
+        item["id"]: {option["id"] for option in item["options"]} for item in decisions
+    }
+
+    old_ids(raw["classifications"], "classifications")
+    classifications: list[dict[str, Any]] = []
+    classification_map: dict[str, str] = {}
+    seen_findings: set[str] = set()
+    for item in raw["classifications"]:
+        finding_ref = item["findingRef"]
+        if finding_ref not in finding_ids:
+            raise NormalizationError(f"classification references unknown finding {finding_ref!r}")
+        if finding_ref in seen_findings:
+            raise NormalizationError(f"finding is classified more than once: {finding_ref}")
+        seen_findings.add(finding_ref)
+        finding = findings_by_id[finding_ref]
+        for refs, allowed, finding_refs, label in (
+            (item["evidenceRefs"], evidence_ids, finding["evidenceRefs"], "evidence"),
+            (
+                item["acceptanceCriterionRefs"],
+                acceptance_ids,
+                finding["acceptanceCriterionRefs"],
+                "acceptance criterion",
+            ),
+            (
+                item["mandatoryConstraintRefs"],
+                constraint_ids,
+                finding["mandatoryConstraintRefs"],
+                "mandatory constraint",
+            ),
+        ):
+            unknown = set(refs) - allowed
+            if unknown:
+                raise NormalizationError(f"classification references unknown {label}: {sorted(unknown)}")
+            ungrounded = set(refs) - set(finding_refs)
+            if ungrounded:
+                raise NormalizationError(
+                    f"classification references {label} not linked to its finding: {sorted(ungrounded)}"
+                )
+        decision_ref = item["decisionRef"]
+        if decision_ref is not None and decision_ref not in decision_ids:
+            raise NormalizationError(f"classification references unknown decision {decision_ref!r}")
+        if decision_ref is not None and decision_ref not in finding["decisionRefs"]:
+            raise NormalizationError("classification decision is not linked to its finding")
+        if item["suggestedOwner"] != finding["suggestedOwner"]:
+            raise NormalizationError("classification must preserve the discovery finding owner")
+        assessment = copy.deepcopy(item["promotionAssessment"])
+        if assessment is not None:
+            assessment["failingAcceptanceCriterionRefs"] = sorted(set(assessment["failingAcceptanceCriterionRefs"]))
+            assessment["failingMandatoryConstraintRefs"] = sorted(set(assessment["failingMandatoryConstraintRefs"]))
+            assessment["dependencyEvidenceRefs"] = sorted(set(assessment["dependencyEvidenceRefs"]))
+            if set(assessment["failingAcceptanceCriterionRefs"]) - acceptance_ids:
+                raise NormalizationError("promotion assessment references unknown acceptance criterion")
+            if set(assessment["failingMandatoryConstraintRefs"]) - constraint_ids:
+                raise NormalizationError("promotion assessment references unknown mandatory constraint")
+            if set(assessment["dependencyEvidenceRefs"]) - evidence_ids:
+                raise NormalizationError("promotion assessment references unknown evidence")
+            if set(assessment["failingAcceptanceCriterionRefs"]) - set(item["acceptanceCriterionRefs"]):
+                raise NormalizationError("promotion assessment AC is not linked by its classification")
+            if set(assessment["failingMandatoryConstraintRefs"]) - set(item["mandatoryConstraintRefs"]):
+                raise NormalizationError("promotion assessment constraint is not linked by its classification")
+            if set(assessment["dependencyEvidenceRefs"]) - set(item["evidenceRefs"]):
+                raise NormalizationError("promotion assessment evidence is not linked by its classification")
+            unresolved = assessment["unresolvedDecisionRef"]
+            if unresolved is not None and unresolved not in decision_ids:
+                raise NormalizationError("promotion assessment references unknown decision")
+            if unresolved is not None and decision_status_by_id[unresolved] != "open":
+                raise NormalizationError("promotion assessment decision is not open")
+            if unresolved != decision_ref:
+                raise NormalizationError("promotion assessment decision does not match classification decision")
+            expected = {
+                "CORE_SCOPE": "core_scope_supported",
+                "REQUIRED_ENABLER": "required_enabler_supported",
+            }.get(item["category"])
+            if expected is None or assessment["conclusion"] != expected:
+                raise NormalizationError("promotion assessment conclusion does not match category")
+        classification_value = {
+            "findingRef": finding_ref,
+            "category": item["category"],
+            "evidenceRefs": sorted(set(item["evidenceRefs"])),
+            "acceptanceCriterionRefs": sorted(set(item["acceptanceCriterionRefs"])),
+            "mandatoryConstraintRefs": sorted(set(item["mandatoryConstraintRefs"])),
+            "decisionRef": decision_ref,
+            "condition": item["condition"],
+            "mandatoryReason": item["mandatoryReason"],
+            "includedInBasePlan": item["includedInBasePlan"],
+            "rationale": item["rationale"],
+            "scopeExpansionRef": item["scopeExpansionRef"],
+            "suggestedOwner": item["suggestedOwner"],
+            "promotionAssessment": assessment,
+        }
+        classification_id = stable_id("classification", classification_value)
+        if classification_id in classification_map.values():
+            raise NormalizationError("duplicate semantic classification identity")
+        classification_map[item["id"]] = classification_id
+        classifications.append({"id": classification_id, **classification_value})
+    if seen_findings != finding_ids:
+        raise NormalizationError(
+            f"triage must classify every discovery finding; missing {sorted(finding_ids - seen_findings)}"
+        )
+    classifications.sort(key=lambda value: value["id"])
+
+    groups: list[dict[str, Any]] = []
+    grouped_decisions: set[str] = set()
+    old_ids(raw["optionGroups"], "option groups")
+    for item in raw["optionGroups"]:
+        decision_ref = item["decisionRef"]
+        if decision_ref not in option_ids_by_decision:
+            raise NormalizationError("option group references unknown decision")
+        if decision_ref in grouped_decisions:
+            raise NormalizationError("decision appears in more than one option group")
+        grouped_decisions.add(decision_ref)
+        option_refs = sorted(set(item["optionRefs"]))
+        if set(option_refs) != option_ids_by_decision[decision_ref]:
+            raise NormalizationError("option group must contain exactly its decision options")
+        group_value = {
+            "decisionRef": decision_ref,
+            "relationship": item["relationship"],
+            "selectionRule": item["selectionRule"],
+            "optionRefs": option_refs,
+        }
+        groups.append({"id": stable_id("optiongroup", group_value), **group_value})
+    if grouped_decisions != decision_ids:
+        raise NormalizationError(
+            f"triage must group every decision; missing {sorted(decision_ids - grouped_decisions)}"
+        )
+    group_ids = [item["id"] for item in groups]
+    if len(group_ids) != len(set(group_ids)):
+        raise NormalizationError("duplicate semantic option-group identity")
+    groups.sort(key=lambda value: value["id"])
+
+    expansions: list[dict[str, Any]] = []
+    old_ids(raw["scopeExpansions"], "scope expansions")
+    for item in raw["scopeExpansions"]:
+        if item["originalClassificationRef"] not in classification_map:
+            raise NormalizationError("scope expansion references unknown classification")
+        if item["decisionRef"] not in decision_ids:
+            raise NormalizationError("scope expansion references unknown decision")
+        if set(item["approvalEvidenceRefs"]) - evidence_ids:
+            raise NormalizationError("scope expansion references unknown evidence")
+        expansion_value = {
+            "originalClassificationRef": classification_map[item["originalClassificationRef"]],
+            "decisionRef": item["decisionRef"],
+            "approvalEvidenceRefs": sorted(set(item["approvalEvidenceRefs"])),
+            "status": item["status"],
+            "resultingWorkRefs": sorted(set(item["resultingWorkRefs"])),
+        }
+        expansions.append({"id": stable_id("expansion", expansion_value), **expansion_value})
+    expansions.sort(key=lambda value: value["id"])
+
+    result = copy.deepcopy(raw)
+    result["classifications"] = classifications
+    result["decisions"] = decisions
+    result["optionGroups"] = groups
+    result["scopeExpansions"] = expansions
+    result["validationStatus"]["violationCodes"] = sorted(result["validationStatus"]["violationCodes"])
+    evidence_gap_refs = {
+        item["id"] for item in discovery["findings"] if item["findingKind"] == "evidence_gap"
+    }
+    if evidence_gap_refs:
+        gap_classifications = [
+            item for item in classifications if item["findingRef"] in evidence_gap_refs
+        ]
+        if any(item["category"] != "RISK_ONLY" or item["suggestedOwner"] is None for item in gap_classifications):
+            raise NormalizationError("discovery evidence gaps require RISK_ONLY with a suggested owner")
+        review = result["validationStatus"]["ownerReview"]
+        if review["state"] not in {"required", "in_progress"}:
+            raise NormalizationError("discovery evidence gaps require triage owner review")
+        if result["validationStatus"]["semanticValidation"] != "needs_owner_review":
+            raise NormalizationError("discovery evidence gaps require needs_owner_review status")
+        if "EVIDENCE_GAP_REQUIRES_OWNER_REVIEW" not in result["validationStatus"]["violationCodes"]:
+            raise NormalizationError("discovery evidence gaps require an explicit violation code")
+    artifact_identity = {
+        "schemaVersion": result["schemaVersion"],
+        "artifactVersion": result["artifactVersion"],
+        "storyId": result["storyId"],
+        "sourceDiscoveryArtifactRef": result["sourceDiscoveryArtifactRef"],
+        "classifications": classifications,
+        "decisions": decisions,
+        "optionGroups": groups,
+        "scopeExpansions": expansions,
+    }
+    result["artifactId"] = stable_id("triage", artifact_identity)
+    return result
+
+
 def main(argv: list[str]) -> int:
-    if len(argv) != 5 or argv[1] != "normalize-discovery":
+    if len(argv) == 5 and argv[1] == "normalize-discovery":
+        schema_path, input_path, output_path = map(Path, argv[2:])
+        discovery_path = None
+    elif len(argv) == 6 and argv[1] == "normalize-triage":
+        schema_path, discovery_path, input_path, output_path = map(Path, argv[2:])
+    else:
         print(
-            "Usage: story-start-scope-v2-normalize.py normalize-discovery <schema> <input> <output>",
+            "Usage: story-start-scope-v2-normalize.py normalize-discovery <schema> <input> <output>\n"
+            "   or: story-start-scope-v2-normalize.py normalize-triage <schema> <discovery> <input> <output>",
             file=sys.stderr,
         )
         return 2
-    schema_path, input_path, output_path = map(Path, argv[2:])
     try:
         with input_path.open(encoding="utf-8") as handle:
             raw = json.load(handle)
         validate(schema_path.resolve(), raw)
-        normalized = normalize_discovery(raw)
+        if discovery_path is None:
+            normalized = normalize_discovery(raw)
+        else:
+            with discovery_path.open(encoding="utf-8") as handle:
+                discovery = json.load(handle)
+            discovery_schema = REPOSITORY_ROOT / "contracts/story-start/scope-v2/schemas/discovery-inventory.schema.json"
+            validate(discovery_schema, discovery)
+            normalized = normalize_triage(raw, discovery)
         validate(schema_path.resolve(), normalized)
         output_path.write_text(canonical(normalized) + "\n", encoding="utf-8")
     except (OSError, json.JSONDecodeError, NormalizationError) as exc:

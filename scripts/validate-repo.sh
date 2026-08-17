@@ -30,7 +30,7 @@ if [ -f "$root/scripts/mana-user-learning.sh" ] && [ ! -x "$root/scripts/mana-us
   echo "ERROR: scripts/mana-user-learning.sh is not executable" >&2
   status=1
 fi
-for f in tests/user-learning-e2e.sh tests/user-learning-live-semantic.sh tests/mana-journey.sh tests/mana-history.sh tests/mana-diagram.sh tests/mana-concepts.sh tests/mana-concept-tagging.sh tests/mana-scout.sh tests/mana-scout-cycles.sh tests/mana-expand.sh tests/mana-inspect.sh tests/bug-hunter-agent.sh tests/mana-pilot-feedback.sh tests/run-zero-token-acceptance.sh tests/release-readiness.sh tests/story-start-deterministic-planning.sh tests/story-start-scope-v2-fixture.sh tests/story-start-scope-v2-schemas.sh tests/story-start-scope-v2-discovery.sh; do
+for f in tests/user-learning-e2e.sh tests/user-learning-live-semantic.sh tests/mana-journey.sh tests/mana-history.sh tests/mana-diagram.sh tests/mana-concepts.sh tests/mana-concept-tagging.sh tests/mana-scout.sh tests/mana-scout-cycles.sh tests/mana-expand.sh tests/mana-inspect.sh tests/bug-hunter-agent.sh tests/mana-pilot-feedback.sh tests/run-zero-token-acceptance.sh tests/release-readiness.sh tests/story-start-deterministic-planning.sh tests/story-start-scope-v2-fixture.sh tests/story-start-scope-v2-schemas.sh tests/story-start-scope-v2-discovery.sh tests/story-start-scope-v2-triage.sh; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1
   elif [ ! -x "$root/$f" ]; then echo "ERROR: $f is not executable" >&2; status=1
   else bash -n "$root/$f" || status=1
