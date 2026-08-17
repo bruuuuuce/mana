@@ -3,8 +3,8 @@
 ## Development State
 
 This bundle is an additive v2 contract created in SS01 with internal-only
-Discovery, Scope Triage, and Implementation Planner producers added in SS02
-through SS04. It does not change `profiles/story-start.yaml`,
+Discovery, Scope Triage, Implementation Planner, and host Scope Governor added
+in SS02 through SS05. It does not change `profiles/story-start.yaml`,
 `scripts/run-profile.sh`, the current public Story Implementation Planner agent,
 its permissive input/output schemas, current Markdown filenames, or public
 invocation behavior.
@@ -46,8 +46,9 @@ rejected; consumers must not map them to the closest known meaning.
 
 ## Publication Boundary
 
-Schema validation alone is not publication approval. SS05 must add reference,
-state, inclusion, and arithmetic validation. SS06 may publish a v2 plan only
-after both structural schema validation and the Scope Governor pass. A failed
-or unsupported v2 artifact must not fall back silently to a free-form legacy
-plan.
+Schema validation alone is not publication approval. SS05 adds deterministic
+reference, state, inclusion, and arithmetic validation with at most one
+corrective call and an explicit owner-review terminal state. SS06 may publish a
+v2 plan only after both structural schema validation and the Scope Governor
+pass. A failed or unsupported v2 artifact must not fall back silently to a
+free-form legacy plan.

@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/story-start/scope/v2/governance-report.schema.json",
+  "title": "Mana Story Start Scope Governance Report v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactVersion",
+    "reportId",
+    "storyId",
+    "artifactRefs",
+    "status",
+    "validationPass",
+    "schemaValidation",
+    "semanticValidation",
+    "violations",
+    "initialViolations",
+    "correction",
+    "ownerReview"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "mana.story-start.scope-governance-report/v2"
+    },
+    "artifactVersion": {
+      "const": 2
+    },
+    "reportId": {
+      "type": "string",
+      "pattern": "^governance_[0-9a-f]{64}$"
+    },
+    "storyId": {
+      "$ref": "common.schema.json#/$defs/storyId"
+    },
+    "artifactRefs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["discovery", "triage", "implementationPlan"],
+      "properties": {
+        "discovery": {"$ref": "#/$defs/artifactRef"},
+        "triage": {"$ref": "#/$defs/artifactRef"},
+        "implementationPlan": {"$ref": "#/$defs/artifactRef"}
+      }
+    },
+    "status": {
+      "enum": ["passed", "failed", "needs_owner_review"]
+    },
+    "validationPass": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2
+    },
+    "schemaValidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["discovery", "triage", "implementationPlan"],
+      "properties": {
+        "discovery": {"enum": ["valid", "invalid"]},
+        "triage": {"enum": ["valid", "invalid"]},
+        "implementationPlan": {"enum": ["valid", "invalid"]}
+      }
+    },
+    "semanticValidation": {
+      "enum": ["passed", "failed", "not_run"]
+    },
+    "violations": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/violation"}
+    },
+    "initialViolations": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/violation"}
+    },
+    "correction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attemptCount", "outcome"],
+      "properties": {
+        "attemptCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "outcome": {
+          "enum": ["not_attempted", "succeeded", "failed", "provider_failed"]
+        }
+      }
+    },
+    "ownerReview": {
+      "$ref": "common.schema.json#/$defs/validationStatus/properties/ownerReview"
+    }
+  },
+  "$defs": {
+    "artifactRef": {
+      "oneOf": [
+        {"$ref": "common.schema.json#/$defs/genericArtifactId"},
+        {"type": "null"}
+      ]
+    },
+    "violation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "kind",
+        "artifact",
+        "path",
+        "entityId",
+        "relatedRefs",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,80}$"
+        },
+        "kind": {
+          "enum": ["structural", "semantic"]
+        },
+        "artifact": {
+          "enum": ["discovery", "triage", "implementation_plan", "artifact_set"]
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^(/[^/]*)*$",
+          "maxLength": 1000
+        },
+        "entityId": {
+          "type": ["string", "null"],
+          "maxLength": 200
+        },
+        "relatedRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "passed"}}},
+      "then": {
+        "properties": {
+          "semanticValidation": {"const": "passed"},
+          "violations": {"maxItems": 0},
+          "schemaValidation": {
+            "properties": {
+              "discovery": {"const": "valid"},
+              "triage": {"const": "valid"},
+              "implementationPlan": {"const": "valid"}
+            }
+          },
+          "ownerReview": {
+            "properties": {"state": {"const": "not_required"}}
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"validationPass": {"const": 1}}},
+      "then": {
+        "properties": {
+          "initialViolations": {"maxItems": 0},
+          "correction": {
+            "properties": {
+              "attemptCount": {"const": 0},
+              "outcome": {"const": "not_attempted"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"validationPass": {"const": 2}}},
+      "then": {
+        "properties": {
+          "initialViolations": {"minItems": 1},
+          "correction": {
+            "properties": {"attemptCount": {"const": 1}}
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {"const": "passed"},
+          "validationPass": {"const": 2}
+        }
+      },
+      "then": {
+        "properties": {
+          "correction": {
+            "properties": {"outcome": {"const": "succeeded"}}
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "failed"}}},
+      "then": {
+        "properties": {
+          "validationPass": {"const": 1},
+          "violations": {"minItems": 1}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "needs_owner_review"}}},
+      "then": {
+        "properties": {
+          "validationPass": {"const": 2},
+          "violations": {"minItems": 1},
+          "correction": {
+            "properties": {
+              "outcome": {"enum": ["failed", "provider_failed"]}
+            }
+          },
+          "ownerReview": {
+            "properties": {
+              "state": {"enum": ["required", "in_progress"]},
+              "owner": {"type": "string", "minLength": 1},
+              "reason": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    }
+  ]
+}

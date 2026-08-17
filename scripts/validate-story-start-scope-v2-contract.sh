@@ -48,8 +48,8 @@ jq -e '
   .modelCalls == 0 and
   .network == false and
   .runtimeEnabled == false and
-  (.schemas | length == 8) and
-  (.fixtures | length == 6)
+  (.schemas | length == 9) and
+  (.fixtures | length == 7)
 ' "$bundle/bundle.json" >/dev/null
 
 while IFS= read -r relative_path; do
@@ -88,6 +88,9 @@ schema_for_fixture() {
     mana.story-start.provenance/v2)
       echo "$bundle/schemas/provenance.schema.json"
       ;;
+    mana.story-start.scope-governance-report/v2)
+      echo "$bundle/schemas/governance-report.schema.json"
+      ;;
     *)
       echo "ERROR: unsupported fixture schemaVersion in $1" >&2
       return 1
@@ -110,6 +113,7 @@ triage="$bundle/fixtures/valid/triage-independent-defect.json"
 decisions="$bundle/fixtures/valid/decision-register-open-exclusive.json"
 plan="$bundle/fixtures/valid/implementation-plan-separated-scope.json"
 estimates="$bundle/fixtures/valid/scenario-estimates-open-decision.json"
+governance="$bundle/fixtures/valid/governance-report-passed.json"
 
 # 1. An independent defect is explicit and excluded from base-plan work.
 jq -e '
@@ -173,6 +177,17 @@ jq -e '
   .estimateSet.finalCommittedEstimate == null and
   all(.estimateSet.scenarios[]; .finality == "scenario_only")
 ' "$estimates" >/dev/null
+
+# SS05 governance is an explicit, deterministic publication gate.
+jq -e '
+  .status == "passed" and
+  .schemaValidation.discovery == "valid" and
+  .schemaValidation.triage == "valid" and
+  .schemaValidation.implementationPlan == "valid" and
+  .semanticValidation == "passed" and
+  .violations == [] and
+  .correction == {"attemptCount":0,"outcome":"not_attempted"}
+' "$governance" >/dev/null
 
 invalid_dir="$(mktemp -d "${TMPDIR:-/tmp}/mana-scope-v2-invalid.XXXXXX")"
 trap 'rm -rf "$invalid_dir"' EXIT

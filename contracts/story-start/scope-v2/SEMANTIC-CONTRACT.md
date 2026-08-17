@@ -3,9 +3,9 @@
 ## Status
 
 `internal_only`. SS01 defines the machine-readable Story Start Scope v2
-structures; SS02 through SS04 implement internal Discovery, Scope Triage, and
-Implementation Planner phases. Governance, rendering, correction loops, and
-public runtime selection remain inactive.
+structures; SS02 through SS05 implement internal Discovery, Scope Triage,
+Implementation Planner, and deterministic Scope Governor phases. Rendering and
+public runtime selection remain inactive until SS06.
 
 ## Product Principle
 
@@ -33,6 +33,7 @@ The bundle contains these root schemas:
 | Discovery inventory | `schemas/discovery-inventory.schema.json` | Neutral acceptance criteria, constraints, evidence, typed findings, open questions, decisions, and provenance; no tasks or estimates |
 | Scope triage | `schemas/scope-triage.schema.json` | Classification and inclusion/exclusion reasoning; no implementation plan |
 | Compact planning context | `schemas/planning-context.schema.json` | Host-derived AC, constraint, evidence, and provenance subset; no raw findings |
+| Governance report | `schemas/governance-report.schema.json` | Deterministic structural/semantic violations, bounded correction outcome, and publication/owner-review state |
 | Decision register | `schemas/decision-register.schema.json` | Open/resolved decisions and explicit options |
 | Implementation plan | `schemas/implementation-plan.schema.json` | Base tasks, enablers, branches, readiness, approved expansions, related findings, and scenario estimates in separate structures |
 | Scenario estimates | `schemas/scenario-estimates.schema.json` | Base, mandatory, conditional, and approved-expansion contributions with decision-sensitive finality |
@@ -55,10 +56,10 @@ digest from canonical JSON containing only identity-bearing semantic fields:
 6. add the entity prefix outside the hash.
 
 Equivalent semantic inputs therefore produce the same ID. A model may propose
-content but must not be trusted to mint or validate deterministic IDs. Host
-normalization is planned for later phases. Duplicate IDs and cross-artifact ID
-integrity are SS05 checks because JSON Schema cannot prove reference existence
-across documents.
+content but is not trusted to mint or validate deterministic IDs. SS02-SS04
+normalizers derive canonical entity IDs; SS05 verifies artifact identities,
+duplicate IDs, and cross-artifact reference integrity because JSON Schema
+cannot prove those relations across documents.
 
 ## Scope Classifications
 
@@ -226,8 +227,8 @@ An engineering range is represented as:
 
 The upper bound is `minimumPersonHours + additionalPersonHours`. This delta
 form makes ordering schema-enforceable: both numbers must be non-negative, so
-an inverted range cannot be represented. Scenario arithmetic may add lower
-bounds and additional uncertainty independently. SS05 will recompute totals.
+an inverted range cannot be represented. Scenario arithmetic adds lower bounds
+and additional uncertainty independently; SS05 recomputes every total.
 
 Calendar impact is a different tagged object. `unknown` requires a reason and
 contains no numeric developer effort. A pending approval may therefore have a
@@ -248,10 +249,10 @@ zero engineering range and unknown calendar impact without inventing days.
 - Provenance records link bounded source references to evidence.
 - Scope expansions reference the original classification and human decision.
 
-JSON Schema enforces reference shape and required presence. SS05 must enforce
-cross-document existence, entity type, uniqueness, selected-option membership,
-classification/task origin agreement, branch-group membership, scenario
-selection, and arithmetic.
+JSON Schema enforces reference shape and required presence. The SS05 Scope
+Governor enforces cross-document existence, entity type, uniqueness,
+selected-option membership, classification/task origin agreement, branch-group
+membership, scenario selection, and arithmetic.
 
 ## Schema-Enforced Invariants
 
@@ -283,9 +284,10 @@ enforce:
 - each root artifact carries exact version metadata;
 - undeclared properties and enum values are rejected.
 
-## Deferred SS05 Semantic Checks
+## Host Scope Governor Boundary
 
-The following checks deliberately do not appear as pretend JSON Schema logic:
+The following checks deliberately remain deterministic host logic rather than
+pretend JSON Schema logic:
 
 - referenced IDs exist and have the expected entity type;
 - IDs are unique across the full artifact set and match host-derived identity;
@@ -302,9 +304,31 @@ The following checks deliberately do not appear as pretend JSON Schema logic:
   open;
 - legal validation and owner-review state transitions.
 
-These are full-bundle invariants and belong to the deterministic Scope Governor
-in SS05. SS04 performs the narrower producer-local reference, branch-selection,
-and arithmetic checks needed to reject an invalid plan before publication.
+The pure governor reads only supplied Discovery, Scope Triage, and Planner
+artifacts plus host-owned schemas. It performs no repository, workspace,
+ticket, credential, provider, or network reads. Structural schema failures and
+semantic failures are separate violation kinds. Violations are deduplicated and
+canonically ordered by code, kind, artifact, path, entity, related references,
+and message before a stable report ID is derived.
+
+Machine-readable codes include reference-specific failures such as
+`REFERENCE_AC_NOT_FOUND`, `REFERENCE_ENTITY_TYPE_MISMATCH`, and
+`DUPLICATE_TASK_ID`; scope failures such as `BASE_ORIGIN_NOT_CORE_SCOPE`,
+`OPTIONAL_AS_REQUIRED_ENABLER`, and `EXISTING_CAPABILITY_CREATION_TASK`;
+decision/branch failures such as `OPEN_DECISION_SELECTED_OPTION`,
+`BRANCH_DECISION_REF_MISSING`, and
+`SCENARIO_EXCLUSIVE_BRANCH_CONFLICT`; and estimate failures such as
+`BASE_EFFORT_MISMATCH`, `READINESS_APPROVAL_EFFORT_NONZERO`,
+`SCENARIO_TOTAL_MISMATCH`, and `OPEN_MATERIAL_DECISION_FINAL_TOTAL`.
+
+The internal governed-planner boundary stages Planner output and publishes it
+only after a full bundle pass. On a first failure it supplies only the invalid
+plan and compact violation report to the existing isolated synthesis dispatch.
+Exactly one corrective call is permitted. The corrected artifact is fully
+schema-validated, normalized, and governed again. A second failure produces a
+versioned `needs_owner_review` report and publishes no plan. Provider failure,
+free-form output, and malformed JSON follow the same fail-closed boundary;
+there is no legacy fallback.
 
 ## Required Output Separation
 
@@ -329,6 +353,6 @@ does not weaken the required separation.
 ## Compatibility And Failure Behavior
 
 See `COMPATIBILITY.md`. V2 remains additive and non-default. The internal SS02
-through SS04 phases fail closed: no invalid v2 document is treated as legacy
-free-form output. Correction, semantic governance, public selection, and
-rendering are explicitly later phases.
+through SS05 phases fail closed: no invalid v2 document is treated as legacy
+free-form output. Semantic governance and one bounded correction are active
+only in the internal pipeline; public selection and rendering remain SS06.

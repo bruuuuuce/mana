@@ -1,0 +1,30 @@
+{
+  "artifactRefs": {
+    "discovery": "discovery_0ecc0cb9ff48f773c5eccd6247b36977efb3a0e59e7864b0bf94ecc51ac37b20",
+    "implementationPlan": "plan_f244c95d1fa01e0d780a3986d72b24befb066d4019bb001d4e099c407d7c4909",
+    "triage": "triage_64f8474276d376b07423f7d211ced535f169dbcc2e8a5e65d4b6959ba435823a"
+  },
+  "artifactVersion": 2,
+  "correction": {
+    "attemptCount": 0,
+    "outcome": "not_attempted"
+  },
+  "initialViolations": [],
+  "ownerReview": {
+    "owner": null,
+    "reason": null,
+    "state": "not_required"
+  },
+  "reportId": "governance_e14e85380b8abc5139dc61c6c9f9007ed03f309d1bf165ddf5fb56053dd9ae19",
+  "schemaValidation": {
+    "discovery": "valid",
+    "implementationPlan": "valid",
+    "triage": "valid"
+  },
+  "schemaVersion": "mana.story-start.scope-governance-report/v2",
+  "semanticValidation": "passed",
+  "status": "passed",
+  "storyId": "story-synthetic-alert-001",
+  "validationPass": 1,
+  "violations": []
+}

@@ -22,6 +22,9 @@ done
 for f in scripts/mana-workspace.sh scripts/mana-context.sh scripts/mana-user-learning.sh scripts/mana-pilot-feedback.sh scripts/mana-journey.sh scripts/mana-history.sh scripts/mana-rationale.sh scripts/mana-diagram.sh scripts/mana-concepts.sh scripts/mana-scout.sh scripts/mana-expand.sh scripts/mana-inspect.sh scripts/build-concept-index.sh scripts/evaluate-concept-index.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/divination.sh scripts/cast.sh scripts/mana-runtime.sh scripts/mana-explore.sh scripts/mana-learning.sh scripts/mana-eval.sh scripts/mana-verify.sh scripts/mana-repair.sh scripts/mana-repair-loop.sh scripts/mana-governance-report.sh scripts/validate-divination-metadata.sh scripts/validate-verification-skills.sh scripts/validate-story-start-scope-v2-contract.sh scripts/lib/divination.sh scripts/lib/explorer-retrieval.sh scripts/lib/user-context.sh scripts/lib/profile-metadata.sh scripts/lib/runtime-events.sh scripts/lib/verification.sh scripts/lib/repair.sh scripts/lib/repair-containment.sh scripts/lib/provider-dispatch.sh scripts/lib/story-start-scope-v2.sh scripts/lib/story-start-scope-v2-normalize.py scripts/lib/verification-exec.pl tests/lib/json_schema_subset.py config/divination-domains.tsv config/runtime-retention.env.example config/user-context.env.example docs/workflow/mana-workspace.md docs/workflow/service-context-layer.md docs/workflow/user-context-layer.md docs/workflow/divination.md docs/workflow/casting.md docs/workflow/controlled-explorer-retrieval.md docs/workflow/governed-learning-signals.md docs/workflow/behavioural-evals.md docs/workflow/verification-skills.md docs/workflow/pilot-feedback.md docs/policies/verification-execution-policy.md docs/standards/mana-pilot-feedback-v1.schema.json docs/standards/mana-pilot-feedback-aggregate-v1.schema.json docs/standards/mana-inspect-project-v1.schema.json docs/standards/mana-inspect-artifacts-v1.schema.json docs/standards/user-choice-signal.schema.json docs/standards/recurring-evidence-cluster.schema.json docs/standards/user-context-candidate.schema.json docs/standards/user-context-candidate-review.schema.json docs/standards/verification-evidence-standard.md docs/standards/verification-result.schema.json docs/standards/mana-learning-journey-v0.md docs/standards/mana-learning-journey-v0.schema.json docs/standards/mana-learning-history-v0.md docs/standards/mana-learning-diagram-v0.md docs/standards/mana-learning-concept-v0.schema.json docs/standards/mana-learning-concept-tagging-v0.md docs/standards/mana-learning-scout-v0.md docs/standards/mana-learning-scout-v0.schema.json docs/standards/mana-learning-scout-cycles-v0.md docs/standards/mana-learning-expansion-v0.md docs/standards/mana-learning-expansion-v0.schema.json learning-kb/concept-index.tsv docs/standards/bounded-repair.md docs/standards/repair-target.schema.json docs/standards/repair-attempt-result.schema.json docs/standards/repair-attempt-result.schema.json docs/standards/repair-loop-result.schema.json docs/deployment/project-link-bootstrap.md templates/mana-workspace/manifest.template.yaml templates/mana-workspace/index.template.md templates/mana-workspace/global/service-mission.template.md templates/mana-workspace/global/engineering-guards.template.md templates/mana-workspace/global/hooks-config.template.yaml templates/mana-workspace/global/sonar-project.properties.template; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1; fi
 done
+for f in scripts/lib/story-start-scope-v2-govern.py tests/story-start-scope-v2-governor.sh; do
+  if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1; fi
+done
 if [ -f "$root/scripts/mana-workspace.sh" ] && [ ! -x "$root/scripts/mana-workspace.sh" ]; then
   echo "ERROR: scripts/mana-workspace.sh is not executable" >&2
   status=1
@@ -36,6 +39,14 @@ for f in tests/user-learning-e2e.sh tests/user-learning-live-semantic.sh tests/m
   else bash -n "$root/$f" || status=1
   fi
 done
+if [ -f "$root/tests/story-start-scope-v2-governor.sh" ]; then
+  if [ ! -x "$root/tests/story-start-scope-v2-governor.sh" ]; then
+    echo "ERROR: tests/story-start-scope-v2-governor.sh is not executable" >&2
+    status=1
+  else
+    bash -n "$root/tests/story-start-scope-v2-governor.sh" || status=1
+  fi
+fi
 if [ -f "$root/scripts/mana-repair.sh" ] && [ ! -x "$root/scripts/mana-repair.sh" ]; then
   echo "ERROR: scripts/mana-repair.sh is not executable" >&2
   status=1

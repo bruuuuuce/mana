@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Internal, non-default Story Start Scope v2 phase support. SS02-SS04 add
-# discovery, triage, and planning; public integration remains reserved for SS06.
+# Internal, non-default Story Start Scope v2 phase support. SS02-SS05 add
+# discovery, triage, planning, and host governance; public integration remains
+# reserved for SS06.
 
 mana_story_start_scope_v2_root() {
   cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd
@@ -210,8 +211,10 @@ mana_story_start_scope_v2_validate_plan() {
 }
 
 # Arguments: provider model normalized-story.json planning-context.json
-# scope-triage-v2.json normalized-plan.json.
-mana_story_start_scope_v2_plan() {
+# scope-triage-v2.json raw-provider-output. This helper owns the existing
+# isolated provider boundary but deliberately does not validate or publish the
+# candidate, so SS05 can report and correct first-pass validation failures.
+mana_story_start_scope_v2_plan_candidate() {
   local provider="$1" model="$2" story="$3" context="$4" triage="$5" output="$6"
   local root schema normalizer scratch prompt program output_file status_file stage timeout code signal timed_out descendants
   root="$(mana_story_start_scope_v2_root)"
@@ -241,12 +244,195 @@ mana_story_start_scope_v2_plan() {
     echo 'ERROR: Planner v2 provider execution failed' >&2
     return 1
   fi
-  mana_story_start_scope_v2_validate_plan "$output_file" || { rm -rf "$scratch"; echo 'ERROR: Planner v2 provider output failed schema validation' >&2; return 1; }
   mkdir -p "$(dirname "$output")"
   [ ! -L "$output" ] || { rm -rf "$scratch"; echo "ERROR: unsafe Planner v2 output symlink: $output" >&2; return 2; }
   stage="$(mktemp "$(dirname "$output")/.${output##*/}.tmp.XXXXXX")" || { rm -rf "$scratch"; return 2; }
-  if ! python3 "$normalizer" normalize-plan "$schema" "$context" "$triage" "$output_file" "$stage"; then rm -f "$stage"; rm -rf "$scratch"; echo 'ERROR: Planner v2 normalization failed' >&2; return 1; fi
+  cp "$output_file" "$stage" && mv "$stage" "$output" || { rm -f "$stage"; rm -rf "$scratch"; return 2; }
+  rm -rf "$scratch"
+}
+
+# Arguments: provider model normalized-story.json planning-context.json
+# scope-triage-v2.json normalized-plan.json.
+mana_story_start_scope_v2_plan() {
+  local provider="$1" model="$2" story="$3" context="$4" triage="$5" output="$6"
+  local root schema normalizer scratch raw stage
+  root="$(mana_story_start_scope_v2_root)"
+  schema="$root/contracts/story-start/scope-v2/schemas/implementation-plan.schema.json"
+  normalizer="$root/scripts/lib/story-start-scope-v2-normalize.py"
+  scratch="$(mktemp -d "${TMPDIR:-/tmp}/mana-story-start-plan-normalize-v2.XXXXXX")" || return 2
+  raw="$scratch/provider-output.json"
+  if ! mana_story_start_scope_v2_plan_candidate "$provider" "$model" "$story" "$context" "$triage" "$raw"; then
+    rm -rf "$scratch"
+    return 1
+  fi
+  mana_story_start_scope_v2_validate_plan "$raw" || { rm -rf "$scratch"; echo 'ERROR: Planner v2 provider output failed schema validation' >&2; return 1; }
+  mkdir -p "$(dirname "$output")"
+  [ ! -L "$output" ] || { rm -rf "$scratch"; echo "ERROR: unsafe Planner v2 output symlink: $output" >&2; return 2; }
+  stage="$(mktemp "$(dirname "$output")/.${output##*/}.tmp.XXXXXX")" || { rm -rf "$scratch"; return 2; }
+  if ! python3 "$normalizer" normalize-plan "$schema" "$context" "$triage" "$raw" "$stage"; then rm -f "$stage"; rm -rf "$scratch"; echo 'ERROR: Planner v2 normalization failed' >&2; return 1; fi
   mana_story_start_scope_v2_validate_plan "$stage" || { rm -f "$stage"; rm -rf "$scratch"; echo 'ERROR: normalized Planner v2 artifact failed schema validation' >&2; return 1; }
   mv "$stage" "$output"
   rm -rf "$scratch"
+}
+
+mana_story_start_scope_v2_validate_governance_report() {
+  local report="$1" root
+  root="$(mana_story_start_scope_v2_root)"
+  python3 "$root/scripts/lib/story-start-scope-v2-govern.py" validate-report "$report"
+}
+
+# Arguments: discovery-v2.json scope-triage-v2.json implementation-plan-v2.json
+# governance-report.json. The validator reads only these supplied artifacts and
+# host-owned schemas. It returns 0 only for a fully governed plan, while still
+# writing a compact structured report for deterministic failures.
+mana_story_start_scope_v2_govern() {
+  local discovery="$1" triage="$2" plan="$3" report="$4" root
+  root="$(mana_story_start_scope_v2_root)"
+  python3 "$root/scripts/lib/story-start-scope-v2-govern.py" \
+    validate "$discovery" "$triage" "$plan" "$report"
+}
+
+mana_story_start_scope_v2_correction_prompt() {
+  local invalid_plan="$1" violation_report="$2"
+  cat <<'CONTRACT'
+You are Mana Story Start Scope v2 artifact correction. Return exactly one JSON
+object matching the supplied implementation-plan v2 schema. Correct only the
+deterministic violations in the compact report. Preserve all valid story,
+scope, evidence, provenance, decision, task, and estimate information.
+
+This is one bounded correction attempt, not replanning. Use only the invalid
+artifact and violation report below. Do not inspect a repository, workspace,
+ticket system, network, or any other context. Do not choose an open decision,
+expand scope, add unrelated work, or emit a legacy/free-form plan. If the
+report does not provide enough evidence for a safe correction, preserve the
+unknown rather than fabricate certainty.
+
+INVALID_IMPLEMENTATION_PLAN_V2
+CONTRACT
+  if jq -e 'type == "object"' "$invalid_plan" >/dev/null 2>&1; then
+    jq -cS . "$invalid_plan"
+  else
+    printf '%s\n' 'UNPARSED_PROVIDER_OUTPUT_JSON_STRING'
+    jq -Rs . "$invalid_plan"
+  fi
+  printf '%s\n' 'SCOPE_GOVERNOR_VIOLATION_REPORT_V2'
+  jq -cS . "$violation_report"
+}
+
+# Arguments: provider model discovery-v2.json scope-triage-v2.json
+# candidate-plan-v2.json governed-plan.json final-governance-report.json.
+# Exactly one corrective provider call is possible. A failed second validation
+# publishes only needs_owner_review diagnostics, never an invalid or legacy plan.
+mana_story_start_scope_v2_govern_with_correction() {
+  local provider="$1" model="$2" discovery="$3" triage="$4" candidate="$5" output="$6" report="$7"
+  local root governor normalizer plan_schema scratch initial corrected_raw corrected_normalized context prompt program status_file timeout code signal timed_out descendants stage
+  root="$(mana_story_start_scope_v2_root)"
+  governor="$root/scripts/lib/story-start-scope-v2-govern.py"
+  normalizer="$root/scripts/lib/story-start-scope-v2-normalize.py"
+  plan_schema="$root/contracts/story-start/scope-v2/schemas/implementation-plan.schema.json"
+  [ -f "$discovery" ] && [ -f "$triage" ] && [ -f "$candidate" ] || { echo 'ERROR: Scope Governor inputs are unavailable' >&2; return 2; }
+  [ -f "$governor" ] && [ -f "$normalizer" ] && [ -f "$plan_schema" ] || { echo 'ERROR: Scope Governor runtime is unavailable' >&2; return 2; }
+  [ "$(wc -c < "$candidate" | tr -d ' ')" -le 524288 ] || { echo 'ERROR: Scope Governor candidate exceeds 524288 bytes' >&2; return 2; }
+  mkdir -p "$(dirname "$output")" "$(dirname "$report")"
+  [ ! -L "$output" ] && [ ! -L "$report" ] || { echo 'ERROR: unsafe Scope Governor output symlink' >&2; return 2; }
+  scratch="$(mktemp -d "${TMPDIR:-/tmp}/mana-story-start-governor-v2.XXXXXX")" || return 2
+  initial="$scratch/initial-report.json"
+  if python3 "$governor" validate "$discovery" "$triage" "$candidate" "$initial"; then
+    stage="$(mktemp "$(dirname "$output")/.${output##*/}.tmp.XXXXXX")" || { rm -rf "$scratch"; return 2; }
+    cp "$candidate" "$stage" && mv "$stage" "$output" || { rm -f "$stage"; rm -rf "$scratch"; return 2; }
+    stage="$(mktemp "$(dirname "$report")/.${report##*/}.tmp.XXXXXX")" || { rm -rf "$scratch"; return 2; }
+    cp "$initial" "$stage" && mv "$stage" "$report" || { rm -f "$stage"; rm -rf "$scratch"; return 2; }
+    rm -rf "$scratch"
+    return 0
+  fi
+  mana_story_start_scope_v2_validate_governance_report "$initial" || { rm -rf "$scratch"; echo 'ERROR: Scope Governor failed to produce a valid first-pass report' >&2; return 2; }
+
+  timeout="${MANA_STORY_START_SCOPE_V2_CORRECTION_TIMEOUT_SECONDS:-120}"
+  [[ "$timeout" =~ ^[1-9][0-9]*$ ]] && [ "$timeout" -le 300 ] || { rm -rf "$scratch"; echo 'ERROR: Scope Governor correction timeout must be 1..300 seconds' >&2; return 2; }
+  prompt="$(mana_story_start_scope_v2_correction_prompt "$candidate" "$initial")" || { rm -rf "$scratch"; return 2; }
+  mkdir -p "$scratch/empty"
+  MANA_PROVIDER_PROGRAM="$provider"
+  if ! mana_provider_synthesis_args "$provider" "$scratch/empty" "$model" host-disposable-non-git "$plan_schema"; then
+    if ! python3 "$governor" provider-failed "$initial" "$report" 'Corrective provider arguments could not be constructed.' >/dev/null 2>&1; then
+      rm -rf "$scratch"
+      echo 'ERROR: Scope Governor could not publish owner-review diagnostics' >&2
+      return 2
+    fi
+    rm -rf "$scratch"
+    return 1
+  fi
+  program="${MANA_PROVIDER_PROGRAM:-$provider}"
+  if ! command -v "$program" >/dev/null 2>&1; then
+    if ! python3 "$governor" provider-failed "$initial" "$report" 'Corrective provider is unavailable.' >/dev/null 2>&1; then
+      rm -rf "$scratch"
+      echo 'ERROR: Scope Governor could not publish owner-review diagnostics' >&2
+      return 2
+    fi
+    rm -rf "$scratch"
+    return 1
+  fi
+  corrected_raw="$scratch/corrected-provider-output.json"
+  status_file="$scratch/status.tsv"
+  perl "$root/scripts/lib/verification-exec.pl" --timeout "$timeout" --output-cap 524288 --stderr-cap 4096 --stdout "$corrected_raw" --stderr "$scratch/provider.stderr" --status "$status_file" -- "$program" "${MANA_PROVIDER_ARGS[@]}" "$prompt" || true
+  if [ ! -f "$status_file" ] || ! IFS=$'\t' read -r code signal timed_out descendants _ < "$status_file" || [ "$code" -ne 0 ] || [ "$timed_out" != 0 ] || [ "$descendants" != 0 ]; then
+    if ! python3 "$governor" provider-failed "$initial" "$report" 'The single corrective provider invocation failed or exceeded its bounds.' >/dev/null 2>&1; then
+      rm -rf "$scratch"
+      echo 'ERROR: Scope Governor could not publish owner-review diagnostics' >&2
+      return 2
+    fi
+    rm -rf "$scratch"
+    return 1
+  fi
+
+  corrected_normalized="$scratch/corrected-normalized.json"
+  context="$scratch/planning-context.json"
+  if mana_story_start_scope_v2_validate_plan "$corrected_raw" >/dev/null 2>&1 && \
+    python3 "$normalizer" build-planning-context "$discovery" "$triage" "$context" >/dev/null 2>&1 && \
+    python3 "$normalizer" normalize-plan "$plan_schema" "$context" "$triage" "$corrected_raw" "$corrected_normalized" >/dev/null 2>&1; then
+    :
+  else
+    corrected_normalized="$corrected_raw"
+  fi
+
+  if python3 "$governor" revalidate "$initial" "$discovery" "$triage" "$corrected_normalized" "$report"; then
+    stage="$(mktemp "$(dirname "$output")/.${output##*/}.tmp.XXXXXX")" || { rm -rf "$scratch"; return 2; }
+    cp "$corrected_normalized" "$stage" && mv "$stage" "$output" || { rm -f "$stage"; rm -rf "$scratch"; return 2; }
+    rm -rf "$scratch"
+    return 0
+  fi
+  if ! mana_story_start_scope_v2_validate_governance_report "$report"; then
+    rm -rf "$scratch"
+    echo 'ERROR: Scope Governor second pass produced no valid owner-review report' >&2
+    return 2
+  fi
+  rm -rf "$scratch"
+  return 1
+}
+
+# Internal SS05 pipeline boundary. Planner output is staged, then the complete
+# Discovery/Triage/Plan set must pass the governor (with at most one correction)
+# before a plan can be published. Public Story Start does not call this until SS06.
+mana_story_start_scope_v2_plan_governed() {
+  local provider="$1" model="$2" story="$3" discovery="$4" context="$5" triage="$6" output="$7" report="$8"
+  local root schema normalizer scratch raw candidate
+  root="$(mana_story_start_scope_v2_root)"
+  schema="$root/contracts/story-start/scope-v2/schemas/implementation-plan.schema.json"
+  normalizer="$root/scripts/lib/story-start-scope-v2-normalize.py"
+  scratch="$(mktemp -d "${TMPDIR:-/tmp}/mana-story-start-plan-governed-v2.XXXXXX")" || return 2
+  raw="$scratch/provider-output.json"
+  candidate="$scratch/candidate-plan.json"
+  if ! mana_story_start_scope_v2_plan_candidate "$provider" "$model" "$story" "$context" "$triage" "$raw"; then
+    rm -rf "$scratch"
+    return 1
+  fi
+  if mana_story_start_scope_v2_validate_plan "$raw" >/dev/null 2>&1 && \
+    python3 "$normalizer" normalize-plan "$schema" "$context" "$triage" "$raw" "$candidate" >/dev/null 2>&1; then
+    :
+  else
+    cp "$raw" "$candidate" || { rm -rf "$scratch"; return 2; }
+  fi
+  mana_story_start_scope_v2_govern_with_correction "$provider" "$model" "$discovery" "$triage" "$candidate" "$output" "$report"
+  local result=$?
+  rm -rf "$scratch"
+  return "$result"
 }

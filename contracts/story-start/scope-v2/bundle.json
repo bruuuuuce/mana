@@ -7,6 +7,7 @@
     "schemas/discovery-inventory.schema.json",
     "schemas/scope-triage.schema.json",
     "schemas/planning-context.schema.json",
+    "schemas/governance-report.schema.json",
     "schemas/decision-register.schema.json",
     "schemas/implementation-plan.schema.json",
     "schemas/scenario-estimates.schema.json",
@@ -18,7 +19,8 @@
     "fixtures/valid/decision-register-open-exclusive.json",
     "fixtures/valid/implementation-plan-separated-scope.json",
     "fixtures/valid/scenario-estimates-open-decision.json",
-    "fixtures/valid/provenance.json"
+    "fixtures/valid/provenance.json",
+    "fixtures/valid/governance-report-passed.json"
   ],
   "compatibility": "COMPATIBILITY.md",
   "semanticContract": "SEMANTIC-CONTRACT.md",
