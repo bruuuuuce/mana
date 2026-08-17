@@ -39,6 +39,9 @@
       "evidenceRefs": [
         "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
       ],
+      "provenanceRefs": [
+        "provenance_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      ],
       "acceptanceCriterionRefs": [
         "ac_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       ],
@@ -81,6 +84,9 @@
           "evidenceRefs": [
             "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           ],
+          "provenanceRefs": [
+            "provenance_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          ],
           "sourceTargets": [
             "fixtures/synthetic/core-component-test"
           ],
@@ -105,6 +111,7 @@
       "classificationRef": "classification_2222222222222222222222222222222222222222222222222222222222222222",
       "originCategory": "CONDITIONAL_SCOPE",
       "decisionRef": "decision_8888888888888888888888888888888888888888888888888888888888888888",
+      "decisionOptionRef": "option_9999999999999999999999999999999999999999999999999999999999999999",
       "condition": "The story owner selects Mode A.",
       "relationship": "mutually_exclusive",
       "groupRef": "branchgroup_3333333333333333333333333333333333333333333333333333333333333333",
@@ -115,6 +122,9 @@
           "description": "Implement only the first delivery mode.",
           "evidenceRefs": [
             "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ],
+          "provenanceRefs": [
+            "provenance_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           ],
           "sourceTargets": [
             "fixtures/synthetic/mode-a"
@@ -138,6 +148,7 @@
       "classificationRef": "classification_2222222222222222222222222222222222222222222222222222222222222222",
       "originCategory": "CONDITIONAL_SCOPE",
       "decisionRef": "decision_8888888888888888888888888888888888888888888888888888888888888888",
+      "decisionOptionRef": "option_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "condition": "The story owner selects Mode B.",
       "relationship": "mutually_exclusive",
       "groupRef": "branchgroup_3333333333333333333333333333333333333333333333333333333333333333",
@@ -148,6 +159,9 @@
           "description": "Implement only the second delivery mode.",
           "evidenceRefs": [
             "ev_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ],
+          "provenanceRefs": [
+            "provenance_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           ],
           "sourceTargets": [
             "fixtures/synthetic/mode-b"

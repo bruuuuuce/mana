@@ -48,7 +48,7 @@ jq -e '
   .modelCalls == 0 and
   .network == false and
   .runtimeEnabled == false and
-  (.schemas | length == 7) and
+  (.schemas | length == 8) and
   (.fixtures | length == 6)
 ' "$bundle/bundle.json" >/dev/null
 
@@ -126,6 +126,15 @@ jq -e '
     .originCategory == "REQUIRED_ENABLER" and
     (.evidenceRefs | length) > 0 and
     (((.acceptanceCriterionRefs | length) > 0) or ((.mandatoryConstraintRefs | length) > 0)))
+' "$plan" >/dev/null
+
+# SS04 task provenance and decision-option linkage are structural invariants.
+jq -e '
+  all(.basePlan[]; (.provenanceRefs | length) > 0) and
+  all(.requiredEnablers[].tasks[]; (.provenanceRefs | length) > 0) and
+  all(.conditionalBranches[];
+    (.decisionOptionRef | length) > 0 and
+    all(.tasks[]; (.provenanceRefs | length) > 0))
 ' "$plan" >/dev/null
 
 # 3. The open decision is represented by two mutually exclusive branches.

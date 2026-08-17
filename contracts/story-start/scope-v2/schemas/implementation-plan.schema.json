@@ -107,6 +107,7 @@
         "title",
         "description",
         "evidenceRefs",
+        "provenanceRefs",
         "sourceTargets",
         "testEvidenceRefs"
       ],
@@ -126,6 +127,14 @@
           "uniqueItems": true,
           "items": {
             "$ref": "common.schema.json#/$defs/evidenceId"
+          }
+        },
+        "provenanceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/provenanceId"
           }
         },
         "sourceTargets": {
@@ -158,6 +167,7 @@
         "title",
         "description",
         "evidenceRefs",
+        "provenanceRefs",
         "acceptanceCriterionRefs",
         "mandatoryConstraintRefs",
         "sourceTargets",
@@ -186,6 +196,14 @@
           "uniqueItems": true,
           "items": {
             "$ref": "common.schema.json#/$defs/evidenceId"
+          }
+        },
+        "provenanceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/provenanceId"
           }
         },
         "acceptanceCriterionRefs": {
@@ -348,6 +366,7 @@
         "classificationRef",
         "originCategory",
         "decisionRef",
+        "decisionOptionRef",
         "condition",
         "relationship",
         "groupRef",
@@ -366,6 +385,9 @@
         },
         "decisionRef": {
           "$ref": "common.schema.json#/$defs/decisionId"
+        },
+        "decisionOptionRef": {
+          "$ref": "common.schema.json#/$defs/decisionOptionId"
         },
         "condition": {
           "$ref": "common.schema.json#/$defs/nonEmptyText"

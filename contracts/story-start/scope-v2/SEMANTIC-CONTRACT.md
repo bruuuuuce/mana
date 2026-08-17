@@ -3,9 +3,9 @@
 ## Status
 
 `internal_only`. SS01 defines the machine-readable Story Start Scope v2
-structures; SS02 and SS03 implement internal Discovery and Scope Triage phases.
-Planning, governance, rendering, correction loops, and public runtime selection
-remain inactive.
+structures; SS02 through SS04 implement internal Discovery, Scope Triage, and
+Implementation Planner phases. Governance, rendering, correction loops, and
+public runtime selection remain inactive.
 
 ## Product Principle
 
@@ -32,6 +32,7 @@ The bundle contains these root schemas:
 |---|---|---|
 | Discovery inventory | `schemas/discovery-inventory.schema.json` | Neutral acceptance criteria, constraints, evidence, typed findings, open questions, decisions, and provenance; no tasks or estimates |
 | Scope triage | `schemas/scope-triage.schema.json` | Classification and inclusion/exclusion reasoning; no implementation plan |
+| Compact planning context | `schemas/planning-context.schema.json` | Host-derived AC, constraint, evidence, and provenance subset; no raw findings |
 | Decision register | `schemas/decision-register.schema.json` | Open/resolved decisions and explicit options |
 | Implementation plan | `schemas/implementation-plan.schema.json` | Base tasks, enablers, branches, readiness, approved expansions, related findings, and scenario estimates in separate structures |
 | Scenario estimates | `schemas/scenario-estimates.schema.json` | Base, mandatory, conditional, and approved-expansion contributions with decision-sensitive finality |
@@ -136,11 +137,11 @@ it does not mutate the historical classification.
    mandatory reason for enablers, suggested owner, and a structural promotion
    assessment for `CORE_SCOPE` or `REQUIRED_ENABLER`.
 6. **Base-plan task:** `CORE_SCOPE` origin, AC/constraint references, evidence,
-   source targets, tests, and base effort.
+   direct provenance, source targets, tests, and base effort.
 7. **Required enabler:** mandatory cause, evidence, AC/constraint references,
    tasks, and mandatory delta.
-8. **Conditional branch:** explicit condition, decision, relationship, group,
-   tasks, and conditional delta.
+8. **Conditional branch:** explicit condition, decision and decision option,
+   relationship, group, tasks, and conditional delta.
 9. **Branch group:** branch references plus `mutually_exclusive`, `combinable`,
    or `dependent` relationship and `exactly_one`, `zero_or_one`, or
    `all_applicable` selection rule.
@@ -186,6 +187,28 @@ evidence gap and forces explicit owner review instead of inferred certainty.
 Host normalization derives artifact/entity IDs and canonical ordering, checks
 Discovery reference coverage, and rejects free-form provider output.
 
+## Internal Implementation Planner Boundary
+
+Implementation Planner consumes only the normalized story, the validated Scope
+Triage artifact, and a host-derived compact planning context. That context
+contains referenced ACs, mandatory constraints, evidence, and provenance but
+does not contain raw Discovery findings or repository contents.
+
+Each triage category has one legal destination: `CORE_SCOPE` becomes base-plan
+tasks, `REQUIRED_ENABLER` becomes separately estimated mandatory work,
+`CONDITIONAL_SCOPE` becomes one branch per decision option,
+`READINESS_PREREQUISITE` becomes readiness, and related defects, risks, and
+optional improvements become excluded related findings. Verified facts may
+support tasks but do not create work by themselves.
+
+Every task cites evidence, direct provenance, provenance-backed source targets,
+and test evidence. Branch groups preserve the triage relationship and selection
+rule. Each scenario selects legally from those groups, includes every mandatory
+delta, keeps readiness calendar impact separate, and has a host-checked
+arithmetic total. Open material decisions force scenario-only estimates,
+`finalCommittedEstimate: null`, and explicit owner review. Stable IDs and
+canonical ordering are derived host-side; invalid/free-form output fails closed.
+
 ## Effort And Calendar Representation
 
 An engineering range is represented as:
@@ -213,11 +236,14 @@ zero engineering range and unknown calendar impact without inventing days.
 ## Reference Rules
 
 - Classifications reference findings and evidence.
-- Base tasks reference ACs and/or mandatory constraints plus evidence.
+- Base tasks reference ACs and/or mandatory constraints plus evidence and
+  direct provenance.
 - Required enablers reference evidence and at least one AC or mandatory
   constraint.
-- Conditional classifications and branches reference a decision.
-- Branches reference a group and declare their relationship.
+- Conditional classifications and branches reference a decision; each branch
+  also references one option of that decision.
+- Branches reference a group, declare their relationship, and carry
+  provenance-backed tasks.
 - Scenario contributions reference the work that generated each delta.
 - Provenance records link bounded source references to evidence.
 - Scope expansions reference the original classification and human decision.
@@ -245,6 +271,9 @@ enforce:
   least two options;
 - base tasks declare `originCategory: CORE_SCOPE` and require AC/constraint
   references;
+- every planned task requires direct evidence, provenance, source targets, and
+  test evidence;
+- conditional branches identify a specific option of their decision;
 - open decisions have `selectedOptionId: null`; resolved decisions require a
   selected option-shaped ID;
 - readiness always contains separate engineering and calendar objects;
@@ -267,13 +296,15 @@ The following checks deliberately do not appear as pretend JSON Schema logic:
 - verified existing capability does not become an add/create task without
   separate change evidence;
 - mandatory reason is causally supported by evidence;
-- scenario contribution refs and arithmetic are correct;
+- scenario contribution refs and arithmetic remain correct across the full
+  artifact bundle (the SS04 producer already checks its local plan output);
 - no authoritative final total exists anywhere while a material decision is
   open;
 - legal validation and owner-review state transitions.
 
-These are cross-entity or arithmetic invariants and belong to the deterministic
-Scope Governor in SS05, not prompt wording or a misleading schema assertion.
+These are full-bundle invariants and belong to the deterministic Scope Governor
+in SS05. SS04 performs the narrower producer-local reference, branch-selection,
+and arithmetic checks needed to reject an invalid plan before publication.
 
 ## Required Output Separation
 
@@ -298,6 +329,6 @@ does not weaken the required separation.
 ## Compatibility And Failure Behavior
 
 See `COMPATIBILITY.md`. V2 remains additive and non-default. The internal SS02
-and SS03 phases fail closed: no invalid v2 document is treated as legacy
-free-form output. Correction, planning, semantic governance, public selection,
-and rendering are explicitly later phases.
+through SS04 phases fail closed: no invalid v2 document is treated as legacy
+free-form output. Correction, semantic governance, public selection, and
+rendering are explicitly later phases.

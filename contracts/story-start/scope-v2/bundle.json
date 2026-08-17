@@ -6,6 +6,7 @@
     "schemas/common.schema.json",
     "schemas/discovery-inventory.schema.json",
     "schemas/scope-triage.schema.json",
+    "schemas/planning-context.schema.json",
     "schemas/decision-register.schema.json",
     "schemas/implementation-plan.schema.json",
     "schemas/scenario-estimates.schema.json",

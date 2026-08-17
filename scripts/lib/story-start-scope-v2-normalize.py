@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Deterministically normalize schema-valid Story Start Scope v2 artifacts.
 
-This is internal SS02/SS03 host support. It deliberately consumes only compact
+This is internal SS02-SS04 host support. It deliberately consumes only compact
 artifacts; it never traverses a repository or creates implementation work.
 """
 
@@ -435,34 +435,909 @@ def normalize_triage(raw: dict[str, Any], discovery: dict[str, Any]) -> dict[str
     return result
 
 
-def main(argv: list[str]) -> int:
-    if len(argv) == 5 and argv[1] == "normalize-discovery":
-        schema_path, input_path, output_path = map(Path, argv[2:])
-        discovery_path = None
-    elif len(argv) == 6 and argv[1] == "normalize-triage":
-        schema_path, discovery_path, input_path, output_path = map(Path, argv[2:])
-    else:
-        print(
-            "Usage: story-start-scope-v2-normalize.py normalize-discovery <schema> <input> <output>\n"
-            "   or: story-start-scope-v2-normalize.py normalize-triage <schema> <discovery> <input> <output>",
-            file=sys.stderr,
+def build_planning_context(
+    discovery: dict[str, Any], triage: dict[str, Any]
+) -> dict[str, Any]:
+    if discovery["storyId"] != triage["storyId"]:
+        raise NormalizationError("planning context inputs have different story IDs")
+    if triage["sourceDiscoveryArtifactRef"] != discovery["artifactId"]:
+        raise NormalizationError("triage does not reference the supplied discovery artifact")
+
+    evidence_refs = {
+        ref
+        for classification in triage["classifications"]
+        for ref in classification["evidenceRefs"]
+    }
+    evidence_refs.update(
+        ref for decision in triage["decisions"] for ref in decision["evidenceRefs"]
+    )
+    evidence_by_id = {item["id"]: item for item in discovery["evidence"]}
+    if evidence_refs - set(evidence_by_id):
+        raise NormalizationError("triage references evidence absent from discovery")
+    evidence = sorted(
+        [copy.deepcopy(evidence_by_id[ref]) for ref in evidence_refs],
+        key=lambda value: value["id"],
+    )
+    provenance_refs = {
+        ref for item in evidence for ref in item["provenanceRefs"]
+    }
+    provenance_by_id = {item["id"]: item for item in discovery["provenance"]}
+    acceptance_refs = {
+        ref
+        for classification in triage["classifications"]
+        for ref in classification["acceptanceCriterionRefs"]
+    }
+    constraint_refs = {
+        ref
+        for classification in triage["classifications"]
+        for ref in classification["mandatoryConstraintRefs"]
+    }
+    acceptance_by_id = {
+        item["id"]: item for item in discovery["acceptanceCriteria"]
+    }
+    constraint_by_id = {
+        item["id"]: item for item in discovery["mandatoryConstraints"]
+    }
+    if acceptance_refs - set(acceptance_by_id):
+        raise NormalizationError("triage references an unknown acceptance criterion")
+    if constraint_refs - set(constraint_by_id):
+        raise NormalizationError("triage references an unknown mandatory constraint")
+    provenance_refs.update(
+        ref
+        for acceptance_ref in acceptance_refs
+        for ref in acceptance_by_id[acceptance_ref]["provenanceRefs"]
+    )
+    if provenance_refs - set(provenance_by_id):
+        raise NormalizationError("planning evidence references unknown provenance")
+
+    value = {
+        "contextVersion": "mana.story-start.planning-context/v2",
+        "storyId": discovery["storyId"],
+        "sourceDiscoveryArtifactRef": discovery["artifactId"],
+        "sourceTriageArtifactRef": triage["artifactId"],
+        "acceptanceCriteria": sorted(
+            [copy.deepcopy(acceptance_by_id[ref]) for ref in acceptance_refs],
+            key=lambda item: item["id"],
+        ),
+        "mandatoryConstraints": sorted(
+            [copy.deepcopy(constraint_by_id[ref]) for ref in constraint_refs],
+            key=lambda item: item["id"],
+        ),
+        "evidence": evidence,
+        "provenance": sorted(
+            [copy.deepcopy(provenance_by_id[ref]) for ref in provenance_refs],
+            key=lambda item: item["id"],
+        ),
+    }
+    return {"contextId": stable_id("planningcontext", value), **value}
+
+
+def validate_planning_context(
+    context: dict[str, Any], triage: dict[str, Any]
+) -> None:
+    context_schema = REPOSITORY_ROOT / "contracts/story-start/scope-v2/schemas/planning-context.schema.json"
+    validate(context_schema, context)
+    required_keys = {
+        "contextId",
+        "contextVersion",
+        "storyId",
+        "sourceDiscoveryArtifactRef",
+        "sourceTriageArtifactRef",
+        "acceptanceCriteria",
+        "mandatoryConstraints",
+        "evidence",
+        "provenance",
+    }
+    if set(context) != required_keys:
+        raise NormalizationError("planning context has an invalid structure")
+    if context["contextVersion"] != "mana.story-start.planning-context/v2":
+        raise NormalizationError("unsupported planning context version")
+    if context["storyId"] != triage["storyId"]:
+        raise NormalizationError("planning context storyId does not match triage")
+    if context["sourceTriageArtifactRef"] != triage["artifactId"]:
+        raise NormalizationError("planning context does not reference triage")
+    if context["sourceDiscoveryArtifactRef"] != triage["sourceDiscoveryArtifactRef"]:
+        raise NormalizationError("planning context discovery reference does not match triage")
+    identity = {key: copy.deepcopy(value) for key, value in context.items() if key != "contextId"}
+    if context["contextId"] != stable_id("planningcontext", identity):
+        raise NormalizationError("planning context ID does not match its content")
+
+    for key in ("acceptanceCriteria", "mandatoryConstraints", "evidence", "provenance"):
+        if not isinstance(context[key], list):
+            raise NormalizationError(f"planning context {key} must be an array")
+        old_ids(context[key], f"planning context {key}")
+        if context[key] != sorted(context[key], key=lambda item: item["id"]):
+            raise NormalizationError(f"planning context {key} is not canonically ordered")
+    evidence_by_id = {item["id"]: item for item in context["evidence"]}
+    provenance_by_id = {item["id"]: item for item in context["provenance"]}
+    acceptance_ids = {item["id"] for item in context["acceptanceCriteria"]}
+    constraint_ids = {item["id"] for item in context["mandatoryConstraints"]}
+    required_evidence = {
+        ref
+        for classification in triage["classifications"]
+        for ref in classification["evidenceRefs"]
+    }
+    required_evidence.update(
+        ref for decision in triage["decisions"] for ref in decision["evidenceRefs"]
+    )
+    if set(evidence_by_id) != required_evidence:
+        raise NormalizationError("planning context evidence does not exactly cover triage")
+    required_acceptance = {
+        ref
+        for classification in triage["classifications"]
+        for ref in classification["acceptanceCriterionRefs"]
+    }
+    required_constraints = {
+        ref
+        for classification in triage["classifications"]
+        for ref in classification["mandatoryConstraintRefs"]
+    }
+    if acceptance_ids != required_acceptance or constraint_ids != required_constraints:
+        raise NormalizationError("planning context requirement references do not cover triage")
+    required_provenance = {
+        ref for item in evidence_by_id.values() for ref in item["provenanceRefs"]
+    }
+    required_provenance.update(
+        ref
+        for item in context["acceptanceCriteria"]
+        for ref in item["provenanceRefs"]
+    )
+    if set(provenance_by_id) != required_provenance:
+        raise NormalizationError("planning context provenance does not exactly cover evidence")
+    for item in context["acceptanceCriteria"]:
+        value = {
+            "sourceKey": item["sourceKey"],
+            "text": item["text"],
+            "approvalStatus": item["approvalStatus"],
+            "provenanceRefs": sorted(set(item["provenanceRefs"])),
+        }
+        if item["id"] != stable_id("ac", value):
+            raise NormalizationError("planning context acceptance criterion ID is invalid")
+    for item in context["evidence"]:
+        value = {
+            "kind": item["kind"],
+            "epistemicStatus": item["epistemicStatus"],
+            "summary": item["summary"],
+            "capabilityState": item["capabilityState"],
+            "preExistingStatus": item["preExistingStatus"],
+            "provenanceRefs": sorted(set(item["provenanceRefs"])),
+        }
+        if item["id"] != stable_id("ev", value):
+            raise NormalizationError("planning context evidence ID is invalid")
+    for item in context["mandatoryConstraints"]:
+        value = {
+            "kind": item["kind"],
+            "statement": item["statement"],
+            "evidenceRefs": sorted(set(item["evidenceRefs"])),
+        }
+        if item["id"] != stable_id("constraint", value):
+            raise NormalizationError("planning context constraint ID is invalid")
+    for item in context["provenance"]:
+        value = normalized_provenance(item)
+        if item["id"] != stable_id("provenance", value):
+            raise NormalizationError("planning context provenance ID is invalid")
+
+
+def effort_numbers(effort: dict[str, Any]) -> tuple[float, float]:
+    return effort["minimumPersonHours"], effort["additionalPersonHours"]
+
+
+def require_effort_sum(
+    total: dict[str, Any], components: list[dict[str, Any]], kind: str, label: str
+) -> None:
+    minimum = sum(effort_numbers(item)[0] for item in components)
+    additional = sum(effort_numbers(item)[1] for item in components)
+    if (
+        total["estimateKind"] != kind
+        or total["unit"] != "person_hours"
+        or total["minimumPersonHours"] != minimum
+        or total["additionalPersonHours"] != additional
+    ):
+        raise NormalizationError(f"{label} is not the arithmetic sum of its components")
+
+
+def normalize_plan(
+    raw: dict[str, Any], context: dict[str, Any], triage: dict[str, Any]
+) -> dict[str, Any]:
+    validate_planning_context(context, triage)
+    if raw["storyId"] != triage["storyId"]:
+        raise NormalizationError("plan storyId does not match triage")
+    if raw["sourceTriageArtifactRef"] != triage["artifactId"]:
+        raise NormalizationError("plan sourceTriageArtifactRef does not match triage")
+
+    classifications = {item["id"]: item for item in triage["classifications"]}
+    categories: dict[str, set[str]] = {}
+    for item in triage["classifications"]:
+        categories.setdefault(item["category"], set()).add(item["id"])
+    decisions = sorted(
+        [normalized_decision(item) for item in raw["decisionRegister"]],
+        key=lambda item: item["id"],
+    )
+    triage_decisions = sorted(
+        [normalized_decision(item) for item in triage["decisions"]],
+        key=lambda item: item["id"],
+    )
+    if canonical(decisions) != canonical(triage_decisions):
+        raise NormalizationError("plan must preserve the triage decision register exactly")
+    option_ids_by_decision = {
+        item["id"]: {option["id"] for option in item["options"]}
+        for item in decisions
+    }
+    triage_groups = {item["decisionRef"]: item for item in triage["optionGroups"]}
+
+    evidence_by_id = {item["id"]: item for item in context["evidence"]}
+    provenance_by_id = {item["id"]: item for item in context["provenance"]}
+    verified_evidence = {
+        ref
+        for item in triage["classifications"]
+        if item["category"] == "VERIFIED_FACT"
+        for ref in item["evidenceRefs"]
+    }
+
+    provider_task_ids: set[str] = set()
+    generated_task_ids: set[str] = set()
+
+    def planned_task(
+        item: dict[str, Any],
+        allowed_evidence: set[str],
+        required_evidence: set[str],
+        identity_fields: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        if item["id"] in provider_task_ids:
+            raise NormalizationError("duplicate provider task ID")
+        provider_task_ids.add(item["id"])
+        evidence_refs = sorted(set(item["evidenceRefs"]))
+        test_refs = sorted(set(item["testEvidenceRefs"]))
+        provenance_refs = sorted(set(item["provenanceRefs"]))
+        if set(evidence_refs + test_refs) - set(evidence_by_id):
+            raise NormalizationError("task references evidence outside planning context")
+        if set(evidence_refs + test_refs) - allowed_evidence:
+            raise NormalizationError("task references evidence outside its classification")
+        if not required_evidence.issubset(set(evidence_refs)):
+            raise NormalizationError("task omits its classification evidence")
+        evidence_provenance = {
+            ref
+            for evidence_ref in evidence_refs + test_refs
+            for ref in evidence_by_id[evidence_ref]["provenanceRefs"]
+        }
+        if set(provenance_refs) - evidence_provenance:
+            raise NormalizationError("task provenance is not supported by task evidence")
+        if not provenance_refs:
+            raise NormalizationError("task has no provenance")
+        source_refs = {provenance_by_id[ref]["sourceRef"] for ref in provenance_refs}
+        source_targets = sorted(set(item["sourceTargets"]))
+        if set(source_targets) - source_refs:
+            raise NormalizationError("task source target is not provenance-backed")
+        value = {
+            "title": item["title"],
+            "description": item["description"],
+            "evidenceRefs": evidence_refs,
+            "provenanceRefs": provenance_refs,
+            "sourceTargets": source_targets,
+            "testEvidenceRefs": test_refs,
+        }
+        task_id = stable_id("task", {**(identity_fields or {}), **value})
+        if task_id in generated_task_ids:
+            raise NormalizationError("duplicate semantic task identity")
+        generated_task_ids.add(task_id)
+        return {"id": task_id, **value}
+
+    old_ids(raw["basePlan"], "base plan")
+    base_plan: list[dict[str, Any]] = []
+    base_classifications: set[str] = set()
+    for item in raw["basePlan"]:
+        classification = classifications.get(item["classificationRef"])
+        if classification is None or classification["category"] != "CORE_SCOPE":
+            raise NormalizationError("base plan task does not reference CORE_SCOPE")
+        if item["classificationRef"] in base_classifications:
+            raise NormalizationError("CORE_SCOPE classification appears twice in base plan")
+        base_classifications.add(item["classificationRef"])
+        if (
+            set(item["acceptanceCriterionRefs"]) != set(classification["acceptanceCriterionRefs"])
+            or set(item["mandatoryConstraintRefs"]) != set(classification["mandatoryConstraintRefs"])
+        ):
+            raise NormalizationError("base plan requirement links differ from triage")
+        base_identity = {
+            "classificationRef": item["classificationRef"],
+            "originCategory": "CORE_SCOPE",
+            "acceptanceCriterionRefs": sorted(set(item["acceptanceCriterionRefs"])),
+            "mandatoryConstraintRefs": sorted(set(item["mandatoryConstraintRefs"])),
+            "effort": copy.deepcopy(item["effort"]),
+        }
+        common_task = planned_task(
+            item,
+            set(classification["evidenceRefs"]) | verified_evidence,
+            set(classification["evidenceRefs"]),
+            base_identity,
         )
-        return 2
+        value = {
+            **base_identity,
+            **{key: value for key, value in common_task.items() if key != "id"},
+        }
+        base_plan.append({"id": common_task["id"], **value})
+    if base_classifications != categories.get("CORE_SCOPE", set()):
+        raise NormalizationError("base plan does not exactly cover CORE_SCOPE")
+    base_plan.sort(key=lambda item: item["id"])
+
+    old_ids(raw["requiredEnablers"], "required enablers")
+    required_enablers: list[dict[str, Any]] = []
+    enabler_map: dict[str, str] = {}
+    enabler_classifications: set[str] = set()
+    for item in raw["requiredEnablers"]:
+        classification = classifications.get(item["classificationRef"])
+        if classification is None or classification["category"] != "REQUIRED_ENABLER":
+            raise NormalizationError("enabler does not reference REQUIRED_ENABLER")
+        if item["classificationRef"] in enabler_classifications:
+            raise NormalizationError("REQUIRED_ENABLER classification appears twice")
+        enabler_classifications.add(item["classificationRef"])
+        for field in (
+            "mandatoryReason",
+            "evidenceRefs",
+            "acceptanceCriterionRefs",
+            "mandatoryConstraintRefs",
+        ):
+            expected = classification[field]
+            actual = item[field]
+            if canonical(sorted(actual) if isinstance(actual, list) else actual) != canonical(
+                sorted(expected) if isinstance(expected, list) else expected
+            ):
+                raise NormalizationError(f"enabler {field} differs from triage")
+        tasks = [
+            planned_task(
+                task,
+                set(classification["evidenceRefs"]) | verified_evidence,
+                set(classification["evidenceRefs"]),
+            )
+            for task in item["tasks"]
+        ]
+        tasks.sort(key=lambda task: task["id"])
+        value = {
+            "classificationRef": item["classificationRef"],
+            "originCategory": "REQUIRED_ENABLER",
+            "title": item["title"],
+            "mandatoryReason": item["mandatoryReason"],
+            "evidenceRefs": sorted(set(item["evidenceRefs"])),
+            "acceptanceCriterionRefs": sorted(set(item["acceptanceCriterionRefs"])),
+            "mandatoryConstraintRefs": sorted(set(item["mandatoryConstraintRefs"])),
+            "tasks": tasks,
+            "effort": copy.deepcopy(item["effort"]),
+        }
+        enabler_id = stable_id("enabler", value)
+        if enabler_id in enabler_map.values():
+            raise NormalizationError("duplicate semantic enabler identity")
+        enabler_map[item["id"]] = enabler_id
+        required_enablers.append({"id": enabler_id, **value})
+    if enabler_classifications != categories.get("REQUIRED_ENABLER", set()):
+        raise NormalizationError("required enablers do not exactly cover triage")
+    required_enablers.sort(key=lambda item: item["id"])
+    enablers_by_id = {item["id"]: item for item in required_enablers}
+
+    old_ids(raw["readinessPrerequisites"], "readiness prerequisites")
+    readiness: list[dict[str, Any]] = []
+    readiness_map: dict[str, str] = {}
+    readiness_classifications: set[str] = set()
+    for item in raw["readinessPrerequisites"]:
+        classification = classifications.get(item["classificationRef"])
+        if classification is None or classification["category"] != "READINESS_PREREQUISITE":
+            raise NormalizationError("readiness item has the wrong classification")
+        if item["classificationRef"] in readiness_classifications:
+            raise NormalizationError("readiness classification appears twice")
+        readiness_classifications.add(item["classificationRef"])
+        if set(item["evidenceRefs"]) != set(classification["evidenceRefs"]):
+            raise NormalizationError("readiness evidence differs from triage")
+        if item["owner"] != classification["suggestedOwner"]:
+            raise NormalizationError("readiness owner differs from triage")
+        if any(evidence_by_id[ref]["kind"] == "human_decision" for ref in item["evidenceRefs"]):
+            if effort_numbers(item["engineeringEffort"]) != (0, 0):
+                raise NormalizationError("pending approval cannot create engineering effort")
+        value = {
+            "classificationRef": item["classificationRef"],
+            "originCategory": "READINESS_PREREQUISITE",
+            "summary": item["summary"],
+            "owner": item["owner"],
+            "status": item["status"],
+            "evidenceRefs": sorted(set(item["evidenceRefs"])),
+            "engineeringEffort": copy.deepcopy(item["engineeringEffort"]),
+            "calendarImpact": copy.deepcopy(item["calendarImpact"]),
+        }
+        readiness_id = stable_id("readiness", value)
+        if readiness_id in readiness_map.values():
+            raise NormalizationError("duplicate semantic readiness identity")
+        readiness_map[item["id"]] = readiness_id
+        readiness.append({"id": readiness_id, **value})
+    if readiness_classifications != categories.get("READINESS_PREREQUISITE", set()):
+        raise NormalizationError("readiness does not exactly cover triage")
+    readiness.sort(key=lambda item: item["id"])
+    readiness_by_id = {item["id"]: item for item in readiness}
+
+    old_ids(raw["relatedFindings"], "related findings")
+    related_findings: list[dict[str, Any]] = []
+    related_classifications: set[str] = set()
+    related_categories = {"RELATED_DEFECT", "RISK_ONLY", "OPTIONAL_IMPROVEMENT"}
+    for item in raw["relatedFindings"]:
+        classification = classifications.get(item["classificationRef"])
+        if classification is None or classification["category"] not in related_categories:
+            raise NormalizationError("related finding has the wrong classification")
+        if item["classificationRef"] in related_classifications:
+            raise NormalizationError("related classification appears twice")
+        related_classifications.add(item["classificationRef"])
+        if item["originCategory"] != classification["category"]:
+            raise NormalizationError("related finding category differs from triage")
+        if set(item["evidenceRefs"]) != set(classification["evidenceRefs"]):
+            raise NormalizationError("related finding evidence differs from triage")
+        if item["owner"] != classification["suggestedOwner"]:
+            raise NormalizationError("related finding owner differs from triage")
+        value = {
+            "classificationRef": item["classificationRef"],
+            "originCategory": item["originCategory"],
+            "summary": item["summary"],
+            "evidenceRefs": sorted(set(item["evidenceRefs"])),
+            "owner": item["owner"],
+            "followUp": item["followUp"],
+            "excludedFromBasePlan": True,
+        }
+        related_findings.append({"id": stable_id("related", value), **value})
+    expected_related = set().union(
+        *(categories.get(category, set()) for category in related_categories)
+    )
+    if related_classifications != expected_related:
+        raise NormalizationError("related findings do not exactly cover excluded triage categories")
+    related_findings.sort(key=lambda item: item["id"])
+
+    old_ids(raw["conditionalBranches"], "conditional branches")
+    provisional_branches: list[dict[str, Any]] = []
+    branch_map: dict[str, str] = {}
+    branch_pairs: set[tuple[str, str]] = set()
+    for item in raw["conditionalBranches"]:
+        classification = classifications.get(item["classificationRef"])
+        if classification is None or classification["category"] != "CONDITIONAL_SCOPE":
+            raise NormalizationError("branch does not reference CONDITIONAL_SCOPE")
+        decision_ref = classification["decisionRef"]
+        if item["decisionRef"] != decision_ref:
+            raise NormalizationError("branch decision differs from triage")
+        if item["decisionOptionRef"] not in option_ids_by_decision[decision_ref]:
+            raise NormalizationError("branch option does not belong to its decision")
+        pair = (item["classificationRef"], item["decisionOptionRef"])
+        if pair in branch_pairs:
+            raise NormalizationError("classification option appears in more than one branch")
+        branch_pairs.add(pair)
+        group = triage_groups[decision_ref]
+        if item["relationship"] != group["relationship"]:
+            raise NormalizationError("branch relationship differs from triage")
+        tasks = [
+            planned_task(
+                task,
+                set(classification["evidenceRefs"]) | verified_evidence,
+                set(classification["evidenceRefs"]),
+            )
+            for task in item["tasks"]
+        ]
+        tasks.sort(key=lambda task: task["id"])
+        identity = {
+            "classificationRef": item["classificationRef"],
+            "originCategory": "CONDITIONAL_SCOPE",
+            "decisionRef": decision_ref,
+            "decisionOptionRef": item["decisionOptionRef"],
+            "condition": item["condition"],
+            "relationship": item["relationship"],
+            "tasks": tasks,
+            "effort": copy.deepcopy(item["effort"]),
+        }
+        branch_id = stable_id("branch", identity)
+        if branch_id in branch_map.values():
+            raise NormalizationError("duplicate semantic branch identity")
+        branch_map[item["id"]] = branch_id
+        provisional_branches.append(
+            {"id": branch_id, "providerGroupRef": item["groupRef"], **identity}
+        )
+    expected_pairs = {
+        (classification["id"], option_ref)
+        for classification in triage["classifications"]
+        if classification["category"] == "CONDITIONAL_SCOPE"
+        for option_ref in option_ids_by_decision[classification["decisionRef"]]
+    }
+    if branch_pairs != expected_pairs:
+        raise NormalizationError("conditional branches do not cover every decision option")
+
+    old_ids(raw["branchGroups"], "branch groups")
+    branch_groups: list[dict[str, Any]] = []
+    branch_group_map: dict[str, str] = {}
+    grouped_decisions: set[str] = set()
+    for item in raw["branchGroups"]:
+        decision_ref = item["decisionRef"]
+        if decision_ref in grouped_decisions or decision_ref not in triage_groups:
+            raise NormalizationError("invalid or duplicate branch-group decision")
+        grouped_decisions.add(decision_ref)
+        triage_group = triage_groups[decision_ref]
+        if (
+            item["relationship"] != triage_group["relationship"]
+            or item["selectionRule"] != triage_group["selectionRule"]
+        ):
+            raise NormalizationError("branch group semantics differ from triage")
+        try:
+            branch_refs = sorted({branch_map[ref] for ref in item["branchRefs"]})
+        except KeyError as exc:
+            raise NormalizationError("branch group references an unknown branch") from exc
+        expected_refs = {
+            branch["id"]
+            for branch in provisional_branches
+            if branch["decisionRef"] == decision_ref
+        }
+        if set(branch_refs) != expected_refs:
+            raise NormalizationError("branch group does not exactly cover its decision")
+        value = {
+            "decisionRef": decision_ref,
+            "relationship": item["relationship"],
+            "selectionRule": item["selectionRule"],
+            "branchRefs": branch_refs,
+        }
+        group_id = stable_id("branchgroup", value)
+        branch_group_map[item["id"]] = group_id
+        branch_groups.append({"id": group_id, **value})
+    conditional_decisions = {
+        item["decisionRef"]
+        for item in triage["classifications"]
+        if item["category"] == "CONDITIONAL_SCOPE"
+    }
+    if grouped_decisions != conditional_decisions:
+        raise NormalizationError("branch groups do not cover conditional decisions")
+    branch_groups.sort(key=lambda item: item["id"])
+    groups_by_id = {item["id"]: item for item in branch_groups}
+
+    conditional_branches: list[dict[str, Any]] = []
+    for item in provisional_branches:
+        try:
+            group_ref = branch_group_map[item.pop("providerGroupRef")]
+        except KeyError as exc:
+            raise NormalizationError("branch references an unknown group") from exc
+        if groups_by_id[group_ref]["decisionRef"] != item["decisionRef"]:
+            raise NormalizationError("branch references a group for another decision")
+        conditional_branches.append({**item, "groupRef": group_ref})
+    conditional_branches.sort(key=lambda item: item["id"])
+    branches_by_id = {item["id"]: item for item in conditional_branches}
+
+    approved_triage_expansions = {
+        item["id"]: item
+        for item in triage["scopeExpansions"]
+        if item["status"] == "approved"
+    }
+    approved_scope_expansions: list[dict[str, Any]] = []
+    seen_expansions: set[str] = set()
+    for item in raw["approvedScopeExpansions"]:
+        expansion = approved_triage_expansions.get(item["scopeExpansionRef"])
+        if expansion is None or item["scopeExpansionRef"] in seen_expansions:
+            raise NormalizationError("invalid or duplicate approved scope expansion")
+        seen_expansions.add(item["scopeExpansionRef"])
+        if item["originalClassificationRef"] != expansion["originalClassificationRef"]:
+            raise NormalizationError("scope expansion classification differs from triage")
+        classification = classifications[item["originalClassificationRef"]]
+        tasks = [
+            planned_task(
+                task,
+                set(classification["evidenceRefs"]) | verified_evidence,
+                set(classification["evidenceRefs"]),
+            )
+            for task in item["tasks"]
+        ]
+        tasks.sort(key=lambda task: task["id"])
+        approved_scope_expansions.append(
+            {
+                "scopeExpansionRef": item["scopeExpansionRef"],
+                "originalClassificationRef": item["originalClassificationRef"],
+                "title": item["title"],
+                "tasks": tasks,
+                "effort": copy.deepcopy(item["effort"]),
+            }
+        )
+    if seen_expansions != set(approved_triage_expansions):
+        raise NormalizationError("approved expansions do not exactly cover triage")
+    approved_scope_expansions.sort(key=lambda item: item["scopeExpansionRef"])
+    expansions_by_id = {
+        item["scopeExpansionRef"]: item for item in approved_scope_expansions
+    }
+
+    estimate_set = raw["scenarioEstimates"]
+    base_efforts = [item["effort"] for item in base_plan]
+    require_effort_sum(
+        estimate_set["baseEffort"], base_efforts, "base_effort", "base effort"
+    )
+    required_deltas: list[dict[str, Any]] = []
+    seen_enablers: set[str] = set()
+    for delta in estimate_set["requiredEnablerDeltas"]:
+        try:
+            enabler_ref = enabler_map[delta["enablerRef"]]
+        except KeyError as exc:
+            raise NormalizationError("estimate references an unknown enabler") from exc
+        if enabler_ref in seen_enablers:
+            raise NormalizationError("duplicate required-enabler delta")
+        seen_enablers.add(enabler_ref)
+        if canonical(delta["effort"]) != canonical(enablers_by_id[enabler_ref]["effort"]):
+            raise NormalizationError("required-enabler delta differs from enabler effort")
+        required_deltas.append(
+            {"enablerRef": enabler_ref, "effort": copy.deepcopy(delta["effort"])}
+        )
+    if seen_enablers != set(enablers_by_id):
+        raise NormalizationError("estimate set omits a required enabler")
+    required_deltas.sort(key=lambda item: item["enablerRef"])
+
+    open_material_decisions = {
+        item["id"]
+        for item in decisions
+        if item["status"] == "open" and item["materiality"] == "material"
+    }
+    if set(estimate_set["openMaterialDecisionRefs"]) != open_material_decisions:
+        raise NormalizationError("open material decision refs differ from decision register")
+    if open_material_decisions and estimate_set["finalCommittedEstimate"] is not None:
+        raise NormalizationError("open material decisions forbid a committed estimate")
+
+    scenarios: list[dict[str, Any]] = []
+    selected_across_scenarios: set[str] = set()
+    old_ids(estimate_set["scenarios"], "scenarios")
+    for scenario in estimate_set["scenarios"]:
+        try:
+            selected_refs = sorted({branch_map[ref] for ref in scenario["selectedBranchRefs"]})
+        except KeyError as exc:
+            raise NormalizationError("scenario selects an unknown branch") from exc
+        selected_across_scenarios.update(selected_refs)
+        if effort_numbers(scenario["baseEffort"]) != effort_numbers(estimate_set["baseEffort"]):
+            raise NormalizationError("scenario base effort differs from estimate set")
+
+        mandatory_deltas: list[dict[str, Any]] = []
+        mandatory_refs: set[str] = set()
+        for delta in scenario["mandatoryDeltas"]:
+            try:
+                enabler_ref = enabler_map[delta["enablerRef"]]
+            except KeyError as exc:
+                raise NormalizationError("scenario references an unknown enabler") from exc
+            if enabler_ref in mandatory_refs:
+                raise NormalizationError("scenario duplicates an enabler delta")
+            mandatory_refs.add(enabler_ref)
+            if canonical(delta["effort"]) != canonical(enablers_by_id[enabler_ref]["effort"]):
+                raise NormalizationError("scenario enabler delta differs from plan")
+            mandatory_deltas.append(
+                {"enablerRef": enabler_ref, "effort": copy.deepcopy(delta["effort"])}
+            )
+        if mandatory_refs != set(enablers_by_id):
+            raise NormalizationError("scenario omits a mandatory enabler")
+        mandatory_deltas.sort(key=lambda item: item["enablerRef"])
+
+        conditional_deltas: list[dict[str, Any]] = []
+        conditional_refs: set[str] = set()
+        for delta in scenario["conditionalDeltas"]:
+            try:
+                branch_ref = branch_map[delta["branchRef"]]
+            except KeyError as exc:
+                raise NormalizationError("scenario references an unknown branch delta") from exc
+            if branch_ref in conditional_refs:
+                raise NormalizationError("scenario duplicates a branch delta")
+            conditional_refs.add(branch_ref)
+            if canonical(delta["effort"]) != canonical(branches_by_id[branch_ref]["effort"]):
+                raise NormalizationError("scenario branch delta differs from plan")
+            conditional_deltas.append(
+                {"branchRef": branch_ref, "effort": copy.deepcopy(delta["effort"])}
+            )
+        if conditional_refs != set(selected_refs):
+            raise NormalizationError("selected branches and conditional deltas differ")
+        conditional_deltas.sort(key=lambda item: item["branchRef"])
+
+        approved_deltas: list[dict[str, Any]] = []
+        approved_refs: set[str] = set()
+        for delta in scenario["approvedScopeDeltas"]:
+            expansion_ref = delta["scopeExpansionRef"]
+            if expansion_ref not in expansions_by_id or expansion_ref in approved_refs:
+                raise NormalizationError("scenario has an invalid scope-expansion delta")
+            approved_refs.add(expansion_ref)
+            if canonical(delta["effort"]) != canonical(expansions_by_id[expansion_ref]["effort"]):
+                raise NormalizationError("scenario expansion delta differs from plan")
+            approved_deltas.append(copy.deepcopy(delta))
+        if approved_refs != set(expansions_by_id):
+            raise NormalizationError("scenario omits an approved scope expansion")
+        approved_deltas.sort(key=lambda item: item["scopeExpansionRef"])
+
+        calendar_impacts: list[dict[str, Any]] = []
+        calendar_refs: set[str] = set()
+        for contribution in scenario["calendarImpacts"]:
+            try:
+                readiness_ref = readiness_map[contribution["readinessRef"]]
+            except KeyError as exc:
+                raise NormalizationError("scenario references unknown readiness") from exc
+            if readiness_ref in calendar_refs:
+                raise NormalizationError("scenario duplicates readiness calendar impact")
+            calendar_refs.add(readiness_ref)
+            if canonical(contribution["impact"]) != canonical(
+                readiness_by_id[readiness_ref]["calendarImpact"]
+            ):
+                raise NormalizationError("scenario calendar impact differs from readiness")
+            calendar_impacts.append(
+                {"readinessRef": readiness_ref, "impact": copy.deepcopy(contribution["impact"])}
+            )
+        if calendar_refs != set(readiness_by_id):
+            raise NormalizationError("scenario omits readiness calendar impact")
+        calendar_impacts.sort(key=lambda item: item["readinessRef"])
+
+        for group in branch_groups:
+            selected_in_group = set(selected_refs) & set(group["branchRefs"])
+            if group["selectionRule"] == "exactly_one" and len(selected_in_group) != 1:
+                raise NormalizationError("scenario violates an exactly-one branch group")
+            if group["selectionRule"] == "zero_or_one" and len(selected_in_group) > 1:
+                raise NormalizationError("scenario violates a zero-or-one branch group")
+            if group["selectionRule"] == "all_applicable" and selected_in_group != set(
+                group["branchRefs"]
+            ):
+                raise NormalizationError("scenario omits a combinable branch")
+
+        total_components = (
+            [scenario["baseEffort"]]
+            + [item["effort"] for item in mandatory_deltas]
+            + [item["effort"] for item in conditional_deltas]
+            + [item["effort"] for item in approved_deltas]
+        )
+        require_effort_sum(
+            scenario["engineeringTotal"],
+            total_components,
+            "scenario_total",
+            f"scenario {scenario['name']!r} total",
+        )
+        if open_material_decisions and scenario["finality"] != "scenario_only":
+            raise NormalizationError("open decisions require scenario-only estimates")
+        value = {
+            "name": scenario["name"],
+            "selectedBranchRefs": selected_refs,
+            "baseEffort": copy.deepcopy(scenario["baseEffort"]),
+            "mandatoryDeltas": mandatory_deltas,
+            "conditionalDeltas": conditional_deltas,
+            "approvedScopeDeltas": approved_deltas,
+            "engineeringTotal": copy.deepcopy(scenario["engineeringTotal"]),
+            "calendarImpacts": calendar_impacts,
+            "finality": scenario["finality"],
+        }
+        scenarios.append({"id": stable_id("scenario", value), **value})
+    if selected_across_scenarios != set(branches_by_id):
+        raise NormalizationError("scenario set does not represent every conditional branch")
+    scenarios.sort(key=lambda item: item["id"])
+
+    scenario_estimates = {
+        "baseEffort": copy.deepcopy(estimate_set["baseEffort"]),
+        "requiredEnablerDeltas": required_deltas,
+        "openMaterialDecisionRefs": sorted(open_material_decisions),
+        "scenarios": scenarios,
+        "finalCommittedEstimate": copy.deepcopy(estimate_set["finalCommittedEstimate"]),
+    }
+
+    required_evidence: set[str] = set()
+    required_provenance: set[str] = set()
+    for task in base_plan:
+        required_evidence.update(task["evidenceRefs"] + task["testEvidenceRefs"])
+        required_provenance.update(task["provenanceRefs"])
+    for container in required_enablers + conditional_branches:
+        if "evidenceRefs" in container:
+            required_evidence.update(container["evidenceRefs"])
+        for task in container["tasks"]:
+            required_evidence.update(task["evidenceRefs"] + task["testEvidenceRefs"])
+            required_provenance.update(task["provenanceRefs"])
+    for item in approved_scope_expansions:
+        for task in item["tasks"]:
+            required_evidence.update(task["evidenceRefs"] + task["testEvidenceRefs"])
+            required_provenance.update(task["provenanceRefs"])
+    for item in readiness + related_findings + decisions:
+        required_evidence.update(item["evidenceRefs"])
+    required_provenance.update(
+        ref
+        for evidence_ref in required_evidence
+        for ref in evidence_by_id[evidence_ref]["provenanceRefs"]
+    )
+    evidence_section = raw["evidenceAndProvenance"]
+    if set(evidence_section["evidenceRefs"]) != required_evidence:
+        raise NormalizationError("evidence section does not exactly cover the plan")
+    if set(evidence_section["provenanceRefs"]) != required_provenance:
+        raise NormalizationError("provenance section does not exactly cover the plan")
+
+    validation_status = copy.deepcopy(raw["validationStatus"])
+    validation_status["violationCodes"] = sorted(set(validation_status["violationCodes"]))
+    if open_material_decisions:
+        if (
+            validation_status["semanticValidation"] != "needs_owner_review"
+            or validation_status["ownerReview"]["state"] not in {"required", "in_progress"}
+            or "OPEN_MATERIAL_DECISIONS" not in validation_status["violationCodes"]
+        ):
+            raise NormalizationError("open material decisions require explicit owner review")
+
+    result = {
+        "schemaVersion": raw["schemaVersion"],
+        "artifactVersion": raw["artifactVersion"],
+        "artifactId": raw["artifactId"],
+        "storyId": raw["storyId"],
+        "sourceTriageArtifactRef": raw["sourceTriageArtifactRef"],
+        "readinessPrerequisites": readiness,
+        "basePlan": base_plan,
+        "requiredEnablers": required_enablers,
+        "conditionalBranches": conditional_branches,
+        "branchGroups": branch_groups,
+        "approvedScopeExpansions": approved_scope_expansions,
+        "scenarioEstimates": scenario_estimates,
+        "decisionRegister": decisions,
+        "relatedFindings": related_findings,
+        "evidenceAndProvenance": {
+            "evidenceRefs": sorted(required_evidence),
+            "provenanceRefs": sorted(required_provenance),
+        },
+        "validationStatus": validation_status,
+    }
+    artifact_identity = {
+        key: value
+        for key, value in result.items()
+        if key not in {"artifactId", "validationStatus"}
+    }
+    result["artifactId"] = stable_id("plan", artifact_identity)
+    return result
+
+
+def main(argv: list[str]) -> int:
     try:
-        with input_path.open(encoding="utf-8") as handle:
-            raw = json.load(handle)
-        validate(schema_path.resolve(), raw)
-        if discovery_path is None:
+        if len(argv) == 5 and argv[1] == "normalize-discovery":
+            schema_path, input_path, output_path = map(Path, argv[2:])
+            with input_path.open(encoding="utf-8") as handle:
+                raw = json.load(handle)
+            validate(schema_path.resolve(), raw)
             normalized = normalize_discovery(raw)
-        else:
+            validate(schema_path.resolve(), normalized)
+        elif len(argv) == 6 and argv[1] == "normalize-triage":
+            schema_path, discovery_path, input_path, output_path = map(Path, argv[2:])
+            with input_path.open(encoding="utf-8") as handle:
+                raw = json.load(handle)
+            validate(schema_path.resolve(), raw)
             with discovery_path.open(encoding="utf-8") as handle:
                 discovery = json.load(handle)
             discovery_schema = REPOSITORY_ROOT / "contracts/story-start/scope-v2/schemas/discovery-inventory.schema.json"
             validate(discovery_schema, discovery)
             normalized = normalize_triage(raw, discovery)
-        validate(schema_path.resolve(), normalized)
+            validate(schema_path.resolve(), normalized)
+        elif len(argv) == 5 and argv[1] == "build-planning-context":
+            discovery_path, triage_path, output_path = map(Path, argv[2:])
+            with discovery_path.open(encoding="utf-8") as handle:
+                discovery = json.load(handle)
+            with triage_path.open(encoding="utf-8") as handle:
+                triage = json.load(handle)
+            contract_root = REPOSITORY_ROOT / "contracts/story-start/scope-v2/schemas"
+            validate(contract_root / "discovery-inventory.schema.json", discovery)
+            validate(contract_root / "scope-triage.schema.json", triage)
+            normalized = build_planning_context(discovery, triage)
+            validate_planning_context(normalized, triage)
+        elif len(argv) == 4 and argv[1] == "validate-planning-context":
+            context_path, triage_path = map(Path, argv[2:])
+            with context_path.open(encoding="utf-8") as handle:
+                context = json.load(handle)
+            with triage_path.open(encoding="utf-8") as handle:
+                triage = json.load(handle)
+            triage_schema = REPOSITORY_ROOT / "contracts/story-start/scope-v2/schemas/scope-triage.schema.json"
+            validate(triage_schema, triage)
+            validate_planning_context(context, triage)
+            return 0
+        elif len(argv) == 7 and argv[1] == "normalize-plan":
+            schema_path, context_path, triage_path, input_path, output_path = map(Path, argv[2:])
+            with input_path.open(encoding="utf-8") as handle:
+                raw = json.load(handle)
+            with context_path.open(encoding="utf-8") as handle:
+                context = json.load(handle)
+            with triage_path.open(encoding="utf-8") as handle:
+                triage = json.load(handle)
+            validate(schema_path.resolve(), raw)
+            triage_schema = REPOSITORY_ROOT / "contracts/story-start/scope-v2/schemas/scope-triage.schema.json"
+            validate(triage_schema, triage)
+            normalized = normalize_plan(raw, context, triage)
+            validate(schema_path.resolve(), normalized)
+        else:
+            print(
+                "Usage: story-start-scope-v2-normalize.py normalize-discovery <schema> <input> <output>\n"
+                "   or: story-start-scope-v2-normalize.py normalize-triage <schema> <discovery> <input> <output>\n"
+                "   or: story-start-scope-v2-normalize.py build-planning-context <discovery> <triage> <output>\n"
+                "   or: story-start-scope-v2-normalize.py validate-planning-context <context> <triage>\n"
+                "   or: story-start-scope-v2-normalize.py normalize-plan <schema> <context> <triage> <input> <output>",
+                file=sys.stderr,
+            )
+            return 2
         output_path.write_text(canonical(normalized) + "\n", encoding="utf-8")
-    except (OSError, json.JSONDecodeError, NormalizationError) as exc:
+    except (OSError, json.JSONDecodeError, KeyError, TypeError, NormalizationError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
     return 0
