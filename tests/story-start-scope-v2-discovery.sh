@@ -95,9 +95,7 @@ DISCOVERY_STUB_ARGS="$tmp/malformed-args" \
 mana_story_start_scope_v2_discover stub deterministic "$package" "$tmp/malformed-published.json" >/dev/null 2>&1 && fail 'malformed provider output was accepted'
 [ ! -e "$tmp/malformed-published.json" ] || fail 'malformed provider output was published'
 
-# SS02 remains internal: the public profile and runner are still unaware of it.
-if rg -q 'story-start-discovery-v2|story-start-scope-v2' "$root/scripts/run-profile.sh" "$root/scripts/cast.sh" "$root/profiles/story-start.yaml"; then
-  fail 'SS02 was wired into a public Story Start path'
-fi
+# SS06 may call this phase publicly, but its original isolated compact-package
+# boundary and zero-task semantics above remain unchanged.
 
 echo 'Story Start Scope v2 Discovery tests passed (zero provider/network calls)'

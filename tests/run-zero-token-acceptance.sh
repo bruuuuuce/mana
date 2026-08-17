@@ -39,6 +39,7 @@ tests=(
   story-start-scope-v2-triage.sh
   story-start-scope-v2-planner.sh
   story-start-scope-v2-governor.sh
+  story-start-scope-v2-integration.sh
   testbook-tools.sh
   user-context.sh
   user-learning-aggregation.sh

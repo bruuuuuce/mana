@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.example/contracts/story-start/scope-v2/schemas/scope-run.schema.json",
+  "title": "Mana Story Start Scope v2 public run status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactVersion",
+    "runId",
+    "storyId",
+    "status",
+    "failedPhase",
+    "phaseStates",
+    "artifactRefs",
+    "planningReview",
+    "ownerReview"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "mana.story-start.scope-run/v2"
+    },
+    "artifactVersion": {
+      "const": 2
+    },
+    "runId": {
+      "type": "string",
+      "pattern": "^run_[0-9a-f]{64}$"
+    },
+    "storyId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "needs_owner_review"
+      ]
+    },
+    "failedPhase": {
+      "enum": [
+        "none",
+        "discovery",
+        "triage",
+        "planner",
+        "governor",
+        "publication"
+      ]
+    },
+    "phaseStates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "discovery",
+        "triage",
+        "planner",
+        "governor",
+        "rendering"
+      ],
+      "properties": {
+        "discovery": { "$ref": "#/$defs/phaseState" },
+        "triage": { "$ref": "#/$defs/phaseState" },
+        "planner": { "$ref": "#/$defs/phaseState" },
+        "governor": { "$ref": "#/$defs/phaseState" },
+        "rendering": { "$ref": "#/$defs/phaseState" }
+      }
+    },
+    "artifactRefs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "discovery",
+        "triage",
+        "implementationPlan",
+        "governanceReport",
+        "markdownReport"
+      ],
+      "properties": {
+        "discovery": { "$ref": "#/$defs/artifactRefOrNull" },
+        "triage": { "$ref": "#/$defs/artifactRefOrNull" },
+        "implementationPlan": { "$ref": "#/$defs/artifactRefOrNull" },
+        "governanceReport": { "$ref": "#/$defs/artifactRefOrNull" },
+        "markdownReport": { "$ref": "#/$defs/artifactRefOrNull" }
+      }
+    },
+    "ownerReview": {
+      "$ref": "#/$defs/reviewState"
+    },
+    "planningReview": {
+      "$ref": "#/$defs/reviewState"
+    }
+  },
+  "$defs": {
+    "reviewState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "owner",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "not_required",
+            "required"
+          ]
+        },
+        "owner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      }
+    },
+    "phaseState": {
+      "enum": [
+        "not_started",
+        "passed",
+        "failed"
+      ]
+    },
+    "artifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "path"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^(context|evidence|planning|validation)/[A-Za-z0-9._/-]+$"
+        }
+      }
+    },
+    "artifactRefOrNull": {
+      "oneOf": [
+        { "$ref": "#/$defs/artifactRef" },
+        { "type": "null" }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": { "const": "passed" }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "failedPhase": { "const": "none" },
+          "phaseStates": {
+            "properties": {
+              "discovery": { "const": "passed" },
+              "triage": { "const": "passed" },
+              "planner": { "const": "passed" },
+              "governor": { "const": "passed" },
+              "rendering": { "const": "passed" }
+            }
+          },
+          "artifactRefs": {
+            "properties": {
+              "discovery": { "$ref": "#/$defs/artifactRef" },
+              "triage": { "$ref": "#/$defs/artifactRef" },
+              "implementationPlan": { "$ref": "#/$defs/artifactRef" },
+              "governanceReport": { "$ref": "#/$defs/artifactRef" },
+              "markdownReport": { "$ref": "#/$defs/artifactRef" }
+            }
+          },
+          "ownerReview": {
+            "properties": {
+              "state": { "const": "not_required" },
+              "owner": { "type": "null" },
+              "reason": { "type": "null" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": { "const": "needs_owner_review" }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "failedPhase": {
+            "not": { "const": "none" }
+          },
+          "ownerReview": {
+            "properties": {
+              "state": { "const": "required" },
+              "owner": { "type": "string", "minLength": 1 },
+              "reason": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

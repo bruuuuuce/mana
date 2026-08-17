@@ -46,6 +46,19 @@ scripts/run-profile.sh story-start --claude
 scripts/run-profile.sh story-start --opencode
 ```
 
+Story Start Scope v2 is available through the same command as a staged opt-in.
+It publishes a governed JSON plan plus deterministic Markdown while leaving
+legacy artifacts untouched:
+
+```bash
+MANA_STORY_START_SCOPE_VERSION=v2 \
+MANA_STORY_START_CONTEXT=.mana/features/PROJ-123/context/story-start-context.json \
+scripts/run-profile.sh story-start --codex
+```
+
+See [Story Start Scope v2](docs/workflow/story-start-scope-v2.md) for the input
+boundary, report semantics, owner-review behavior, and compatibility contract.
+
 Codex runs start with a small root orchestrator model configured by
 `MANA_CODEX_MODEL` or `--codex-model` (default: `gpt-5.4-mini`). The root model
 handles routing, light evidence inventory, low-risk checks, delegation,
@@ -392,7 +405,8 @@ PR review, release readiness, coaching, freshness check) — live in
 
 - **Not sure what to run:** `scripts/run-profile.sh mana-help`, or
   `scripts/run-profile.sh tutorial` for an interactive walkthrough.
-- **Start a story:** `./mana profile story-start --codex` (or `--claude`).
+- **Start a story:** `./mana profile story-start --codex` (or `--claude`); use
+  the documented environment opt-in for the governed Scope v2 pipeline.
 - **Validate a branch before PR:** `./mana profile branch-ready --codex`.
 - **Review a PR you were asked to review:**
   `scripts/run-profile.sh requested-pr-review --pr <number> --codex`.

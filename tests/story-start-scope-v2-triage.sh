@@ -159,9 +159,7 @@ TRIAGE_STUB_ARGS="$tmp/free-form-args" \
 mana_story_start_scope_v2_triage stub deterministic "$story" "$tmp/discovery.json" "$tmp/free-form-published.json" >/dev/null 2>&1 && fail 'free-form fallback was accepted'
 [ ! -e "$tmp/free-form-published.json" ] || fail 'free-form fallback was published'
 
-# SS03 remains internal/non-default.
-if rg -q 'story-start-scope-triage-v2|mana_story_start_scope_v2_triage' "$root/scripts/run-profile.sh" "$root/scripts/cast.sh" "$root/profiles/story-start.yaml"; then
-  fail 'SS03 was wired into a public Story Start path'
-fi
+# SS06 may call this phase publicly, but it still consumes only normalized
+# story plus compact Discovery and cannot reread repository context.
 
 echo 'Story Start Scope v2 Triage tests passed (zero provider/network calls)'

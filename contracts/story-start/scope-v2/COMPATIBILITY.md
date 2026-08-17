@@ -2,17 +2,11 @@
 
 ## Development State
 
-This bundle is an additive v2 contract created in SS01 with internal-only
-Discovery, Scope Triage, Implementation Planner, and host Scope Governor added
-in SS02 through SS05. It does not change `profiles/story-start.yaml`,
-`scripts/run-profile.sh`, the current public Story Implementation Planner agent,
-its permissive input/output schemas, current Markdown filenames, or public
-invocation behavior.
-
-Until SS06, v2 artifacts are internal phase outputs and fixture material only;
-no public command selects or publishes them. A current Story Start run
-continues to produce the existing unversioned Markdown files. No current
-consumer is allowed to infer that those Markdown files conform to v2.
+This additive bundle is publicly selectable in SS06 through the established
+`story-start` profile. Migration is staged: v1 remains the default and v2 is
+selected with `MANA_STORY_START_SCOPE_VERSION=v2` plus a project-local compact
+context path in `MANA_STORY_START_CONTEXT`. No CLI style, profile name, runner
+flag, legacy agent schema, or legacy Markdown meaning changes.
 
 ## Coexistence
 
@@ -22,15 +16,17 @@ consumer is allowed to infer that those Markdown files conform to v2.
   unchanged. They are v1-era workflow metadata, not aliases for this bundle.
 - V2 JSON artifacts identify themselves with both a schema-specific
   `schemaVersion` string and `artifactVersion: 2`.
-- During SS01-SS05, no public command writes a v2 artifact.
-- SS06 must publish v2 JSON alongside a deterministic human-readable report or
-  provide an explicit compatibility adapter. It must not overwrite a legacy
-  artifact and silently change its meaning.
+- A successful public v2 run writes additive JSON and deterministic Markdown
+  under distinct `story-start-*-v2` filenames. It never overwrites
+  `planning/implementation-plan.md` or another legacy artifact.
+- `validation/story-start-scope-run-v2.json` is the cross-file publication
+  marker and is written last. Consumers must verify its artifact references
+  and IDs before treating sibling files as one completed run.
 - A consumer that does not recognize a v2 `schemaVersion` must report the
   artifact as unsupported or render only safe generic metadata. It must never
   interpret v2 branches as cumulative v1 tasks.
-- Mana Familiar is not required to read the eventual Markdown representation
-  and is not changed by this bundle.
+- Mana Familiar is not required to read the Markdown representation and is not
+  changed by this bundle.
 
 ## Versioning Policy
 
@@ -48,7 +44,22 @@ rejected; consumers must not map them to the closest known meaning.
 
 Schema validation alone is not publication approval. SS05 adds deterministic
 reference, state, inclusion, and arithmetic validation with at most one
-corrective call and an explicit owner-review terminal state. SS06 may publish a
+corrective call and an explicit owner-review terminal state. SS06 publishes a
 v2 plan only after both structural schema validation and the Scope Governor
-pass. A failed or unsupported v2 artifact must not fall back silently to a
-free-form legacy plan.
+pass. A failed or unsupported v2 artifact never falls back to a free-form
+legacy plan. Provider and governor failures publish only a versioned run status,
+an owner-review Markdown diagnostic, and—when available—the valid governance
+report.
+
+The public status separates `ownerReview` for a failed publication pipeline
+from `planningReview` for a valid plan that still has open human decisions.
+Future readers must preserve that distinction.
+
+## Future Mana Familiar Fields
+
+A future UI can rely on the stable v2 structures `readinessPrerequisites`,
+`basePlan`, `requiredEnablers`, `conditionalBranches`, `branchGroups`,
+`scenarioEstimates`, `decisionRegister`, `relatedFindings`,
+`evidenceAndProvenance`, `validationStatus`, and the two review states in the
+public run status. Branch relationships and selection rules must remain
+explicit; no consumer may flatten them into one cumulative task list.

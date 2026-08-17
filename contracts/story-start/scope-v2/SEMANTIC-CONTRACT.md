@@ -352,7 +352,16 @@ does not weaken the required separation.
 
 ## Compatibility And Failure Behavior
 
-See `COMPATIBILITY.md`. V2 remains additive and non-default. The internal SS02
-through SS05 phases fail closed: no invalid v2 document is treated as legacy
-free-form output. Semantic governance and one bounded correction are active
-only in the internal pipeline; public selection and rendering remain SS06.
+See `COMPATIBILITY.md`. V2 remains additive and is publicly available as a
+staged opt-in while v1 remains the default. The effective public pipeline is:
+
+```text
+story/context -> Discovery v2 -> Scope Triage v2 -> Planner v2
+              -> Scope Governor -> versioned artifacts -> host Markdown
+```
+
+The host publishes `scope-run/v2` last as a completion marker. Its
+`ownerReview` describes a failed pipeline; `planningReview` preserves human
+decisions still required by an otherwise valid plan. No invalid v2 document is
+treated as legacy free-form output, and the single corrective attempt remains
+the hard retry limit.

@@ -214,9 +214,7 @@ PLANNER_STUB_ARGS="$tmp/free-form-args" \
 mana_story_start_scope_v2_plan stub deterministic "$story" "$tmp/context.json" "$tmp/triage.json" "$tmp/free-form-published.json" >/dev/null 2>&1 && fail 'free-form fallback was accepted'
 [ ! -e "$tmp/free-form-published.json" ] || fail 'free-form fallback was published'
 
-# SS04 remains internal/non-default after SS05 governance is added.
-if rg -q 'story-start-implementation-planner-v2|mana_story_start_scope_v2_plan' "$root/scripts/run-profile.sh" "$root/scripts/cast.sh" "$root/profiles/story-start.yaml"; then
-  fail 'SS04 was wired into a public Story Start path'
-fi
+# SS06 may call the governed planner publicly; the compact triage/context input
+# and no-free-form-fallback invariants above remain the planner contract.
 
 echo 'Story Start Scope v2 Planner tests passed (zero provider/network calls)'

@@ -47,9 +47,9 @@ jq -e '
   .owner == "Mana" and
   .modelCalls == 0 and
   .network == false and
-  .runtimeEnabled == false and
-  (.schemas | length == 9) and
-  (.fixtures | length == 7)
+  .runtimeEnabled == true and
+  (.schemas | length == 10) and
+  (.fixtures | length == 8)
 ' "$bundle/bundle.json" >/dev/null
 
 while IFS= read -r relative_path; do
@@ -91,6 +91,9 @@ schema_for_fixture() {
     mana.story-start.scope-governance-report/v2)
       echo "$bundle/schemas/governance-report.schema.json"
       ;;
+    mana.story-start.scope-run/v2)
+      echo "$bundle/schemas/scope-run.schema.json"
+      ;;
     *)
       echo "ERROR: unsupported fixture schemaVersion in $1" >&2
       return 1
@@ -114,6 +117,7 @@ decisions="$bundle/fixtures/valid/decision-register-open-exclusive.json"
 plan="$bundle/fixtures/valid/implementation-plan-separated-scope.json"
 estimates="$bundle/fixtures/valid/scenario-estimates-open-decision.json"
 governance="$bundle/fixtures/valid/governance-report-passed.json"
+scope_run="$bundle/fixtures/valid/scope-run-passed.json"
 
 # 1. An independent defect is explicit and excluded from base-plan work.
 jq -e '
@@ -188,6 +192,17 @@ jq -e '
   .violations == [] and
   .correction == {"attemptCount":0,"outcome":"not_attempted"}
 ' "$governance" >/dev/null
+
+# SS06 publication status is versioned, passed only after every host phase,
+# and points to additive v2 files rather than legacy Markdown names.
+jq -e '
+  .status == "passed" and .failedPhase == "none" and
+  all(.phaseStates[]; . == "passed") and
+  .ownerReview.state == "not_required" and
+  .artifactRefs.implementationPlan.path == "planning/story-start-implementation-plan-v2.json" and
+  .artifactRefs.markdownReport.path == "planning/story-start-scope-v2.md"
+' "$scope_run" >/dev/null
+python3 "$root/scripts/lib/story-start-scope-v2-render.py" validate-status "$scope_run"
 
 invalid_dir="$(mktemp -d "${TMPDIR:-/tmp}/mana-scope-v2-invalid.XXXXXX")"
 trap 'rm -rf "$invalid_dir"' EXIT

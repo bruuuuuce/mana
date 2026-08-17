@@ -289,12 +289,8 @@ mana_story_start_scope_v2_plan_governed stub deterministic "$story" "$tmp/discov
 cmp -s "$tmp/plan.json" "$tmp/pipeline-corrected-plan.json" || fail 'governed pipeline did not publish the corrected normalized plan'
 jq -e '.status=="passed" and .validationPass==2 and .correction=={"attemptCount":1,"outcome":"succeeded"}' "$tmp/pipeline-corrected-report.json" >/dev/null || fail 'governed pipeline correction result is invalid'
 
-# 16. Public Story Start remains untouched and SS06 rendering was not started.
-if rg -q 'mana_story_start_scope_v2_(plan_governed|govern_with_correction)|scope-governance-report/v2' "$root/scripts/run-profile.sh" "$root/scripts/cast.sh" "$root/profiles/story-start.yaml"; then
-  fail 'SS05 was wired into a public Story Start path'
-fi
-if rg -q 'story_start_scope_v2_render|story-start-scope-v2-render' "$root/scripts/lib/story-start-scope-v2.sh" "$root/scripts/lib/story-start-scope-v2-govern.py"; then
-  fail 'SS06 rendering was started during SS05'
-fi
+# 16. SS06 publication must still use this governed boundary; direct public
+# Planner publication would bypass the one-correction fail-closed contract.
+grep -Fq 'mana_story_start_scope_v2_plan_governed' "$root/scripts/lib/story-start-scope-v2.sh" || fail 'public pipeline lost the governed planner boundary'
 
 echo 'Story Start Scope v2 Governor tests passed (zero provider/network calls; fake correction only)'

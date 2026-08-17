@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Internal, non-default Story Start Scope v2 phase support. SS02-SS05 add
-# discovery, triage, planning, and host governance; public integration remains
-# reserved for SS06.
+# Story Start Scope v2 phase, governance, publication, and rendering support.
+# SS06 exposes the complete pipeline through the existing public profile runner
+# as a versioned opt-in while the legacy v1 path remains the default.
 
 mana_story_start_scope_v2_root() {
   cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd
@@ -435,4 +435,175 @@ mana_story_start_scope_v2_plan_governed() {
   local result=$?
   rm -rf "$scratch"
   return "$result"
+}
+
+mana_story_start_scope_v2_validate_public_context() {
+  local package="$1"
+  if [ ! -f "$package" ] || [ -L "$package" ]; then
+    echo "ERROR: Story Start Scope v2 context is missing or unsafe: $package" >&2
+    return 2
+  fi
+  [ "$(wc -c < "$package" | tr -d ' ')" -le 262144 ] || {
+    echo 'ERROR: Story Start Scope v2 context exceeds 262144 bytes' >&2
+    return 2
+  }
+  jq -e '
+    type == "object" and
+    .packageVersion == "mana.story-start.discovery-package/v1" and
+    (.storyId | type == "string" and length > 0) and
+    (.normalizedStory | type == "object") and
+    (.normalizedStory.summary | type == "string" and length > 0) and
+    (.normalizedStory.acceptanceCriteria | type == "array" and length > 0) and
+    all(.normalizedStory.acceptanceCriteria[];
+      type == "object" and
+      ((.sourceKey // .id) | type == "string" and length > 0) and
+      (.text | type == "string" and length > 0))
+  ' "$package" >/dev/null || {
+    echo 'ERROR: Story Start Scope v2 context does not match mana.story-start.discovery-package/v1' >&2
+    return 2
+  }
+}
+
+mana_story_start_scope_v2_validate_run_status() {
+  local status="$1" root
+  root="$(mana_story_start_scope_v2_root)"
+  python3 "$root/tests/lib/json_schema_subset.py" \
+    "$root/contracts/story-start/scope-v2/schemas/scope-run.schema.json" \
+    "$status" &&
+    python3 "$root/scripts/lib/story-start-scope-v2-render.py" validate-status "$status"
+}
+
+mana_story_start_scope_v2_atomic_copy() {
+  local source="$1" target="$2" stage
+  [ -f "$source" ] || { echo "ERROR: publication source is missing: $source" >&2; return 2; }
+  mkdir -p "$(dirname "$target")" || return 2
+  [ ! -L "$target" ] || { echo "ERROR: unsafe publication output symlink: $target" >&2; return 2; }
+  stage="$(mktemp "$(dirname "$target")/.${target##*/}.tmp.XXXXXX")" || return 2
+  if ! cp "$source" "$stage" || ! mv "$stage" "$target"; then
+    rm -f "$stage"
+    return 2
+  fi
+}
+
+mana_story_start_scope_v2_render() {
+  local plan="$1" governance="$2" status="$3" output="$4" root
+  root="$(mana_story_start_scope_v2_root)"
+  mana_story_start_scope_v2_validate_plan "$plan" >/dev/null || return 2
+  mana_story_start_scope_v2_validate_governance_report "$governance" >/dev/null || return 2
+  mana_story_start_scope_v2_validate_run_status "$status" >/dev/null || return 2
+  python3 "$root/scripts/lib/story-start-scope-v2-render.py" render \
+    "$status" "$output" --plan "$plan" --governance "$governance"
+}
+
+mana_story_start_scope_v2_render_owner_review() {
+  local status="$1" output="$2" governance="${3:-}" root
+  root="$(mana_story_start_scope_v2_root)"
+  mana_story_start_scope_v2_validate_run_status "$status" >/dev/null || return 2
+  if [ -n "$governance" ]; then
+    mana_story_start_scope_v2_validate_governance_report "$governance" >/dev/null || return 2
+    python3 "$root/scripts/lib/story-start-scope-v2-render.py" render \
+      "$status" "$output" --governance "$governance"
+  else
+    python3 "$root/scripts/lib/story-start-scope-v2-render.py" render \
+      "$status" "$output"
+  fi
+}
+
+# Publish a terminal owner-review status and a usable Markdown diagnostic. No
+# invalid or free-form plan is copied. The optional governance report is the
+# only phase artifact retained when the governor itself reached a valid
+# fail-closed result.
+mana_story_start_scope_v2_publish_failure() {
+  local workspace="$1" story_id="$2" phase="$3" reason="$4" governance="${5:-}"
+  local root renderer scratch status report published_governance
+  root="$(mana_story_start_scope_v2_root)"
+  renderer="$root/scripts/lib/story-start-scope-v2-render.py"
+  scratch="$(mktemp -d "${TMPDIR:-/tmp}/mana-story-start-publish-failure-v2.XXXXXX")" || return 2
+  status="$scratch/run-status.json"
+  report="$scratch/report.md"
+  if [ -n "$governance" ]; then
+    python3 "$renderer" status-failed "$story_id" "$phase" "$reason" "$status" --governance "$governance" || { rm -rf "$scratch"; return 2; }
+    mana_story_start_scope_v2_render_owner_review "$status" "$report" "$governance" || { rm -rf "$scratch"; return 2; }
+    published_governance="$workspace/validation/story-start-scope-governance-v2.json"
+    mana_story_start_scope_v2_atomic_copy "$governance" "$published_governance" || { rm -rf "$scratch"; return 2; }
+  else
+    python3 "$renderer" status-failed "$story_id" "$phase" "$reason" "$status" || { rm -rf "$scratch"; return 2; }
+    mana_story_start_scope_v2_render_owner_review "$status" "$report" || { rm -rf "$scratch"; return 2; }
+  fi
+  mana_story_start_scope_v2_atomic_copy "$report" "$workspace/planning/story-start-scope-v2.md" || { rm -rf "$scratch"; return 2; }
+  # Status is the publication commit marker and is always written last.
+  mana_story_start_scope_v2_atomic_copy "$status" "$workspace/validation/story-start-scope-run-v2.json" || { rm -rf "$scratch"; return 2; }
+  rm -rf "$scratch"
+}
+
+# Public SS06 pipeline. The supplied package is the existing compact
+# story/context boundary; every later phase consumes only normalized artifacts.
+# Successful publication is additive and leaves v1 Markdown paths untouched.
+# Arguments: provider model story-context-package.json active-workspace.
+mana_story_start_scope_v2_run_public() {
+  local provider="$1" model="$2" package="$3" workspace="$4"
+  local root normalizer renderer scratch story discovery triage context plan governance status report story_id
+  root="$(mana_story_start_scope_v2_root)"
+  normalizer="$root/scripts/lib/story-start-scope-v2-normalize.py"
+  renderer="$root/scripts/lib/story-start-scope-v2-render.py"
+  mana_story_start_scope_v2_validate_public_context "$package" || return 2
+  if [ ! -d "$workspace" ] || [ -L "$workspace" ]; then
+    echo "ERROR: active Story Start workspace is missing or unsafe: $workspace" >&2
+    return 2
+  fi
+  story_id="$(jq -r '.storyId' "$package")"
+  scratch="$(mktemp -d "${TMPDIR:-/tmp}/mana-story-start-public-v2.XXXXXX")" || return 2
+  story="$scratch/story.json"
+  discovery="$scratch/discovery.json"
+  triage="$scratch/triage.json"
+  context="$scratch/planning-context.json"
+  plan="$scratch/implementation-plan.json"
+  governance="$scratch/governance-report.json"
+  status="$scratch/run-status.json"
+  report="$scratch/report.md"
+  jq -S '{storyId, normalizedStory}' "$package" > "$story" || { rm -rf "$scratch"; return 2; }
+
+  if ! mana_story_start_scope_v2_discover "$provider" "$model" "$package" "$discovery"; then
+    rm -rf "$scratch"
+    mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" discovery \
+      'Discovery v2 provider failed or returned an invalid structured artifact.'
+    return 1
+  fi
+  if ! mana_story_start_scope_v2_triage "$provider" "$model" "$story" "$discovery" "$triage"; then
+    rm -rf "$scratch"
+    mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" triage \
+      'Scope Triage v2 provider failed or returned an invalid structured artifact.'
+    return 1
+  fi
+  if ! python3 "$normalizer" build-planning-context "$discovery" "$triage" "$context"; then
+    rm -rf "$scratch"
+    mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" planner \
+      'The host could not build the compact v2 planning context.'
+    return 1
+  fi
+  if ! mana_story_start_scope_v2_plan_governed "$provider" "$model" "$story" "$discovery" "$context" "$triage" "$plan" "$governance"; then
+    if [ -f "$governance" ] && mana_story_start_scope_v2_validate_governance_report "$governance" >/dev/null 2>&1; then
+      mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" governor \
+        'Scope Governor rejected the plan after the single allowed correction attempt.' "$governance"
+    else
+      mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" planner \
+        'Planner v2 provider failed or returned an unusable structured candidate.'
+    fi
+    rm -rf "$scratch"
+    return 1
+  fi
+
+  python3 "$renderer" status-passed "$discovery" "$triage" "$plan" "$governance" "$status" || { rm -rf "$scratch"; return 2; }
+  mana_story_start_scope_v2_validate_run_status "$status" >/dev/null || { rm -rf "$scratch"; return 2; }
+  mana_story_start_scope_v2_render "$plan" "$governance" "$status" "$report" || { rm -rf "$scratch"; return 2; }
+
+  # Publish only fully validated artifacts. The run status is copied last and
+  # acts as the cross-file publication commit marker for consumers.
+  mana_story_start_scope_v2_atomic_copy "$discovery" "$workspace/evidence/story-start-discovery-v2.json" || { rm -rf "$scratch"; return 2; }
+  mana_story_start_scope_v2_atomic_copy "$triage" "$workspace/planning/story-start-scope-triage-v2.json" || { rm -rf "$scratch"; return 2; }
+  mana_story_start_scope_v2_atomic_copy "$plan" "$workspace/planning/story-start-implementation-plan-v2.json" || { rm -rf "$scratch"; return 2; }
+  mana_story_start_scope_v2_atomic_copy "$governance" "$workspace/validation/story-start-scope-governance-v2.json" || { rm -rf "$scratch"; return 2; }
+  mana_story_start_scope_v2_atomic_copy "$report" "$workspace/planning/story-start-scope-v2.md" || { rm -rf "$scratch"; return 2; }
+  mana_story_start_scope_v2_atomic_copy "$status" "$workspace/validation/story-start-scope-run-v2.json" || { rm -rf "$scratch"; return 2; }
+  rm -rf "$scratch"
 }

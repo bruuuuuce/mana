@@ -2,6 +2,7 @@
 set -u
 root="$(cd "$(dirname "$0")/.." && pwd)"
 . "$root/scripts/lib/provider-dispatch.sh"
+. "$root/scripts/lib/story-start-scope-v2.sh"
 # shellcheck source=lib/profile-metadata.sh
 . "$root/scripts/lib/profile-metadata.sh"
 . "$root/scripts/lib/user-context.sh"
@@ -40,6 +41,8 @@ opencode_worker_model="${MANA_OPENCODE_WORKER_MODEL:-}"
 opencode_subagents="${MANA_OPENCODE_SUBAGENTS:-true}"
 opencode_max_threads="${MANA_OPENCODE_MAX_THREADS:-3}"
 opencode_agent_install_warnings=""
+story_start_scope_version="${MANA_STORY_START_SCOPE_VERSION:-v1}"
+story_start_scope_context="${MANA_STORY_START_CONTEXT:-}"
 
 usage() {
   cat <<'USAGE'
@@ -73,6 +76,13 @@ Options:
   --jira-key-regex <regex>       Override branch issue-key discovery.
   --allow-service-discovery       Allow epic-analysis to inspect named services read-only.
   --publish-high-risk-comments   Allow requested-pr-review to publish one high-risk PR comment.
+
+Story Start Scope v2 opt-in:
+  MANA_STORY_START_SCOPE_VERSION=v2
+  MANA_STORY_START_CONTEXT=<project-relative discovery-package-v1.json>
+
+The default remains v1. The v2 path keeps the same profile/runner invocation,
+publishes additive structured artifacts, and never overwrites legacy Markdown.
 USAGE
 }
 
@@ -233,6 +243,20 @@ file="$root/profiles/${profile}.yaml"
 if [ ! -f "$file" ]; then
   echo "ERROR: profile not found: $profile"
   exit 1
+fi
+
+case "$story_start_scope_version" in
+  1|v1) story_start_scope_version=v1 ;;
+  2|v2) story_start_scope_version=v2 ;;
+  *)
+    echo 'ERROR: MANA_STORY_START_SCOPE_VERSION must be v1 or v2' >&2
+    exit 2
+    ;;
+esac
+
+if [ "$story_start_scope_version" = v2 ] && [ "$profile" != story-start ]; then
+  echo 'ERROR: Story Start Scope v2 can only be used with the story-start profile' >&2
+  exit 2
 fi
 
 if [ "$publish_high_risk_comments" = true ] && [ "$profile" != "requested-pr-review" ]; then
@@ -686,6 +710,12 @@ ensure_codex_agents() {
 }
 
 echo "Profile: $profile"
+if [ "$profile" = story-start ]; then
+  echo "Story Start Scope pipeline: $story_start_scope_version"
+  if [ "$story_start_scope_version" = v2 ]; then
+    echo 'Story Start Scope v2 activation: staged public opt-in'
+  fi
+fi
 echo "This profile renderer validates Mana freshness and prints the configured profile."
 echo "Use --codex, --claude, or --opencode to execute the profile through a runner."
 if [ "$runner" = "codex" ]; then
@@ -815,6 +845,84 @@ if [ "$render_only" = true ] || [ "${MANA_PROFILE_RUNNING:-}" = "1" ] || [ -z "$
     echo "Run with --codex, --claude, or --opencode to execute the profile through that runner."
   fi
   exit 0
+fi
+
+if [ "$profile" = story-start ] && [ "$story_start_scope_version" = v2 ]; then
+  [ -n "$story_start_scope_context" ] || {
+    echo 'ERROR: MANA_STORY_START_CONTEXT is required when Story Start Scope v2 is selected' >&2
+    exit 2
+  }
+  project_root="$(cd "$project_root" 2>/dev/null && pwd -P)" || {
+    echo "ERROR: project root is unavailable: $project_root" >&2
+    exit 2
+  }
+  case "$story_start_scope_context" in
+    /*) story_start_context_candidate="$story_start_scope_context" ;;
+    *) story_start_context_candidate="$project_root/$story_start_scope_context" ;;
+  esac
+  story_start_context_dir="$(cd "$(dirname "$story_start_context_candidate")" 2>/dev/null && pwd -P)" || {
+    echo "ERROR: Story Start Scope v2 context directory is unavailable: $(dirname "$story_start_context_candidate")" >&2
+    exit 2
+  }
+  story_start_context_path="$story_start_context_dir/${story_start_context_candidate##*/}"
+  case "$story_start_context_path" in
+    "$project_root"/*) ;;
+    *)
+      echo 'ERROR: MANA_STORY_START_CONTEXT must resolve inside the target project' >&2
+      exit 2
+      ;;
+  esac
+  mana_story_start_scope_v2_validate_public_context "$story_start_context_path" || exit 2
+
+  "$root/scripts/mana-workspace.sh" init --root "$project_root" \
+    --purpose "$(mana_profile_section_value "$file" artifact_workspace default_purpose)" >/dev/null || {
+      echo 'ERROR: Story Start Scope v2 workspace initialization failed' >&2
+      exit 1
+    }
+  [ -f "$project_root/.mana/active-workspace" ] || {
+    echo 'ERROR: Story Start Scope v2 has no active workspace after initialization' >&2
+    exit 1
+  }
+  story_start_workspace_relative="$(sed -n '1p' "$project_root/.mana/active-workspace")"
+  case "$story_start_workspace_relative" in
+    .mana/features/*|.mana/sessions/*) ;;
+    *)
+      echo 'ERROR: Story Start Scope v2 active workspace is outside the supported .mana routes' >&2
+      exit 1
+      ;;
+  esac
+  case "$story_start_workspace_relative" in
+    *'..'*|/*)
+      echo 'ERROR: Story Start Scope v2 active workspace path is unsafe' >&2
+      exit 1
+      ;;
+  esac
+  story_start_workspace="$project_root/$story_start_workspace_relative"
+
+  case "$runner" in
+    codex) story_start_model="$codex_model" ;;
+    claude) story_start_model="$claude_model" ;;
+    opencode) story_start_model="$opencode_model" ;;
+    *) echo "ERROR: unsupported Story Start Scope v2 runner: $runner" >&2; exit 2 ;;
+  esac
+
+  echo
+  echo "Starting validated Story Start Scope v2 pipeline through $runner"
+  echo "Story Start Scope v2 workspace: $story_start_workspace_relative"
+  mana_story_start_scope_v2_run_public "$runner" "$story_start_model" \
+    "$story_start_context_path" "$story_start_workspace"
+  story_start_result=$?
+  if [ "$story_start_result" -eq 0 ]; then
+    echo 'Story Start Scope v2 status: passed'
+    echo "Structured plan: $story_start_workspace_relative/planning/story-start-implementation-plan-v2.json"
+    echo "Human report: $story_start_workspace_relative/planning/story-start-scope-v2.md"
+    exit 0
+  fi
+  if [ -f "$story_start_workspace/validation/story-start-scope-run-v2.json" ]; then
+    echo 'Story Start Scope v2 status: needs_owner_review' >&2
+    echo "Owner-review report: $story_start_workspace_relative/planning/story-start-scope-v2.md" >&2
+  fi
+  exit "$story_start_result"
 fi
 
 user_context_available=false

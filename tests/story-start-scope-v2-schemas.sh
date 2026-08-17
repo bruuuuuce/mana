@@ -24,18 +24,12 @@ jq -e '
   (.properties.schemaVersion == null)
 ' "$root/agents/story-implementation-planner/outputs.schema.json" >/dev/null
 
-# SS01 is contract-only: neither public path nor the current profile/agent opts in.
-if rg -q \
-  'contracts/story-start/scope-v2|mana\.story-start\.[^[:space:]]*/v2' \
-  "$root/scripts/run-profile.sh" \
-  "$root/scripts/cast.sh" \
-  "$root/profiles/story-start.yaml" \
-  "$root/agents/story-implementation-planner"; then
-  echo 'ERROR: Story Start Scope v2 was wired into current public runtime behavior' >&2
-  exit 1
-fi
-
-grep -Fq 'During SS01-SS05' "$root/contracts/story-start/scope-v2/COMPATIBILITY.md"
+# SS06 public integration stays additive: v1-era agent schemas are unchanged,
+# v1 remains the profile default, and v2 requires an explicit version opt-in.
+grep -Fq 'default_version: v1' "$root/profiles/story-start.yaml"
+grep -Fq 'v2_activation: MANA_STORY_START_SCOPE_VERSION=v2' "$root/profiles/story-start.yaml"
+grep -Fq 'story_start_scope_version="${MANA_STORY_START_SCOPE_VERSION:-v1}"' "$root/scripts/run-profile.sh"
+grep -Fq 'Migration is staged' "$root/contracts/story-start/scope-v2/COMPATIBILITY.md"
 grep -Fq 'SS05' "$root/contracts/story-start/scope-v2/SEMANTIC-CONTRACT.md"
 
 echo 'Story Start Scope v2 schema clean-room tests passed (zero model/provider calls)'
