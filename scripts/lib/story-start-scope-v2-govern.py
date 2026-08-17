@@ -809,6 +809,100 @@ class ScopeGovernor:
         if actual_related != expected_related:
             self.add("RELATED_FINDING_COVERAGE_INVALID", "implementation_plan", "/relatedFindings", "Excluded findings must remain outside implementation tasks.")
 
+    def scope_expansion_legality(self) -> None:
+        approved_triage = {
+            identifier: expansion
+            for identifier, expansion in self.scope_expansions.items()
+            if expansion.get("status") == "approved"
+        }
+        actual_approved_refs = [
+            expansion.get("scopeExpansionRef")
+            for expansion in object_items(self.plan, "approvedScopeExpansions")
+            if isinstance(expansion.get("scopeExpansionRef"), str)
+        ]
+        if (
+            set(actual_approved_refs) != set(approved_triage)
+            or len(actual_approved_refs) != len(set(actual_approved_refs))
+        ):
+            self.add(
+                "APPROVED_SCOPE_EXPANSION_COVERAGE_INVALID",
+                "implementation_plan",
+                "/approvedScopeExpansions",
+                "The plan must represent every approved triage scope expansion exactly once and no other expansion.",
+            )
+
+        expandable_categories = {"RELATED_DEFECT", "RISK_ONLY", "OPTIONAL_IMPROVEMENT"}
+        for index, expansion in enumerate(object_items(self.triage, "scopeExpansions")):
+            path = f"/scopeExpansions/{index}"
+            entity_id = expansion.get("id")
+            classification_ref = expansion.get("originalClassificationRef")
+            classification = self.classifications.get(classification_ref, {})
+            if classification.get("category") not in expandable_categories or classification.get("includedInBasePlan") is not False:
+                self.add(
+                    "SCOPE_EXPANSION_ORIGINAL_CATEGORY_INVALID",
+                    "triage",
+                    f"{path}/originalClassificationRef",
+                    "Scope expansion must preserve an originally excluded related defect, risk, or optional improvement.",
+                    entity_id=entity_id,
+                    related_refs=[classification_ref] if isinstance(classification_ref, str) else [],
+                )
+
+            decision_ref = expansion.get("decisionRef")
+            decision = self.triage_decisions.get(decision_ref, {})
+            if expansion.get("status") == "approved" and (
+                decision.get("status") != "resolved" or decision.get("selectedOptionId") is None
+            ):
+                self.add(
+                    "SCOPE_EXPANSION_DECISION_NOT_APPROVED",
+                    "triage",
+                    f"{path}/decisionRef",
+                    "Approved scope expansion requires a resolved human decision with an explicit selected option.",
+                    entity_id=entity_id,
+                    related_refs=[decision_ref] if isinstance(decision_ref, str) else [],
+                )
+
+            approval_refs = set(string_refs(expansion.get("approvalEvidenceRefs")))
+            decision_refs = set(string_refs(decision.get("evidenceRefs")))
+            if expansion.get("status") == "approved" and (
+                not approval_refs
+                or not approval_refs.issubset(decision_refs)
+                or any(self.evidence.get(ref, {}).get("kind") != "human_decision" for ref in approval_refs)
+            ):
+                self.add(
+                    "SCOPE_EXPANSION_APPROVAL_EVIDENCE_INVALID",
+                    "triage",
+                    f"{path}/approvalEvidenceRefs",
+                    "Approved scope expansion requires human-decision evidence linked by its decision artifact.",
+                    entity_id=entity_id,
+                    related_refs=approval_refs,
+                )
+
+        for index, planned in enumerate(object_items(self.plan, "approvedScopeExpansions")):
+            path = f"/approvedScopeExpansions/{index}"
+            expansion_ref = planned.get("scopeExpansionRef")
+            triage_expansion = approved_triage.get(expansion_ref, {})
+            if planned.get("originalClassificationRef") != triage_expansion.get("originalClassificationRef"):
+                self.add(
+                    "SCOPE_EXPANSION_HISTORY_MISMATCH",
+                    "implementation_plan",
+                    f"{path}/originalClassificationRef",
+                    "Approved work must retain the original excluded classification reference.",
+                    related_refs=[expansion_ref] if isinstance(expansion_ref, str) else [],
+                )
+            planned_task_refs = {
+                task.get("id")
+                for task in object_items(planned, "tasks")
+                if isinstance(task.get("id"), str)
+            }
+            if planned_task_refs != set(string_refs(triage_expansion.get("resultingWorkRefs"))):
+                self.add(
+                    "SCOPE_EXPANSION_WORK_HISTORY_MISMATCH",
+                    "implementation_plan",
+                    f"{path}/tasks",
+                    "Approved expansion tasks must exactly match the resulting work recorded by the human scope-expansion artifact.",
+                    related_refs=planned_task_refs | set(string_refs(triage_expansion.get("resultingWorkRefs"))),
+                )
+
     def estimate_legality(self) -> None:
         effort_entries: list[tuple[Any, str, str]] = []
         for index, task in enumerate(self.base_tasks):
@@ -1147,6 +1241,7 @@ class ScopeGovernor:
         self.task_grounding_legality()
         self.branch_legality()
         self.readiness_and_related_legality()
+        self.scope_expansion_legality()
         self.estimate_legality()
         self.deterministic_identity()
         return sorted_violations(self.violations), self.schema_state

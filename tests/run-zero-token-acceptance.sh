@@ -40,6 +40,7 @@ tests=(
   story-start-scope-v2-planner.sh
   story-start-scope-v2-governor.sh
   story-start-scope-v2-integration.sh
+  story-start-scope-v2-release-gate.sh
   testbook-tools.sh
   user-context.sh
   user-learning-aggregation.sh

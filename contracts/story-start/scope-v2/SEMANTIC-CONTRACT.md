@@ -2,10 +2,11 @@
 
 ## Status
 
-`internal_only`. SS01 defines the machine-readable Story Start Scope v2
-structures; SS02 through SS05 implement internal Discovery, Scope Triage,
-Implementation Planner, and deterministic Scope Governor phases. Rendering and
-public runtime selection remain inactive until SS06.
+`release_candidate`. SS01 defines the machine-readable Story Start Scope v2
+structures; SS02 through SS05 implement Discovery, Scope Triage,
+Implementation Planner, and deterministic Scope Governor phases. SS06 exposes
+the staged public opt-in and SS07 supplies the deterministic release gate and
+human acceptance materials. V1 remains the default.
 
 ## Product Principle
 
@@ -303,6 +304,9 @@ pretend JSON Schema logic:
 - no authoritative final total exists anywhere while a material decision is
   open;
 - legal validation and owner-review state transitions.
+- approved scope expansion retains an excluded original classification, uses a
+  resolved decision with linked human evidence, and exactly matches the
+  resulting planned task IDs recorded in expansion history.
 
 The pure governor reads only supplied Discovery, Scope Triage, and Planner
 artifacts plus host-owned schemas. It performs no repository, workspace,
