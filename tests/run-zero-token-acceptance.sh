@@ -32,6 +32,8 @@ tests=(
   repair-containment.sh
   runtime-events.sh
   service-knowledge-bootstrap.sh
+  story-start-deterministic-planning.sh
+  story-start-scope-v2-fixture.sh
   testbook-tools.sh
   user-context.sh
   user-learning-aggregation.sh
