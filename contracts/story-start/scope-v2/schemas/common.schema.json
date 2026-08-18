@@ -1,0 +1,1204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/story-start/scope-v2/schemas/common.schema.json",
+  "title": "Mana Story Start Scope v2 common definitions",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {},
+  "$defs": {
+    "acceptanceCriterionId": {
+      "type": "string",
+      "pattern": "^ac_[0-9a-f]{64}$"
+    },
+    "evidenceId": {
+      "type": "string",
+      "pattern": "^ev_[0-9a-f]{64}$"
+    },
+    "findingId": {
+      "type": "string",
+      "pattern": "^finding_[0-9a-f]{64}$"
+    },
+    "decisionId": {
+      "type": "string",
+      "pattern": "^decision_[0-9a-f]{64}$"
+    },
+    "decisionOptionId": {
+      "type": "string",
+      "pattern": "^option_[0-9a-f]{64}$"
+    },
+    "mandatoryConstraintId": {
+      "type": "string",
+      "pattern": "^constraint_[0-9a-f]{64}$"
+    },
+    "classificationId": {
+      "type": "string",
+      "pattern": "^classification_[0-9a-f]{64}$"
+    },
+    "taskId": {
+      "type": "string",
+      "pattern": "^task_[0-9a-f]{64}$"
+    },
+    "enablerId": {
+      "type": "string",
+      "pattern": "^enabler_[0-9a-f]{64}$"
+    },
+    "branchId": {
+      "type": "string",
+      "pattern": "^branch_[0-9a-f]{64}$"
+    },
+    "branchGroupId": {
+      "type": "string",
+      "pattern": "^branchgroup_[0-9a-f]{64}$"
+    },
+    "readinessId": {
+      "type": "string",
+      "pattern": "^readiness_[0-9a-f]{64}$"
+    },
+    "relatedFindingId": {
+      "type": "string",
+      "pattern": "^related_[0-9a-f]{64}$"
+    },
+    "scenarioId": {
+      "type": "string",
+      "pattern": "^scenario_[0-9a-f]{64}$"
+    },
+    "provenanceId": {
+      "type": "string",
+      "pattern": "^provenance_[0-9a-f]{64}$"
+    },
+    "scopeExpansionId": {
+      "type": "string",
+      "pattern": "^expansion_[0-9a-f]{64}$"
+    },
+    "openQuestionId": {
+      "type": "string",
+      "pattern": "^question_[0-9a-f]{64}$"
+    },
+    "decisionOptionGroupId": {
+      "type": "string",
+      "pattern": "^optiongroup_[0-9a-f]{64}$"
+    },
+    "genericArtifactId": {
+      "type": "string",
+      "pattern": "^(discovery|triage|decisions|plan|estimates|provenance)_[0-9a-f]{64}$"
+    },
+    "storyId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "nonEmptyText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "shortText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "acceptanceCriterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sourceKey",
+        "text",
+        "approvalStatus",
+        "provenanceRefs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/acceptanceCriterionId"
+        },
+        "sourceKey": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 160
+        },
+        "text": {
+          "$ref": "#/$defs/nonEmptyText"
+        },
+        "approvalStatus": {
+          "enum": [
+            "approved",
+            "pending",
+            "ambiguous",
+            "rejected"
+          ]
+        },
+        "provenanceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/provenanceId"
+          }
+        }
+      }
+    },
+    "mandatoryConstraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "statement",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/mandatoryConstraintId"
+        },
+        "kind": {
+          "enum": [
+            "security",
+            "compliance",
+            "authorization",
+            "data_integrity",
+            "other_mandatory"
+          ]
+        },
+        "statement": {
+          "$ref": "#/$defs/nonEmptyText"
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidenceId"
+          }
+        }
+      }
+    },
+    "evidenceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "epistemicStatus",
+        "summary",
+        "capabilityState",
+        "preExistingStatus",
+        "provenanceRefs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/evidenceId"
+        },
+        "kind": {
+          "enum": [
+            "repository",
+            "story",
+            "acceptance_criterion",
+            "configuration",
+            "branch",
+            "external_contract",
+            "human_decision",
+            "service_context",
+            "test",
+            "evidence_gap"
+          ]
+        },
+        "epistemicStatus": {
+          "enum": [
+            "observed",
+            "reported",
+            "inferred",
+            "missing"
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/nonEmptyText"
+        },
+        "capabilityState": {
+          "enum": [
+            "not_applicable",
+            "already_exists",
+            "absent",
+            "requires_change",
+            "unknown"
+          ]
+        },
+        "preExistingStatus": {
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ]
+        },
+        "provenanceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/provenanceId"
+          }
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "findingKind",
+        "summary",
+        "evidenceRefs",
+        "acceptanceCriterionRefs",
+        "mandatoryConstraintRefs",
+        "decisionRefs",
+        "storyCausality",
+        "suggestedOwner"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/findingId"
+        },
+        "findingKind": {
+          "enum": [
+            "verified_fact",
+            "repository_constraint",
+            "existing_configuration",
+            "defect",
+            "suspected_defect",
+            "risk",
+            "ambiguity",
+            "readiness",
+            "evidence_gap",
+            "optional_opportunity"
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/nonEmptyText"
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidenceId"
+          }
+        },
+        "acceptanceCriterionRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/acceptanceCriterionId"
+          }
+        },
+        "mandatoryConstraintRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/mandatoryConstraintId"
+          }
+        },
+        "decisionRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/decisionId"
+          }
+        },
+        "storyCausality": {
+          "enum": [
+            "pre_existing_independent",
+            "pre_existing_required_by_criterion",
+            "introduced_by_story",
+            "aggravated_by_story",
+            "not_applicable",
+            "unknown"
+          ]
+        },
+        "suggestedOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 500
+        }
+      }
+    },
+    "openQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "question",
+        "suggestedOwner",
+        "evidenceRefs",
+        "acceptanceCriterionRefs",
+        "decisionNeeded"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/openQuestionId"
+        },
+        "question": {
+          "$ref": "#/$defs/nonEmptyText"
+        },
+        "suggestedOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 500
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidenceId"
+          }
+        },
+        "acceptanceCriterionRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/acceptanceCriterionId"
+          }
+        },
+        "decisionNeeded": {
+          "type": "boolean"
+        }
+      }
+    },
+    "decisionOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "summary"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/decisionOptionId"
+        },
+        "label": {
+          "$ref": "#/$defs/shortText"
+        },
+        "summary": {
+          "$ref": "#/$defs/nonEmptyText"
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "question",
+        "owner",
+        "status",
+        "materiality",
+        "options",
+        "selectedOptionId",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/decisionId"
+        },
+        "question": {
+          "$ref": "#/$defs/nonEmptyText"
+        },
+        "owner": {
+          "$ref": "#/$defs/shortText"
+        },
+        "status": {
+          "enum": [
+            "open",
+            "resolved",
+            "deferred"
+          ]
+        },
+        "materiality": {
+          "enum": [
+            "material",
+            "non_material"
+          ]
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/decisionOption"
+          }
+        },
+        "selectedOptionId": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/decisionOptionId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidenceId"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "open"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "selectedOptionId": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "resolved"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "selectedOptionId": {
+                "$ref": "#/$defs/decisionOptionId"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "scopeClassification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "findingRef",
+        "category",
+        "evidenceRefs",
+        "acceptanceCriterionRefs",
+        "mandatoryConstraintRefs",
+        "decisionRef",
+        "condition",
+        "mandatoryReason",
+        "includedInBasePlan",
+        "rationale",
+        "scopeExpansionRef",
+        "suggestedOwner",
+        "promotionAssessment"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/classificationId"
+        },
+        "findingRef": {
+          "$ref": "#/$defs/findingId"
+        },
+        "category": {
+          "enum": [
+            "VERIFIED_FACT",
+            "CORE_SCOPE",
+            "REQUIRED_ENABLER",
+            "CONDITIONAL_SCOPE",
+            "READINESS_PREREQUISITE",
+            "RELATED_DEFECT",
+            "RISK_ONLY",
+            "OPTIONAL_IMPROVEMENT"
+          ]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidenceId"
+          }
+        },
+        "acceptanceCriterionRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/acceptanceCriterionId"
+          }
+        },
+        "mandatoryConstraintRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/mandatoryConstraintId"
+          }
+        },
+        "decisionRef": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/decisionId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "condition": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "mandatoryReason": {
+          "oneOf": [
+            {
+              "enum": [
+                "criterion_dependency",
+                "story_regression_prevention",
+                "aggravated_defect_remediation",
+                "security_constraint",
+                "compliance_constraint",
+                "authorization_constraint",
+                "data_integrity_constraint"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "includedInBasePlan": {
+          "type": "boolean"
+        },
+        "rationale": {
+          "$ref": "#/$defs/nonEmptyText"
+        },
+        "scopeExpansionRef": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scopeExpansionId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "suggestedOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 500
+        },
+        "promotionAssessment": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/promotionAssessment"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "includedInBasePlan": {
+                "const": true
+              }
+            },
+            "required": [
+              "includedInBasePlan"
+            ]
+          },
+          "then": {
+            "properties": {
+              "category": {
+                "const": "CORE_SCOPE"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "category": {
+                "const": "CORE_SCOPE"
+              }
+            },
+            "required": [
+              "category"
+            ]
+          },
+          "then": {
+            "properties": {
+              "promotionAssessment": {
+                "$ref": "#/$defs/promotionAssessment"
+              }
+            },
+            "anyOf": [
+              {
+                "properties": {
+                  "acceptanceCriterionRefs": {
+                    "minItems": 1
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "mandatoryConstraintRefs": {
+                    "minItems": 1
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "category": {
+                "const": "REQUIRED_ENABLER"
+              }
+            },
+            "required": [
+              "category"
+            ]
+          },
+          "then": {
+            "properties": {
+              "includedInBasePlan": {
+                "const": false
+              },
+              "mandatoryReason": {
+                "type": "string"
+              },
+              "promotionAssessment": {
+                "$ref": "#/$defs/promotionAssessment"
+              }
+            },
+            "anyOf": [
+              {
+                "properties": {
+                  "acceptanceCriterionRefs": {
+                    "minItems": 1
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "mandatoryConstraintRefs": {
+                    "minItems": 1
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "category": {
+                "const": "CONDITIONAL_SCOPE"
+              }
+            },
+            "required": [
+              "category"
+            ]
+          },
+          "then": {
+            "properties": {
+              "includedInBasePlan": {
+                "const": false
+              },
+              "decisionRef": {
+                "$ref": "#/$defs/decisionId"
+              },
+              "condition": {
+                "$ref": "#/$defs/nonEmptyText"
+              },
+              "promotionAssessment": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "category": {
+                "enum": [
+                  "VERIFIED_FACT",
+                  "READINESS_PREREQUISITE",
+                  "RELATED_DEFECT",
+                  "RISK_ONLY",
+                  "OPTIONAL_IMPROVEMENT"
+                ]
+              }
+            },
+            "required": [
+              "category"
+            ]
+          },
+          "then": {
+            "properties": {
+              "includedInBasePlan": {
+                "const": false
+              },
+              "promotionAssessment": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "promotionAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "failingAcceptanceCriterionRefs",
+        "failingMandatoryConstraintRefs",
+        "dependencyEvidenceRefs",
+        "preExistingStatus",
+        "unresolvedDecisionRef",
+        "storyImpact",
+        "conclusion"
+      ],
+      "properties": {
+        "failingAcceptanceCriterionRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/acceptanceCriterionId"
+          }
+        },
+        "failingMandatoryConstraintRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/mandatoryConstraintId"
+          }
+        },
+        "dependencyEvidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidenceId"
+          }
+        },
+        "preExistingStatus": {
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ]
+        },
+        "unresolvedDecisionRef": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/decisionId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "storyImpact": {
+          "enum": [
+            "direct_requirement",
+            "introduces_regression",
+            "aggravates_pre_existing_issue",
+            "mandatory_constraint_failure",
+            "none",
+            "unknown"
+          ]
+        },
+        "conclusion": {
+          "enum": [
+            "core_scope_supported",
+            "required_enabler_supported"
+          ]
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "failingAcceptanceCriterionRefs": {
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "properties": {
+            "failingMandatoryConstraintRefs": {
+              "minItems": 1
+            }
+          }
+        }
+      ]
+    },
+    "decisionOptionGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "decisionRef",
+        "relationship",
+        "selectionRule",
+        "optionRefs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/decisionOptionGroupId"
+        },
+        "decisionRef": {
+          "$ref": "#/$defs/decisionId"
+        },
+        "relationship": {
+          "enum": [
+            "mutually_exclusive",
+            "combinable",
+            "dependent"
+          ]
+        },
+        "selectionRule": {
+          "enum": [
+            "exactly_one",
+            "zero_or_one",
+            "all_applicable"
+          ]
+        },
+        "optionRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/decisionOptionId"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "selectionRule": {
+                "const": "exactly_one"
+              }
+            },
+            "required": [
+              "selectionRule"
+            ]
+          },
+          "then": {
+            "properties": {
+              "relationship": {
+                "const": "mutually_exclusive"
+              },
+              "optionRefs": {
+                "minItems": 2
+              }
+            }
+          }
+        }
+      ]
+    },
+    "scopeExpansion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "originalClassificationRef",
+        "decisionRef",
+        "approvalEvidenceRefs",
+        "status",
+        "resultingWorkRefs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/scopeExpansionId"
+        },
+        "originalClassificationRef": {
+          "$ref": "#/$defs/classificationId"
+        },
+        "decisionRef": {
+          "$ref": "#/$defs/decisionId"
+        },
+        "approvalEvidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidenceId"
+          }
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "approved",
+            "rejected"
+          ]
+        },
+        "resultingWorkRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/taskId"
+          }
+        }
+      }
+    },
+    "effortContribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "estimateKind",
+        "unit",
+        "minimumPersonHours",
+        "additionalPersonHours",
+        "confidence",
+        "rationale"
+      ],
+      "properties": {
+        "estimateKind": {
+          "enum": [
+            "base_effort",
+            "mandatory_delta",
+            "conditional_delta",
+            "readiness_engineering_effort",
+            "approved_scope_delta",
+            "scenario_total",
+            "final_committed_total"
+          ]
+        },
+        "unit": {
+          "const": "person_hours"
+        },
+        "minimumPersonHours": {
+          "type": "number",
+          "minimum": 0
+        },
+        "additionalPersonHours": {
+          "type": "number",
+          "minimum": 0
+        },
+        "confidence": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "rationale": {
+          "$ref": "#/$defs/nonEmptyText"
+        }
+      }
+    },
+    "calendarImpact": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "const": "none"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "unit",
+            "minimumElapsedHours",
+            "additionalElapsedHours",
+            "confidence",
+            "rationale"
+          ],
+          "properties": {
+            "status": {
+              "const": "known"
+            },
+            "unit": {
+              "const": "elapsed_hours"
+            },
+            "minimumElapsedHours": {
+              "type": "number",
+              "minimum": 0
+            },
+            "additionalElapsedHours": {
+              "type": "number",
+              "minimum": 0
+            },
+            "confidence": {
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            },
+            "rationale": {
+              "$ref": "#/$defs/nonEmptyText"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "reason"
+          ],
+          "properties": {
+            "status": {
+              "const": "unknown"
+            },
+            "reason": {
+              "$ref": "#/$defs/nonEmptyText"
+            }
+          }
+        }
+      ]
+    },
+    "validationStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaValidation",
+        "semanticValidation",
+        "violationCodes",
+        "ownerReview"
+      ],
+      "properties": {
+        "schemaValidation": {
+          "enum": [
+            "not_run",
+            "valid",
+            "invalid"
+          ]
+        },
+        "semanticValidation": {
+          "enum": [
+            "not_run",
+            "passed",
+            "failed",
+            "needs_owner_review"
+          ]
+        },
+        "violationCodes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{2,80}$"
+          }
+        },
+        "ownerReview": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "owner",
+            "reason"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "not_required",
+                "required",
+                "in_progress",
+                "resolved"
+              ]
+            },
+            "owner": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 500
+            },
+            "reason": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 4000
+            }
+          }
+        }
+      }
+    },
+    "provenanceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sourceType",
+        "sourceRef",
+        "sourceDigest",
+        "summary"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/provenanceId"
+        },
+        "sourceType": {
+          "enum": [
+            "repository_path",
+            "story_field",
+            "acceptance_criterion",
+            "configuration_path",
+            "branch_comparison",
+            "external_contract",
+            "human_decision",
+            "service_context",
+            "test_evidence"
+          ]
+        },
+        "sourceRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "sourceDigest": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "summary": {
+          "$ref": "#/$defs/nonEmptyText"
+        }
+      }
+    }
+  }
+}

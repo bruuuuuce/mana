@@ -1,0 +1,47 @@
+{
+  "artifactRefs": {
+    "discovery": {
+      "id": "discovery_0ecc0cb9ff48f773c5eccd6247b36977efb3a0e59e7864b0bf94ecc51ac37b20",
+      "path": "evidence/story-start-discovery-v2.json"
+    },
+    "governanceReport": {
+      "id": "governance_e14e85380b8abc5139dc61c6c9f9007ed03f309d1bf165ddf5fb56053dd9ae19",
+      "path": "validation/story-start-scope-governance-v2.json"
+    },
+    "implementationPlan": {
+      "id": "plan_f244c95d1fa01e0d780a3986d72b24befb066d4019bb001d4e099c407d7c4909",
+      "path": "planning/story-start-implementation-plan-v2.json"
+    },
+    "markdownReport": {
+      "id": "report_plan_f244c95d1fa01e0d780a3986d72b24befb066d4019bb001d4e099c407d7c4909",
+      "path": "planning/story-start-scope-v2.md"
+    },
+    "triage": {
+      "id": "triage_64f8474276d376b07423f7d211ced535f169dbcc2e8a5e65d4b6959ba435823a",
+      "path": "planning/story-start-scope-triage-v2.json"
+    }
+  },
+  "artifactVersion": 2,
+  "failedPhase": "none",
+  "ownerReview": {
+    "owner": null,
+    "reason": null,
+    "state": "not_required"
+  },
+  "phaseStates": {
+    "discovery": "passed",
+    "governor": "passed",
+    "planner": "passed",
+    "rendering": "passed",
+    "triage": "passed"
+  },
+  "planningReview": {
+    "owner": "story-owner",
+    "reason": "The material delivery-mode decision is open.",
+    "state": "required"
+  },
+  "runId": "run_1dc611a4670999146cb8f10579ecfdf1cfede3cfcbd7626eb3e37509440ea2ed",
+  "schemaVersion": "mana.story-start.scope-run/v2",
+  "status": "passed",
+  "storyId": "story-synthetic-alert-001"
+}

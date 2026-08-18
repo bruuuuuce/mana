@@ -1,0 +1,686 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/story-start/scope-v2/schemas/implementation-plan.schema.json",
+  "title": "Mana Story Start implementation plan v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactVersion",
+    "artifactId",
+    "storyId",
+    "sourceTriageArtifactRef",
+    "readinessPrerequisites",
+    "basePlan",
+    "requiredEnablers",
+    "conditionalBranches",
+    "branchGroups",
+    "approvedScopeExpansions",
+    "scenarioEstimates",
+    "decisionRegister",
+    "relatedFindings",
+    "evidenceAndProvenance",
+    "validationStatus"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "mana.story-start.implementation-plan/v2"
+    },
+    "artifactVersion": {
+      "const": 2
+    },
+    "artifactId": {
+      "type": "string",
+      "pattern": "^plan_[0-9a-f]{64}$"
+    },
+    "storyId": {
+      "$ref": "common.schema.json#/$defs/storyId"
+    },
+    "sourceTriageArtifactRef": {
+      "type": "string",
+      "pattern": "^triage_[0-9a-f]{64}$"
+    },
+    "readinessPrerequisites": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/readinessPrerequisite"
+      }
+    },
+    "basePlan": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/basePlanTask"
+      }
+    },
+    "requiredEnablers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requiredEnabler"
+      }
+    },
+    "conditionalBranches": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/conditionalBranch"
+      }
+    },
+    "branchGroups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/branchGroup"
+      }
+    },
+    "approvedScopeExpansions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/approvedScopeExpansion"
+      }
+    },
+    "scenarioEstimates": {
+      "$ref": "scenario-estimates.schema.json#/$defs/scenarioEstimateSet"
+    },
+    "decisionRegister": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/decision"
+      }
+    },
+    "relatedFindings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relatedFinding"
+      }
+    },
+    "evidenceAndProvenance": {
+      "$ref": "#/$defs/evidenceAndProvenance"
+    },
+    "validationStatus": {
+      "$ref": "common.schema.json#/$defs/validationStatus"
+    }
+  },
+  "$defs": {
+    "plannedTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "description",
+        "evidenceRefs",
+        "provenanceRefs",
+        "sourceTargets",
+        "testEvidenceRefs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/taskId"
+        },
+        "title": {
+          "$ref": "common.schema.json#/$defs/shortText"
+        },
+        "description": {
+          "$ref": "common.schema.json#/$defs/nonEmptyText"
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidenceId"
+          }
+        },
+        "provenanceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/provenanceId"
+          }
+        },
+        "sourceTargets": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "testEvidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidenceId"
+          }
+        }
+      }
+    },
+    "basePlanTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "classificationRef",
+        "originCategory",
+        "title",
+        "description",
+        "evidenceRefs",
+        "provenanceRefs",
+        "acceptanceCriterionRefs",
+        "mandatoryConstraintRefs",
+        "sourceTargets",
+        "testEvidenceRefs",
+        "effort"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/taskId"
+        },
+        "classificationRef": {
+          "$ref": "common.schema.json#/$defs/classificationId"
+        },
+        "originCategory": {
+          "const": "CORE_SCOPE"
+        },
+        "title": {
+          "$ref": "common.schema.json#/$defs/shortText"
+        },
+        "description": {
+          "$ref": "common.schema.json#/$defs/nonEmptyText"
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidenceId"
+          }
+        },
+        "provenanceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/provenanceId"
+          }
+        },
+        "acceptanceCriterionRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/acceptanceCriterionId"
+          }
+        },
+        "mandatoryConstraintRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/mandatoryConstraintId"
+          }
+        },
+        "sourceTargets": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "testEvidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidenceId"
+          }
+        },
+        "effort": {
+          "$ref": "common.schema.json#/$defs/effortContribution",
+          "properties": {
+            "estimateKind": {
+              "const": "base_effort"
+            }
+          }
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "acceptanceCriterionRefs": {
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "properties": {
+            "mandatoryConstraintRefs": {
+              "minItems": 1
+            }
+          }
+        }
+      ]
+    },
+    "requiredEnabler": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "classificationRef",
+        "originCategory",
+        "title",
+        "mandatoryReason",
+        "evidenceRefs",
+        "acceptanceCriterionRefs",
+        "mandatoryConstraintRefs",
+        "tasks",
+        "effort"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/enablerId"
+        },
+        "classificationRef": {
+          "$ref": "common.schema.json#/$defs/classificationId"
+        },
+        "originCategory": {
+          "const": "REQUIRED_ENABLER"
+        },
+        "title": {
+          "$ref": "common.schema.json#/$defs/shortText"
+        },
+        "mandatoryReason": {
+          "enum": [
+            "criterion_dependency",
+            "story_regression_prevention",
+            "aggravated_defect_remediation",
+            "security_constraint",
+            "compliance_constraint",
+            "authorization_constraint",
+            "data_integrity_constraint"
+          ]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidenceId"
+          }
+        },
+        "acceptanceCriterionRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/acceptanceCriterionId"
+          }
+        },
+        "mandatoryConstraintRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/mandatoryConstraintId"
+          }
+        },
+        "tasks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/plannedTask"
+          }
+        },
+        "effort": {
+          "$ref": "common.schema.json#/$defs/effortContribution",
+          "properties": {
+            "estimateKind": {
+              "const": "mandatory_delta"
+            }
+          }
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "acceptanceCriterionRefs": {
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "properties": {
+            "mandatoryConstraintRefs": {
+              "minItems": 1
+            }
+          }
+        }
+      ]
+    },
+    "conditionalBranch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "classificationRef",
+        "originCategory",
+        "decisionRef",
+        "decisionOptionRef",
+        "condition",
+        "relationship",
+        "groupRef",
+        "tasks",
+        "effort"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/branchId"
+        },
+        "classificationRef": {
+          "$ref": "common.schema.json#/$defs/classificationId"
+        },
+        "originCategory": {
+          "const": "CONDITIONAL_SCOPE"
+        },
+        "decisionRef": {
+          "$ref": "common.schema.json#/$defs/decisionId"
+        },
+        "decisionOptionRef": {
+          "$ref": "common.schema.json#/$defs/decisionOptionId"
+        },
+        "condition": {
+          "$ref": "common.schema.json#/$defs/nonEmptyText"
+        },
+        "relationship": {
+          "enum": [
+            "mutually_exclusive",
+            "combinable",
+            "dependent"
+          ]
+        },
+        "groupRef": {
+          "$ref": "common.schema.json#/$defs/branchGroupId"
+        },
+        "tasks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/plannedTask"
+          }
+        },
+        "effort": {
+          "$ref": "common.schema.json#/$defs/effortContribution",
+          "properties": {
+            "estimateKind": {
+              "const": "conditional_delta"
+            }
+          }
+        }
+      }
+    },
+    "branchGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "decisionRef",
+        "relationship",
+        "selectionRule",
+        "branchRefs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/branchGroupId"
+        },
+        "decisionRef": {
+          "$ref": "common.schema.json#/$defs/decisionId"
+        },
+        "relationship": {
+          "enum": [
+            "mutually_exclusive",
+            "combinable",
+            "dependent"
+          ]
+        },
+        "selectionRule": {
+          "enum": [
+            "exactly_one",
+            "zero_or_one",
+            "all_applicable"
+          ]
+        },
+        "branchRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/branchId"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "selectionRule": {
+                "const": "exactly_one"
+              }
+            },
+            "required": [
+              "selectionRule"
+            ]
+          },
+          "then": {
+            "properties": {
+              "relationship": {
+                "const": "mutually_exclusive"
+              },
+              "branchRefs": {
+                "minItems": 2
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "relationship": {
+                "const": "combinable"
+              }
+            },
+            "required": [
+              "relationship"
+            ]
+          },
+          "then": {
+            "properties": {
+              "selectionRule": {
+                "const": "all_applicable"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "readinessPrerequisite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "classificationRef",
+        "originCategory",
+        "summary",
+        "owner",
+        "status",
+        "evidenceRefs",
+        "engineeringEffort",
+        "calendarImpact"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/readinessId"
+        },
+        "classificationRef": {
+          "$ref": "common.schema.json#/$defs/classificationId"
+        },
+        "originCategory": {
+          "const": "READINESS_PREREQUISITE"
+        },
+        "summary": {
+          "$ref": "common.schema.json#/$defs/nonEmptyText"
+        },
+        "owner": {
+          "$ref": "common.schema.json#/$defs/shortText"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "ready",
+            "blocked",
+            "waived"
+          ]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidenceId"
+          }
+        },
+        "engineeringEffort": {
+          "$ref": "common.schema.json#/$defs/effortContribution",
+          "properties": {
+            "estimateKind": {
+              "const": "readiness_engineering_effort"
+            }
+          }
+        },
+        "calendarImpact": {
+          "$ref": "common.schema.json#/$defs/calendarImpact"
+        }
+      }
+    },
+    "approvedScopeExpansion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scopeExpansionRef",
+        "originalClassificationRef",
+        "title",
+        "tasks",
+        "effort"
+      ],
+      "properties": {
+        "scopeExpansionRef": {
+          "$ref": "common.schema.json#/$defs/scopeExpansionId"
+        },
+        "originalClassificationRef": {
+          "$ref": "common.schema.json#/$defs/classificationId"
+        },
+        "title": {
+          "$ref": "common.schema.json#/$defs/shortText"
+        },
+        "tasks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/plannedTask"
+          }
+        },
+        "effort": {
+          "$ref": "common.schema.json#/$defs/effortContribution",
+          "properties": {
+            "estimateKind": {
+              "const": "approved_scope_delta"
+            }
+          }
+        }
+      }
+    },
+    "relatedFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "classificationRef",
+        "originCategory",
+        "summary",
+        "evidenceRefs",
+        "owner",
+        "followUp",
+        "excludedFromBasePlan"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/relatedFindingId"
+        },
+        "classificationRef": {
+          "$ref": "common.schema.json#/$defs/classificationId"
+        },
+        "originCategory": {
+          "enum": [
+            "RELATED_DEFECT",
+            "RISK_ONLY",
+            "OPTIONAL_IMPROVEMENT"
+          ]
+        },
+        "summary": {
+          "$ref": "common.schema.json#/$defs/nonEmptyText"
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidenceId"
+          }
+        },
+        "owner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 500
+        },
+        "followUp": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "excludedFromBasePlan": {
+          "const": true
+        }
+      }
+    },
+    "evidenceAndProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceRefs",
+        "provenanceRefs"
+      ],
+      "properties": {
+        "evidenceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidenceId"
+          }
+        },
+        "provenanceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/provenanceId"
+          }
+        }
+      }
+    }
+  }
+}

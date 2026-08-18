@@ -32,6 +32,15 @@ tests=(
   repair-containment.sh
   runtime-events.sh
   service-knowledge-bootstrap.sh
+  story-start-deterministic-planning.sh
+  story-start-scope-v2-fixture.sh
+  story-start-scope-v2-schemas.sh
+  story-start-scope-v2-discovery.sh
+  story-start-scope-v2-triage.sh
+  story-start-scope-v2-planner.sh
+  story-start-scope-v2-governor.sh
+  story-start-scope-v2-integration.sh
+  story-start-scope-v2-release-gate.sh
   testbook-tools.sh
   user-context.sh
   user-learning-aggregation.sh

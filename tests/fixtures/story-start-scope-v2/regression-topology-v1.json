@@ -1,0 +1,337 @@
+{
+  "schemaVersion": "mana.story-start.regression-topology/v1",
+  "fixtureId": "story-start-synthetic-scope-leakage-001",
+  "fixtureRevision": 1,
+  "synthetic": true,
+  "purpose": "Neutral evidence topology for deterministic Story Start scope regression tests.",
+  "sanitization": {
+    "realIdentifiersPresent": false,
+    "reservedDomainsOnly": true,
+    "productionValuesPresent": false,
+    "notes": "All names, refs, hashes, paths, values, and ownership labels are invented for this fixture."
+  },
+  "story": {
+    "fixtureStoryId": "story-synthetic-alert-001",
+    "summary": "Notify an account after a ledger entry is committed.",
+    "requirementApproval": {
+      "status": "pending",
+      "owner": "Product Owner",
+      "reason": "Delivery guarantees and identity equivalence still require approval."
+    },
+    "acceptanceCriteria": [
+      {
+        "id": "AC-01",
+        "status": "approved",
+        "text": "After a ledger entry is committed, an eligible account receives one settlement notification."
+      },
+      {
+        "id": "AC-02",
+        "status": "ambiguous",
+        "text": "An authenticated user can view the notification result regardless of sign-in path.",
+        "ambiguity": "The requirement does not say whether local and federated identities must resolve to one account key."
+      },
+      {
+        "id": "AC-03",
+        "status": "pending",
+        "text": "A retried notification must not create a duplicate ledger annotation.",
+        "approvalImpact": "A pre-existing idempotency gap is mandatory to address only if this criterion remains in the approved story."
+      }
+    ]
+  },
+  "decisions": [
+    {
+      "id": "DEC-IDENTITY-01",
+      "status": "open",
+      "question": "Must local-password and federated users resolve to the same account identity for AC-02?",
+      "owner": "Product Owner",
+      "options": [
+        {
+          "id": "identity-local-subject",
+          "summary": "Keep the local subject identifier."
+        },
+        {
+          "id": "identity-canonical-account",
+          "summary": "Resolve both sign-in paths to a canonical account identifier."
+        }
+      ]
+    },
+    {
+      "id": "DEC-DELIVERY-01",
+      "status": "open",
+      "question": "What delivery guarantee is required after the ledger transaction commits?",
+      "owner": "Architect",
+      "optionRelationship": "mutually_exclusive",
+      "options": [
+        {
+          "id": "delivery-best-effort",
+          "summary": "Publish once from an after-commit callback without durable recovery."
+        },
+        {
+          "id": "delivery-durable-recovery",
+          "summary": "Persist an outbox record and retry delivery until a terminal outcome."
+        }
+      ]
+    },
+    {
+      "id": "DEC-NULL-01",
+      "status": "open",
+      "question": "Does a missing legacy enabled flag mean enabled, disabled, or unknown?",
+      "owner": "Domain Owner",
+      "options": [
+        {
+          "id": "null-enabled",
+          "summary": "Treat missing as enabled for compatibility."
+        },
+        {
+          "id": "null-disabled",
+          "summary": "Treat missing as disabled for safety."
+        },
+        {
+          "id": "null-invalid",
+          "summary": "Reject or migrate records with a missing value."
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "EV-BRANCH-01",
+      "kind": "branch_comparison",
+      "synthetic": true,
+      "facts": {
+        "implementationRef": "refs/heads/feature/synthetic-alerts",
+        "baselineRef": "refs/heads/integration",
+        "mergeBase": "1111111111111111111111111111111111111111",
+        "baselineHead": "2222222222222222222222222222222222222222",
+        "commitsBehind": 17,
+        "commitsAhead": 2
+      }
+    },
+    {
+      "id": "EV-CONFIG-01",
+      "kind": "configuration_snapshot",
+      "synthetic": true,
+      "facts": {
+        "path": "config/application-synthetic.yaml",
+        "entries": [
+          {
+            "key": "notifications.channels.settlement",
+            "value": "synthetic-settlement-channel"
+          },
+          {
+            "key": "notifications.delivery.timeout-ms",
+            "value": 1500
+          }
+        ],
+        "state": "already_present"
+      }
+    },
+    {
+      "id": "EV-IDENTITY-01",
+      "kind": "identity_flow_observation",
+      "synthetic": true,
+      "facts": {
+        "localSignInAccountKeySource": "session.subject",
+        "federatedSignInAccountKeySource": "claims.external_subject",
+        "equivalenceMappingObserved": false,
+        "affectedCriterion": "AC-02"
+      }
+    },
+    {
+      "id": "EV-DELIVERY-01",
+      "kind": "transaction_flow_observation",
+      "synthetic": true,
+      "facts": {
+        "currentHook": "after_commit_callback",
+        "currentPersistence": "none",
+        "currentRetry": "none",
+        "requiredGuarantee": "unresolved"
+      }
+    },
+    {
+      "id": "EV-APPROVAL-01",
+      "kind": "requirement_state",
+      "synthetic": true,
+      "facts": {
+        "approval": "pending",
+        "owner": "Product Owner",
+        "engineeringEffort": "not_evidence",
+        "calendarLeadTime": "unknown"
+      }
+    },
+    {
+      "id": "EV-NULL-01",
+      "kind": "legacy_semantics_observation",
+      "synthetic": true,
+      "facts": {
+        "field": "LegacyNotificationRule.enabled",
+        "readerA": {
+          "path": "src/synthetic/LegacyRuleMapper.java",
+          "missingValueBehavior": "enabled"
+        },
+        "readerB": {
+          "path": "src/synthetic/NotificationEligibility.java",
+          "missingValueBehavior": "disabled"
+        }
+      }
+    },
+    {
+      "id": "EV-UNRELATED-BUG-01",
+      "kind": "pre_existing_defect_observation",
+      "synthetic": true,
+      "facts": {
+        "path": "src/synthetic/ArchiveSearch.java",
+        "behavior": "The final page is skipped when the result count is an exact page multiple.",
+        "introducedBeforeStory": true,
+        "affectedAcceptanceCriteria": []
+      }
+    },
+    {
+      "id": "EV-AC-GAP-01",
+      "kind": "pre_existing_dependency_observation",
+      "synthetic": true,
+      "facts": {
+        "path": "src/synthetic/LedgerAnnotationWriter.java",
+        "behavior": "Retry requests do not carry a stable idempotency key.",
+        "introducedBeforeStory": true,
+        "affectedAcceptanceCriteria": [
+          "AC-03"
+        ],
+        "mandatoryOnlyWhen": "AC-03 is approved without narrowing."
+      }
+    },
+    {
+      "id": "EV-HARDENING-01",
+      "kind": "maintainability_observation",
+      "synthetic": true,
+      "facts": {
+        "paths": [
+          "src/synthetic/LocalClaimsAdapter.java",
+          "src/synthetic/FederatedClaimsAdapter.java"
+        ],
+        "behavior": "The adapters duplicate claim normalization logic.",
+        "requiredByAcceptanceCriteria": []
+      }
+    }
+  ],
+  "conditionInventory": [
+    {
+      "conditionId": "COND-01",
+      "semanticCondition": "implementation_branch_behind_baseline",
+      "summary": "The implementation ref is materially behind its baseline.",
+      "evidenceRefs": [
+        "EV-BRANCH-01"
+      ],
+      "acceptanceCriterionRefs": [],
+      "decisionRefs": [],
+      "preExisting": null
+    },
+    {
+      "conditionId": "COND-02",
+      "semanticCondition": "configuration_already_exists",
+      "summary": "Required-looking configuration keys are already present.",
+      "evidenceRefs": [
+        "EV-CONFIG-01"
+      ],
+      "acceptanceCriterionRefs": [
+        "AC-01"
+      ],
+      "decisionRefs": [],
+      "preExisting": true
+    },
+    {
+      "conditionId": "COND-03",
+      "semanticCondition": "direct_and_federated_user_ambiguity",
+      "summary": "Two sign-in paths expose different identity keys and the criterion does not resolve equivalence.",
+      "evidenceRefs": [
+        "EV-IDENTITY-01"
+      ],
+      "acceptanceCriterionRefs": [
+        "AC-02"
+      ],
+      "decisionRefs": [
+        "DEC-IDENTITY-01"
+      ],
+      "preExisting": true
+    },
+    {
+      "conditionId": "COND-04",
+      "semanticCondition": "best_effort_versus_durable_delivery_decision",
+      "summary": "Post-commit best effort and durable recovery are unresolved, mutually exclusive strategies.",
+      "evidenceRefs": [
+        "EV-DELIVERY-01"
+      ],
+      "acceptanceCriterionRefs": [
+        "AC-01"
+      ],
+      "decisionRefs": [
+        "DEC-DELIVERY-01"
+      ],
+      "preExisting": null
+    },
+    {
+      "conditionId": "COND-05",
+      "semanticCondition": "pending_readiness_approval",
+      "summary": "The requirement approval is pending and has unknown calendar lead time.",
+      "evidenceRefs": [
+        "EV-APPROVAL-01"
+      ],
+      "acceptanceCriterionRefs": [
+        "AC-02",
+        "AC-03"
+      ],
+      "decisionRefs": [],
+      "preExisting": null
+    },
+    {
+      "conditionId": "COND-06",
+      "semanticCondition": "legacy_null_semantics_inconsistency",
+      "summary": "Two legacy readers interpret a missing flag in opposite ways.",
+      "evidenceRefs": [
+        "EV-NULL-01"
+      ],
+      "acceptanceCriterionRefs": [
+        "AC-01"
+      ],
+      "decisionRefs": [
+        "DEC-NULL-01"
+      ],
+      "preExisting": true
+    },
+    {
+      "conditionId": "COND-07",
+      "semanticCondition": "independent_pre_existing_bug",
+      "summary": "A real archive-search defect is unrelated to every story criterion.",
+      "evidenceRefs": [
+        "EV-UNRELATED-BUG-01"
+      ],
+      "acceptanceCriterionRefs": [],
+      "decisionRefs": [],
+      "preExisting": true
+    },
+    {
+      "conditionId": "COND-08",
+      "semanticCondition": "pre_existing_problem_conditionally_mandatory_by_criterion",
+      "summary": "A pre-existing idempotency gap is mandatory only if the pending retry criterion is approved.",
+      "evidenceRefs": [
+        "EV-AC-GAP-01"
+      ],
+      "acceptanceCriterionRefs": [
+        "AC-03"
+      ],
+      "decisionRefs": [],
+      "preExisting": true
+    },
+    {
+      "conditionId": "COND-09",
+      "semanticCondition": "optional_hardening_or_refactoring",
+      "summary": "Duplicated claim normalization could be refactored but no criterion requires it.",
+      "evidenceRefs": [
+        "EV-HARDENING-01"
+      ],
+      "acceptanceCriterionRefs": [],
+      "decisionRefs": [],
+      "preExisting": true
+    }
+  ]
+}

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added opt-in Story Start Scope v2 with schema-bound Discovery, Scope Triage,
+  Implementation Planner, deterministic host governance, decision-sensitive
+  estimates, explicit human scope expansion, legacy compatibility, and a
+  16-case zero-token release gate.
+
 ## 0.5.0 - 2026-08-15
 
 - Added the deterministic, read-only `mana inspect` v1 contract bundle and

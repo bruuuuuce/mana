@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/story-start/scope-v2/schemas/planning-context.schema.json",
+  "title": "Mana Story Start compact planning context v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contextId",
+    "contextVersion",
+    "storyId",
+    "sourceDiscoveryArtifactRef",
+    "sourceTriageArtifactRef",
+    "acceptanceCriteria",
+    "mandatoryConstraints",
+    "evidence",
+    "provenance"
+  ],
+  "properties": {
+    "contextId": {
+      "type": "string",
+      "pattern": "^planningcontext_[0-9a-f]{64}$"
+    },
+    "contextVersion": {
+      "const": "mana.story-start.planning-context/v2"
+    },
+    "storyId": {
+      "$ref": "common.schema.json#/$defs/storyId"
+    },
+    "sourceDiscoveryArtifactRef": {
+      "type": "string",
+      "pattern": "^discovery_[0-9a-f]{64}$"
+    },
+    "sourceTriageArtifactRef": {
+      "type": "string",
+      "pattern": "^triage_[0-9a-f]{64}$"
+    },
+    "acceptanceCriteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/acceptanceCriterion"
+      }
+    },
+    "mandatoryConstraints": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/mandatoryConstraint"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/evidenceRecord"
+      }
+    },
+    "provenance": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/provenanceRecord"
+      }
+    }
+  }
+}

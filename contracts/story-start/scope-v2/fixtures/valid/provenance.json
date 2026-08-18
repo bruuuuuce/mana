@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "mana.story-start.provenance/v2",
+  "artifactVersion": 2,
+  "artifactId": "provenance_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "storyId": "SS01-SYNTHETIC-001",
+  "records": [
+    {
+      "id": "provenance_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "sourceType": "test_evidence",
+      "sourceRef": "fixtures/synthetic/test-evidence",
+      "sourceDigest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "summary": "Synthetic provenance with no dependency on a real repository or ticket."
+    }
+  ],
+  "evidenceRefs": [
+    "ev_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  ],
+  "validationStatus": {
+    "schemaValidation": "valid",
+    "semanticValidation": "not_run",
+    "violationCodes": [],
+    "ownerReview": {
+      "state": "not_required",
+      "owner": null,
+      "reason": null
+    }
+  }
+}

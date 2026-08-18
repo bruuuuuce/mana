@@ -1,0 +1,14 @@
+{
+  "packageVersion": "mana.story-start.discovery-package/v1",
+  "storyId": "story-synthetic-alert-001",
+  "sourceTopology": "regression-topology-v1",
+  "normalizedStory": {
+    "summary": "Notify an account after a ledger entry is committed.",
+    "acceptanceCriteria": [
+      {"sourceKey":"AC-01","status":"approved","text":"After a ledger entry is committed, an eligible account receives one settlement notification."},
+      {"sourceKey":"AC-02","status":"ambiguous","text":"An authenticated user can view the notification result regardless of sign-in path."},
+      {"sourceKey":"AC-03","status":"pending","text":"A retried notification must not create a duplicate ledger annotation."}
+    ]
+  },
+  "note": "Synthetic compact evidence package for internal v2 phases; no repository contents are embedded."
+}

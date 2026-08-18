@@ -6,6 +6,11 @@ artifact_workspace:
   routing: feature_or_session
   initialize_if_missing: true
   default_purpose: story-delivery
+scope_contract:
+  default_version: v1
+  v2_activation: MANA_STORY_START_SCOPE_VERSION=v2
+  v2_context: MANA_STORY_START_CONTEXT
+  compatibility: additive_versioned_artifacts
 service_context:
   root: .mana/global
   core_files:
