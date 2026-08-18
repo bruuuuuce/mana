@@ -29,6 +29,13 @@ if [ -f "$root/scripts/mana-workspace.sh" ] && [ ! -x "$root/scripts/mana-worksp
   echo "ERROR: scripts/mana-workspace.sh is not executable" >&2
   status=1
 fi
+for f in scripts/lib/analysis-trajectory-telemetry.sh scripts/lib/analysis-trajectory-telemetry.py contracts/analysis-trajectory/telemetry-event-v1.schema.json contracts/analysis-trajectory/run-summary-v1.schema.json docs/policies/analysis-trajectory-telemetry.md tests/analysis-trajectory-guard-tg02-telemetry.sh; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
+done
+if [ -f "$root/tests/analysis-trajectory-guard-tg02-telemetry.sh" ] && [ ! -x "$root/tests/analysis-trajectory-guard-tg02-telemetry.sh" ]; then
+  echo 'ERROR: tests/analysis-trajectory-guard-tg02-telemetry.sh is not executable' >&2
+  status=1
+fi
 if [ -f "$root/scripts/mana-user-learning.sh" ] && [ ! -x "$root/scripts/mana-user-learning.sh" ]; then
   echo "ERROR: scripts/mana-user-learning.sh is not executable" >&2
   status=1

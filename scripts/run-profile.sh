@@ -3,6 +3,7 @@ set -u
 root="$(cd "$(dirname "$0")/.." && pwd)"
 . "$root/scripts/lib/provider-dispatch.sh"
 . "$root/scripts/lib/story-start-stage-routing.sh"
+. "$root/scripts/lib/analysis-trajectory-telemetry.sh"
 . "$root/scripts/lib/story-start-scope-v2.sh"
 # shellcheck source=lib/profile-metadata.sh
 . "$root/scripts/lib/profile-metadata.sh"
@@ -1053,6 +1054,8 @@ if [ "$profile" = story-start ] && [ "$story_start_scope_version" = v2 ]; then
       ;;
   esac
   story_start_workspace="$project_root/$story_start_workspace_relative"
+  mana_trajectory_telemetry_init "$story_start_workspace" "$(jq -r '.storyId' "$story_start_context_path")" || \
+    echo 'WARNING: passive Analysis Trajectory telemetry could not be initialized; continuing unchanged' >&2
 
   case "$runner" in
     codex)

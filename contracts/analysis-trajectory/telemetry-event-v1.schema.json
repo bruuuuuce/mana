@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.event/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "eventId", "runId", "sequence", "emittedAt", "eventType", "boundary", "actionKind", "provider", "model", "effort", "targetScopeRef", "acceptanceCriterionRefs", "evidenceGapRefs", "decisionRefs", "evidenceAddedRefs", "counters", "budgetDelta", "outcome", "reasonCodes"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.event/v1"},
+    "eventId": {"type": "string", "pattern": "^[A-Za-z0-9._:/-]{1,128}$"},
+    "runId": {"type": "string", "pattern": "^[A-Za-z0-9._:/-]{1,128}$"},
+    "sequence": {"type": "integer", "minimum": 1},
+    "emittedAt": {"type": "string", "format": "date-time"},
+    "eventType": {"type": "string"}, "boundary": {"type": "string"}, "actionKind": {"type": "string"},
+    "provider": {"type": "string"}, "model": {"type": "string"}, "effort": {"type": "string"},
+    "targetScopeRef": {"type": "string"}, "outcome": {"type": "string"},
+    "acceptanceCriterionRefs": {"type": "array", "items": {"type": "string"}},
+    "evidenceGapRefs": {"type": "array", "items": {"type": "string"}},
+    "decisionRefs": {"type": "array", "items": {"type": "string"}},
+    "evidenceAddedRefs": {"type": "array", "items": {"type": "string"}},
+    "reasonCodes": {"type": "array", "items": {"type": "string"}},
+    "counters": {"type": "object", "additionalProperties": {"type": "integer"}},
+    "budgetDelta": {"type": "object", "additionalProperties": {"type": "number"}}
+  }
+}

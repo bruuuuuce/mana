@@ -3,6 +3,14 @@
 # SS06 exposes the complete pipeline through the existing public profile runner
 # as a versioned opt-in while the legacy v1 path remains the default.
 
+# Direct library consumers (including existing offline tests) do not source the
+# public profile runner. Keep passive telemetry callable and disabled unless
+# that runner initialized an opt-in sidecar for the active workspace.
+if ! declare -F mana_trajectory_telemetry_emit >/dev/null 2>&1; then
+  # shellcheck source=analysis-trajectory-telemetry.sh
+  . "$(dirname "${BASH_SOURCE[0]}")/analysis-trajectory-telemetry.sh"
+fi
+
 mana_story_start_scope_v2_root() {
   cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd
 }
@@ -434,8 +442,10 @@ mana_story_start_scope_v2_govern_with_correction() {
   fi
   corrected_raw="$scratch/corrected-provider-output.json"
   status_file="$scratch/status.tsv"
+  mana_trajectory_telemetry_emit provider_iteration_started provider_invocation correction "$provider" "$model" "${effort:-none}" scope-v2/correction started || true
   perl "$root/scripts/lib/verification-exec.pl" --timeout "$timeout" --output-cap 524288 --stderr-cap 4096 --stdout "$corrected_raw" --stderr "$scratch/provider.stderr" --status "$status_file" -- "$program" "${MANA_PROVIDER_ARGS[@]}" "$prompt" || true
   if [ ! -f "$status_file" ] || ! IFS=$'\t' read -r code signal timed_out descendants _ < "$status_file" || [ "$code" -ne 0 ] || [ "$timed_out" != 0 ] || [ "$descendants" != 0 ]; then
+    mana_trajectory_telemetry_emit provider_iteration_completed provider_invocation correction "$provider" "$model" "${effort:-none}" scope-v2/correction failed --reason-codes corrective-provider-failure || true
     if ! python3 "$governor" provider-failed "$initial" "$report" 'The single corrective provider invocation failed or exceeded its bounds.' >/dev/null 2>&1; then
       rm -rf "$scratch"
       echo 'ERROR: Scope Governor could not publish owner-review diagnostics' >&2
@@ -444,6 +454,7 @@ mana_story_start_scope_v2_govern_with_correction() {
     rm -rf "$scratch"
     return 1
   fi
+  mana_trajectory_telemetry_emit provider_iteration_completed provider_invocation correction "$provider" "$model" "${effort:-none}" scope-v2/correction completed --evidence-added-refs artifact-corrected-plan-v2 || true
 
   corrected_normalized="$scratch/corrected-normalized.json"
   context="$scratch/planning-context.json"
@@ -631,26 +642,56 @@ mana_story_start_scope_v2_run_public() {
   status="$scratch/run-status.json"
   report="$scratch/report.md"
   jq -S '{storyId, normalizedStory}' "$package" > "$story" || { rm -rf "$scratch"; return 2; }
+  mana_trajectory_telemetry_emit analysis_started public_pipeline start "$provider" none none scope-v2/public started --reason-codes scope-v2-opt-in || true
 
+  mana_trajectory_telemetry_emit provider_iteration_started provider_invocation discovery "$provider" "$discovery_model" "${discovery_effort:-none}" scope-v2/discovery started || true
   if ! mana_story_start_scope_v2_discover "$provider" "$discovery_model" "$discovery_effort" "$package" "$discovery"; then
+    mana_trajectory_telemetry_emit provider_iteration_completed provider_invocation discovery "$provider" "$discovery_model" "${discovery_effort:-none}" scope-v2/discovery failed --reason-codes provider-or-schema-failure || true
+    mana_trajectory_telemetry_emit analysis_failed public_pipeline discovery "$provider" none none scope-v2/public failed --reason-codes discovery-failure || true
+    mana_trajectory_telemetry_finish || true
     rm -rf "$scratch"
     mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" discovery \
       'Discovery v2 provider failed or returned an invalid structured artifact.'
     return 1
   fi
+  mana_trajectory_telemetry_emit provider_iteration_completed provider_invocation discovery "$provider" "$discovery_model" "${discovery_effort:-none}" scope-v2/discovery completed --evidence-added-refs artifact-discovery-v2 || true
+  mana_trajectory_telemetry_emit evidence_added provider_result discovery "$provider" "$discovery_model" "${discovery_effort:-none}" scope-v2/discovery completed --evidence-added-refs artifact-discovery-v2 || true
+  mana_trajectory_telemetry_emit search_scope_entered provider_result discovery "$provider" "$discovery_model" "${discovery_effort:-none}" scope-v2/discovery completed || true
+  mana_trajectory_telemetry_observe_artifact discovery "$provider" "$discovery_model" "${discovery_effort:-none}" scope-v2/discovery "$discovery" || true
+
+  mana_trajectory_telemetry_emit provider_iteration_started provider_invocation triage "$provider" "$triage_model" "${triage_effort:-none}" scope-v2/triage started || true
   if ! mana_story_start_scope_v2_triage "$provider" "$triage_model" "$triage_effort" "$story" "$discovery" "$triage"; then
+    mana_trajectory_telemetry_emit provider_iteration_completed provider_invocation triage "$provider" "$triage_model" "${triage_effort:-none}" scope-v2/triage failed --reason-codes provider-or-schema-failure || true
+    mana_trajectory_telemetry_emit analysis_failed public_pipeline triage "$provider" none none scope-v2/public failed --reason-codes triage-failure || true
+    mana_trajectory_telemetry_finish || true
     rm -rf "$scratch"
     mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" triage \
       'Scope Triage v2 provider failed or returned an invalid structured artifact.'
     return 1
   fi
+  mana_trajectory_telemetry_emit provider_iteration_completed provider_invocation triage "$provider" "$triage_model" "${triage_effort:-none}" scope-v2/triage completed || true
+  mana_trajectory_telemetry_emit search_scope_changed provider_result triage "$provider" "$triage_model" "${triage_effort:-none}" scope-v2/triage completed || true
+  mana_trajectory_telemetry_observe_artifact triage "$provider" "$triage_model" "${triage_effort:-none}" scope-v2/triage "$triage" || true
+
+  mana_trajectory_telemetry_emit compact_context_synthesis_started host_synthesis build-planning-context host none none scope-v2/planning-context started || true
   if ! python3 "$normalizer" build-planning-context "$discovery" "$triage" "$context"; then
+    mana_trajectory_telemetry_emit compact_context_synthesis_completed host_synthesis build-planning-context host none none scope-v2/planning-context failed --reason-codes host-validation-failure || true
+    mana_trajectory_telemetry_emit analysis_failed public_pipeline planning-context host none none scope-v2/public failed --reason-codes planning-context-failure || true
+    mana_trajectory_telemetry_finish || true
     rm -rf "$scratch"
     mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" planner \
       'The host could not build the compact v2 planning context.'
     return 1
   fi
+  mana_trajectory_telemetry_emit compact_context_synthesis_completed host_synthesis build-planning-context host none none scope-v2/planning-context completed || true
+  local planner_model planner_effort
+  planner_model="$(mana_story_start_scope_v2_stage_model planner "$model")" || { rm -rf "$scratch"; return 2; }
+  planner_effort="$(mana_story_start_scope_v2_stage_effort planner)" || { rm -rf "$scratch"; return 2; }
+  mana_trajectory_telemetry_emit provider_iteration_started provider_invocation planner "$provider" "$planner_model" "${planner_effort:-none}" scope-v2/planner started || true
   if ! mana_story_start_scope_v2_plan_governed "$provider" "$model" "$story" "$discovery" "$context" "$triage" "$plan" "$governance"; then
+    mana_trajectory_telemetry_emit provider_iteration_completed provider_invocation planner "$provider" "$planner_model" "${planner_effort:-none}" scope-v2/planner failed --reason-codes provider-or-governance-failure || true
+    mana_trajectory_telemetry_emit analysis_failed public_pipeline planner "$provider" none none scope-v2/public failed --reason-codes planner-or-governance-failure || true
+    mana_trajectory_telemetry_finish || true
     if [ -f "$governance" ] && mana_story_start_scope_v2_validate_governance_report "$governance" >/dev/null 2>&1; then
       mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" governor \
         'Scope Governor rejected the plan after the single allowed correction attempt.' "$governance"
@@ -661,6 +702,7 @@ mana_story_start_scope_v2_run_public() {
     rm -rf "$scratch"
     return 1
   fi
+  mana_trajectory_telemetry_emit provider_iteration_completed provider_invocation planner "$provider" "$planner_model" "${planner_effort:-none}" scope-v2/planner completed --evidence-added-refs artifact-implementation-plan-v2 || true
 
   python3 "$renderer" status-passed "$discovery" "$triage" "$plan" "$governance" "$status" || { rm -rf "$scratch"; return 2; }
   mana_story_start_scope_v2_validate_run_status "$status" >/dev/null || { rm -rf "$scratch"; return 2; }
@@ -674,5 +716,8 @@ mana_story_start_scope_v2_run_public() {
   mana_story_start_scope_v2_atomic_copy "$governance" "$workspace/validation/story-start-scope-governance-v2.json" || { rm -rf "$scratch"; return 2; }
   mana_story_start_scope_v2_atomic_copy "$report" "$workspace/planning/story-start-scope-v2.md" || { rm -rf "$scratch"; return 2; }
   mana_story_start_scope_v2_atomic_copy "$status" "$workspace/validation/story-start-scope-run-v2.json" || { rm -rf "$scratch"; return 2; }
+  mana_trajectory_telemetry_emit search_scope_exited publication final-artifacts host none none scope-v2/public completed || true
+  mana_trajectory_telemetry_emit analysis_completed publication final-artifacts host none none scope-v2/public completed || true
+  mana_trajectory_telemetry_finish || true
   rm -rf "$scratch"
 }

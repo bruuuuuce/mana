@@ -5,6 +5,7 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 tests=(
   analysis-trajectory-guard-tg00-fixtures.sh
+  analysis-trajectory-guard-tg02-telemetry.sh
   behavioural-evals.sh
   bounded-repair-loop.sh
   bounded-repair.sh
