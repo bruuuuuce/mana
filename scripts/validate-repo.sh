@@ -38,6 +38,9 @@ done
 for f in scripts/lib/analysis-trajectory-drift.py contracts/analysis-trajectory/drift-config-v1.schema.json contracts/analysis-trajectory/drift-observation-v1.schema.json contracts/analysis-trajectory/drift-recommendation-v1.schema.json contracts/analysis-trajectory/drift-evaluation-matrix-v1.schema.json docs/policies/analysis-trajectory-drift.md tests/fixtures/analysis-trajectory-guard/tg04-drift-config-v1.json tests/fixtures/analysis-trajectory-guard/tg04-evaluation-matrix-v1.json tests/analysis-trajectory-guard-tg04-drift.sh; do
   [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
 done
+for f in scripts/lib/analysis-trajectory-checkpoint.py scripts/analysis-trajectory-checkpoint-smoke.sh contracts/analysis-trajectory/checkpoint-governor-config-v1.schema.json contracts/analysis-trajectory/trajectory-checkpoint-request-v1.schema.json contracts/analysis-trajectory/trajectory-checkpoint-response-v1.schema.json contracts/analysis-trajectory/trajectory-checkpoint-validation-v1.schema.json contracts/analysis-trajectory/trajectory-checkpoint-run-v1.schema.json docs/policies/analysis-trajectory-checkpoint.md tests/fixtures/analysis-trajectory-guard/tg05-checkpoint-governor-shadow-v1.json tests/fixtures/analysis-trajectory-guard/tg05-checkpoint-governor-off-v1.json tests/analysis-trajectory-guard-tg05-checkpoint.sh; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
+done
 if [ -f "$root/tests/analysis-trajectory-guard-tg02-telemetry.sh" ] && [ ! -x "$root/tests/analysis-trajectory-guard-tg02-telemetry.sh" ]; then
   echo 'ERROR: tests/analysis-trajectory-guard-tg02-telemetry.sh is not executable' >&2
   status=1
@@ -53,6 +56,18 @@ fi
 if [ -f "$root/scripts/lib/analysis-trajectory-drift.py" ] && [ ! -x "$root/scripts/lib/analysis-trajectory-drift.py" ]; then
   echo 'ERROR: scripts/lib/analysis-trajectory-drift.py is not executable' >&2
   status=1
+fi
+for f in scripts/lib/analysis-trajectory-checkpoint.py scripts/analysis-trajectory-checkpoint-smoke.sh tests/analysis-trajectory-guard-tg05-checkpoint.sh; do
+  if [ -f "$root/$f" ] && [ ! -x "$root/$f" ]; then
+    echo "ERROR: $f is not executable" >&2
+    status=1
+  fi
+done
+if [ -f "$root/scripts/analysis-trajectory-checkpoint-smoke.sh" ]; then
+  bash -n "$root/scripts/analysis-trajectory-checkpoint-smoke.sh" || status=1
+fi
+if [ -f "$root/tests/analysis-trajectory-guard-tg05-checkpoint.sh" ]; then
+  bash -n "$root/tests/analysis-trajectory-guard-tg05-checkpoint.sh" || status=1
 fi
 if [ -f "$root/tests/analysis-trajectory-guard-tg04-drift.sh" ]; then
   if [ ! -x "$root/tests/analysis-trajectory-guard-tg04-drift.sh" ]; then

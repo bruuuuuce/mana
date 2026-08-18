@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.trajectory-checkpoint-run/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "runId", "mode", "advisory", "requestCorrelation", "status", "outcome", "calls", "callCounts", "boundedPolicy", "effects"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.trajectory-checkpoint-run/v1"},
+    "runId": {"type": "string", "pattern": "^checkpoint-run-[0-9a-f]{24}$"},
+    "mode": {"enum": ["OFF", "SHADOW"]},
+    "advisory": {"const": true},
+    "requestCorrelation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requestId", "requestHash"],
+      "properties": {
+        "requestId": {"$ref": "common-v1.schema.json#/$defs/nullableRef"},
+        "requestHash": {"$ref": "common-v1.schema.json#/$defs/nullableHash"}
+      }
+    },
+    "status": {"enum": ["DISABLED", "ACCEPTED", "NEEDS_OWNER_REVIEW"]},
+    "outcome": {"anyOf": [{"enum": ["ON_TRACK", "REANCHOR_REQUIRED", "SCOPE_TRIAGE_REQUIRED", "STOP_SUFFICIENT_EVIDENCE", "STOP_NO_NEW_EVIDENCE", "STOP_HARD_BUDGET", "NEEDS_OWNER_REVIEW"]}, {"type": "null"}]},
+    "calls": {
+      "type": "array",
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "provider", "model", "effort", "validationResult", "usage"],
+        "properties": {
+          "kind": {"enum": ["PRIMARY", "STRUCTURAL_REPAIR"]},
+          "provider": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "model": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "effort": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "validationResult": {"enum": ["VALID", "STRUCTURAL_INVALID", "SEMANTIC_INVALID", "PROVIDER_FAILED"]},
+          "usage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["availability", "inputTokens", "outputTokens"],
+            "properties": {
+              "availability": {"const": "UNAVAILABLE"},
+              "inputTokens": {"type": "null"},
+              "outputTokens": {"type": "null"}
+            }
+          }
+        }
+      }
+    },
+    "callCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "structuralRepair", "total"],
+      "properties": {
+        "primary": {"type": "integer", "minimum": 0, "maximum": 1},
+        "structuralRepair": {"type": "integer", "minimum": 0, "maximum": 1},
+        "total": {"type": "integer", "minimum": 0, "maximum": 2}
+      }
+    },
+    "boundedPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxPrimaryCalls", "maxStructuralRepairCalls", "semanticRetryPermitted"],
+      "properties": {
+        "maxPrimaryCalls": {"const": 1},
+        "maxStructuralRepairCalls": {"const": 1},
+        "semanticRetryPermitted": {"const": false}
+      }
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["controlFlowChanged", "finalArtifactsChanged", "enforcementApplied"],
+      "properties": {
+        "controlFlowChanged": {"const": false},
+        "finalArtifactsChanged": {"const": false},
+        "enforcementApplied": {"const": false}
+      }
+    }
+  }
+}

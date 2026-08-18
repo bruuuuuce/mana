@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.trajectory-checkpoint-request/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "requestId", "requestHash", "mode", "advisory", "checkpointEnvelope", "triggerRecommendation", "hostValidationContext", "remainingBudgets", "permittedOutcomes", "supportedStopReasons", "scopeExpansionRules", "callPolicy", "promptMeasurements"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.trajectory-checkpoint-request/v1"},
+    "requestId": {"type": "string", "pattern": "^checkpoint-[0-9a-f]{24}$"},
+    "requestHash": {"$ref": "common-v1.schema.json#/$defs/hash"},
+    "mode": {"const": "SHADOW"},
+    "advisory": {"const": true},
+    "checkpointEnvelope": {"$ref": "checkpoint-envelope-v1.schema.json"},
+    "triggerRecommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recommendationId", "recommendationHash", "outcome", "reasonCodes", "supportingRefs", "observedBoundary"],
+      "properties": {
+        "recommendationId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "recommendationHash": {"$ref": "common-v1.schema.json#/$defs/hash"},
+        "outcome": {"const": "CHECKPOINT_RECOMMENDED"},
+        "reasonCodes": {"type": "array", "minItems": 1, "maxItems": 11, "uniqueItems": true, "items": {"$ref": "common-v1.schema.json#/$defs/ref"}},
+        "supportingRefs": {"$ref": "drift-recommendation-v1.schema.json#/properties/supportingRefs"},
+        "observedBoundary": {"type": "string", "minLength": 1, "maxLength": 128}
+      }
+    },
+    "hostValidationContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["knownEvidenceRefs", "openDecisionRefs", "activeRejectedHypotheses"],
+      "properties": {
+        "knownEvidenceRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "openDecisionRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "activeRejectedHypotheses": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["rejectionEventRef", "targetScopeRef"],
+            "properties": {
+              "rejectionEventRef": {"$ref": "common-v1.schema.json#/$defs/ref"},
+              "targetScopeRef": {"$ref": "common-v1.schema.json#/$defs/ref"}
+            }
+          }
+        }
+      }
+    },
+    "remainingBudgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eventCount", "providerIterations", "visitedScopeRefs", "evidenceRefs", "checkpointBytes", "checkpointTokenProxy"],
+      "properties": {
+        "eventCount": {"$ref": "#/$defs/remainingBudget"},
+        "providerIterations": {"$ref": "#/$defs/remainingBudget"},
+        "visitedScopeRefs": {"$ref": "#/$defs/remainingBudget"},
+        "evidenceRefs": {"$ref": "#/$defs/remainingBudget"},
+        "checkpointBytes": {"$ref": "#/$defs/remainingBudget"},
+        "checkpointTokenProxy": {"$ref": "#/$defs/remainingBudget"}
+      }
+    },
+    "permittedOutcomes": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": {"enum": ["ON_TRACK", "REANCHOR_REQUIRED", "SCOPE_TRIAGE_REQUIRED", "STOP_SUFFICIENT_EVIDENCE", "STOP_NO_NEW_EVIDENCE", "STOP_HARD_BUDGET", "NEEDS_OWNER_REVIEW"]}
+    },
+    "supportedStopReasons": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {"enum": ["EVIDENCE_SUFFICIENT", "NO_PRODUCTIVE_NEXT_STEP", "HARD_BUDGET_REACHED", "OWNER_REVIEW_REQUIRED"]}
+    },
+    "scopeExpansionRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidateScopeRefs", "ownerApprovalRequired", "directMissionMutationPermitted"],
+      "properties": {
+        "candidateScopeRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "ownerApprovalRequired": {"const": true},
+        "directMissionMutationPermitted": {"const": false}
+      }
+    },
+    "callPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primaryCallsPerTrigger", "structuralRepairCallsPerTrigger", "semanticRetryPermitted", "periodicCallsPermitted"],
+      "properties": {
+        "primaryCallsPerTrigger": {"const": 1},
+        "structuralRepairCallsPerTrigger": {"type": "integer", "minimum": 0, "maximum": 1},
+        "semanticRetryPermitted": {"const": false},
+        "periodicCallsPermitted": {"const": false}
+      }
+    },
+    "promptMeasurements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requestBytes", "requestTokenProxy", "promptBytes", "promptTokenProxy", "softByteLimit", "hardByteLimit", "softTokenProxyLimit", "hardTokenProxyLimit", "softLimitExceeded"],
+      "properties": {
+        "requestBytes": {"type": "integer", "minimum": 1},
+        "requestTokenProxy": {"type": "integer", "minimum": 1},
+        "promptBytes": {"type": "integer", "minimum": 1},
+        "promptTokenProxy": {"type": "integer", "minimum": 1},
+        "softByteLimit": {"type": "integer", "minimum": 1},
+        "hardByteLimit": {"type": "integer", "minimum": 1},
+        "softTokenProxyLimit": {"type": "integer", "minimum": 1},
+        "hardTokenProxyLimit": {"type": "integer", "minimum": 1},
+        "softLimitExceeded": {"type": "boolean"}
+      }
+    }
+  },
+  "$defs": {
+    "remainingBudget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["consumed", "softRemaining", "hardRemaining"],
+      "properties": {
+        "consumed": {"type": "integer", "minimum": 0},
+        "softRemaining": {"type": "integer", "minimum": 0},
+        "hardRemaining": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.trajectory-checkpoint-response/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "missionId", "missionHash", "missionRevision", "outcome", "objectiveRestatement", "supportingGoalRefs", "supportingConstraintRefs", "supportingGapRefs", "supportingEvidenceRefs", "recommendedNextAction", "scopeExpansionProposal", "stopReason", "discardedOrDeferredRefs", "confidence"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.trajectory-checkpoint-response/v1"},
+    "missionId": {"type": "string", "pattern": "^mission-[0-9a-f]{24}$"},
+    "missionHash": {"$ref": "common-v1.schema.json#/$defs/hash"},
+    "missionRevision": {"type": "integer", "minimum": 1},
+    "outcome": {"enum": ["ON_TRACK", "REANCHOR_REQUIRED", "SCOPE_TRIAGE_REQUIRED", "STOP_SUFFICIENT_EVIDENCE", "STOP_NO_NEW_EVIDENCE", "STOP_HARD_BUDGET", "NEEDS_OWNER_REVIEW"]},
+    "objectiveRestatement": {"type": "string", "minLength": 1, "maxLength": 1024},
+    "supportingGoalRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "supportingConstraintRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "supportingGapRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "supportingEvidenceRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "recommendedNextAction": {"anyOf": [{"$ref": "#/$defs/nextAction"}, {"type": "null"}]},
+    "scopeExpansionProposal": {"anyOf": [{"$ref": "#/$defs/scopeExpansion"}, {"type": "null"}]},
+    "stopReason": {"anyOf": [{"enum": ["EVIDENCE_SUFFICIENT", "NO_PRODUCTIVE_NEXT_STEP", "HARD_BUDGET_REACHED", "OWNER_REVIEW_REQUIRED"]}, {"type": "null"}]},
+    "discardedOrDeferredRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "confidence": {"enum": ["LOW", "MEDIUM", "HIGH"]}
+  },
+  "$defs": {
+    "estimatedBudgetDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["providerCalls", "tokenProxy"],
+      "properties": {
+        "providerCalls": {"type": "integer", "minimum": 0},
+        "tokenProxy": {"type": "integer", "minimum": 0}
+      }
+    },
+    "nextAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actionId", "actionKind", "targetScopeRef", "justificationGoalRefs", "justificationGapRefs", "mandatoryConstraintRefs", "expectedEvidence", "decisionDependencies", "scopeExpansionRequired", "estimatedBudgetDelta"],
+      "properties": {
+        "actionId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "actionKind": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "targetScopeRef": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "justificationGoalRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "justificationGapRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "mandatoryConstraintRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "expectedEvidence": {"type": "string", "minLength": 1, "maxLength": 512},
+        "decisionDependencies": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "scopeExpansionRequired": {"type": "boolean"},
+        "estimatedBudgetDelta": {"$ref": "#/$defs/estimatedBudgetDelta"}
+      }
+    },
+    "scopeExpansion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proposalId", "targetScopeRef", "reason", "relatedGoalRefs", "relatedConstraintRefs", "relatedGapRefs", "expectedEvidence", "estimatedBudgetDelta", "ownerApprovalRequired"],
+      "properties": {
+        "proposalId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "targetScopeRef": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "reason": {"type": "string", "minLength": 1, "maxLength": 512},
+        "relatedGoalRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "relatedConstraintRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "relatedGapRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "expectedEvidence": {"type": "string", "minLength": 1, "maxLength": 512},
+        "estimatedBudgetDelta": {"$ref": "#/$defs/estimatedBudgetDelta"},
+        "ownerApprovalRequired": {"const": true}
+      }
+    }
+  }
+}
