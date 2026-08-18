@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.drift-observation/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "observedBoundary", "finalSynthesisRequested", "nextActionProposals"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.drift-observation/v1"},
+    "observedBoundary": {
+      "enum": ["ITERATION_BOUNDARY", "NEXT_ACTION_BOUNDARY", "FINAL_SYNTHESIS_BOUNDARY", "PROVIDER_INVOCATION_BOUNDARY", "PROVIDER_COMPLETION_BOUNDARY"]
+    },
+    "finalSynthesisRequested": {"type": "boolean"},
+    "nextActionProposals": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["actionId", "targetScopeRef", "justificationGoalRefs", "justificationGapRefs", "mandatoryConstraintRefs", "assumedDecisionRefs", "decisionEvidenceRefs", "supportingEventRefs"],
+        "properties": {
+          "actionId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "targetScopeRef": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "justificationGoalRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "justificationGapRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "mandatoryConstraintRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "assumedDecisionRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "decisionEvidenceRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "supportingEventRefs": {"$ref": "common-v1.schema.json#/$defs/refs"}
+        }
+      }
+    }
+  }
+}

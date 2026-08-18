@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.drift-recommendation/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "recommendationId", "recommendationHash", "mode", "advisory", "outcome", "reasonCodes", "missionCorrelation", "observedBoundary", "modelCheckpointPermittedInTG05", "continuedExecutionUnsafeInFutureEnforcement", "signalEvaluations", "supportingRefs", "observability", "configCorrelation", "metrics", "effects"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.drift-recommendation/v1"},
+    "recommendationId": {"type": "string", "pattern": "^recommendation-[0-9a-f]{24}$"},
+    "recommendationHash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "mode": {"const": "SHADOW"},
+    "advisory": {"const": true},
+    "outcome": {"enum": ["CONTINUE_ON_TRACK", "CHECKPOINT_RECOMMENDED", "SCOPE_TRIAGE_REQUIRED", "STOP_SUFFICIENT_EVIDENCE", "STOP_NO_NEW_EVIDENCE", "STOP_HARD_BUDGET", "NEEDS_OWNER_REVIEW"]},
+    "reasonCodes": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "missionCorrelation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["missionId", "missionHash", "missionRevision", "ledgerId", "ledgerHash"],
+      "properties": {
+        "missionId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "missionHash": {"$ref": "common-v1.schema.json#/$defs/hash"},
+        "missionRevision": {"type": "integer", "minimum": 1},
+        "ledgerId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "ledgerHash": {"$ref": "common-v1.schema.json#/$defs/hash"}
+      }
+    },
+    "observedBoundary": {"type": "string"},
+    "modelCheckpointPermittedInTG05": {"type": "boolean"},
+    "continuedExecutionUnsafeInFutureEnforcement": {"type": "boolean"},
+    "signalEvaluations": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 11,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["reasonCode", "status", "severity", "refs"],
+        "properties": {
+          "reasonCode": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "status": {"enum": ["TRIGGERED", "CLEAR", "NOT_OBSERVABLE"]},
+          "severity": {"enum": ["INFO", "WARNING", "STOP", "REVIEW"]},
+          "refs": {"$ref": "common-v1.schema.json#/$defs/refs"}
+        }
+      }
+    },
+    "supportingRefs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eventRefs", "evidenceRefs", "goalRefs", "gapRefs", "actionRefs", "scopeRefs", "decisionRefs", "constraintRefs"],
+      "properties": {
+        "eventRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "evidenceRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "goalRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "gapRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "actionRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "scopeRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "decisionRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "constraintRefs": {"$ref": "common-v1.schema.json#/$defs/refs"}
+      }
+    },
+    "observability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ledgerGranularity", "nextAction", "unsupportedFacts"],
+      "properties": {
+        "ledgerGranularity": {"enum": ["HOST_BOUNDARIES", "OPAQUE_PROVIDER_BOUNDARY"]},
+        "nextAction": {"enum": ["OBSERVED", "NOT_OBSERVABLE"]},
+        "unsupportedFacts": {"$ref": "common-v1.schema.json#/$defs/refs"}
+      }
+    },
+    "configCorrelation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["configHash", "thresholds"],
+      "properties": {
+        "configHash": {"$ref": "common-v1.schema.json#/$defs/hash"},
+        "thresholds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["noNewEvidenceStreak", "repeatedTargetVisitCount", "softBudgetWarningPercent"],
+          "properties": {
+            "noNewEvidenceStreak": {"type": "integer", "minimum": 2},
+            "repeatedTargetVisitCount": {"type": "integer", "minimum": 2},
+            "softBudgetWarningPercent": {"type": "integer", "minimum": 50, "maximum": 100}
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signalCount", "triggeredSignalCount", "notObservableSignalCount", "eventCount", "providerIterations", "evidenceRefCount", "visitedScopeCount"],
+      "properties": {
+        "signalCount": {"const": 11},
+        "triggeredSignalCount": {"type": "integer", "minimum": 0, "maximum": 11},
+        "notObservableSignalCount": {"type": "integer", "minimum": 0, "maximum": 11},
+        "eventCount": {"type": "integer", "minimum": 0},
+        "providerIterations": {"type": "integer", "minimum": 0},
+        "evidenceRefCount": {"type": "integer", "minimum": 0},
+        "visitedScopeCount": {"type": "integer", "minimum": 0}
+      }
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["providerCalls", "networkCalls", "controlFlowChanged", "finalArtifactsChanged", "recommendationPublished"],
+      "properties": {
+        "providerCalls": {"const": 0},
+        "networkCalls": {"const": 0},
+        "controlFlowChanged": {"const": false},
+        "finalArtifactsChanged": {"const": false},
+        "recommendationPublished": {"const": true}
+      }
+    }
+  }
+}

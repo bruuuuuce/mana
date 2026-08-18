@@ -35,6 +35,9 @@ done
 for f in scripts/lib/analysis-trajectory-state.py contracts/analysis-trajectory/common-v1.schema.json contracts/analysis-trajectory/evidence-gap-v1.schema.json contracts/analysis-trajectory/mission-contract-v1.schema.json contracts/analysis-trajectory/mission-history-v1.schema.json contracts/analysis-trajectory/mission-seed-v1.schema.json contracts/analysis-trajectory/mission-revision-request-v1.schema.json contracts/analysis-trajectory/trajectory-ledger-v1.schema.json contracts/analysis-trajectory/checkpoint-input-v1.schema.json contracts/analysis-trajectory/checkpoint-envelope-v1.schema.json docs/policies/analysis-trajectory-state.md tests/fixtures/analysis-trajectory-guard/tg03-story-package-v1.json tests/fixtures/analysis-trajectory-guard/tg03-mission-seed-v1.json tests/fixtures/analysis-trajectory-guard/tg03-checkpoint-input-v1.json tests/analysis-trajectory-guard-tg03-state.sh; do
   [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
 done
+for f in scripts/lib/analysis-trajectory-drift.py contracts/analysis-trajectory/drift-config-v1.schema.json contracts/analysis-trajectory/drift-observation-v1.schema.json contracts/analysis-trajectory/drift-recommendation-v1.schema.json contracts/analysis-trajectory/drift-evaluation-matrix-v1.schema.json docs/policies/analysis-trajectory-drift.md tests/fixtures/analysis-trajectory-guard/tg04-drift-config-v1.json tests/fixtures/analysis-trajectory-guard/tg04-evaluation-matrix-v1.json tests/analysis-trajectory-guard-tg04-drift.sh; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
+done
 if [ -f "$root/tests/analysis-trajectory-guard-tg02-telemetry.sh" ] && [ ! -x "$root/tests/analysis-trajectory-guard-tg02-telemetry.sh" ]; then
   echo 'ERROR: tests/analysis-trajectory-guard-tg02-telemetry.sh is not executable' >&2
   status=1
@@ -46,6 +49,18 @@ fi
 if [ -f "$root/scripts/lib/analysis-trajectory-state.py" ] && [ ! -x "$root/scripts/lib/analysis-trajectory-state.py" ]; then
   echo 'ERROR: scripts/lib/analysis-trajectory-state.py is not executable' >&2
   status=1
+fi
+if [ -f "$root/scripts/lib/analysis-trajectory-drift.py" ] && [ ! -x "$root/scripts/lib/analysis-trajectory-drift.py" ]; then
+  echo 'ERROR: scripts/lib/analysis-trajectory-drift.py is not executable' >&2
+  status=1
+fi
+if [ -f "$root/tests/analysis-trajectory-guard-tg04-drift.sh" ]; then
+  if [ ! -x "$root/tests/analysis-trajectory-guard-tg04-drift.sh" ]; then
+    echo 'ERROR: tests/analysis-trajectory-guard-tg04-drift.sh is not executable' >&2
+    status=1
+  else
+    bash -n "$root/tests/analysis-trajectory-guard-tg04-drift.sh" || status=1
+  fi
 fi
 if [ -f "$root/scripts/mana-user-learning.sh" ] && [ ! -x "$root/scripts/mana-user-learning.sh" ]; then
   echo "ERROR: scripts/mana-user-learning.sh is not executable" >&2

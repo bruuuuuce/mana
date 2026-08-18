@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "mana.analysis-trajectory.drift-evaluation-matrix/v1",
+  "phase": "TG04",
+  "mode": "SHADOW",
+  "cases": [
+    {
+      "caseId": "final-synthesis",
+      "expectedOutcome": "CHECKPOINT_RECOMMENDED",
+      "actualOutcome": "CHECKPOINT_RECOMMENDED",
+      "expectedReasonCodes": ["FINAL_SYNTHESIS_CHECKPOINT"],
+      "actualReasonCodes": ["FINAL_SYNTHESIS_CHECKPOINT"],
+      "matchesExpected": true,
+      "falsePositiveNotes": "Explicit final boundary only; no periodic checkpoint.",
+      "falseNegativeNotes": "None in synthetic host-visible trace.",
+      "unsupportedObservabilityNotes": "Structured next action not observed at this boundary."
+    },
+    {
+      "caseId": "hard-budget-exceeded",
+      "expectedOutcome": "STOP_HARD_BUDGET",
+      "actualOutcome": "STOP_HARD_BUDGET",
+      "expectedReasonCodes": ["SOFT_BUDGET_PRESSURE", "HARD_BUDGET_EXCEEDED"],
+      "actualReasonCodes": ["SOFT_BUDGET_PRESSURE", "HARD_BUDGET_EXCEEDED"],
+      "matchesExpected": true,
+      "falsePositiveNotes": "Uses a deliberately small synthetic mission budget.",
+      "falseNegativeNotes": "None.",
+      "unsupportedObservabilityNotes": "Structured next action not observed at this boundary."
+    },
+    {
+      "caseId": "legitimate-dependency-expansion",
+      "expectedOutcome": "CONTINUE_ON_TRACK",
+      "actualOutcome": "CONTINUE_ON_TRACK",
+      "expectedReasonCodes": [],
+      "actualReasonCodes": [],
+      "matchesExpected": true,
+      "falsePositiveNotes": "Requirement-linked dependency remains on track.",
+      "falseNegativeNotes": "None.",
+      "unsupportedObservabilityNotes": "Provider-internal activity is outside this structured action boundary."
+    },
+    {
+      "caseId": "mandatory-security-expansion",
+      "expectedOutcome": "CONTINUE_ON_TRACK",
+      "actualOutcome": "CONTINUE_ON_TRACK",
+      "expectedReasonCodes": ["MANDATORY_CROSS_CUTTING_EXPANSION"],
+      "actualReasonCodes": ["MANDATORY_CROSS_CUTTING_EXPANSION"],
+      "matchesExpected": true,
+      "falsePositiveNotes": "Positive explanation is not treated as drift.",
+      "falseNegativeNotes": "None.",
+      "unsupportedObservabilityNotes": "Provider-internal activity is outside this structured action boundary."
+    },
+    {
+      "caseId": "no-new-evidence-streak",
+      "expectedOutcome": "STOP_NO_NEW_EVIDENCE",
+      "actualOutcome": "STOP_NO_NEW_EVIDENCE",
+      "expectedReasonCodes": ["NO_NEW_EVIDENCE_STREAK"],
+      "actualReasonCodes": ["NO_NEW_EVIDENCE_STREAK"],
+      "matchesExpected": true,
+      "falsePositiveNotes": "Targets differ, preventing a repetition false positive.",
+      "falseNegativeNotes": "None.",
+      "unsupportedObservabilityNotes": "Structured next action not observed at this boundary."
+    },
+    {
+      "caseId": "on-track-simple",
+      "expectedOutcome": "CONTINUE_ON_TRACK",
+      "actualOutcome": "CONTINUE_ON_TRACK",
+      "expectedReasonCodes": [],
+      "actualReasonCodes": [],
+      "matchesExpected": true,
+      "falsePositiveNotes": "No signal expected.",
+      "falseNegativeNotes": "None.",
+      "unsupportedObservabilityNotes": "Structured next action not observed at this boundary."
+    },
+    {
+      "caseId": "opaque-provider",
+      "expectedOutcome": "CONTINUE_ON_TRACK",
+      "actualOutcome": "CONTINUE_ON_TRACK",
+      "expectedReasonCodes": [],
+      "actualReasonCodes": [],
+      "matchesExpected": true,
+      "falsePositiveNotes": "No hidden provider activity is classified.",
+      "falseNegativeNotes": "Hidden drift cannot be detected without a host boundary.",
+      "unsupportedObservabilityNotes": "Internal reads, tools, delegation, context expansion, and next action are not observable."
+    },
+    {
+      "caseId": "owner-review-open-decision",
+      "expectedOutcome": "NEEDS_OWNER_REVIEW",
+      "actualOutcome": "NEEDS_OWNER_REVIEW",
+      "expectedReasonCodes": ["OPEN_DECISION_ASSUMPTION"],
+      "actualReasonCodes": ["OPEN_DECISION_ASSUMPTION"],
+      "matchesExpected": true,
+      "falsePositiveNotes": "The target remains inside accepted scope.",
+      "falseNegativeNotes": "Unstructured assumptions remain unobservable.",
+      "unsupportedObservabilityNotes": "Provider-internal reasoning is not inferred."
+    },
+    {
+      "caseId": "rejected-hypothesis-reopened",
+      "expectedOutcome": "CHECKPOINT_RECOMMENDED",
+      "actualOutcome": "CHECKPOINT_RECOMMENDED",
+      "expectedReasonCodes": ["REJECTED_HYPOTHESIS_REOPENED"],
+      "actualReasonCodes": ["REJECTED_HYPOTHESIS_REOPENED"],
+      "matchesExpected": true,
+      "falsePositiveNotes": "Revisit has no intervening evidence.",
+      "falseNegativeNotes": "None.",
+      "unsupportedObservabilityNotes": "Structured next action not observed at this boundary."
+    },
+    {
+      "caseId": "repeated-target",
+      "expectedOutcome": "CHECKPOINT_RECOMMENDED",
+      "actualOutcome": "CHECKPOINT_RECOMMENDED",
+      "expectedReasonCodes": ["REPEATED_TARGET_NO_NEW_EVIDENCE"],
+      "actualReasonCodes": ["REPEATED_TARGET_NO_NEW_EVIDENCE"],
+      "matchesExpected": true,
+      "falsePositiveNotes": "Threshold requires three visits; last two add no evidence.",
+      "falseNegativeNotes": "None.",
+      "unsupportedObservabilityNotes": "Structured next action not observed at this boundary."
+    },
+    {
+      "caseId": "soft-budget-pressure",
+      "expectedOutcome": "CHECKPOINT_RECOMMENDED",
+      "actualOutcome": "CHECKPOINT_RECOMMENDED",
+      "expectedReasonCodes": ["SOFT_BUDGET_PRESSURE"],
+      "actualReasonCodes": ["SOFT_BUDGET_PRESSURE"],
+      "matchesExpected": true,
+      "falsePositiveNotes": "Uses a deliberately small synthetic mission budget.",
+      "falseNegativeNotes": "None.",
+      "unsupportedObservabilityNotes": "Structured next action not observed at this boundary."
+    },
+    {
+      "caseId": "sufficient-evidence",
+      "expectedOutcome": "STOP_SUFFICIENT_EVIDENCE",
+      "actualOutcome": "STOP_SUFFICIENT_EVIDENCE",
+      "expectedReasonCodes": ["SUFFICIENT_EVIDENCE_REACHED"],
+      "actualReasonCodes": ["SUFFICIENT_EVIDENCE_REACHED"],
+      "matchesExpected": true,
+      "falsePositiveNotes": "Every gap is closed and every goal/constraint meets configured sufficiency.",
+      "falseNegativeNotes": "None.",
+      "unsupportedObservabilityNotes": "Structured next action not observed at this boundary."
+    },
+    {
+      "caseId": "unrelated-rabbit-hole",
+      "expectedOutcome": "SCOPE_TRIAGE_REQUIRED",
+      "actualOutcome": "SCOPE_TRIAGE_REQUIRED",
+      "expectedReasonCodes": ["UNSUPPORTED_NEXT_ACTION", "UNAPPROVED_SCOPE_EXPANSION"],
+      "actualReasonCodes": ["UNSUPPORTED_NEXT_ACTION", "UNAPPROVED_SCOPE_EXPANSION"],
+      "matchesExpected": true,
+      "falsePositiveNotes": "The real finding is retained but does not expand the mission.",
+      "falseNegativeNotes": "None.",
+      "unsupportedObservabilityNotes": "Provider-internal activity before the proposal remains opaque."
+    },
+    {
+      "caseId": "unresolved-decision-assumption",
+      "expectedOutcome": "SCOPE_TRIAGE_REQUIRED",
+      "actualOutcome": "SCOPE_TRIAGE_REQUIRED",
+      "expectedReasonCodes": ["UNAPPROVED_SCOPE_EXPANSION", "OPEN_DECISION_ASSUMPTION"],
+      "actualReasonCodes": ["UNAPPROVED_SCOPE_EXPANSION", "OPEN_DECISION_ASSUMPTION"],
+      "matchesExpected": true,
+      "falsePositiveNotes": "The TG00 trace also enters the unapproved outbox alternative; scope triage has precedence.",
+      "falseNegativeNotes": "Unstructured assumptions remain unobservable.",
+      "unsupportedObservabilityNotes": "Provider-internal reasoning is not inferred."
+    },
+    {
+      "caseId": "unsupported-next-action",
+      "expectedOutcome": "CHECKPOINT_RECOMMENDED",
+      "actualOutcome": "CHECKPOINT_RECOMMENDED",
+      "expectedReasonCodes": ["UNSUPPORTED_NEXT_ACTION"],
+      "actualReasonCodes": ["UNSUPPORTED_NEXT_ACTION"],
+      "matchesExpected": true,
+      "falsePositiveNotes": "Accepted scope alone is not a mission justification.",
+      "falseNegativeNotes": "None.",
+      "unsupportedObservabilityNotes": "Provider-internal activity before the proposal remains opaque."
+    }
+  ],
+  "summary": {
+    "caseCount": 15,
+    "matchedCount": 15,
+    "mismatchCount": 0,
+    "providerCalls": 0,
+    "networkCalls": 0
+  }
+}
