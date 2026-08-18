@@ -42,6 +42,7 @@ tests=(
   story-start-scope-v2-governor.sh
   story-start-scope-v2-integration.sh
   story-start-scope-v2-release-gate.sh
+  story-start-stage-routing.sh
   testbook-tools.sh
   user-context.sh
   user-learning-aggregation.sh

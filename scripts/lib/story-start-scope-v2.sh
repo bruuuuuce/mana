@@ -7,6 +7,32 @@ mana_story_start_scope_v2_root() {
   cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd
 }
 
+# Stage routes are resolved by run-profile.sh. Direct library callers retain
+# their previous single-model behavior when these optional variables are absent.
+mana_story_start_scope_v2_stage_model() {
+  local stage="$1" fallback_model="$2" variable_name
+  case "$stage" in
+    discovery) variable_name=MANA_STORY_START_STAGE_DISCOVERY_MODEL ;;
+    triage) variable_name=MANA_STORY_START_STAGE_TRIAGE_MODEL ;;
+    planner) variable_name=MANA_STORY_START_STAGE_PLANNER_MODEL ;;
+    correction) variable_name=MANA_STORY_START_STAGE_CORRECTION_MODEL ;;
+    *) return 1 ;;
+  esac
+  printf '%s' "${!variable_name:-$fallback_model}"
+}
+
+mana_story_start_scope_v2_stage_effort() {
+  local stage="$1" variable_name
+  case "$stage" in
+    discovery) variable_name=MANA_STORY_START_STAGE_DISCOVERY_EFFORT ;;
+    triage) variable_name=MANA_STORY_START_STAGE_TRIAGE_EFFORT ;;
+    planner) variable_name=MANA_STORY_START_STAGE_PLANNER_EFFORT ;;
+    correction) variable_name=MANA_STORY_START_STAGE_CORRECTION_EFFORT ;;
+    *) return 1 ;;
+  esac
+  printf '%s' "${!variable_name:-}"
+}
+
 mana_story_start_scope_v2_discovery_prompt() {
   local package="$1"
   cat <<'CONTRACT'
@@ -45,7 +71,14 @@ mana_story_start_scope_v2_validate_discovery() {
 # The caller owns evidence collection. This phase gives the provider only a
 # compact package, so later phases need not receive a repository.
 mana_story_start_scope_v2_discover() {
-  local provider="$1" model="$2" package="$3" output="$4"
+  local provider model effort package output
+  if [ "$#" -eq 5 ]; then
+    provider="$1"; model="$2"; effort="$3"; package="$4"; output="$5"
+  elif [ "$#" -eq 4 ]; then
+    provider="$1"; model="$2"; effort=""; package="$3"; output="$4"
+  else
+    return 2
+  fi
   local root schema normalizer scratch prompt program output_file status_file stage timeout code signal timed_out descendants
   root="$(mana_story_start_scope_v2_root)"
   schema="$root/contracts/story-start/scope-v2/schemas/discovery-inventory.schema.json"
@@ -60,7 +93,7 @@ mana_story_start_scope_v2_discover() {
   mkdir -p "$scratch/empty"
   prompt="$(mana_story_start_scope_v2_discovery_prompt "$package")" || { rm -rf "$scratch"; return 2; }
   MANA_PROVIDER_PROGRAM="$provider"
-  mana_provider_synthesis_args "$provider" "$scratch/empty" "$model" host-disposable-non-git "$schema" || { rm -rf "$scratch"; echo 'ERROR: Discovery v2 provider arguments could not be constructed' >&2; return 2; }
+  mana_provider_synthesis_args "$provider" "$scratch/empty" "$model" host-disposable-non-git "$schema" "$effort" || { rm -rf "$scratch"; echo 'ERROR: Discovery v2 provider arguments could not be constructed' >&2; return 2; }
   program="${MANA_PROVIDER_PROGRAM:-$provider}"
   command -v "$program" >/dev/null 2>&1 || { rm -rf "$scratch"; echo "ERROR: Discovery v2 provider is unavailable: $program" >&2; return 2; }
   output_file="$scratch/provider-output.json"
@@ -122,7 +155,14 @@ mana_story_start_scope_v2_validate_triage() {
 
 # Arguments: provider model normalized-story.json discovery-v2.json output.json.
 mana_story_start_scope_v2_triage() {
-  local provider="$1" model="$2" story="$3" discovery="$4" output="$5"
+  local provider model effort story discovery output
+  if [ "$#" -eq 6 ]; then
+    provider="$1"; model="$2"; effort="$3"; story="$4"; discovery="$5"; output="$6"
+  elif [ "$#" -eq 5 ]; then
+    provider="$1"; model="$2"; effort=""; story="$3"; discovery="$4"; output="$5"
+  else
+    return 2
+  fi
   local root schema normalizer scratch prompt program output_file status_file stage timeout code signal timed_out descendants
   root="$(mana_story_start_scope_v2_root)"
   schema="$root/contracts/story-start/scope-v2/schemas/scope-triage.schema.json"
@@ -139,7 +179,7 @@ mana_story_start_scope_v2_triage() {
   mkdir -p "$scratch/empty"
   prompt="$(mana_story_start_scope_v2_triage_prompt "$story" "$discovery")" || { rm -rf "$scratch"; return 2; }
   MANA_PROVIDER_PROGRAM="$provider"
-  mana_provider_synthesis_args "$provider" "$scratch/empty" "$model" host-disposable-non-git "$schema" || { rm -rf "$scratch"; echo 'ERROR: Scope Triage provider arguments could not be constructed' >&2; return 2; }
+  mana_provider_synthesis_args "$provider" "$scratch/empty" "$model" host-disposable-non-git "$schema" "$effort" || { rm -rf "$scratch"; echo 'ERROR: Scope Triage provider arguments could not be constructed' >&2; return 2; }
   program="${MANA_PROVIDER_PROGRAM:-$provider}"
   command -v "$program" >/dev/null 2>&1 || { rm -rf "$scratch"; echo "ERROR: Scope Triage provider is unavailable: $program" >&2; return 2; }
   output_file="$scratch/provider-output.json"
@@ -215,7 +255,14 @@ mana_story_start_scope_v2_validate_plan() {
 # isolated provider boundary but deliberately does not validate or publish the
 # candidate, so SS05 can report and correct first-pass validation failures.
 mana_story_start_scope_v2_plan_candidate() {
-  local provider="$1" model="$2" story="$3" context="$4" triage="$5" output="$6"
+  local provider model effort story context triage output
+  if [ "$#" -eq 7 ]; then
+    provider="$1"; model="$2"; effort="$3"; story="$4"; context="$5"; triage="$6"; output="$7"
+  elif [ "$#" -eq 6 ]; then
+    provider="$1"; model="$2"; effort=""; story="$3"; context="$4"; triage="$5"; output="$6"
+  else
+    return 2
+  fi
   local root schema normalizer scratch prompt program output_file status_file stage timeout code signal timed_out descendants
   root="$(mana_story_start_scope_v2_root)"
   schema="$root/contracts/story-start/scope-v2/schemas/implementation-plan.schema.json"
@@ -233,7 +280,7 @@ mana_story_start_scope_v2_plan_candidate() {
   mkdir -p "$scratch/empty"
   prompt="$(mana_story_start_scope_v2_plan_prompt "$story" "$context" "$triage")" || { rm -rf "$scratch"; return 2; }
   MANA_PROVIDER_PROGRAM="$provider"
-  mana_provider_synthesis_args "$provider" "$scratch/empty" "$model" host-disposable-non-git "$schema" || { rm -rf "$scratch"; echo 'ERROR: Planner v2 provider arguments could not be constructed' >&2; return 2; }
+  mana_provider_synthesis_args "$provider" "$scratch/empty" "$model" host-disposable-non-git "$schema" "$effort" || { rm -rf "$scratch"; echo 'ERROR: Planner v2 provider arguments could not be constructed' >&2; return 2; }
   program="${MANA_PROVIDER_PROGRAM:-$provider}"
   command -v "$program" >/dev/null 2>&1 || { rm -rf "$scratch"; echo "ERROR: Planner v2 provider is unavailable: $program" >&2; return 2; }
   output_file="$scratch/provider-output.json"
@@ -254,14 +301,21 @@ mana_story_start_scope_v2_plan_candidate() {
 # Arguments: provider model normalized-story.json planning-context.json
 # scope-triage-v2.json normalized-plan.json.
 mana_story_start_scope_v2_plan() {
-  local provider="$1" model="$2" story="$3" context="$4" triage="$5" output="$6"
+  local provider model effort story context triage output
+  if [ "$#" -eq 7 ]; then
+    provider="$1"; model="$2"; effort="$3"; story="$4"; context="$5"; triage="$6"; output="$7"
+  elif [ "$#" -eq 6 ]; then
+    provider="$1"; model="$2"; effort=""; story="$3"; context="$4"; triage="$5"; output="$6"
+  else
+    return 2
+  fi
   local root schema normalizer scratch raw stage
   root="$(mana_story_start_scope_v2_root)"
   schema="$root/contracts/story-start/scope-v2/schemas/implementation-plan.schema.json"
   normalizer="$root/scripts/lib/story-start-scope-v2-normalize.py"
   scratch="$(mktemp -d "${TMPDIR:-/tmp}/mana-story-start-plan-normalize-v2.XXXXXX")" || return 2
   raw="$scratch/provider-output.json"
-  if ! mana_story_start_scope_v2_plan_candidate "$provider" "$model" "$story" "$context" "$triage" "$raw"; then
+  if ! mana_story_start_scope_v2_plan_candidate "$provider" "$model" "$effort" "$story" "$context" "$triage" "$raw"; then
     rm -rf "$scratch"
     return 1
   fi
@@ -324,7 +378,14 @@ CONTRACT
 # Exactly one corrective provider call is possible. A failed second validation
 # publishes only needs_owner_review diagnostics, never an invalid or legacy plan.
 mana_story_start_scope_v2_govern_with_correction() {
-  local provider="$1" model="$2" discovery="$3" triage="$4" candidate="$5" output="$6" report="$7"
+  local provider model effort discovery triage candidate output report
+  if [ "$#" -eq 8 ]; then
+    provider="$1"; model="$2"; effort="$3"; discovery="$4"; triage="$5"; candidate="$6"; output="$7"; report="$8"
+  elif [ "$#" -eq 7 ]; then
+    provider="$1"; model="$2"; effort=""; discovery="$3"; triage="$4"; candidate="$5"; output="$6"; report="$7"
+  else
+    return 2
+  fi
   local root governor normalizer plan_schema scratch initial corrected_raw corrected_normalized context prompt program status_file timeout code signal timed_out descendants stage
   root="$(mana_story_start_scope_v2_root)"
   governor="$root/scripts/lib/story-start-scope-v2-govern.py"
@@ -352,7 +413,7 @@ mana_story_start_scope_v2_govern_with_correction() {
   prompt="$(mana_story_start_scope_v2_correction_prompt "$candidate" "$initial")" || { rm -rf "$scratch"; return 2; }
   mkdir -p "$scratch/empty"
   MANA_PROVIDER_PROGRAM="$provider"
-  if ! mana_provider_synthesis_args "$provider" "$scratch/empty" "$model" host-disposable-non-git "$plan_schema"; then
+  if ! mana_provider_synthesis_args "$provider" "$scratch/empty" "$model" host-disposable-non-git "$plan_schema" "$effort"; then
     if ! python3 "$governor" provider-failed "$initial" "$report" 'Corrective provider arguments could not be constructed.' >/dev/null 2>&1; then
       rm -rf "$scratch"
       echo 'ERROR: Scope Governor could not publish owner-review diagnostics' >&2
@@ -414,14 +475,18 @@ mana_story_start_scope_v2_govern_with_correction() {
 # before a plan can be published. Public Story Start does not call this until SS06.
 mana_story_start_scope_v2_plan_governed() {
   local provider="$1" model="$2" story="$3" discovery="$4" context="$5" triage="$6" output="$7" report="$8"
-  local root schema normalizer scratch raw candidate
+  local root schema normalizer scratch raw candidate planner_model planner_effort correction_model correction_effort
   root="$(mana_story_start_scope_v2_root)"
   schema="$root/contracts/story-start/scope-v2/schemas/implementation-plan.schema.json"
   normalizer="$root/scripts/lib/story-start-scope-v2-normalize.py"
+  planner_model="$(mana_story_start_scope_v2_stage_model planner "$model")" || return 2
+  planner_effort="$(mana_story_start_scope_v2_stage_effort planner)" || return 2
+  correction_model="$(mana_story_start_scope_v2_stage_model correction "$model")" || return 2
+  correction_effort="$(mana_story_start_scope_v2_stage_effort correction)" || return 2
   scratch="$(mktemp -d "${TMPDIR:-/tmp}/mana-story-start-plan-governed-v2.XXXXXX")" || return 2
   raw="$scratch/provider-output.json"
   candidate="$scratch/candidate-plan.json"
-  if ! mana_story_start_scope_v2_plan_candidate "$provider" "$model" "$story" "$context" "$triage" "$raw"; then
+  if ! mana_story_start_scope_v2_plan_candidate "$provider" "$planner_model" "$planner_effort" "$story" "$context" "$triage" "$raw"; then
     rm -rf "$scratch"
     return 1
   fi
@@ -431,7 +496,7 @@ mana_story_start_scope_v2_plan_governed() {
   else
     cp "$raw" "$candidate" || { rm -rf "$scratch"; return 2; }
   fi
-  mana_story_start_scope_v2_govern_with_correction "$provider" "$model" "$discovery" "$triage" "$candidate" "$output" "$report"
+  mana_story_start_scope_v2_govern_with_correction "$provider" "$correction_model" "$correction_effort" "$discovery" "$triage" "$candidate" "$output" "$report"
   local result=$?
   rm -rf "$scratch"
   return "$result"
@@ -542,10 +607,14 @@ mana_story_start_scope_v2_publish_failure() {
 # Arguments: provider model story-context-package.json active-workspace.
 mana_story_start_scope_v2_run_public() {
   local provider="$1" model="$2" package="$3" workspace="$4"
-  local root normalizer renderer scratch story discovery triage context plan governance status report story_id
+  local root normalizer renderer scratch story discovery triage context plan governance status report story_id discovery_model discovery_effort triage_model triage_effort
   root="$(mana_story_start_scope_v2_root)"
   normalizer="$root/scripts/lib/story-start-scope-v2-normalize.py"
   renderer="$root/scripts/lib/story-start-scope-v2-render.py"
+  discovery_model="$(mana_story_start_scope_v2_stage_model discovery "$model")" || return 2
+  discovery_effort="$(mana_story_start_scope_v2_stage_effort discovery)" || return 2
+  triage_model="$(mana_story_start_scope_v2_stage_model triage "$model")" || return 2
+  triage_effort="$(mana_story_start_scope_v2_stage_effort triage)" || return 2
   mana_story_start_scope_v2_validate_public_context "$package" || return 2
   if [ ! -d "$workspace" ] || [ -L "$workspace" ]; then
     echo "ERROR: active Story Start workspace is missing or unsafe: $workspace" >&2
@@ -563,13 +632,13 @@ mana_story_start_scope_v2_run_public() {
   report="$scratch/report.md"
   jq -S '{storyId, normalizedStory}' "$package" > "$story" || { rm -rf "$scratch"; return 2; }
 
-  if ! mana_story_start_scope_v2_discover "$provider" "$model" "$package" "$discovery"; then
+  if ! mana_story_start_scope_v2_discover "$provider" "$discovery_model" "$discovery_effort" "$package" "$discovery"; then
     rm -rf "$scratch"
     mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" discovery \
       'Discovery v2 provider failed or returned an invalid structured artifact.'
     return 1
   fi
-  if ! mana_story_start_scope_v2_triage "$provider" "$model" "$story" "$discovery" "$triage"; then
+  if ! mana_story_start_scope_v2_triage "$provider" "$triage_model" "$triage_effort" "$story" "$discovery" "$triage"; then
     rm -rf "$scratch"
     mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" triage \
       'Scope Triage v2 provider failed or returned an invalid structured artifact.'
