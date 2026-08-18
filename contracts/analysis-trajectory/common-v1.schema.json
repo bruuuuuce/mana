@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.common/v1",
+  "$defs": {
+    "ref": {"type": "string", "pattern": "^[A-Za-z0-9._:/-]{1,128}$"},
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "nullableRef": {"anyOf": [{"$ref": "#/$defs/ref"}, {"type": "null"}]},
+    "nullableHash": {"anyOf": [{"$ref": "#/$defs/hash"}, {"type": "null"}]},
+    "refs": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/ref"}
+    },
+    "acceptanceCriterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "text", "approvalStatus"],
+      "properties": {
+        "ref": {"$ref": "#/$defs/ref"},
+        "text": {"type": "string", "minLength": 1, "maxLength": 2048},
+        "approvalStatus": {"type": "string", "minLength": 1, "maxLength": 64}
+      }
+    },
+    "mandatoryConstraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "kind", "statement"],
+      "properties": {
+        "ref": {"$ref": "#/$defs/ref"},
+        "kind": {"$ref": "#/$defs/ref"},
+        "statement": {"type": "string", "minLength": 1, "maxLength": 1024}
+      }
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxEvents", "maxProviderIterations", "maxVisitedScopeRefs", "maxEvidenceRefs", "maxLedgerRefs", "maxEnvelopeEvidenceEvents", "maxEnvelopeBytes", "maxEnvelopeTokenProxy"],
+      "properties": {
+        "maxEvents": {"type": "integer", "minimum": 1, "maximum": 100000000},
+        "maxProviderIterations": {"type": "integer", "minimum": 1, "maximum": 100000000},
+        "maxVisitedScopeRefs": {"type": "integer", "minimum": 1, "maximum": 100000000},
+        "maxEvidenceRefs": {"type": "integer", "minimum": 1, "maximum": 100000000},
+        "maxLedgerRefs": {"type": "integer", "minimum": 1, "maximum": 100000000},
+        "maxEnvelopeEvidenceEvents": {"type": "integer", "minimum": 1, "maximum": 100000000},
+        "maxEnvelopeBytes": {"type": "integer", "minimum": 1, "maximum": 100000000},
+        "maxEnvelopeTokenProxy": {"type": "integer", "minimum": 1, "maximum": 100000000}
+      }
+    },
+    "scopePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["initialStoryScopeRefs", "requirementDependencyScopeRefs", "mandatoryConstraintScopeLinks", "proposedExpansionScopeRefs", "globalMandatoryScopeRefs"],
+      "properties": {
+        "initialStoryScopeRefs": {"$ref": "#/$defs/refs"},
+        "requirementDependencyScopeRefs": {"$ref": "#/$defs/refs"},
+        "mandatoryConstraintScopeLinks": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["scopeRef", "mandatoryConstraintRefs"],
+            "properties": {
+              "scopeRef": {"$ref": "#/$defs/ref"},
+              "mandatoryConstraintRefs": {"$ref": "#/$defs/refs"}
+            }
+          }
+        },
+        "proposedExpansionScopeRefs": {"$ref": "#/$defs/refs"},
+        "globalMandatoryScopeRefs": {"$ref": "#/$defs/refs"}
+      }
+    }
+  }
+}

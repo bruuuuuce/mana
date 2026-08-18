@@ -1,0 +1,21 @@
+{
+  "packageVersion": "mana.story-start.discovery-package/v1",
+  "storyId": "story-synthetic-signal-001",
+  "sourceTopology": "tg00-traces-v1",
+  "normalizedStory": {
+    "summary": "Publish a fictional signal after commit and expose its delivery result.",
+    "acceptanceCriteria": [
+      {
+        "sourceKey": "AC-SYN-01",
+        "status": "approved",
+        "text": "The fictional signal is published only after its local change commits."
+      },
+      {
+        "sourceKey": "AC-SYN-02",
+        "status": "approved",
+        "text": "An authorized actor can inspect the bounded delivery result."
+      }
+    ]
+  },
+  "note": "Synthetic TG03 authoritative Story Start input; no repository or customer content."
+}

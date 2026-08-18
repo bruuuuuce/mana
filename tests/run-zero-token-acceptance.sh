@@ -6,6 +6,7 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 tests=(
   analysis-trajectory-guard-tg00-fixtures.sh
   analysis-trajectory-guard-tg02-telemetry.sh
+  analysis-trajectory-guard-tg03-state.sh
   behavioural-evals.sh
   bounded-repair-loop.sh
   bounded-repair.sh

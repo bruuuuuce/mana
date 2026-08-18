@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "mana.analysis-trajectory.checkpoint-input/v1",
+  "triggerReasons": ["fixture-external-boundary"],
+  "nextActionProposals": [
+    {
+      "actionId": "action-inspect-commit-hook",
+      "actionKind": "inspect-scope",
+      "targetScopeRef": "scope-signal-api",
+      "justificationGoalRefs": ["AC-SYN-01"],
+      "justificationGapRefs": ["GAP-COMMIT-HOOK"],
+      "mandatoryConstraintRefs": [],
+      "expectedEvidence": "A bounded reference to the verified after-commit seam.",
+      "decisionDependencies": [],
+      "scopeExpansionRequired": false,
+      "estimatedBudgetDelta": {
+        "providerCalls": 1,
+        "tokenProxy": 800
+      }
+    }
+  ]
+}

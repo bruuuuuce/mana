@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.evidence-gap/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "gapId", "description", "relatedAcceptanceCriterionRefs", "relatedMandatoryConstraintRefs", "expectedEvidenceType", "sourceHint", "status", "openedEventRef", "closedEventRef"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.evidence-gap/v1"},
+    "gapId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+    "description": {"type": "string", "minLength": 1, "maxLength": 512},
+    "relatedAcceptanceCriterionRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "relatedMandatoryConstraintRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "expectedEvidenceType": {"$ref": "common-v1.schema.json#/$defs/ref"},
+    "sourceHint": {"anyOf": [{"type": "string", "minLength": 1, "maxLength": 256}, {"type": "null"}]},
+    "status": {"enum": ["OPEN", "RESOLVED"]},
+    "openedEventRef": {"$ref": "common-v1.schema.json#/$defs/ref"},
+    "closedEventRef": {"$ref": "common-v1.schema.json#/$defs/nullableRef"}
+  }
+}

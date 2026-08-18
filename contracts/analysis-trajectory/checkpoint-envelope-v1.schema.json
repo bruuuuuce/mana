@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.checkpoint-envelope/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "missionContract", "ledgerSnapshot", "evidenceDelta", "evidenceDeltaTruncatedCount", "triggerReasons", "nextActionProposals", "measurements"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.checkpoint-envelope/v1"},
+    "missionContract": {"$ref": "mission-contract-v1.schema.json"},
+    "ledgerSnapshot": {"$ref": "trajectory-ledger-v1.schema.json"},
+    "evidenceDelta": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["eventRef", "sequence", "targetScopeRef", "acceptanceCriterionRefs", "evidenceGapRefs", "evidenceAddedRefs"],
+        "properties": {
+          "eventRef": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "sequence": {"type": "integer", "minimum": 1},
+          "targetScopeRef": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "acceptanceCriterionRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "evidenceGapRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "evidenceAddedRefs": {"$ref": "common-v1.schema.json#/$defs/refs"}
+        }
+      }
+    },
+    "evidenceDeltaTruncatedCount": {"type": "integer", "minimum": 0},
+    "triggerReasons": {"type": "array", "maxItems": 32, "uniqueItems": true, "items": {"$ref": "common-v1.schema.json#/$defs/ref"}},
+    "nextActionProposals": {"$ref": "checkpoint-input-v1.schema.json#/properties/nextActionProposals"},
+    "measurements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["serializedBytes", "tokenProxyEstimate", "softByteLimit", "hardByteLimit", "softTokenProxyLimit", "hardTokenProxyLimit", "softLimitExceeded"],
+      "properties": {
+        "serializedBytes": {"type": "integer", "minimum": 1},
+        "tokenProxyEstimate": {"type": "integer", "minimum": 1},
+        "softByteLimit": {"type": "integer", "minimum": 1},
+        "hardByteLimit": {"type": "integer", "minimum": 1},
+        "softTokenProxyLimit": {"type": "integer", "minimum": 1},
+        "hardTokenProxyLimit": {"type": "integer", "minimum": 1},
+        "softLimitExceeded": {"type": "boolean"}
+      }
+    }
+  }
+}

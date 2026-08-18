@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "mana.analysis-trajectory.mission-seed/v1",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "authoritativeInputRefs": [
+    "fixture:tg00-traces-v1",
+    "fixture:tg03-story-package-v1"
+  ],
+  "scopePolicy": {
+    "initialStoryScopeRefs": [
+      "scope-signal-api",
+      "scope-signal-store"
+    ],
+    "requirementDependencyScopeRefs": [
+      "scope-delivery-callback",
+      "scope-profile-index"
+    ],
+    "mandatoryConstraintScopeLinks": [
+      {
+        "scopeRef": "scope-access-policy",
+        "mandatoryConstraintRefs": ["CONSTRAINT-AUTHZ-01"]
+      }
+    ],
+    "proposedExpansionScopeRefs": [
+      "scope-archive-search",
+      "scope-outbox-store"
+    ],
+    "globalMandatoryScopeRefs": [
+      "scope-compliance-controls",
+      "scope-data-integrity",
+      "scope-security-controls"
+    ]
+  },
+  "mandatoryConstraints": [
+    {
+      "ref": "CONSTRAINT-AUTHZ-01",
+      "kind": "authorization",
+      "statement": "Delivery-result visibility must preserve the fictional authorization boundary."
+    }
+  ],
+  "evidenceGaps": [
+    {
+      "gapId": "GAP-AUTHZ-CHECK",
+      "description": "Confirm which host-visible authorization check protects the result.",
+      "relatedAcceptanceCriterionRefs": ["AC-SYN-02"],
+      "relatedMandatoryConstraintRefs": ["CONSTRAINT-AUTHZ-01"],
+      "expectedEvidenceType": "verified-control",
+      "sourceHint": "scope-access-policy"
+    },
+    {
+      "gapId": "GAP-COMMIT-HOOK",
+      "description": "Locate the host-visible seam that runs after the local commit.",
+      "relatedAcceptanceCriterionRefs": ["AC-SYN-01"],
+      "relatedMandatoryConstraintRefs": [],
+      "expectedEvidenceType": "verified-call-site",
+      "sourceHint": "scope-signal-api"
+    },
+    {
+      "gapId": "GAP-DELIVERY-GUARANTEE",
+      "description": "Preserve the unresolved choice of delivery guarantee without selecting an option.",
+      "relatedAcceptanceCriterionRefs": ["AC-SYN-01"],
+      "relatedMandatoryConstraintRefs": [],
+      "expectedEvidenceType": "owner-decision",
+      "sourceHint": "scope-delivery-callback"
+    },
+    {
+      "gapId": "GAP-DEPENDENCY-CONTRACT",
+      "description": "Verify the bounded dependency contract needed to expose the result.",
+      "relatedAcceptanceCriterionRefs": ["AC-SYN-02"],
+      "relatedMandatoryConstraintRefs": [],
+      "expectedEvidenceType": "verified-contract",
+      "sourceHint": "scope-profile-index"
+    },
+    {
+      "gapId": "GAP-RESULT-VISIBILITY",
+      "description": "Identify how the delivery result becomes visible to an authorized actor.",
+      "relatedAcceptanceCriterionRefs": ["AC-SYN-02"],
+      "relatedMandatoryConstraintRefs": ["CONSTRAINT-AUTHZ-01"],
+      "expectedEvidenceType": "verified-flow",
+      "sourceHint": "scope-signal-api"
+    }
+  ],
+  "prohibitedActions": [
+    "no-direct-mission-mutation",
+    "no-unapproved-scope-expansion",
+    "no-provider-internal-tool-claims"
+  ],
+  "stopConditions": [
+    "all-active-gaps-resolved",
+    "hard-budget-reached",
+    "owner-review-required"
+  ],
+  "softBudgets": {
+    "maxEvents": 128,
+    "maxProviderIterations": 32,
+    "maxVisitedScopeRefs": 32,
+    "maxEvidenceRefs": 64,
+    "maxLedgerRefs": 64,
+    "maxEnvelopeEvidenceEvents": 24,
+    "maxEnvelopeBytes": 65536,
+    "maxEnvelopeTokenProxy": 16384
+  },
+  "hardBudgets": {
+    "maxEvents": 256,
+    "maxProviderIterations": 64,
+    "maxVisitedScopeRefs": 64,
+    "maxEvidenceRefs": 128,
+    "maxLedgerRefs": 128,
+    "maxEnvelopeEvidenceEvents": 48,
+    "maxEnvelopeBytes": 131072,
+    "maxEnvelopeTokenProxy": 32768
+  }
+}
