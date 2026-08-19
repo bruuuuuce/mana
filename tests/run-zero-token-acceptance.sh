@@ -17,6 +17,7 @@ tests=(
   bug-hunter-agent.sh
   cast.sh
   codex-subagent-regression.sh
+  context-runtime-baseline.sh
   divination.sh
   epic-analysis-profile.sh
   explorer-retrieval.sh
@@ -36,6 +37,7 @@ tests=(
   mana-scout.sh
   profile-skill-activation.sh
   provider-dispatch.sh
+  provider-usage.sh
   repair-containment.sh
   runtime-events.sh
   service-knowledge-bootstrap.sh

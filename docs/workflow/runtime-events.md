@@ -32,7 +32,9 @@ delivery evidence and is not duplicated into runtime telemetry.
 No event stores prompts, model responses, reasoning, environment variables,
 credentials, tokens, source contents, arbitrary tool payloads, or unnecessary
 personal data. Attributes accept only compact operational `key=value` facts;
-secret-like names and values are redacted defensively.
+secret-like names and values are redacted defensively. Provider usage is kept
+out of this envelope: [runtime usage observability](runtime-usage-observability.md)
+defines a separate, transcript-free metric artifact.
 
 Use `mana runtime sessions`, `mana runtime events <execution-id>`, and
 `mana runtime show <execution-id>` for inspection. `mana runtime prune

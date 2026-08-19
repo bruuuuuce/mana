@@ -25,6 +25,14 @@ temporary directory, parsed into numeric fields only, and deleted by default.
 The final message is relayed to the existing human output channel, preserving
 the prior command behaviour.
 
+Provider argv is passed to the wrapper as positional Bash arguments, preserving
+argument count, order, repeated flags, and values containing spaces. On `HUP`,
+`INT`, or `TERM`, Mana terminates the supervised provider, writes a best-effort
+interrupted summary when safe, and removes temporary provider files. Usage
+values are accepted only as non-negative integers in Mana's supported numeric
+domain; floats, strings, `null`, negatives, and out-of-domain values are never
+rounded or used in Bash arithmetic.
+
 To retain a raw Codex stream for local debugging only, set:
 
 ```text
@@ -41,3 +49,6 @@ content, environment-variable values, credentials, personal notes, or private
 reasoning. A provider failure still produces a safe summary when the metrics
 directory is writable; any valid usage events emitted before failure are
 included.
+
+Use `mana runtime metrics <execution-id> --json` to inspect the JSON summary;
+without `--json` Mana renders its compact Markdown companion.
