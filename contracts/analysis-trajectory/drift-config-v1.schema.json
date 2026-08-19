@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.drift-config/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "enabled", "mode", "thresholds", "evidenceSufficiency", "equivalentTargetGroups"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.drift-config/v1"},
+    "enabled": {"const": true},
+    "mode": {"const": "SHADOW"},
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repeatedTargetVisitCount", "noNewEvidenceStreak", "softBudgetWarningPercent"],
+      "properties": {
+        "repeatedTargetVisitCount": {"type": "integer", "minimum": 2, "maximum": 32},
+        "noNewEvidenceStreak": {"type": "integer", "minimum": 2, "maximum": 32},
+        "softBudgetWarningPercent": {"type": "integer", "minimum": 50, "maximum": 100}
+      }
+    },
+    "evidenceSufficiency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimumEvidenceRefsPerAcceptanceCriterion", "minimumResolvedGapsPerMandatoryConstraint", "requireNoOpenEvidenceGaps"],
+      "properties": {
+        "minimumEvidenceRefsPerAcceptanceCriterion": {"type": "integer", "minimum": 1, "maximum": 16},
+        "minimumResolvedGapsPerMandatoryConstraint": {"type": "integer", "minimum": 1, "maximum": 16},
+        "requireNoOpenEvidenceGaps": {"const": true}
+      }
+    },
+    "equivalentTargetGroups": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 32,
+        "uniqueItems": true,
+        "items": {"$ref": "common-v1.schema.json#/$defs/ref"}
+      }
+    }
+  }
+}

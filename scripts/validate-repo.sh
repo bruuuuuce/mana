@@ -19,7 +19,7 @@ fi
 for f in README.md LICENSE CHANGELOG.md CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md docs/standards/agent-skill-output-standard.md docs/standards/output-contract.md docs/standards/story-trace-standard.md docs/standards/developer-choice-log-standard.md docs/standards/delivery-metrics-standard.md docs/policies/runtime-execution-contract.md templates/standard-agent-skill-report.template.md templates/delivery-metrics.template.md templates/mana-workspace/story-trace.template.md templates/mana-workspace/developer-choice-log.template.md; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1; fi
 done
-for f in scripts/mana-workspace.sh scripts/mana-context.sh scripts/mana-user-learning.sh scripts/mana-pilot-feedback.sh scripts/mana-journey.sh scripts/mana-history.sh scripts/mana-rationale.sh scripts/mana-diagram.sh scripts/mana-concepts.sh scripts/mana-scout.sh scripts/mana-expand.sh scripts/mana-inspect.sh scripts/build-concept-index.sh scripts/evaluate-concept-index.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/divination.sh scripts/cast.sh scripts/mana-runtime.sh scripts/mana-explore.sh scripts/mana-learning.sh scripts/mana-eval.sh scripts/mana-verify.sh scripts/mana-repair.sh scripts/mana-repair-loop.sh scripts/mana-governance-report.sh scripts/validate-divination-metadata.sh scripts/validate-verification-skills.sh scripts/validate-story-start-scope-v2-contract.sh scripts/lib/divination.sh scripts/lib/explorer-retrieval.sh scripts/lib/user-context.sh scripts/lib/profile-metadata.sh scripts/lib/runtime-events.sh scripts/lib/verification.sh scripts/lib/repair.sh scripts/lib/repair-containment.sh scripts/lib/provider-dispatch.sh scripts/lib/story-start-scope-v2.sh scripts/lib/story-start-scope-v2-normalize.py scripts/lib/story-start-scope-v2-render.py scripts/lib/verification-exec.pl tests/lib/json_schema_subset.py config/divination-domains.tsv config/runtime-retention.env.example config/user-context.env.example docs/workflow/mana-workspace.md docs/workflow/story-start-scope-v2.md docs/workflow/service-context-layer.md docs/workflow/user-context-layer.md docs/workflow/divination.md docs/workflow/casting.md docs/workflow/controlled-explorer-retrieval.md docs/workflow/governed-learning-signals.md docs/workflow/behavioural-evals.md docs/workflow/verification-skills.md docs/workflow/pilot-feedback.md docs/policies/verification-execution-policy.md docs/standards/mana-pilot-feedback-v1.schema.json docs/standards/mana-pilot-feedback-aggregate-v1.schema.json docs/standards/mana-inspect-project-v1.schema.json docs/standards/mana-inspect-artifacts-v1.schema.json docs/standards/user-choice-signal.schema.json docs/standards/recurring-evidence-cluster.schema.json docs/standards/user-context-candidate.schema.json docs/standards/user-context-candidate-review.schema.json docs/standards/verification-evidence-standard.md docs/standards/verification-result.schema.json docs/standards/mana-learning-journey-v0.md docs/standards/mana-learning-journey-v0.schema.json docs/standards/mana-learning-history-v0.md docs/standards/mana-learning-diagram-v0.md docs/standards/mana-learning-concept-v0.schema.json docs/standards/mana-learning-concept-tagging-v0.md docs/standards/mana-learning-scout-v0.md docs/standards/mana-learning-scout-v0.schema.json docs/standards/mana-learning-scout-cycles-v0.md docs/standards/mana-learning-expansion-v0.md docs/standards/mana-learning-expansion-v0.schema.json learning-kb/concept-index.tsv docs/standards/bounded-repair.md docs/standards/repair-target.schema.json docs/standards/repair-attempt-result.schema.json docs/standards/repair-attempt-result.schema.json docs/standards/repair-loop-result.schema.json docs/deployment/project-link-bootstrap.md templates/mana-workspace/manifest.template.yaml templates/mana-workspace/index.template.md templates/mana-workspace/global/service-mission.template.md templates/mana-workspace/global/engineering-guards.template.md templates/mana-workspace/global/hooks-config.template.yaml templates/mana-workspace/global/sonar-project.properties.template; do
+for f in scripts/mana-workspace.sh scripts/mana-context.sh scripts/mana-user-learning.sh scripts/mana-pilot-feedback.sh scripts/mana-journey.sh scripts/mana-history.sh scripts/mana-rationale.sh scripts/mana-diagram.sh scripts/mana-concepts.sh scripts/mana-scout.sh scripts/mana-expand.sh scripts/mana-inspect.sh scripts/build-concept-index.sh scripts/evaluate-concept-index.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/divination.sh scripts/cast.sh scripts/mana-runtime.sh scripts/mana-explore.sh scripts/mana-learning.sh scripts/mana-eval.sh scripts/mana-verify.sh scripts/mana-repair.sh scripts/mana-repair-loop.sh scripts/mana-governance-report.sh scripts/validate-divination-metadata.sh scripts/validate-verification-skills.sh scripts/validate-story-start-scope-v2-contract.sh scripts/lib/divination.sh scripts/lib/explorer-retrieval.sh scripts/lib/user-context.sh scripts/lib/profile-metadata.sh scripts/lib/runtime-events.sh scripts/lib/verification.sh scripts/lib/repair.sh scripts/lib/repair-containment.sh scripts/lib/provider-dispatch.sh scripts/lib/story-start-stage-routing.sh scripts/lib/story-start-scope-v2.sh scripts/lib/story-start-scope-v2-normalize.py scripts/lib/story-start-scope-v2-render.py scripts/lib/verification-exec.pl tests/lib/json_schema_subset.py config/divination-domains.tsv config/runtime-retention.env.example config/user-context.env.example docs/workflow/mana-workspace.md docs/workflow/story-start-scope-v2.md docs/workflow/service-context-layer.md docs/workflow/user-context-layer.md docs/workflow/divination.md docs/workflow/casting.md docs/workflow/controlled-explorer-retrieval.md docs/workflow/governed-learning-signals.md docs/workflow/behavioural-evals.md docs/workflow/verification-skills.md docs/workflow/pilot-feedback.md docs/policies/story-start-stage-routing.md docs/policies/verification-execution-policy.md docs/standards/mana-pilot-feedback-v1.schema.json docs/standards/mana-pilot-feedback-aggregate-v1.schema.json docs/standards/mana-inspect-project-v1.schema.json docs/standards/mana-inspect-artifacts-v1.schema.json docs/standards/user-choice-signal.schema.json docs/standards/recurring-evidence-cluster.schema.json docs/standards/user-context-candidate.schema.json docs/standards/user-context-candidate-review.schema.json docs/standards/verification-evidence-standard.md docs/standards/verification-result.schema.json docs/standards/mana-learning-journey-v0.md docs/standards/mana-learning-journey-v0.schema.json docs/standards/mana-learning-history-v0.md docs/standards/mana-learning-diagram-v0.md docs/standards/mana-learning-concept-v0.schema.json docs/standards/mana-learning-concept-tagging-v0.md docs/standards/mana-learning-scout-v0.md docs/standards/mana-learning-scout-v0.schema.json docs/standards/mana-learning-scout-cycles-v0.md docs/standards/mana-learning-expansion-v0.md docs/standards/mana-learning-expansion-v0.schema.json learning-kb/concept-index.tsv docs/standards/bounded-repair.md docs/standards/repair-target.schema.json docs/standards/repair-attempt-result.schema.json docs/standards/repair-attempt-result.schema.json docs/standards/repair-loop-result.schema.json docs/deployment/project-link-bootstrap.md templates/mana-workspace/manifest.template.yaml templates/mana-workspace/index.template.md templates/mana-workspace/global/service-mission.template.md templates/mana-workspace/global/engineering-guards.template.md templates/mana-workspace/global/hooks-config.template.yaml templates/mana-workspace/global/sonar-project.properties.template; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1; fi
 done
 for f in scripts/lib/story-start-scope-v2-govern.py scripts/lib/story-start-scope-v2-render.py tests/story-start-scope-v2-governor.sh tests/story-start-scope-v2-integration.sh tests/story-start-scope-v2-release-gate.sh docs/roadmap/story-start-scope-v2/ss07-release-readiness.md docs/roadmap/story-start-scope-v2/ss07-human-acceptance-checklist.md; do
@@ -29,11 +29,80 @@ if [ -f "$root/scripts/mana-workspace.sh" ] && [ ! -x "$root/scripts/mana-worksp
   echo "ERROR: scripts/mana-workspace.sh is not executable" >&2
   status=1
 fi
+for f in scripts/lib/analysis-trajectory-telemetry.sh scripts/lib/analysis-trajectory-telemetry.py contracts/analysis-trajectory/telemetry-event-v1.schema.json contracts/analysis-trajectory/run-summary-v1.schema.json docs/policies/analysis-trajectory-telemetry.md tests/analysis-trajectory-guard-tg02-telemetry.sh; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
+done
+for f in scripts/lib/analysis-trajectory-state.py contracts/analysis-trajectory/common-v1.schema.json contracts/analysis-trajectory/evidence-gap-v1.schema.json contracts/analysis-trajectory/mission-contract-v1.schema.json contracts/analysis-trajectory/mission-history-v1.schema.json contracts/analysis-trajectory/mission-seed-v1.schema.json contracts/analysis-trajectory/mission-revision-request-v1.schema.json contracts/analysis-trajectory/trajectory-ledger-v1.schema.json contracts/analysis-trajectory/checkpoint-input-v1.schema.json contracts/analysis-trajectory/checkpoint-envelope-v1.schema.json docs/policies/analysis-trajectory-state.md tests/fixtures/analysis-trajectory-guard/tg03-story-package-v1.json tests/fixtures/analysis-trajectory-guard/tg03-mission-seed-v1.json tests/fixtures/analysis-trajectory-guard/tg03-checkpoint-input-v1.json tests/analysis-trajectory-guard-tg03-state.sh; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
+done
+for f in scripts/lib/analysis-trajectory-drift.py contracts/analysis-trajectory/drift-config-v1.schema.json contracts/analysis-trajectory/drift-observation-v1.schema.json contracts/analysis-trajectory/drift-recommendation-v1.schema.json contracts/analysis-trajectory/drift-evaluation-matrix-v1.schema.json docs/policies/analysis-trajectory-drift.md tests/fixtures/analysis-trajectory-guard/tg04-drift-config-v1.json tests/fixtures/analysis-trajectory-guard/tg04-evaluation-matrix-v1.json tests/analysis-trajectory-guard-tg04-drift.sh; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
+done
+for f in scripts/lib/analysis-trajectory-checkpoint.py scripts/analysis-trajectory-checkpoint-smoke.sh contracts/analysis-trajectory/checkpoint-governor-config-v1.schema.json contracts/analysis-trajectory/trajectory-checkpoint-request-v1.schema.json contracts/analysis-trajectory/trajectory-checkpoint-response-v1.schema.json contracts/analysis-trajectory/trajectory-checkpoint-validation-v1.schema.json contracts/analysis-trajectory/trajectory-checkpoint-run-v1.schema.json docs/policies/analysis-trajectory-checkpoint.md tests/fixtures/analysis-trajectory-guard/tg05-checkpoint-governor-shadow-v1.json tests/fixtures/analysis-trajectory-guard/tg05-checkpoint-governor-off-v1.json tests/analysis-trajectory-guard-tg05-checkpoint.sh; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
+done
+for f in scripts/lib/analysis-trajectory-integration.py scripts/lib/analysis-trajectory-integration.sh contracts/analysis-trajectory/trajectory-evidence-package-v1.schema.json contracts/analysis-trajectory/trajectory-integration-run-v1.schema.json contracts/analysis-trajectory/scope-expansion-proposal-v1.schema.json docs/policies/analysis-trajectory-integration.md tests/fixtures/analysis-trajectory-guard/tg06-scope-expansion-observation-v1.json tests/analysis-trajectory-guard-tg06-integration.sh; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
+done
+if [ -f "$root/tests/analysis-trajectory-guard-tg02-telemetry.sh" ] && [ ! -x "$root/tests/analysis-trajectory-guard-tg02-telemetry.sh" ]; then
+  echo 'ERROR: tests/analysis-trajectory-guard-tg02-telemetry.sh is not executable' >&2
+  status=1
+fi
+if [ -f "$root/tests/analysis-trajectory-guard-tg03-state.sh" ] && [ ! -x "$root/tests/analysis-trajectory-guard-tg03-state.sh" ]; then
+  echo 'ERROR: tests/analysis-trajectory-guard-tg03-state.sh is not executable' >&2
+  status=1
+fi
+if [ -f "$root/scripts/lib/analysis-trajectory-state.py" ] && [ ! -x "$root/scripts/lib/analysis-trajectory-state.py" ]; then
+  echo 'ERROR: scripts/lib/analysis-trajectory-state.py is not executable' >&2
+  status=1
+fi
+if [ -f "$root/scripts/lib/analysis-trajectory-drift.py" ] && [ ! -x "$root/scripts/lib/analysis-trajectory-drift.py" ]; then
+  echo 'ERROR: scripts/lib/analysis-trajectory-drift.py is not executable' >&2
+  status=1
+fi
+for f in scripts/lib/analysis-trajectory-checkpoint.py scripts/analysis-trajectory-checkpoint-smoke.sh tests/analysis-trajectory-guard-tg05-checkpoint.sh; do
+  if [ -f "$root/$f" ] && [ ! -x "$root/$f" ]; then
+    echo "ERROR: $f is not executable" >&2
+    status=1
+  fi
+done
+for f in scripts/lib/analysis-trajectory-integration.py scripts/lib/analysis-trajectory-integration.sh tests/analysis-trajectory-guard-tg06-integration.sh; do
+  if [ -f "$root/$f" ] && [ ! -x "$root/$f" ]; then
+    echo "ERROR: $f is not executable" >&2
+    status=1
+  fi
+done
+for f in scripts/lib/analysis-trajectory-evaluation.py scripts/analysis-trajectory-live-pilot.sh contracts/analysis-trajectory/evaluation-report-v1.schema.json docs/roadmap/analysis-trajectory-guard/tg07-deterministic-evaluation.json docs/roadmap/analysis-trajectory-guard/tg07-release-readiness.md docs/roadmap/analysis-trajectory-guard/tg07-live-pilot.md docs/roadmap/analysis-trajectory-guard/tg07-human-acceptance-checklist.md docs/roadmap/analysis-trajectory-guard/tg07-architecture.md tests/fixtures/analysis-trajectory-guard/tg07-evaluation-expectations-v1.json tests/analysis-trajectory-guard-tg07-evaluation.sh; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
+done
+for f in scripts/lib/analysis-trajectory-evaluation.py scripts/analysis-trajectory-live-pilot.sh tests/analysis-trajectory-guard-tg07-evaluation.sh; do
+  if [ -f "$root/$f" ] && [ ! -x "$root/$f" ]; then
+    echo "ERROR: $f is not executable" >&2
+    status=1
+  fi
+done
+if [ -f "$root/tests/analysis-trajectory-guard-tg07-evaluation.sh" ]; then
+  bash -n "$root/tests/analysis-trajectory-guard-tg07-evaluation.sh" || status=1
+fi
+if [ -f "$root/scripts/analysis-trajectory-checkpoint-smoke.sh" ]; then
+  bash -n "$root/scripts/analysis-trajectory-checkpoint-smoke.sh" || status=1
+fi
+if [ -f "$root/tests/analysis-trajectory-guard-tg05-checkpoint.sh" ]; then
+  bash -n "$root/tests/analysis-trajectory-guard-tg05-checkpoint.sh" || status=1
+fi
+if [ -f "$root/tests/analysis-trajectory-guard-tg04-drift.sh" ]; then
+  if [ ! -x "$root/tests/analysis-trajectory-guard-tg04-drift.sh" ]; then
+    echo 'ERROR: tests/analysis-trajectory-guard-tg04-drift.sh is not executable' >&2
+    status=1
+  else
+    bash -n "$root/tests/analysis-trajectory-guard-tg04-drift.sh" || status=1
+  fi
+fi
 if [ -f "$root/scripts/mana-user-learning.sh" ] && [ ! -x "$root/scripts/mana-user-learning.sh" ]; then
   echo "ERROR: scripts/mana-user-learning.sh is not executable" >&2
   status=1
 fi
-for f in tests/user-learning-e2e.sh tests/user-learning-live-semantic.sh tests/mana-journey.sh tests/mana-history.sh tests/mana-diagram.sh tests/mana-concepts.sh tests/mana-concept-tagging.sh tests/mana-scout.sh tests/mana-scout-cycles.sh tests/mana-expand.sh tests/mana-inspect.sh tests/bug-hunter-agent.sh tests/mana-pilot-feedback.sh tests/run-zero-token-acceptance.sh tests/release-readiness.sh tests/story-start-deterministic-planning.sh tests/story-start-scope-v2-fixture.sh tests/story-start-scope-v2-schemas.sh tests/story-start-scope-v2-discovery.sh tests/story-start-scope-v2-triage.sh tests/story-start-scope-v2-planner.sh tests/story-start-scope-v2-integration.sh tests/story-start-scope-v2-release-gate.sh; do
+for f in tests/user-learning-e2e.sh tests/user-learning-live-semantic.sh tests/mana-journey.sh tests/mana-history.sh tests/mana-diagram.sh tests/mana-concepts.sh tests/mana-concept-tagging.sh tests/mana-scout.sh tests/mana-scout-cycles.sh tests/mana-expand.sh tests/mana-inspect.sh tests/bug-hunter-agent.sh tests/mana-pilot-feedback.sh tests/run-zero-token-acceptance.sh tests/release-readiness.sh tests/story-start-deterministic-planning.sh tests/story-start-scope-v2-fixture.sh tests/story-start-scope-v2-schemas.sh tests/story-start-scope-v2-discovery.sh tests/story-start-scope-v2-triage.sh tests/story-start-scope-v2-planner.sh tests/story-start-scope-v2-integration.sh tests/story-start-scope-v2-release-gate.sh tests/story-start-stage-routing.sh; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1
   elif [ ! -x "$root/$f" ]; then echo "ERROR: $f is not executable" >&2; status=1
   else bash -n "$root/$f" || status=1

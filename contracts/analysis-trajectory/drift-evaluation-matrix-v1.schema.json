@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.drift-evaluation-matrix/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "phase", "mode", "cases", "summary"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.drift-evaluation-matrix/v1"},
+    "phase": {"const": "TG04"},
+    "mode": {"const": "SHADOW"},
+    "cases": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["caseId", "expectedOutcome", "actualOutcome", "expectedReasonCodes", "actualReasonCodes", "matchesExpected", "falsePositiveNotes", "falseNegativeNotes", "unsupportedObservabilityNotes"],
+        "properties": {
+          "caseId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "expectedOutcome": {"type": "string"},
+          "actualOutcome": {"type": "string"},
+          "expectedReasonCodes": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "actualReasonCodes": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "matchesExpected": {"type": "boolean"},
+          "falsePositiveNotes": {"type": "string", "maxLength": 512},
+          "falseNegativeNotes": {"type": "string", "maxLength": 512},
+          "unsupportedObservabilityNotes": {"type": "string", "maxLength": 512}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["caseCount", "matchedCount", "mismatchCount", "providerCalls", "networkCalls"],
+      "properties": {
+        "caseCount": {"type": "integer", "minimum": 10},
+        "matchedCount": {"type": "integer", "minimum": 0},
+        "mismatchCount": {"type": "integer", "minimum": 0},
+        "providerCalls": {"const": 0},
+        "networkCalls": {"const": 0}
+      }
+    }
+  }
+}

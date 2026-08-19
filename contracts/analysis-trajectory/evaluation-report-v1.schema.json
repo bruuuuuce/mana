@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.evaluation-report/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "phase", "evaluationKind", "inputs", "matrix", "metricsByVariant", "qualityProperties", "scopeV2", "modelComparison", "thresholdRecommendations", "livePilot", "humanAcceptance", "rollout", "gate"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.evaluation-report/v1"},
+    "phase": {"const": "TG07"},
+    "evaluationKind": {"const": "DETERMINISTIC_OFFLINE_ZERO_TOKEN"},
+    "inputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["traceSetRef", "traceSetHash", "missionSeedHash", "scopeV2PlanHash", "providerCalls", "networkCalls"],
+      "properties": {
+        "traceSetRef": {"type": "string"}, "traceSetHash": {"type": "string"},
+        "missionSeedHash": {"type": "string"}, "scopeV2PlanHash": {"type": "string"},
+        "providerCalls": {"const": 0}, "networkCalls": {"const": 0}
+      }
+    },
+    "matrix": {
+      "type": "object", "additionalProperties": false,
+      "required": ["topologyCount", "variantCount", "caseCount", "matchedCount", "mismatchCount", "cases"],
+      "properties": {
+        "topologyCount": {"const": 8}, "variantCount": {"const": 5},
+        "caseCount": {"const": 40}, "matchedCount": {"const": 40}, "mismatchCount": {"const": 0},
+        "cases": {
+          "type": "array", "minItems": 40, "maxItems": 40,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["caseId", "traceId", "topology", "variant", "expectedTrajectoryOutcome", "actualTrajectoryOutcome", "checkpointCount", "providerCalls", "providerCallDelta", "evidenceCollectedRefs", "mandatoryEvidenceExpectedRefs", "mandatoryEvidencePreservedRefs", "irrelevantExplorationAvoidedRefs", "unresolvedGapRefs", "scopeExpansionProposalRefs", "downstreamScopeV2Result", "measurements", "failureBehavior", "humanUsefulness", "matchesExpected"],
+            "properties": {
+              "caseId": {"type": "string"}, "traceId": {"type": "string"}, "topology": {"type": "string"},
+              "variant": {"enum": ["OFF", "SHADOW", "ENFORCE_VALID", "ENFORCE_INVALID_VALID_REPAIR", "ENFORCE_FAILED_REPAIR"]},
+              "expectedTrajectoryOutcome": {"type": "string"}, "actualTrajectoryOutcome": {"type": "string"},
+              "checkpointCount": {"type": "integer", "minimum": 0, "maximum": 2},
+              "providerCalls": {"type": "integer", "minimum": 0}, "providerCallDelta": {"type": "integer"},
+              "evidenceCollectedRefs": {"type": "array", "items": {"type": "string"}},
+              "mandatoryEvidenceExpectedRefs": {"type": "array", "items": {"type": "string"}},
+              "mandatoryEvidencePreservedRefs": {"type": "array", "items": {"type": "string"}},
+              "irrelevantExplorationAvoidedRefs": {"type": "array", "items": {"type": "string"}},
+              "unresolvedGapRefs": {"type": "array", "items": {"type": "string"}},
+              "scopeExpansionProposalRefs": {"type": "array", "items": {"type": "string"}},
+              "downstreamScopeV2Result": {
+                "type": "object", "additionalProperties": false,
+                "required": ["status", "basePlanCount", "requiredEnablerCount", "conditionalBranchCount", "relatedFindingCount", "exclusiveAlternativeGroupCount", "exclusiveAlternativesNotSummed", "finalCommittedEstimate"],
+                "properties": {
+                  "status": {"enum": ["PRESERVED_CAPTURED_SCOPE_V2_RESULT", "PENDING_ONE_REANCHOR", "NOT_REACHED_FAIL_CLOSED"]},
+                  "basePlanCount": {"type": "integer", "minimum": 1}, "requiredEnablerCount": {"type": "integer", "minimum": 1},
+                  "conditionalBranchCount": {"type": "integer", "minimum": 1}, "relatedFindingCount": {"type": "integer", "minimum": 1},
+                  "exclusiveAlternativeGroupCount": {"type": "integer", "minimum": 1},
+                  "exclusiveAlternativesNotSummed": {"const": true}, "finalCommittedEstimate": {"type": "null"}
+                }
+              },
+              "measurements": {
+                "type": "object", "additionalProperties": false,
+                "required": ["telemetryEventBytes", "ledgerBytes", "checkpointEnvelopeBytes", "tokenProxy", "checkpointTokenProxy", "tokens", "wallTime"],
+                "properties": {
+                  "telemetryEventBytes": {"type": "integer", "minimum": 0}, "ledgerBytes": {"type": "integer", "minimum": 0},
+                  "checkpointEnvelopeBytes": {"type": "integer", "minimum": 0}, "tokenProxy": {"type": "integer", "minimum": 0},
+                  "checkpointTokenProxy": {"type": "integer", "minimum": 0},
+                  "tokens": {"type": "object", "additionalProperties": false, "required": ["availability", "value"], "properties": {"availability": {"const": "UNAVAILABLE"}, "value": {"type": "null"}}},
+                  "wallTime": {"type": "object", "additionalProperties": false, "required": ["availability", "value"], "properties": {"availability": {"const": "UNAVAILABLE"}, "value": {"type": "null"}}}
+                }
+              }, "failureBehavior": {"type": "string"},
+              "humanUsefulness": {"const": "NOT_ASSESSED_DETERMINISTICALLY"}, "matchesExpected": {"const": true}
+            }
+          }
+        }
+      }
+    },
+    "metricsByVariant": {
+      "type": "array", "minItems": 5, "maxItems": 5,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["variant", "unsupported_next_action_rate", "scope_expansion_attempts", "repeated_target_rate", "no_new_evidence_streak", "open_decision_assumption_rate", "evidence_per_provider_iteration", "checkpoints_per_run", "provider_calls_per_run", "tokens_per_run", "checkpoint_token_overhead", "wall_time", "human_rejected_or_deferred_findings", "mandatory_evidence_recall", "false_reanchor_rate", "false_stop_rate"],
+        "properties": {
+          "variant": {"enum": ["OFF", "SHADOW", "ENFORCE_VALID", "ENFORCE_INVALID_VALID_REPAIR", "ENFORCE_FAILED_REPAIR"]},
+          "unsupported_next_action_rate": {"type": "number", "minimum": 0, "maximum": 1},
+          "scope_expansion_attempts": {"type": "integer", "minimum": 0},
+          "repeated_target_rate": {"type": "number", "minimum": 0},
+          "no_new_evidence_streak": {"type": "integer", "minimum": 0},
+          "open_decision_assumption_rate": {"type": "number", "minimum": 0, "maximum": 1},
+          "evidence_per_provider_iteration": {"type": "number", "minimum": 0},
+          "checkpoints_per_run": {"type": "number", "minimum": 0}, "provider_calls_per_run": {"type": "number", "minimum": 0},
+          "tokens_per_run": {"type": "object", "additionalProperties": false, "required": ["availability", "value"], "properties": {"availability": {"const": "UNAVAILABLE"}, "value": {"type": "null"}}},
+          "checkpoint_token_overhead": {"type": "number", "minimum": 0},
+          "wall_time": {"type": "object", "additionalProperties": false, "required": ["availability", "value"], "properties": {"availability": {"const": "UNAVAILABLE"}, "value": {"type": "null"}}},
+          "human_rejected_or_deferred_findings": {"type": "object", "additionalProperties": false, "required": ["availability", "count"], "properties": {"availability": {"const": "UNAVAILABLE"}, "count": {"type": "null"}}},
+          "mandatory_evidence_recall": {"type": "number", "minimum": 0, "maximum": 1},
+          "false_reanchor_rate": {"type": "number", "minimum": 0, "maximum": 1}, "false_stop_rate": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    },
+    "qualityProperties": {
+      "type": "array", "minItems": 10,
+      "items": {"type": "object", "additionalProperties": false, "required": ["id", "passed", "evidenceCaseRefs"], "properties": {"id": {"type": "string"}, "passed": {"const": true}, "evidenceCaseRefs": {"type": "array", "minItems": 1, "items": {"type": "string"}}}}
+    },
+    "scopeV2": {"type": "object", "required": ["basePlanCount", "requiredEnablerCount", "conditionalBranchCount", "relatedFindingCount", "exclusiveAlternativeGroupCount", "exclusiveAlternativesNotSummed", "finalCommittedEstimate"]},
+    "modelComparison": {"type": "object", "required": ["defaultRoute", "escalationCandidate", "decision"]},
+    "thresholdRecommendations": {"type": "array", "minItems": 4, "items": {"type": "object", "required": ["signal", "proposedPilotValue", "basis", "rationale", "liveConfirmationRequired"]}},
+    "livePilot": {"type": "object", "required": ["executed", "providerCalls", "reason", "harnessRef", "maximumRolloutWithoutLiveEvidence"], "properties": {"executed": {"const": false}, "providerCalls": {"const": 0}, "maximumRolloutWithoutLiveEvidence": {"const": "SHADOW_PILOT_ONLY"}}},
+    "humanAcceptance": {"type": "object", "required": ["completed", "materialsComplete", "checklistRef", "usefulnessConclusion"], "properties": {"completed": {"const": false}, "materialsComplete": {"const": true}, "usefulnessConclusion": {"const": "NOT_ASSESSED_DETERMINISTICALLY"}}},
+    "rollout": {"type": "object", "required": ["recommendation", "evidence", "unresolvedRisks", "defaultOnAuthorized"], "properties": {"recommendation": {"enum": ["NOT_READY", "SHADOW_PILOT_ONLY", "ENFORCE_PILOT_WITH_OWNER_REVIEW", "READY_FOR_BOUNDED_DEFAULT"]}, "defaultOnAuthorized": {"const": false}}},
+    "gate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "deterministicMatrixGreen", "mandatoryEvidenceRecallPreserved", "onTrackCheckpointTaxZero", "failuresBoundedFailClosed", "scopeV2Correct", "humanMaterialsComplete", "allRelevantTestsPassed"],
+      "properties": {
+        "status": {"const": "PASS"}, "deterministicMatrixGreen": {"const": true},
+        "mandatoryEvidenceRecallPreserved": {"const": true}, "onTrackCheckpointTaxZero": {"const": true},
+        "failuresBoundedFailClosed": {"const": true}, "scopeV2Correct": {"const": true},
+        "humanMaterialsComplete": {"const": true}, "allRelevantTestsPassed": {"const": true}
+      }
+    }
+  }
+}

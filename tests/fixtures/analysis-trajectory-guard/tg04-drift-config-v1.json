@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "mana.analysis-trajectory.drift-config/v1",
+  "enabled": true,
+  "mode": "SHADOW",
+  "thresholds": {
+    "repeatedTargetVisitCount": 3,
+    "noNewEvidenceStreak": 3,
+    "softBudgetWarningPercent": 80
+  },
+  "evidenceSufficiency": {
+    "minimumEvidenceRefsPerAcceptanceCriterion": 1,
+    "minimumResolvedGapsPerMandatoryConstraint": 1,
+    "requireNoOpenEvidenceGaps": true
+  },
+  "equivalentTargetGroups": [
+    ["scope-signal-store", "scope-signal-store-equivalent"]
+  ]
+}

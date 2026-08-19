@@ -1,0 +1,438 @@
+{
+  "schemaVersion": "mana.analysis-trajectory.trace-set/v1",
+  "fixtureSetId": "trajectory-guard-synthetic-tg00-001",
+  "fixtureRevision": 1,
+  "synthetic": true,
+  "phase": "TG00",
+  "purpose": "Deterministic host-boundary traces for Analysis Trajectory Guard reconnaissance and later offline evaluation.",
+  "sanitization": {
+    "realIdentifiersPresent": false,
+    "reservedDomainsOnly": true,
+    "productionValuesPresent": false,
+    "notes": "All stories, owners, paths, components, decisions, evidence, and identifiers are fictional. No raw prompt or source content is present."
+  },
+  "referenceCatalog": {
+    "goalRefs": [
+      "AC-SYN-01",
+      "AC-SYN-02"
+    ],
+    "mandatoryConstraintRefs": [
+      "CONSTRAINT-AUTHZ-01"
+    ],
+    "evidenceGapRefs": [
+      "GAP-COMMIT-HOOK",
+      "GAP-DELIVERY-GUARANTEE",
+      "GAP-DEPENDENCY-CONTRACT",
+      "GAP-RESULT-VISIBILITY",
+      "GAP-AUTHZ-CHECK"
+    ],
+    "decisionRefs": [
+      "DEC-DELIVERY-MODE"
+    ],
+    "scopeRefs": [
+      "scope-signal-api",
+      "scope-signal-store",
+      "scope-profile-index",
+      "scope-archive-search",
+      "scope-delivery-callback",
+      "scope-outbox-store",
+      "scope-access-policy",
+      "scope-provider-envelope"
+    ],
+    "evidenceRefs": [
+      "EV-COMMIT-HOOK",
+      "EV-SIGNAL-TEST",
+      "EV-DEPENDENCY-CALL",
+      "EV-DEPENDENCY-CONTRACT",
+      "EV-UNRELATED-PAGING-BUG",
+      "EV-DELIVERY-AMBIGUITY",
+      "EV-AUTHZ-DELEGATION",
+      "EV-AUTHZ-CHECK",
+      "EV-PROVIDER-RESULT"
+    ]
+  },
+  "traceContract": {
+    "hostVisibleStepsOnly": true,
+    "opaqueProviderActivityMayOnlyBeSummarized": true,
+    "stepOrderIsAuthoritative": true,
+    "emptyReferencesAreMeaningful": true,
+    "futureRuntimeSchema": false
+  },
+  "traces": [
+    {
+      "traceId": "trace-on-track-simple-001",
+      "case": "ON_TRACK_SIMPLE",
+      "summary": "Every visible step closes an active acceptance-criterion evidence gap without entering another component.",
+      "topology": "on_track",
+      "steps": [
+        {
+          "sequence": 1,
+          "hostBoundary": "agent_iteration",
+          "hostObservable": true,
+          "actionKind": "inspect_scope",
+          "targetScopeRef": "scope-signal-api",
+          "goalRefs": ["AC-SYN-01"],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": ["GAP-COMMIT-HOOK"],
+          "decisionRefs": [],
+          "evidenceAddedRefs": ["EV-COMMIT-HOOK"],
+          "newEvidence": true,
+          "note": "Locate the fictional after-commit seam."
+        },
+        {
+          "sequence": 2,
+          "hostBoundary": "agent_iteration",
+          "hostObservable": true,
+          "actionKind": "inspect_test",
+          "targetScopeRef": "scope-signal-api",
+          "goalRefs": ["AC-SYN-01"],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": ["GAP-COMMIT-HOOK"],
+          "decisionRefs": [],
+          "evidenceAddedRefs": ["EV-SIGNAL-TEST"],
+          "newEvidence": true,
+          "note": "Confirm the direct behavioral test seam."
+        }
+      ],
+      "requiredObservations": [
+        "all_steps_link_to_active_goal_or_gap",
+        "no_scope_expansion",
+        "evidence_added_each_iteration"
+      ]
+    },
+    {
+      "traceId": "trace-legitimate-expansion-001",
+      "case": "ON_TRACK_LEGITIMATE_EXPANSION",
+      "summary": "Evidence in the primary component proves that a second fictional component owns a contract required by the criterion.",
+      "topology": "on_track_with_explained_expansion",
+      "steps": [
+        {
+          "sequence": 1,
+          "hostBoundary": "agent_iteration",
+          "hostObservable": true,
+          "actionKind": "inspect_scope",
+          "targetScopeRef": "scope-signal-api",
+          "goalRefs": ["AC-SYN-02"],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": ["GAP-RESULT-VISIBILITY"],
+          "decisionRefs": [],
+          "evidenceAddedRefs": ["EV-DEPENDENCY-CALL"],
+          "newEvidence": true,
+          "note": "The call site delegates result visibility to the profile index."
+        },
+        {
+          "sequence": 2,
+          "hostBoundary": "context_expansion",
+          "hostObservable": true,
+          "actionKind": "enter_linked_scope",
+          "targetScopeRef": "scope-profile-index",
+          "goalRefs": ["AC-SYN-02"],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": ["GAP-DEPENDENCY-CONTRACT"],
+          "decisionRefs": [],
+          "evidenceAddedRefs": ["EV-DEPENDENCY-CONTRACT"],
+          "newEvidence": true,
+          "note": "Inspect only the dependency contract needed to verify the criterion."
+        }
+      ],
+      "requiredObservations": [
+        "new_scope_has_causal_goal_link",
+        "expansion_reason_is_recorded",
+        "bounded_dependency_evidence_is_added"
+      ]
+    },
+    {
+      "traceId": "trace-related-bug-001",
+      "case": "DRIFT_RELATED_BUG",
+      "summary": "A genuine pre-existing paging defect is discovered and then displaces the still-open story gaps.",
+      "topology": "drift_after_unrelated_finding",
+      "steps": [
+        {
+          "sequence": 1,
+          "hostBoundary": "agent_iteration",
+          "hostObservable": true,
+          "actionKind": "inspect_scope",
+          "targetScopeRef": "scope-signal-api",
+          "goalRefs": ["AC-SYN-02"],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": ["GAP-RESULT-VISIBILITY"],
+          "decisionRefs": [],
+          "evidenceAddedRefs": ["EV-UNRELATED-PAGING-BUG"],
+          "newEvidence": true,
+          "note": "The defect is real but has no criterion or mandatory-constraint relation."
+        },
+        {
+          "sequence": 2,
+          "hostBoundary": "context_expansion",
+          "hostObservable": true,
+          "actionKind": "investigate_unrelated_bug",
+          "targetScopeRef": "scope-archive-search",
+          "goalRefs": [],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": [],
+          "decisionRefs": [],
+          "evidenceAddedRefs": [],
+          "newEvidence": false,
+          "note": "The next step follows the defect instead of an active mission gap."
+        },
+        {
+          "sequence": 3,
+          "hostBoundary": "agent_iteration",
+          "hostObservable": true,
+          "actionKind": "inspect_scope",
+          "targetScopeRef": "scope-archive-search",
+          "goalRefs": [],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": [],
+          "decisionRefs": [],
+          "evidenceAddedRefs": [],
+          "newEvidence": false,
+          "note": "The unrelated investigation continues while story evidence remains incomplete."
+        }
+      ],
+      "requiredObservations": [
+        "real_finding_does_not_imply_mission_expansion",
+        "later_steps_lose_goal_and_gap_links",
+        "active_story_gap_remains_open"
+      ]
+    },
+    {
+      "traceId": "trace-architecture-rabbit-hole-001",
+      "case": "DRIFT_ARCHITECTURE_RABBIT_HOLE",
+      "summary": "An unresolved delivery-mode decision causes investigation of two complete architectures rather than preserving the owner decision.",
+      "topology": "drift_from_open_decision",
+      "steps": [
+        {
+          "sequence": 1,
+          "hostBoundary": "agent_iteration",
+          "hostObservable": true,
+          "actionKind": "identify_open_decision",
+          "targetScopeRef": "scope-delivery-callback",
+          "goalRefs": ["AC-SYN-01"],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": ["GAP-DELIVERY-GUARANTEE"],
+          "decisionRefs": ["DEC-DELIVERY-MODE"],
+          "evidenceAddedRefs": ["EV-DELIVERY-AMBIGUITY"],
+          "newEvidence": true,
+          "note": "Best-effort and durable delivery remain owner-selected alternatives."
+        },
+        {
+          "sequence": 2,
+          "hostBoundary": "context_expansion",
+          "hostObservable": true,
+          "actionKind": "design_complete_alternative",
+          "targetScopeRef": "scope-delivery-callback",
+          "goalRefs": [],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": [],
+          "decisionRefs": ["DEC-DELIVERY-MODE"],
+          "evidenceAddedRefs": [],
+          "newEvidence": false,
+          "note": "The analysis elaborates the complete best-effort design without new decision evidence."
+        },
+        {
+          "sequence": 3,
+          "hostBoundary": "context_expansion",
+          "hostObservable": true,
+          "actionKind": "design_complete_alternative",
+          "targetScopeRef": "scope-outbox-store",
+          "goalRefs": [],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": [],
+          "decisionRefs": ["DEC-DELIVERY-MODE"],
+          "evidenceAddedRefs": [],
+          "newEvidence": false,
+          "note": "The analysis then elaborates the complete durable design without resolving ownership."
+        }
+      ],
+      "requiredObservations": [
+        "open_decision_remains_open",
+        "alternative_design_work_adds_no_decision_evidence",
+        "mutually_exclusive_architectures_are_not_both_the_active_mission"
+      ]
+    },
+    {
+      "traceId": "trace-repeat-no-evidence-001",
+      "case": "DRIFT_REPEAT_NO_EVIDENCE",
+      "summary": "Equivalent checks revisit the same scope and hypothesis without adding evidence.",
+      "topology": "repetition_without_evidence",
+      "steps": [
+        {
+          "sequence": 1,
+          "hostBoundary": "agent_iteration",
+          "hostObservable": true,
+          "actionKind": "inspect_scope",
+          "targetScopeRef": "scope-signal-store",
+          "goalRefs": ["AC-SYN-01"],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": ["GAP-COMMIT-HOOK"],
+          "decisionRefs": [],
+          "evidenceAddedRefs": ["EV-COMMIT-HOOK"],
+          "newEvidence": true,
+          "note": "The first check adds one relevant observation."
+        },
+        {
+          "sequence": 2,
+          "hostBoundary": "agent_iteration",
+          "hostObservable": true,
+          "actionKind": "repeat_equivalent_check",
+          "targetScopeRef": "scope-signal-store",
+          "goalRefs": ["AC-SYN-01"],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": ["GAP-COMMIT-HOOK"],
+          "decisionRefs": [],
+          "evidenceAddedRefs": [],
+          "newEvidence": false,
+          "note": "The same target and hypothesis are revisited."
+        },
+        {
+          "sequence": 3,
+          "hostBoundary": "agent_iteration",
+          "hostObservable": true,
+          "actionKind": "repeat_equivalent_check",
+          "targetScopeRef": "scope-signal-store",
+          "goalRefs": ["AC-SYN-01"],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": ["GAP-COMMIT-HOOK"],
+          "decisionRefs": [],
+          "evidenceAddedRefs": [],
+          "newEvidence": false,
+          "note": "No changed input or new evidence justifies reopening the check."
+        }
+      ],
+      "requiredObservations": [
+        "same_target_repeats",
+        "no_new_evidence_streak_is_two",
+        "equivalent_hypothesis_is_reopened_without_changed_evidence"
+      ]
+    },
+    {
+      "traceId": "trace-stop-sufficient-evidence-001",
+      "case": "STOP_SUFFICIENT_EVIDENCE",
+      "summary": "All mission gaps are closed before a proposed hardening investigation.",
+      "topology": "sufficient_then_unnecessary_continuation",
+      "steps": [
+        {
+          "sequence": 1,
+          "hostBoundary": "agent_iteration",
+          "hostObservable": true,
+          "actionKind": "close_final_gap",
+          "targetScopeRef": "scope-signal-api",
+          "goalRefs": ["AC-SYN-01", "AC-SYN-02"],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": ["GAP-COMMIT-HOOK", "GAP-RESULT-VISIBILITY"],
+          "decisionRefs": [],
+          "evidenceAddedRefs": ["EV-COMMIT-HOOK", "EV-SIGNAL-TEST"],
+          "newEvidence": true,
+          "note": "The final active evidence gaps are satisfied."
+        },
+        {
+          "sequence": 2,
+          "hostBoundary": "next_action_proposal",
+          "hostObservable": true,
+          "actionKind": "research_optional_hardening",
+          "targetScopeRef": "scope-signal-store",
+          "goalRefs": [],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": [],
+          "decisionRefs": [],
+          "evidenceAddedRefs": [],
+          "newEvidence": false,
+          "note": "Further research is useful in general but unnecessary for this mission."
+        }
+      ],
+      "requiredObservations": [
+        "all_active_gaps_closed_before_last_proposal",
+        "proposed_continuation_has_no_mission_link",
+        "optional_hardening_remains_outside_active_analysis"
+      ]
+    },
+    {
+      "traceId": "trace-mandatory-cross-cutting-001",
+      "case": "MANDATORY_CROSS_CUTTING_FINDING",
+      "summary": "A cross-component authorization check is mandatory even though it lies outside the obvious feature component.",
+      "topology": "on_track_mandatory_cross_cutting",
+      "steps": [
+        {
+          "sequence": 1,
+          "hostBoundary": "agent_iteration",
+          "hostObservable": true,
+          "actionKind": "inspect_scope",
+          "targetScopeRef": "scope-signal-api",
+          "goalRefs": ["AC-SYN-02"],
+          "mandatoryConstraintRefs": ["CONSTRAINT-AUTHZ-01"],
+          "gapRefs": ["GAP-AUTHZ-CHECK"],
+          "decisionRefs": [],
+          "evidenceAddedRefs": ["EV-AUTHZ-DELEGATION"],
+          "newEvidence": true,
+          "note": "The feature delegates authorization to the access-policy component."
+        },
+        {
+          "sequence": 2,
+          "hostBoundary": "context_expansion",
+          "hostObservable": true,
+          "actionKind": "enter_linked_scope",
+          "targetScopeRef": "scope-access-policy",
+          "goalRefs": ["AC-SYN-02"],
+          "mandatoryConstraintRefs": ["CONSTRAINT-AUTHZ-01"],
+          "gapRefs": ["GAP-AUTHZ-CHECK"],
+          "decisionRefs": [],
+          "evidenceAddedRefs": ["EV-AUTHZ-CHECK"],
+          "newEvidence": true,
+          "note": "The expansion verifies a mandatory authorization invariant."
+        }
+      ],
+      "requiredObservations": [
+        "cross_cutting_scope_is_not_suppressed",
+        "mandatory_constraint_causality_is_explicit",
+        "expansion_adds_required_security_evidence"
+      ]
+    },
+    {
+      "traceId": "trace-opaque-provider-001",
+      "case": "OPAQUE_PROVIDER_BOUNDARY",
+      "summary": "Mana sees one provider invocation and its final handoff, while internal reads and tool calls remain unavailable.",
+      "topology": "opaque_internal_activity",
+      "steps": [
+        {
+          "sequence": 1,
+          "hostBoundary": "provider_invocation",
+          "hostObservable": true,
+          "actionKind": "invoke_provider",
+          "targetScopeRef": "scope-provider-envelope",
+          "goalRefs": ["AC-SYN-01"],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": ["GAP-COMMIT-HOOK"],
+          "decisionRefs": [],
+          "evidenceAddedRefs": [],
+          "newEvidence": false,
+          "note": "The host can identify the process boundary and supplied envelope."
+        },
+        {
+          "sequence": 2,
+          "hostBoundary": "provider_completion",
+          "hostObservable": true,
+          "actionKind": "accept_provider_handoff",
+          "targetScopeRef": "scope-provider-envelope",
+          "goalRefs": ["AC-SYN-01"],
+          "mandatoryConstraintRefs": [],
+          "gapRefs": ["GAP-COMMIT-HOOK"],
+          "decisionRefs": [],
+          "evidenceAddedRefs": ["EV-PROVIDER-RESULT"],
+          "newEvidence": true,
+          "note": "Only the bounded final handoff is available to host validation."
+        }
+      ],
+      "opaqueInternalActivity": [
+        "provider_internal_file_read",
+        "provider_internal_search",
+        "provider_internal_tool_retry"
+      ],
+      "requiredObservations": [
+        "internal_tool_calls_are_not_host_events",
+        "provider_invocation_is_observable",
+        "final_handoff_is_the_nearest_validation_boundary"
+      ]
+    }
+  ]
+}

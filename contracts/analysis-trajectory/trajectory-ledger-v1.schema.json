@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.trajectory-ledger/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "ledgerId", "missionId", "missionHash", "missionRevision", "sourceEvents", "coveredGoalRefs", "openEvidenceGapRefs", "resolvedEvidenceGapRefs", "evidenceGaps", "currentSearchScopeRef", "visitedScopeRefs", "evidenceAddedSinceCheckpoint", "rejectedHypothesisRefs", "openDecisionRefs", "scopeExpansionProposalRefs", "repeatedTargetCounters", "noNewEvidenceStreak", "providerCounters", "budgetConsumption", "lastCheckpoint", "currentStatus", "observability", "truncations", "ledgerHash"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.trajectory-ledger/v1"},
+    "ledgerId": {"type": "string", "pattern": "^ledger-[0-9a-f]{24}$"},
+    "missionId": {"type": "string", "pattern": "^mission-[0-9a-f]{24}$"},
+    "missionHash": {"$ref": "common-v1.schema.json#/$defs/hash"},
+    "missionRevision": {"type": "integer", "minimum": 1},
+    "sourceEvents": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runId", "eventCount", "firstEventRef", "lastEventRef", "contentHash"],
+      "properties": {
+        "runId": {"$ref": "common-v1.schema.json#/$defs/nullableRef"},
+        "eventCount": {"type": "integer", "minimum": 0},
+        "firstEventRef": {"$ref": "common-v1.schema.json#/$defs/nullableRef"},
+        "lastEventRef": {"$ref": "common-v1.schema.json#/$defs/nullableRef"},
+        "contentHash": {"$ref": "common-v1.schema.json#/$defs/hash"}
+      }
+    },
+    "coveredGoalRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "openEvidenceGapRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "resolvedEvidenceGapRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "evidenceGaps": {"type": "array", "maxItems": 256, "items": {"$ref": "evidence-gap-v1.schema.json"}},
+    "currentSearchScopeRef": {"$ref": "common-v1.schema.json#/$defs/nullableRef"},
+    "visitedScopeRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "evidenceAddedSinceCheckpoint": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "rejectedHypothesisRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "openDecisionRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "scopeExpansionProposalRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "repeatedTargetCounters": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["targetScopeRef", "count"],
+        "properties": {
+          "targetScopeRef": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "count": {"type": "integer", "minimum": 2}
+        }
+      }
+    },
+    "noNewEvidenceStreak": {"type": "integer", "minimum": 0},
+    "providerCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iterationsStarted", "iterationsCompleted", "iterationsFailed"],
+      "properties": {
+        "iterationsStarted": {"type": "integer", "minimum": 0},
+        "iterationsCompleted": {"type": "integer", "minimum": 0},
+        "iterationsFailed": {"type": "integer", "minimum": 0}
+      }
+    },
+    "budgetConsumption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eventCount", "providerIterations", "evidenceRefCount", "visitedScopeCount", "serializedEventBytes", "tokenProxyEstimate"],
+      "properties": {
+        "eventCount": {"type": "integer", "minimum": 0},
+        "providerIterations": {"type": "integer", "minimum": 0},
+        "evidenceRefCount": {"type": "integer", "minimum": 0},
+        "visitedScopeCount": {"type": "integer", "minimum": 0},
+        "serializedEventBytes": {"type": "integer", "minimum": 0},
+        "tokenProxyEstimate": {"type": "integer", "minimum": 0}
+      }
+    },
+    "lastCheckpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["triggerEventRefs", "outcome", "eventRef"],
+      "properties": {
+        "triggerEventRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "outcome": {"enum": ["NONE", "ON_TRACK", "REANCHOR_REQUIRED", "SCOPE_TRIAGE_REQUIRED", "STOP_SUFFICIENT_EVIDENCE", "STOP_NO_NEW_EVIDENCE", "STOP_HARD_BUDGET", "NEEDS_OWNER_REVIEW"]},
+        "eventRef": {"$ref": "common-v1.schema.json#/$defs/nullableRef"}
+      }
+    },
+    "currentStatus": {"enum": ["ACTIVE", "COMPLETED", "STOPPED", "FAILED"]},
+    "observability": {"enum": ["HOST_BOUNDARIES", "OPAQUE_PROVIDER_BOUNDARY"]},
+    "truncations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "droppedCount"],
+        "properties": {
+          "field": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "droppedCount": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "ledgerHash": {"$ref": "common-v1.schema.json#/$defs/hash"}
+  }
+}

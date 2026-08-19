@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "mana.analysis-trajectory.drift-observation/v1",
+  "observedBoundary": "NEXT_ACTION_BOUNDARY",
+  "finalSynthesisRequested": false,
+  "nextActionProposals": [
+    {
+      "actionId": "action-inspect-synthetic-dependency",
+      "targetScopeRef": "scope-v2/synthetic-dependency",
+      "justificationGoalRefs": ["AC-01"],
+      "justificationGapRefs": ["gap-8d147cb36d75c973fe26"],
+      "mandatoryConstraintRefs": [],
+      "assumedDecisionRefs": [],
+      "decisionEvidenceRefs": [],
+      "supportingEventRefs": []
+    }
+  ]
+}

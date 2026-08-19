@@ -4,6 +4,13 @@ set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 tests=(
+  analysis-trajectory-guard-tg00-fixtures.sh
+  analysis-trajectory-guard-tg02-telemetry.sh
+  analysis-trajectory-guard-tg03-state.sh
+  analysis-trajectory-guard-tg04-drift.sh
+  analysis-trajectory-guard-tg05-checkpoint.sh
+  analysis-trajectory-guard-tg06-integration.sh
+  analysis-trajectory-guard-tg07-evaluation.sh
   behavioural-evals.sh
   bounded-repair-loop.sh
   bounded-repair.sh
@@ -41,6 +48,7 @@ tests=(
   story-start-scope-v2-governor.sh
   story-start-scope-v2-integration.sh
   story-start-scope-v2-release-gate.sh
+  story-start-stage-routing.sh
   testbook-tools.sh
   user-context.sh
   user-learning-aggregation.sh

@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "mana.analysis-trajectory.checkpoint-governor-config/v1",
+  "enabled": true,
+  "mode": "SHADOW",
+  "maxPrimaryCalls": 1,
+  "maxStructuralRepairCalls": 1
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.mission-contract/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "missionId", "revision", "objective", "storyRef", "acceptanceCriteria", "acceptanceCriterionRefs", "mandatoryConstraints", "mandatoryConstraintRefs", "authoritativeInputRefs", "scopePolicy", "allowedEvidenceScopeRefs", "evidenceGaps", "prohibitedActions", "stopConditions", "softBudgets", "hardBudgets", "createdAt", "revisionTransition", "provenance", "contentHash"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.mission-contract/v1"},
+    "missionId": {"type": "string", "pattern": "^mission-[0-9a-f]{24}$"},
+    "revision": {"type": "integer", "minimum": 1},
+    "objective": {"type": "string", "minLength": 1, "maxLength": 4096},
+    "storyRef": {"$ref": "common-v1.schema.json#/$defs/ref"},
+    "acceptanceCriteria": {"type": "array", "minItems": 1, "maxItems": 128, "items": {"$ref": "common-v1.schema.json#/$defs/acceptanceCriterion"}},
+    "acceptanceCriterionRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "mandatoryConstraints": {"type": "array", "maxItems": 128, "items": {"$ref": "common-v1.schema.json#/$defs/mandatoryConstraint"}},
+    "mandatoryConstraintRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "authoritativeInputRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "scopePolicy": {"$ref": "common-v1.schema.json#/$defs/scopePolicy"},
+    "allowedEvidenceScopeRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "evidenceGaps": {"type": "array", "maxItems": 256, "items": {"$ref": "evidence-gap-v1.schema.json"}},
+    "prohibitedActions": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "stopConditions": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "softBudgets": {"$ref": "common-v1.schema.json#/$defs/budgets"},
+    "hardBudgets": {"$ref": "common-v1.schema.json#/$defs/budgets"},
+    "createdAt": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "revisionTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "previousContentHash", "proposalApprovalRef"],
+      "properties": {
+        "kind": {"enum": ["INITIAL", "APPROVED_CHANGE"]},
+        "previousContentHash": {"$ref": "common-v1.schema.json#/$defs/nullableHash"},
+        "proposalApprovalRef": {"$ref": "common-v1.schema.json#/$defs/nullableRef"}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ownership", "generator", "modelAuthored"],
+      "properties": {
+        "ownership": {"const": "host"},
+        "generator": {"const": "analysis-trajectory-state/v1"},
+        "modelAuthored": {"const": false}
+      }
+    },
+    "contentHash": {"$ref": "common-v1.schema.json#/$defs/hash"}
+  }
+}

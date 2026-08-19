@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.evidence-package/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "packageId", "packageHash", "mode", "missionCorrelation",
+    "ledgerCorrelation", "evidenceRefs", "coveredGoalRefs", "openEvidenceGapRefs",
+    "resolvedEvidenceGapRefs", "openDecisionRefs", "unapprovedExpansionRefs",
+    "checkpoint", "routing", "limitations", "downstreamSemantics"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.evidence-package/v1"},
+    "packageId": {"type": "string", "pattern": "^trajectory-package-[0-9a-f]{24}$"},
+    "packageHash": {"$ref": "common-v1.schema.json#/$defs/hash"},
+    "mode": {"enum": ["SHADOW", "ENFORCE"]},
+    "missionCorrelation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["missionId", "missionHash", "missionRevision", "storyRef"],
+      "properties": {
+        "missionId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "missionHash": {"$ref": "common-v1.schema.json#/$defs/hash"},
+        "missionRevision": {"type": "integer", "minimum": 1},
+        "storyRef": {"$ref": "common-v1.schema.json#/$defs/ref"}
+      }
+    },
+    "ledgerCorrelation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ledgerId", "ledgerHash", "eventCount"],
+      "properties": {
+        "ledgerId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "ledgerHash": {"$ref": "common-v1.schema.json#/$defs/hash"},
+        "eventCount": {"type": "integer", "minimum": 0}
+      }
+    },
+    "evidenceRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "coveredGoalRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "openEvidenceGapRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "resolvedEvidenceGapRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "openDecisionRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "unapprovedExpansionRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "checkpoint": {
+      "type": "object", "additionalProperties": false,
+      "required": ["triggered", "reasonCodes", "acceptedOutcome", "callCount"],
+      "properties": {
+        "triggered": {"type": "boolean"},
+        "reasonCodes": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "acceptedOutcome": {
+          "anyOf": [
+            {"enum": ["ON_TRACK", "REANCHOR_REQUIRED", "SCOPE_TRIAGE_REQUIRED", "STOP_SUFFICIENT_EVIDENCE", "STOP_NO_NEW_EVIDENCE", "STOP_HARD_BUDGET", "NEEDS_OWNER_REVIEW"]},
+            {"type": "null"}
+          ]
+        },
+        "callCount": {"type": "integer", "minimum": 0, "maximum": 2}
+      }
+    },
+    "routing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["provider", "model", "effort"],
+      "properties": {
+        "provider": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "model": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "effort": {"$ref": "common-v1.schema.json#/$defs/ref"}
+      }
+    },
+    "limitations": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "downstreamSemantics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["implementationScopeClassified", "openDecisionsRemainOpen", "unapprovedExpansionsExcluded", "trajectorySidecarsAreTasks"],
+      "properties": {
+        "implementationScopeClassified": {"const": false},
+        "openDecisionsRemainOpen": {"const": true},
+        "unapprovedExpansionsExcluded": {"const": true},
+        "trajectorySidecarsAreTasks": {"const": false}
+      }
+    }
+  }
+}

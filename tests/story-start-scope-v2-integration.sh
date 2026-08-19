@@ -195,6 +195,7 @@ mkdir -p "$public_project"
 cp "$package" "$public_project/story-context.json"
 : > "$tmp/public-count"
 MANA_UPDATE_CHECK=off \
+MANA_ANALYSIS_TRAJECTORY_TELEMETRY=true \
 MANA_STORY_START_SCOPE_VERSION=v2 \
 MANA_STORY_START_CONTEXT=story-context.json \
 SS06_STUB_COUNT="$tmp/public-count" \
@@ -209,6 +210,11 @@ grep -Fq 'Story Start Scope pipeline: v2' "$tmp/public.out" || fail 'public rend
 grep -Fq 'Story Start Scope v2 status: passed' "$tmp/public.out" || fail 'public v2 invocation did not report success'
 public_active="$(sed -n '1p' "$public_project/.mana/active-workspace")"
 jq -e '.status=="passed"' "$public_project/$public_active/validation/story-start-scope-run-v2.json" >/dev/null || fail 'public command did not publish v2 status'
+telemetry_events="$public_project/$public_active/evidence/analysis-trajectory-events-v1.jsonl"
+telemetry_summary="$public_project/$public_active/validation/analysis-trajectory-summary-v1.json"
+[ -f "$telemetry_events" ] && [ -f "$telemetry_summary" ] || fail 'opt-in telemetry sidecars were not published'
+python3 "$root/tests/lib/json_schema_subset.py" "$root/contracts/analysis-trajectory/run-summary-v1.schema.json" "$telemetry_summary" || fail 'public telemetry summary is invalid'
+jq -s '([.[].sequence] == [range(1; length + 1)]) and ([.[] | select(.eventType == "provider_iteration_started")] | length == 3)' "$telemetry_events" >/dev/null || fail 'telemetry did not record exactly the existing three provider calls'
 
 # The cast preflight reaches the same guarded run-profile boundary.
 cast_project="$tmp/cast-project"
@@ -231,6 +237,7 @@ PATH="$fake_bin:$PATH" \
 [ "$(wc -l < "$tmp/cast-count" | tr -d ' ')" = 3 ] || fail 'cast did not reach the guarded three-phase v2 path'
 cast_active="$(sed -n '1p' "$cast_project/.mana/active-workspace")"
 jq -e '.status=="passed"' "$cast_project/$cast_active/validation/story-start-scope-run-v2.json" >/dev/null || fail 'cast did not publish the validated v2 status'
+[ ! -e "$cast_project/$cast_active/evidence/analysis-trajectory-events-v1.jsonl" ] || fail 'telemetry-disabled v2 run changed artifacts'
 
 legacy_project="$tmp/legacy-project"
 mkdir -p "$legacy_project"

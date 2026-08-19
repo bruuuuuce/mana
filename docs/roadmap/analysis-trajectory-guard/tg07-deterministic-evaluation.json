@@ -1,0 +1,2688 @@
+{
+  "evaluationKind": "DETERMINISTIC_OFFLINE_ZERO_TOKEN",
+  "gate": {
+    "allRelevantTestsPassed": true,
+    "deterministicMatrixGreen": true,
+    "failuresBoundedFailClosed": true,
+    "humanMaterialsComplete": true,
+    "mandatoryEvidenceRecallPreserved": true,
+    "onTrackCheckpointTaxZero": true,
+    "scopeV2Correct": true,
+    "status": "PASS"
+  },
+  "humanAcceptance": {
+    "checklistRef": "docs/roadmap/analysis-trajectory-guard/tg07-human-acceptance-checklist.md",
+    "completed": false,
+    "materialsComplete": true,
+    "usefulnessConclusion": "NOT_ASSESSED_DETERMINISTICALLY"
+  },
+  "inputs": {
+    "missionSeedHash": "sha256:ec22bfaa8f0f0e42cac67563320a68c003242ff8088f83e0a5e36e7d45a84fc3",
+    "networkCalls": 0,
+    "providerCalls": 0,
+    "scopeV2PlanHash": "sha256:aa9f06b0a8c0b9695a0a475615eade4a7f41ae5ad84e7da406dc7139ddc6a8a0",
+    "traceSetHash": "sha256:2b38b5cc719108dcf92111472ab0d5b1c21154c01d93684e2598bd84901d2dac",
+    "traceSetRef": "fixture:tg00-traces-v1"
+  },
+  "livePilot": {
+    "executed": false,
+    "harnessRef": "scripts/analysis-trajectory-live-pilot.sh",
+    "maximumRolloutWithoutLiveEvidence": "SHADOW_PILOT_ONLY",
+    "providerCalls": 0,
+    "reason": "No explicit live-pilot flag or preconfigured runtime-authorization assertion was supplied during TG07 execution."
+  },
+  "matrix": {
+    "caseCount": 40,
+    "cases": [
+      {
+        "actualTrajectoryOutcome": "NEEDS_OWNER_REVIEW",
+        "caseId": "trace-architecture-rabbit-hole-001:enforce_failed_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "NOT_REACHED_FAIL_CLOSED"
+        },
+        "evidenceCollectedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "expectedTrajectoryOutcome": "NEEDS_OWNER_REVIEW",
+        "failureBehavior": "HALT_OWNER_REVIEW_NO_UNGUARDED_FALLBACK",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [
+          "action-architecture-rabbit-hole-2",
+          "action-architecture-rabbit-hole-3"
+        ],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3716,
+          "telemetryEventBytes": 1850,
+          "tokenProxy": 1392,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": -2,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [],
+        "topology": "drift_from_open_decision",
+        "traceId": "trace-architecture-rabbit-hole-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_FAILED_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "NEEDS_OWNER_REVIEW",
+        "caseId": "trace-architecture-rabbit-hole-001:enforce_invalid_valid_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "NOT_REACHED_FAIL_CLOSED"
+        },
+        "evidenceCollectedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "expectedTrajectoryOutcome": "NEEDS_OWNER_REVIEW",
+        "failureBehavior": "HALT_OWNER_REVIEW_NO_UNGUARDED_FALLBACK",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [
+          "action-architecture-rabbit-hole-2",
+          "action-architecture-rabbit-hole-3"
+        ],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3716,
+          "telemetryEventBytes": 1850,
+          "tokenProxy": 1392,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": -2,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [],
+        "topology": "drift_from_open_decision",
+        "traceId": "trace-architecture-rabbit-hole-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_INVALID_VALID_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "NEEDS_OWNER_REVIEW",
+        "caseId": "trace-architecture-rabbit-hole-001:enforce_valid",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "NOT_REACHED_FAIL_CLOSED"
+        },
+        "evidenceCollectedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "expectedTrajectoryOutcome": "NEEDS_OWNER_REVIEW",
+        "failureBehavior": "HALT_OWNER_REVIEW_NO_UNGUARDED_FALLBACK",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [
+          "action-architecture-rabbit-hole-2",
+          "action-architecture-rabbit-hole-3"
+        ],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3716,
+          "telemetryEventBytes": 1850,
+          "tokenProxy": 1392,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": -2,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [],
+        "topology": "drift_from_open_decision",
+        "traceId": "trace-architecture-rabbit-hole-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_VALID"
+      },
+      {
+        "actualTrajectoryOutcome": "GUARD_DISABLED",
+        "caseId": "trace-architecture-rabbit-hole-001:off",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "expectedTrajectoryOutcome": "GUARD_DISABLED",
+        "failureBehavior": "GUARD_DISABLED_EXISTING_FLOW",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 0,
+          "telemetryEventBytes": 0,
+          "tokenProxy": 0,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 3,
+        "scopeExpansionProposalRefs": [],
+        "topology": "drift_from_open_decision",
+        "traceId": "trace-architecture-rabbit-hole-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "OFF"
+      },
+      {
+        "actualTrajectoryOutcome": "NEEDS_OWNER_REVIEW",
+        "caseId": "trace-architecture-rabbit-hole-001:shadow",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "expectedTrajectoryOutcome": "NEEDS_OWNER_REVIEW",
+        "failureBehavior": "ADVISORY_ONLY_CONTROL_FLOW_UNCHANGED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-DELIVERY-AMBIGUITY"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3787,
+          "telemetryEventBytes": 5305,
+          "tokenProxy": 2273,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 3,
+        "scopeExpansionProposalRefs": [],
+        "topology": "drift_from_open_decision",
+        "traceId": "trace-architecture-rabbit-hole-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "SHADOW"
+      },
+      {
+        "actualTrajectoryOutcome": "ON_TRACK",
+        "caseId": "trace-legitimate-expansion-001:enforce_failed_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "expectedTrajectoryOutcome": "ON_TRACK",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3730,
+          "telemetryEventBytes": 2365,
+          "tokenProxy": 1524,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track_with_explained_expansion",
+        "traceId": "trace-legitimate-expansion-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_FAILED_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "ON_TRACK",
+        "caseId": "trace-legitimate-expansion-001:enforce_invalid_valid_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "expectedTrajectoryOutcome": "ON_TRACK",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3730,
+          "telemetryEventBytes": 2365,
+          "tokenProxy": 1524,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track_with_explained_expansion",
+        "traceId": "trace-legitimate-expansion-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_INVALID_VALID_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "ON_TRACK",
+        "caseId": "trace-legitimate-expansion-001:enforce_valid",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "expectedTrajectoryOutcome": "ON_TRACK",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3730,
+          "telemetryEventBytes": 2365,
+          "tokenProxy": 1524,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track_with_explained_expansion",
+        "traceId": "trace-legitimate-expansion-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_VALID"
+      },
+      {
+        "actualTrajectoryOutcome": "GUARD_DISABLED",
+        "caseId": "trace-legitimate-expansion-001:off",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "expectedTrajectoryOutcome": "GUARD_DISABLED",
+        "failureBehavior": "GUARD_DISABLED_EXISTING_FLOW",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 0,
+          "telemetryEventBytes": 0,
+          "tokenProxy": 0,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track_with_explained_expansion",
+        "traceId": "trace-legitimate-expansion-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "OFF"
+      },
+      {
+        "actualTrajectoryOutcome": "CONTINUE_ON_TRACK",
+        "caseId": "trace-legitimate-expansion-001:shadow",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "expectedTrajectoryOutcome": "CONTINUE_ON_TRACK",
+        "failureBehavior": "ADVISORY_ONLY_CONTROL_FLOW_UNCHANGED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-DEPENDENCY-CALL",
+          "EV-DEPENDENCY-CONTRACT"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3730,
+          "telemetryEventBytes": 2365,
+          "tokenProxy": 1524,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track_with_explained_expansion",
+        "traceId": "trace-legitimate-expansion-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "SHADOW"
+      },
+      {
+        "actualTrajectoryOutcome": "ON_TRACK",
+        "caseId": "trace-mandatory-cross-cutting-001:enforce_failed_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "expectedTrajectoryOutcome": "ON_TRACK",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3723,
+          "telemetryEventBytes": 2330,
+          "tokenProxy": 1514,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track_mandatory_cross_cutting",
+        "traceId": "trace-mandatory-cross-cutting-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_FAILED_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "ON_TRACK",
+        "caseId": "trace-mandatory-cross-cutting-001:enforce_invalid_valid_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "expectedTrajectoryOutcome": "ON_TRACK",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3723,
+          "telemetryEventBytes": 2330,
+          "tokenProxy": 1514,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track_mandatory_cross_cutting",
+        "traceId": "trace-mandatory-cross-cutting-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_INVALID_VALID_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "ON_TRACK",
+        "caseId": "trace-mandatory-cross-cutting-001:enforce_valid",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "expectedTrajectoryOutcome": "ON_TRACK",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3723,
+          "telemetryEventBytes": 2330,
+          "tokenProxy": 1514,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track_mandatory_cross_cutting",
+        "traceId": "trace-mandatory-cross-cutting-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_VALID"
+      },
+      {
+        "actualTrajectoryOutcome": "GUARD_DISABLED",
+        "caseId": "trace-mandatory-cross-cutting-001:off",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "expectedTrajectoryOutcome": "GUARD_DISABLED",
+        "failureBehavior": "GUARD_DISABLED_EXISTING_FLOW",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 0,
+          "telemetryEventBytes": 0,
+          "tokenProxy": 0,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track_mandatory_cross_cutting",
+        "traceId": "trace-mandatory-cross-cutting-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "OFF"
+      },
+      {
+        "actualTrajectoryOutcome": "CONTINUE_ON_TRACK",
+        "caseId": "trace-mandatory-cross-cutting-001:shadow",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "expectedTrajectoryOutcome": "CONTINUE_ON_TRACK",
+        "failureBehavior": "ADVISORY_ONLY_CONTROL_FLOW_UNCHANGED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-AUTHZ-CHECK",
+          "EV-AUTHZ-DELEGATION"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3723,
+          "telemetryEventBytes": 2330,
+          "tokenProxy": 1514,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track_mandatory_cross_cutting",
+        "traceId": "trace-mandatory-cross-cutting-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "SHADOW"
+      },
+      {
+        "actualTrajectoryOutcome": "ON_TRACK",
+        "caseId": "trace-on-track-simple-001:enforce_failed_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "expectedTrajectoryOutcome": "ON_TRACK",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3740,
+          "telemetryEventBytes": 2303,
+          "tokenProxy": 1511,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track",
+        "traceId": "trace-on-track-simple-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_FAILED_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "ON_TRACK",
+        "caseId": "trace-on-track-simple-001:enforce_invalid_valid_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "expectedTrajectoryOutcome": "ON_TRACK",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3740,
+          "telemetryEventBytes": 2303,
+          "tokenProxy": 1511,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track",
+        "traceId": "trace-on-track-simple-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_INVALID_VALID_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "ON_TRACK",
+        "caseId": "trace-on-track-simple-001:enforce_valid",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "expectedTrajectoryOutcome": "ON_TRACK",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3740,
+          "telemetryEventBytes": 2303,
+          "tokenProxy": 1511,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track",
+        "traceId": "trace-on-track-simple-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_VALID"
+      },
+      {
+        "actualTrajectoryOutcome": "GUARD_DISABLED",
+        "caseId": "trace-on-track-simple-001:off",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "expectedTrajectoryOutcome": "GUARD_DISABLED",
+        "failureBehavior": "GUARD_DISABLED_EXISTING_FLOW",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 0,
+          "telemetryEventBytes": 0,
+          "tokenProxy": 0,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track",
+        "traceId": "trace-on-track-simple-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "OFF"
+      },
+      {
+        "actualTrajectoryOutcome": "CONTINUE_ON_TRACK",
+        "caseId": "trace-on-track-simple-001:shadow",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "expectedTrajectoryOutcome": "CONTINUE_ON_TRACK",
+        "failureBehavior": "ADVISORY_ONLY_CONTROL_FLOW_UNCHANGED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3740,
+          "telemetryEventBytes": 2303,
+          "tokenProxy": 1511,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "on_track",
+        "traceId": "trace-on-track-simple-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "SHADOW"
+      },
+      {
+        "actualTrajectoryOutcome": "ON_TRACK",
+        "caseId": "trace-opaque-provider-001:enforce_failed_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "expectedTrajectoryOutcome": "ON_TRACK",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3748,
+          "telemetryEventBytes": 2361,
+          "tokenProxy": 1528,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [],
+        "topology": "opaque_internal_activity",
+        "traceId": "trace-opaque-provider-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_FAILED_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "ON_TRACK",
+        "caseId": "trace-opaque-provider-001:enforce_invalid_valid_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "expectedTrajectoryOutcome": "ON_TRACK",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3748,
+          "telemetryEventBytes": 2361,
+          "tokenProxy": 1528,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [],
+        "topology": "opaque_internal_activity",
+        "traceId": "trace-opaque-provider-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_INVALID_VALID_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "ON_TRACK",
+        "caseId": "trace-opaque-provider-001:enforce_valid",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "expectedTrajectoryOutcome": "ON_TRACK",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3748,
+          "telemetryEventBytes": 2361,
+          "tokenProxy": 1528,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [],
+        "topology": "opaque_internal_activity",
+        "traceId": "trace-opaque-provider-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_VALID"
+      },
+      {
+        "actualTrajectoryOutcome": "GUARD_DISABLED",
+        "caseId": "trace-opaque-provider-001:off",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "expectedTrajectoryOutcome": "GUARD_DISABLED",
+        "failureBehavior": "GUARD_DISABLED_EXISTING_FLOW",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 0,
+          "telemetryEventBytes": 0,
+          "tokenProxy": 0,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [],
+        "topology": "opaque_internal_activity",
+        "traceId": "trace-opaque-provider-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "OFF"
+      },
+      {
+        "actualTrajectoryOutcome": "CONTINUE_ON_TRACK",
+        "caseId": "trace-opaque-provider-001:shadow",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "expectedTrajectoryOutcome": "CONTINUE_ON_TRACK",
+        "failureBehavior": "ADVISORY_ONLY_CONTROL_FLOW_UNCHANGED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-PROVIDER-RESULT"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3748,
+          "telemetryEventBytes": 2361,
+          "tokenProxy": 1528,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [],
+        "topology": "opaque_internal_activity",
+        "traceId": "trace-opaque-provider-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "SHADOW"
+      },
+      {
+        "actualTrajectoryOutcome": "SCOPE_TRIAGE_REQUIRED",
+        "caseId": "trace-related-bug-001:enforce_failed_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "NOT_REACHED_FAIL_CLOSED"
+        },
+        "evidenceCollectedRefs": [
+          "EV-UNRELATED-PAGING-BUG"
+        ],
+        "expectedTrajectoryOutcome": "SCOPE_TRIAGE_REQUIRED",
+        "failureBehavior": "HALT_OWNER_REVIEW_NO_UNGUARDED_FALLBACK",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [
+          "action-related-bug-2",
+          "action-related-bug-3"
+        ],
+        "mandatoryEvidenceExpectedRefs": [],
+        "mandatoryEvidencePreservedRefs": [],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3685,
+          "telemetryEventBytes": 1174,
+          "tokenProxy": 1215,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": -2,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [
+          "action-related-bug-2"
+        ],
+        "topology": "drift_after_unrelated_finding",
+        "traceId": "trace-related-bug-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_FAILED_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "SCOPE_TRIAGE_REQUIRED",
+        "caseId": "trace-related-bug-001:enforce_invalid_valid_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "NOT_REACHED_FAIL_CLOSED"
+        },
+        "evidenceCollectedRefs": [
+          "EV-UNRELATED-PAGING-BUG"
+        ],
+        "expectedTrajectoryOutcome": "SCOPE_TRIAGE_REQUIRED",
+        "failureBehavior": "HALT_OWNER_REVIEW_NO_UNGUARDED_FALLBACK",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [
+          "action-related-bug-2",
+          "action-related-bug-3"
+        ],
+        "mandatoryEvidenceExpectedRefs": [],
+        "mandatoryEvidencePreservedRefs": [],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3685,
+          "telemetryEventBytes": 1174,
+          "tokenProxy": 1215,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": -2,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [
+          "action-related-bug-2"
+        ],
+        "topology": "drift_after_unrelated_finding",
+        "traceId": "trace-related-bug-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_INVALID_VALID_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "SCOPE_TRIAGE_REQUIRED",
+        "caseId": "trace-related-bug-001:enforce_valid",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "NOT_REACHED_FAIL_CLOSED"
+        },
+        "evidenceCollectedRefs": [
+          "EV-UNRELATED-PAGING-BUG"
+        ],
+        "expectedTrajectoryOutcome": "SCOPE_TRIAGE_REQUIRED",
+        "failureBehavior": "HALT_OWNER_REVIEW_NO_UNGUARDED_FALLBACK",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [
+          "action-related-bug-2",
+          "action-related-bug-3"
+        ],
+        "mandatoryEvidenceExpectedRefs": [],
+        "mandatoryEvidencePreservedRefs": [],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3685,
+          "telemetryEventBytes": 1174,
+          "tokenProxy": 1215,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": -2,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [
+          "action-related-bug-2"
+        ],
+        "topology": "drift_after_unrelated_finding",
+        "traceId": "trace-related-bug-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_VALID"
+      },
+      {
+        "actualTrajectoryOutcome": "GUARD_DISABLED",
+        "caseId": "trace-related-bug-001:off",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-UNRELATED-PAGING-BUG"
+        ],
+        "expectedTrajectoryOutcome": "GUARD_DISABLED",
+        "failureBehavior": "GUARD_DISABLED_EXISTING_FLOW",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [],
+        "mandatoryEvidencePreservedRefs": [],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 0,
+          "telemetryEventBytes": 0,
+          "tokenProxy": 0,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 3,
+        "scopeExpansionProposalRefs": [],
+        "topology": "drift_after_unrelated_finding",
+        "traceId": "trace-related-bug-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "OFF"
+      },
+      {
+        "actualTrajectoryOutcome": "SCOPE_TRIAGE_REQUIRED",
+        "caseId": "trace-related-bug-001:shadow",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-UNRELATED-PAGING-BUG"
+        ],
+        "expectedTrajectoryOutcome": "SCOPE_TRIAGE_REQUIRED",
+        "failureBehavior": "ADVISORY_ONLY_CONTROL_FLOW_UNCHANGED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [],
+        "mandatoryEvidencePreservedRefs": [],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3763,
+          "telemetryEventBytes": 3378,
+          "tokenProxy": 1786,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 3,
+        "scopeExpansionProposalRefs": [
+          "action-related-bug-2"
+        ],
+        "topology": "drift_after_unrelated_finding",
+        "traceId": "trace-related-bug-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "SHADOW"
+      },
+      {
+        "actualTrajectoryOutcome": "NEEDS_OWNER_REVIEW",
+        "caseId": "trace-repeat-no-evidence-001:enforce_failed_repair",
+        "checkpointCount": 2,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "NOT_REACHED_FAIL_CLOSED"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "expectedTrajectoryOutcome": "NEEDS_OWNER_REVIEW",
+        "failureBehavior": "HALT_OWNER_REVIEW_AFTER_TWO_CALLS_NO_FALLBACK",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 9537,
+          "checkpointTokenProxy": 6291,
+          "ledgerBytes": 3729,
+          "telemetryEventBytes": 3477,
+          "tokenProxy": 4186,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 2,
+        "providerCalls": 5,
+        "scopeExpansionProposalRefs": [],
+        "topology": "repetition_without_evidence",
+        "traceId": "trace-repeat-no-evidence-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_FAILED_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "REANCHOR_REQUIRED",
+        "caseId": "trace-repeat-no-evidence-001:enforce_invalid_valid_repair",
+        "checkpointCount": 2,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PENDING_ONE_REANCHOR"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "expectedTrajectoryOutcome": "REANCHOR_REQUIRED",
+        "failureBehavior": "ONE_BOUNDED_REANCHOR",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 9537,
+          "checkpointTokenProxy": 6291,
+          "ledgerBytes": 3729,
+          "telemetryEventBytes": 3477,
+          "tokenProxy": 4186,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 2,
+        "providerCalls": 5,
+        "scopeExpansionProposalRefs": [],
+        "topology": "repetition_without_evidence",
+        "traceId": "trace-repeat-no-evidence-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_INVALID_VALID_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "REANCHOR_REQUIRED",
+        "caseId": "trace-repeat-no-evidence-001:enforce_valid",
+        "checkpointCount": 1,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PENDING_ONE_REANCHOR"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "expectedTrajectoryOutcome": "REANCHOR_REQUIRED",
+        "failureBehavior": "ONE_BOUNDED_REANCHOR",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 9537,
+          "checkpointTokenProxy": 3221,
+          "ledgerBytes": 3729,
+          "telemetryEventBytes": 3477,
+          "tokenProxy": 4186,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 1,
+        "providerCalls": 4,
+        "scopeExpansionProposalRefs": [],
+        "topology": "repetition_without_evidence",
+        "traceId": "trace-repeat-no-evidence-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "ENFORCE_VALID"
+      },
+      {
+        "actualTrajectoryOutcome": "GUARD_DISABLED",
+        "caseId": "trace-repeat-no-evidence-001:off",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "expectedTrajectoryOutcome": "GUARD_DISABLED",
+        "failureBehavior": "GUARD_DISABLED_EXISTING_FLOW",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 0,
+          "telemetryEventBytes": 0,
+          "tokenProxy": 0,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 3,
+        "scopeExpansionProposalRefs": [],
+        "topology": "repetition_without_evidence",
+        "traceId": "trace-repeat-no-evidence-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "OFF"
+      },
+      {
+        "actualTrajectoryOutcome": "CHECKPOINT_RECOMMENDED",
+        "caseId": "trace-repeat-no-evidence-001:shadow",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "expectedTrajectoryOutcome": "CHECKPOINT_RECOMMENDED",
+        "failureBehavior": "ADVISORY_ONLY_CONTROL_FLOW_UNCHANGED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3729,
+          "telemetryEventBytes": 3477,
+          "tokenProxy": 1802,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 3,
+        "scopeExpansionProposalRefs": [],
+        "topology": "repetition_without_evidence",
+        "traceId": "trace-repeat-no-evidence-001",
+        "unresolvedGapRefs": [
+          "GAP-AUTHZ-CHECK",
+          "GAP-COMMIT-HOOK",
+          "GAP-DELIVERY-GUARANTEE",
+          "GAP-DEPENDENCY-CONTRACT",
+          "GAP-RESULT-VISIBILITY"
+        ],
+        "variant": "SHADOW"
+      },
+      {
+        "actualTrajectoryOutcome": "STOP_SUFFICIENT_EVIDENCE",
+        "caseId": "trace-stop-sufficient-evidence-001:enforce_failed_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "expectedTrajectoryOutcome": "STOP_SUFFICIENT_EVIDENCE",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [
+          "action-stop-sufficient-evidence-2"
+        ],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3981,
+          "telemetryEventBytes": 4150,
+          "tokenProxy": 2033,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": -1,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [],
+        "topology": "sufficient_then_unnecessary_continuation",
+        "traceId": "trace-stop-sufficient-evidence-001",
+        "unresolvedGapRefs": [],
+        "variant": "ENFORCE_FAILED_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "STOP_SUFFICIENT_EVIDENCE",
+        "caseId": "trace-stop-sufficient-evidence-001:enforce_invalid_valid_repair",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "expectedTrajectoryOutcome": "STOP_SUFFICIENT_EVIDENCE",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [
+          "action-stop-sufficient-evidence-2"
+        ],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3981,
+          "telemetryEventBytes": 4150,
+          "tokenProxy": 2033,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": -1,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [],
+        "topology": "sufficient_then_unnecessary_continuation",
+        "traceId": "trace-stop-sufficient-evidence-001",
+        "unresolvedGapRefs": [],
+        "variant": "ENFORCE_INVALID_VALID_REPAIR"
+      },
+      {
+        "actualTrajectoryOutcome": "STOP_SUFFICIENT_EVIDENCE",
+        "caseId": "trace-stop-sufficient-evidence-001:enforce_valid",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "expectedTrajectoryOutcome": "STOP_SUFFICIENT_EVIDENCE",
+        "failureBehavior": "DETERMINISTIC_OUTCOME_APPLIED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [
+          "action-stop-sufficient-evidence-2"
+        ],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 3981,
+          "telemetryEventBytes": 4150,
+          "tokenProxy": 2033,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": -1,
+        "providerCalls": 1,
+        "scopeExpansionProposalRefs": [],
+        "topology": "sufficient_then_unnecessary_continuation",
+        "traceId": "trace-stop-sufficient-evidence-001",
+        "unresolvedGapRefs": [],
+        "variant": "ENFORCE_VALID"
+      },
+      {
+        "actualTrajectoryOutcome": "GUARD_DISABLED",
+        "caseId": "trace-stop-sufficient-evidence-001:off",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "expectedTrajectoryOutcome": "GUARD_DISABLED",
+        "failureBehavior": "GUARD_DISABLED_EXISTING_FLOW",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 0,
+          "telemetryEventBytes": 0,
+          "tokenProxy": 0,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "sufficient_then_unnecessary_continuation",
+        "traceId": "trace-stop-sufficient-evidence-001",
+        "unresolvedGapRefs": [],
+        "variant": "OFF"
+      },
+      {
+        "actualTrajectoryOutcome": "STOP_SUFFICIENT_EVIDENCE",
+        "caseId": "trace-stop-sufficient-evidence-001:shadow",
+        "checkpointCount": 0,
+        "downstreamScopeV2Result": {
+          "basePlanCount": 1,
+          "conditionalBranchCount": 7,
+          "exclusiveAlternativeGroupCount": 3,
+          "exclusiveAlternativesNotSummed": true,
+          "finalCommittedEstimate": null,
+          "relatedFindingCount": 3,
+          "requiredEnablerCount": 3,
+          "status": "PRESERVED_CAPTURED_SCOPE_V2_RESULT"
+        },
+        "evidenceCollectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "expectedTrajectoryOutcome": "STOP_SUFFICIENT_EVIDENCE",
+        "failureBehavior": "ADVISORY_ONLY_CONTROL_FLOW_UNCHANGED",
+        "humanUsefulness": "NOT_ASSESSED_DETERMINISTICALLY",
+        "irrelevantExplorationAvoidedRefs": [],
+        "mandatoryEvidenceExpectedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "mandatoryEvidencePreservedRefs": [
+          "EV-COMMIT-HOOK",
+          "EV-SIGNAL-TEST"
+        ],
+        "matchesExpected": true,
+        "measurements": {
+          "checkpointEnvelopeBytes": 0,
+          "checkpointTokenProxy": 0,
+          "ledgerBytes": 4004,
+          "telemetryEventBytes": 5272,
+          "tokenProxy": 2319,
+          "tokens": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          },
+          "wallTime": {
+            "availability": "UNAVAILABLE",
+            "value": null
+          }
+        },
+        "providerCallDelta": 0,
+        "providerCalls": 2,
+        "scopeExpansionProposalRefs": [],
+        "topology": "sufficient_then_unnecessary_continuation",
+        "traceId": "trace-stop-sufficient-evidence-001",
+        "unresolvedGapRefs": [],
+        "variant": "SHADOW"
+      }
+    ],
+    "matchedCount": 40,
+    "mismatchCount": 0,
+    "topologyCount": 8,
+    "variantCount": 5
+  },
+  "metricsByVariant": [
+    {
+      "checkpoint_token_overhead": 0.0,
+      "checkpoints_per_run": 0.0,
+      "evidence_per_provider_iteration": 0.6667,
+      "false_reanchor_rate": 0.0,
+      "false_stop_rate": 0.0,
+      "human_rejected_or_deferred_findings": {
+        "availability": "UNAVAILABLE",
+        "count": null
+      },
+      "mandatory_evidence_recall": 1.0,
+      "no_new_evidence_streak": 2,
+      "open_decision_assumption_rate": 0.3333,
+      "provider_calls_per_run": 2.25,
+      "repeated_target_rate": 0.3333,
+      "scope_expansion_attempts": 2,
+      "tokens_per_run": {
+        "availability": "UNAVAILABLE",
+        "value": null
+      },
+      "unsupported_next_action_rate": 0.6667,
+      "variant": "OFF",
+      "wall_time": {
+        "availability": "UNAVAILABLE",
+        "value": null
+      }
+    },
+    {
+      "checkpoint_token_overhead": 0.0,
+      "checkpoints_per_run": 0.0,
+      "evidence_per_provider_iteration": 0.6667,
+      "false_reanchor_rate": 0.0,
+      "false_stop_rate": 0.0,
+      "human_rejected_or_deferred_findings": {
+        "availability": "UNAVAILABLE",
+        "count": null
+      },
+      "mandatory_evidence_recall": 1.0,
+      "no_new_evidence_streak": 2,
+      "open_decision_assumption_rate": 0.3333,
+      "provider_calls_per_run": 2.25,
+      "repeated_target_rate": 0.3333,
+      "scope_expansion_attempts": 2,
+      "tokens_per_run": {
+        "availability": "UNAVAILABLE",
+        "value": null
+      },
+      "unsupported_next_action_rate": 0.6667,
+      "variant": "SHADOW",
+      "wall_time": {
+        "availability": "UNAVAILABLE",
+        "value": null
+      }
+    },
+    {
+      "checkpoint_token_overhead": 402.625,
+      "checkpoints_per_run": 0.125,
+      "evidence_per_provider_iteration": 0.9231,
+      "false_reanchor_rate": 0.0,
+      "false_stop_rate": 0.0,
+      "human_rejected_or_deferred_findings": {
+        "availability": "UNAVAILABLE",
+        "count": null
+      },
+      "mandatory_evidence_recall": 1.0,
+      "no_new_evidence_streak": 2,
+      "open_decision_assumption_rate": 0.2,
+      "provider_calls_per_run": 1.75,
+      "repeated_target_rate": 0.3077,
+      "scope_expansion_attempts": 1,
+      "tokens_per_run": {
+        "availability": "UNAVAILABLE",
+        "value": null
+      },
+      "unsupported_next_action_rate": 0.6,
+      "variant": "ENFORCE_VALID",
+      "wall_time": {
+        "availability": "UNAVAILABLE",
+        "value": null
+      }
+    },
+    {
+      "checkpoint_token_overhead": 786.375,
+      "checkpoints_per_run": 0.25,
+      "evidence_per_provider_iteration": 0.9231,
+      "false_reanchor_rate": 0.0,
+      "false_stop_rate": 0.0,
+      "human_rejected_or_deferred_findings": {
+        "availability": "UNAVAILABLE",
+        "count": null
+      },
+      "mandatory_evidence_recall": 1.0,
+      "no_new_evidence_streak": 2,
+      "open_decision_assumption_rate": 0.2,
+      "provider_calls_per_run": 1.875,
+      "repeated_target_rate": 0.3077,
+      "scope_expansion_attempts": 1,
+      "tokens_per_run": {
+        "availability": "UNAVAILABLE",
+        "value": null
+      },
+      "unsupported_next_action_rate": 0.6,
+      "variant": "ENFORCE_INVALID_VALID_REPAIR",
+      "wall_time": {
+        "availability": "UNAVAILABLE",
+        "value": null
+      }
+    },
+    {
+      "checkpoint_token_overhead": 786.375,
+      "checkpoints_per_run": 0.25,
+      "evidence_per_provider_iteration": 0.9231,
+      "false_reanchor_rate": 0.0,
+      "false_stop_rate": 0.0,
+      "human_rejected_or_deferred_findings": {
+        "availability": "UNAVAILABLE",
+        "count": null
+      },
+      "mandatory_evidence_recall": 1.0,
+      "no_new_evidence_streak": 2,
+      "open_decision_assumption_rate": 0.2,
+      "provider_calls_per_run": 1.875,
+      "repeated_target_rate": 0.3077,
+      "scope_expansion_attempts": 1,
+      "tokens_per_run": {
+        "availability": "UNAVAILABLE",
+        "value": null
+      },
+      "unsupported_next_action_rate": 0.6,
+      "variant": "ENFORCE_FAILED_REPAIR",
+      "wall_time": {
+        "availability": "UNAVAILABLE",
+        "value": null
+      }
+    }
+  ],
+  "modelComparison": {
+    "decision": "KEEP_TERRA_HIGH_FOR_PILOT",
+    "defaultRoute": {
+      "capturedCheckpointCases": 3,
+      "effort": "high",
+      "falseOnTrack": 0,
+      "invalidSemanticResponses": 0,
+      "missedMandatoryConstraints": 0,
+      "model": "gpt-5.6-terra",
+      "tokenUsage": "UNAVAILABLE"
+    },
+    "escalationCandidate": {
+      "effort": "high",
+      "executed": false,
+      "model": "gpt-5.6-sol",
+      "reason": "No material Terra-high quality failure exists in deterministic fixtures; prose polish is not an escalation criterion."
+    }
+  },
+  "phase": "TG07",
+  "qualityProperties": [
+    {
+      "evidenceCaseRefs": [
+        "trace-on-track-simple-001:enforce_failed_repair",
+        "trace-on-track-simple-001:enforce_invalid_valid_repair",
+        "trace-on-track-simple-001:enforce_valid",
+        "trace-on-track-simple-001:off",
+        "trace-on-track-simple-001:shadow"
+      ],
+      "id": "on-track-zero-checkpoint",
+      "passed": true
+    },
+    {
+      "evidenceCaseRefs": [
+        "trace-mandatory-cross-cutting-001:enforce_failed_repair",
+        "trace-mandatory-cross-cutting-001:enforce_invalid_valid_repair",
+        "trace-mandatory-cross-cutting-001:enforce_valid",
+        "trace-mandatory-cross-cutting-001:off",
+        "trace-mandatory-cross-cutting-001:shadow"
+      ],
+      "id": "mandatory-cross-cutting-preserved",
+      "passed": true
+    },
+    {
+      "evidenceCaseRefs": [
+        "trace-related-bug-001:enforce_failed_repair",
+        "trace-related-bug-001:enforce_invalid_valid_repair",
+        "trace-related-bug-001:enforce_valid"
+      ],
+      "id": "unrelated-bug-cannot-hijack-enforce",
+      "passed": true
+    },
+    {
+      "evidenceCaseRefs": [
+        "trace-architecture-rabbit-hole-001:enforce_failed_repair",
+        "trace-architecture-rabbit-hole-001:enforce_invalid_valid_repair",
+        "trace-architecture-rabbit-hole-001:enforce_valid"
+      ],
+      "id": "open-decision-alternatives-not-committed",
+      "passed": true
+    },
+    {
+      "evidenceCaseRefs": [
+        "trace-repeat-no-evidence-001:enforce_failed_repair",
+        "trace-repeat-no-evidence-001:enforce_invalid_valid_repair",
+        "trace-repeat-no-evidence-001:enforce_valid"
+      ],
+      "id": "repetition-bounded",
+      "passed": true
+    },
+    {
+      "evidenceCaseRefs": [
+        "trace-stop-sufficient-evidence-001:enforce_failed_repair",
+        "trace-stop-sufficient-evidence-001:enforce_invalid_valid_repair",
+        "trace-stop-sufficient-evidence-001:enforce_valid"
+      ],
+      "id": "sufficient-evidence-proceeds-to-synthesis",
+      "passed": true
+    },
+    {
+      "evidenceCaseRefs": [
+        "trace-related-bug-001:enforce_failed_repair",
+        "trace-related-bug-001:enforce_invalid_valid_repair",
+        "trace-related-bug-001:enforce_valid"
+      ],
+      "id": "unapproved-expansion-fails-closed",
+      "passed": true
+    },
+    {
+      "evidenceCaseRefs": [
+        "trace-repeat-no-evidence-001:enforce_failed_repair"
+      ],
+      "id": "failed-repair-no-fallback",
+      "passed": true
+    },
+    {
+      "evidenceCaseRefs": [
+        "captured-scope-v2-plan"
+      ],
+      "id": "scope-v2-semantics-preserved",
+      "passed": true
+    },
+    {
+      "evidenceCaseRefs": [
+        "all-40-sanitized-cases"
+      ],
+      "id": "telemetry-sanitized",
+      "passed": true
+    }
+  ],
+  "rollout": {
+    "defaultOnAuthorized": false,
+    "evidence": [
+      "40-of-40 deterministic cases matched",
+      "mandatory evidence recall 1.0",
+      "on-track checkpoint tax 0",
+      "failed repair halted after 2 calls",
+      "Scope v2 captured semantics preserved"
+    ],
+    "recommendation": "SHADOW_PILOT_ONLY",
+    "unresolvedRisks": [
+      "No live provider comparison",
+      "No human usefulness ratings",
+      "Provider-internal activity remains opaque",
+      "Exact token usage remains unavailable",
+      "Fixture-derived thresholds need live confirmation"
+    ]
+  },
+  "schemaVersion": "mana.analysis-trajectory.evaluation-report/v1",
+  "scopeV2": {
+    "basePlanCount": 1,
+    "conditionalBranchCount": 7,
+    "exclusiveAlternativeGroupCount": 3,
+    "exclusiveAlternativesNotSummed": true,
+    "finalCommittedEstimate": null,
+    "relatedFindingCount": 3,
+    "requiredEnablerCount": 3
+  },
+  "thresholdRecommendations": [
+    {
+      "basis": [
+        "trace-on-track-simple-001",
+        "trace-repeat-no-evidence-001"
+      ],
+      "liveConfirmationRequired": true,
+      "proposedPilotValue": 3,
+      "rationale": "Two useful visits remain on track; the third equivalent visit without new evidence triggers one bounded re-anchor.",
+      "signal": "repeatedTargetVisitCount"
+    },
+    {
+      "basis": [
+        "trace-repeat-no-evidence-001"
+      ],
+      "liveConfirmationRequired": true,
+      "proposedPilotValue": 3,
+      "rationale": "Two empty iterations alone do not force the no-evidence stop; three consecutive empty completions remain the conservative pilot boundary.",
+      "signal": "noNewEvidenceStreak"
+    },
+    {
+      "basis": [
+        "trace-related-bug-001",
+        "trace-architecture-rabbit-hole-001"
+      ],
+      "liveConfirmationRequired": true,
+      "proposedPilotValue": 1,
+      "rationale": "The first unapproved expansion is explicit and owner-gated because silent continuation changes the Mission Contract.",
+      "signal": "unapprovedScopeExpansion"
+    },
+    {
+      "basis": [
+        "trace-architecture-rabbit-hole-001"
+      ],
+      "liveConfirmationRequired": true,
+      "proposedPilotValue": 1,
+      "rationale": "A single unsupported architecture assumption can commit mutually exclusive work and therefore requires immediate review.",
+      "signal": "openDecisionAssumption"
+    },
+    {
+      "basis": [
+        "tg04-soft-budget-pressure"
+      ],
+      "liveConfirmationRequired": true,
+      "proposedPilotValue": 80,
+      "rationale": "Keep the measured TG04 warning point for the first pilot; no live baseline currently justifies a tighter universal threshold.",
+      "signal": "softBudgetWarningPercent"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.checkpoint-governor-config/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "enabled", "mode", "maxPrimaryCalls", "maxStructuralRepairCalls"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.checkpoint-governor-config/v1"},
+    "enabled": {"type": "boolean"},
+    "mode": {"enum": ["OFF", "SHADOW"]},
+    "maxPrimaryCalls": {"const": 1},
+    "maxStructuralRepairCalls": {"const": 1}
+  }
+}

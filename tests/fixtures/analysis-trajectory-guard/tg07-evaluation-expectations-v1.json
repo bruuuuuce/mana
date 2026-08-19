@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "mana.analysis-trajectory.evaluation-expectations/v1",
+  "fixtureSetRef": "fixture:tg00-traces-v1",
+  "cases": [
+    {
+      "traceId": "trace-on-track-simple-001",
+      "policyCutoffSteps": 2,
+      "observationStepSequences": [],
+      "closeAllMissionGaps": false,
+      "expectedRecommendation": "CONTINUE_ON_TRACK",
+      "requiredEvidenceRefs": ["EV-COMMIT-HOOK", "EV-SIGNAL-TEST"],
+      "irrelevantStepSequences": [],
+      "deferredFindingRefs": [],
+      "resolvedGapRefs": []
+    },
+    {
+      "traceId": "trace-legitimate-expansion-001",
+      "policyCutoffSteps": 1,
+      "observationStepSequences": [2],
+      "closeAllMissionGaps": false,
+      "expectedRecommendation": "CONTINUE_ON_TRACK",
+      "requiredEvidenceRefs": ["EV-DEPENDENCY-CALL", "EV-DEPENDENCY-CONTRACT"],
+      "irrelevantStepSequences": [],
+      "deferredFindingRefs": [],
+      "resolvedGapRefs": []
+    },
+    {
+      "traceId": "trace-related-bug-001",
+      "policyCutoffSteps": 1,
+      "observationStepSequences": [2],
+      "closeAllMissionGaps": false,
+      "expectedRecommendation": "SCOPE_TRIAGE_REQUIRED",
+      "requiredEvidenceRefs": [],
+      "irrelevantStepSequences": [2, 3],
+      "deferredFindingRefs": ["EV-UNRELATED-PAGING-BUG"],
+      "resolvedGapRefs": []
+    },
+    {
+      "traceId": "trace-architecture-rabbit-hole-001",
+      "policyCutoffSteps": 1,
+      "observationStepSequences": [2],
+      "closeAllMissionGaps": false,
+      "expectedRecommendation": "NEEDS_OWNER_REVIEW",
+      "requiredEvidenceRefs": ["EV-DELIVERY-AMBIGUITY"],
+      "irrelevantStepSequences": [2, 3],
+      "deferredFindingRefs": [],
+      "resolvedGapRefs": []
+    },
+    {
+      "traceId": "trace-repeat-no-evidence-001",
+      "policyCutoffSteps": 3,
+      "observationStepSequences": [],
+      "closeAllMissionGaps": false,
+      "expectedRecommendation": "CHECKPOINT_RECOMMENDED",
+      "requiredEvidenceRefs": ["EV-COMMIT-HOOK"],
+      "irrelevantStepSequences": [2, 3],
+      "deferredFindingRefs": [],
+      "resolvedGapRefs": []
+    },
+    {
+      "traceId": "trace-stop-sufficient-evidence-001",
+      "policyCutoffSteps": 1,
+      "observationStepSequences": [2],
+      "closeAllMissionGaps": true,
+      "expectedRecommendation": "STOP_SUFFICIENT_EVIDENCE",
+      "requiredEvidenceRefs": ["EV-COMMIT-HOOK", "EV-SIGNAL-TEST"],
+      "irrelevantStepSequences": [2],
+      "deferredFindingRefs": [],
+      "resolvedGapRefs": ["GAP-AUTHZ-CHECK", "GAP-COMMIT-HOOK", "GAP-DELIVERY-GUARANTEE", "GAP-DEPENDENCY-CONTRACT", "GAP-RESULT-VISIBILITY"]
+    },
+    {
+      "traceId": "trace-mandatory-cross-cutting-001",
+      "policyCutoffSteps": 1,
+      "observationStepSequences": [2],
+      "closeAllMissionGaps": false,
+      "expectedRecommendation": "CONTINUE_ON_TRACK",
+      "requiredEvidenceRefs": ["EV-AUTHZ-DELEGATION", "EV-AUTHZ-CHECK"],
+      "irrelevantStepSequences": [],
+      "deferredFindingRefs": [],
+      "resolvedGapRefs": []
+    },
+    {
+      "traceId": "trace-opaque-provider-001",
+      "policyCutoffSteps": 2,
+      "observationStepSequences": [],
+      "closeAllMissionGaps": false,
+      "expectedRecommendation": "CONTINUE_ON_TRACK",
+      "requiredEvidenceRefs": ["EV-PROVIDER-RESULT"],
+      "irrelevantStepSequences": [],
+      "deferredFindingRefs": [],
+      "resolvedGapRefs": []
+    }
+  ]
+}

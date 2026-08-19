@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.scope-expansion-proposal/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "proposalId", "missionId", "missionHash", "missionRevision", "targetScopeRef", "reason", "relatedGoalRefs", "relatedConstraintRefs", "relatedGapRefs", "expectedEvidenceValue", "estimatedBudgetDelta", "approvalRequired", "approvalStatus"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.scope-expansion-proposal/v1"},
+    "proposalId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+    "missionId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+    "missionHash": {"$ref": "common-v1.schema.json#/$defs/hash"},
+    "missionRevision": {"type": "integer", "minimum": 1},
+    "targetScopeRef": {"$ref": "common-v1.schema.json#/$defs/ref"},
+    "reason": {"type": "string", "minLength": 1, "maxLength": 512},
+    "relatedGoalRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "relatedConstraintRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "relatedGapRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "expectedEvidenceValue": {"type": "string", "minLength": 1, "maxLength": 512},
+    "estimatedBudgetDelta": {
+      "type": "object", "additionalProperties": false,
+      "required": ["providerCalls", "tokenProxy"],
+      "properties": {
+        "providerCalls": {"type": "integer", "minimum": 0},
+        "tokenProxy": {"type": "integer", "minimum": 0}
+      }
+    },
+    "approvalRequired": {"const": true},
+    "approvalStatus": {"enum": ["PENDING", "APPROVED"]}
+  }
+}

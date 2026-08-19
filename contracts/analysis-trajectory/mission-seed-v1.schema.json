@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.mission-seed/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "createdAt", "authoritativeInputRefs", "scopePolicy", "mandatoryConstraints", "evidenceGaps", "prohibitedActions", "stopConditions", "softBudgets", "hardBudgets"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.mission-seed/v1"},
+    "createdAt": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "authoritativeInputRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "scopePolicy": {"$ref": "common-v1.schema.json#/$defs/scopePolicy"},
+    "mandatoryConstraints": {"type": "array", "maxItems": 128, "items": {"$ref": "common-v1.schema.json#/$defs/mandatoryConstraint"}},
+    "evidenceGaps": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["gapId", "description", "relatedAcceptanceCriterionRefs", "relatedMandatoryConstraintRefs", "expectedEvidenceType", "sourceHint"],
+        "properties": {
+          "gapId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "description": {"type": "string", "minLength": 1, "maxLength": 512},
+          "relatedAcceptanceCriterionRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "relatedMandatoryConstraintRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "expectedEvidenceType": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "sourceHint": {"anyOf": [{"type": "string", "minLength": 1, "maxLength": 256}, {"type": "null"}]}
+        }
+      }
+    },
+    "prohibitedActions": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "stopConditions": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "softBudgets": {"$ref": "common-v1.schema.json#/$defs/budgets"},
+    "hardBudgets": {"$ref": "common-v1.schema.json#/$defs/budgets"}
+  }
+}

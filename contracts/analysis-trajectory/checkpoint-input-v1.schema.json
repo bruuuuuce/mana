@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.checkpoint-input/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "triggerReasons", "nextActionProposals"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.checkpoint-input/v1"},
+    "triggerReasons": {"type": "array", "maxItems": 32, "uniqueItems": true, "items": {"$ref": "common-v1.schema.json#/$defs/ref"}},
+    "nextActionProposals": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["actionId", "actionKind", "targetScopeRef", "justificationGoalRefs", "justificationGapRefs", "mandatoryConstraintRefs", "expectedEvidence", "decisionDependencies", "scopeExpansionRequired", "estimatedBudgetDelta"],
+        "properties": {
+          "actionId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "actionKind": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "targetScopeRef": {"$ref": "common-v1.schema.json#/$defs/ref"},
+          "justificationGoalRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "justificationGapRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "mandatoryConstraintRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "expectedEvidence": {"type": "string", "minLength": 1, "maxLength": 512},
+          "decisionDependencies": {"$ref": "common-v1.schema.json#/$defs/refs"},
+          "scopeExpansionRequired": {"type": "boolean"},
+          "estimatedBudgetDelta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["providerCalls", "tokenProxy"],
+            "properties": {
+              "providerCalls": {"type": "integer", "minimum": 0},
+              "tokenProxy": {"type": "integer", "minimum": 0}
+            }
+          }
+        }
+      }
+    }
+  }
+}

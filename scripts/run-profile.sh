@@ -2,6 +2,9 @@
 set -u
 root="$(cd "$(dirname "$0")/.." && pwd)"
 . "$root/scripts/lib/provider-dispatch.sh"
+. "$root/scripts/lib/story-start-stage-routing.sh"
+. "$root/scripts/lib/analysis-trajectory-telemetry.sh"
+. "$root/scripts/lib/analysis-trajectory-integration.sh"
 . "$root/scripts/lib/story-start-scope-v2.sh"
 # shellcheck source=lib/profile-metadata.sh
 . "$root/scripts/lib/profile-metadata.sh"
@@ -18,7 +21,12 @@ jira_key_regex="${MANA_JIRA_KEY_REGEX:-[A-Z][A-Z0-9]+-[0-9]+}"
 jira_env_file="${MANA_JIRA_MCP_ENV:-}"
 jira_mcp_configured=false
 jira_mcp_config_source=""
+codex_model_explicit=false
+[ -z "${MANA_CODEX_MODEL:-}" ] || codex_model_explicit=true
+codex_reasoning_effort_explicit=false
+[ -z "${MANA_CODEX_REASONING_EFFORT:-}" ] || codex_reasoning_effort_explicit=true
 codex_model="${MANA_CODEX_MODEL:-gpt-5.4-mini}"
+codex_reasoning_effort="${MANA_CODEX_REASONING_EFFORT:-}"
 codex_full_model="${MANA_CODEX_FULL_MODEL:-gpt-5.6-sol}"
 codex_explorer_model="${MANA_CODEX_EXPLORER_MODEL:-gpt-5.6-terra}"
 codex_worker_model="${MANA_CODEX_WORKER_MODEL:-gpt-5.6-terra}"
@@ -27,14 +35,24 @@ codex_subagents="${MANA_CODEX_SUBAGENTS:-true}"
 codex_max_threads="${MANA_CODEX_MAX_THREADS:-3}"
 codex_max_depth=1
 codex_agent_install_warnings=""
+claude_model_explicit=false
+[ -z "${MANA_CLAUDE_MODEL:-}" ] || claude_model_explicit=true
+claude_reasoning_effort_explicit=false
+[ -z "${MANA_CLAUDE_REASONING_EFFORT:-}" ] || claude_reasoning_effort_explicit=true
 claude_model="${MANA_CLAUDE_MODEL:-haiku}"
+claude_reasoning_effort="${MANA_CLAUDE_REASONING_EFFORT:-}"
 claude_full_model="${MANA_CLAUDE_FULL_MODEL:-opus}"
 claude_explorer_model="${MANA_CLAUDE_EXPLORER_MODEL:-sonnet}"
 claude_worker_model="${MANA_CLAUDE_WORKER_MODEL:-sonnet}"
 claude_subagents="${MANA_CLAUDE_SUBAGENTS:-true}"
 claude_max_threads="${MANA_CLAUDE_MAX_THREADS:-3}"
 claude_agent_install_warnings=""
+opencode_model_explicit=false
+[ -z "${MANA_OPENCODE_MODEL:-}" ] || opencode_model_explicit=true
+opencode_reasoning_effort_explicit=false
+[ -z "${MANA_OPENCODE_REASONING_EFFORT:-}" ] || opencode_reasoning_effort_explicit=true
 opencode_model="${MANA_OPENCODE_MODEL:-opencode/gpt-5.1-codex}"
+opencode_reasoning_effort="${MANA_OPENCODE_REASONING_EFFORT:-}"
 opencode_full_model="${MANA_OPENCODE_FULL_MODEL:-}"
 opencode_explorer_model="${MANA_OPENCODE_EXPLORER_MODEL:-}"
 opencode_worker_model="${MANA_OPENCODE_WORKER_MODEL:-}"
@@ -43,6 +61,12 @@ opencode_max_threads="${MANA_OPENCODE_MAX_THREADS:-3}"
 opencode_agent_install_warnings=""
 story_start_scope_version="${MANA_STORY_START_SCOPE_VERSION:-v1}"
 story_start_scope_context="${MANA_STORY_START_CONTEXT:-}"
+story_start_stage_routing_requested=false
+story_start_discovery_model=""; story_start_discovery_effort=""
+story_start_triage_model=""; story_start_triage_effort=""
+story_start_planner_model=""; story_start_planner_effort=""
+story_start_correction_model=""; story_start_correction_effort=""
+story_start_trajectory_checkpoint_model=""; story_start_trajectory_checkpoint_effort=""
 
 usage() {
   cat <<'USAGE'
@@ -56,17 +80,20 @@ Options:
   --claude                       Execute the rendered profile through Claude Code.
   --opencode                     Execute the rendered profile through OpenCode.
   --codex-model <model>          Codex model for the root orchestrator. Defaults to MANA_CODEX_MODEL or gpt-5.4-mini.
+  --codex-reasoning-effort <e>   Root compatibility effort for v2 stages. Defaults to MANA_CODEX_REASONING_EFFORT.
   --codex-full-model <model>     Codex model for mana_full_specialist. Defaults to MANA_CODEX_FULL_MODEL or gpt-5.6-sol.
   --codex-explorer-model <model> Codex model for mana_explorer. Defaults to MANA_CODEX_EXPLORER_MODEL or gpt-5.6-terra.
   --codex-worker-model <model>   Codex model for mana_worker. Defaults to MANA_CODEX_WORKER_MODEL or gpt-5.6-terra.
   --codex-model-policy <policy>  Model policy note passed to Codex. Defaults to economy-first.
   --no-codex-subagents           Disable Codex subagent orchestration and use legacy manual escalation.
   --claude-model <model>         Claude model for the root orchestrator. Defaults to MANA_CLAUDE_MODEL or haiku.
+  --claude-reasoning-effort <e>  Root compatibility effort for v2 stages. Defaults to MANA_CLAUDE_REASONING_EFFORT.
   --claude-full-model <model>    Claude model for mana-full-specialist. Defaults to MANA_CLAUDE_FULL_MODEL or opus.
   --claude-explorer-model <m>    Claude model for mana-explorer. Defaults to MANA_CLAUDE_EXPLORER_MODEL or sonnet.
   --claude-worker-model <model>  Claude model for mana-worker. Defaults to MANA_CLAUDE_WORKER_MODEL or sonnet.
   --no-claude-subagents          Disable Claude subagent orchestration and use manual escalation.
   --opencode-model <model>       OpenCode model for the primary orchestrator. Defaults to MANA_OPENCODE_MODEL or opencode/gpt-5.1-codex.
+  --opencode-reasoning-effort <e> Root compatibility effort for v2 stages. Defaults to MANA_OPENCODE_REASONING_EFFORT.
   --opencode-full-model <model>  OpenCode model for mana_full_specialist. Defaults to MANA_OPENCODE_FULL_MODEL or the root OpenCode model.
   --opencode-explorer-model <m>  OpenCode model for mana_explorer. Defaults to MANA_OPENCODE_EXPLORER_MODEL or the root OpenCode model.
   --opencode-worker-model <m>    OpenCode model for mana_worker. Defaults to MANA_OPENCODE_WORKER_MODEL or the root OpenCode model.
@@ -80,6 +107,14 @@ Options:
 Story Start Scope v2 opt-in:
   MANA_STORY_START_SCOPE_VERSION=v2
   MANA_STORY_START_CONTEXT=<project-relative discovery-package-v1.json>
+  --story-start-<discovery|triage|planner|correction|trajectory-checkpoint>-model <model>
+  --story-start-<discovery|triage|planner|correction|trajectory-checkpoint>-effort <effort>
+
+Analysis Trajectory Guard TG06 (Story Start v2 only):
+  MANA_ANALYSIS_TRAJECTORY_MODE=off|shadow|enforce
+  MANA_ANALYSIS_TRAJECTORY_OBSERVATION=<project-relative structured boundary fixture>
+  MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT=<project-relative bounded action options>
+  MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL=<project-relative approved revision request>
 
 The default remains v1. The v2 path keeps the same profile/runner invocation,
 publishes additive structured artifacts, and never overwrites legacy Markdown.
@@ -115,6 +150,13 @@ while [ "$#" -gt 0 ]; do
     --codex-model)
       codex_model="${2:-}"
       [ -n "$codex_model" ] || { echo "ERROR: --codex-model requires a model name" >&2; exit 2; }
+      codex_model_explicit=true
+      shift 2
+      ;;
+    --codex-reasoning-effort)
+      codex_reasoning_effort="${2:-}"
+      mana_story_start_stage_valid_effort "$codex_reasoning_effort" || { echo "ERROR: --codex-reasoning-effort must be minimal, low, medium, high, or xhigh" >&2; exit 2; }
+      codex_reasoning_effort_explicit=true
       shift 2
       ;;
     --codex-full-model)
@@ -144,6 +186,13 @@ while [ "$#" -gt 0 ]; do
     --claude-model)
       claude_model="${2:-}"
       [ -n "$claude_model" ] || { echo "ERROR: --claude-model requires a model name" >&2; exit 2; }
+      claude_model_explicit=true
+      shift 2
+      ;;
+    --claude-reasoning-effort)
+      claude_reasoning_effort="${2:-}"
+      mana_story_start_stage_valid_effort "$claude_reasoning_effort" || { echo "ERROR: --claude-reasoning-effort must be minimal, low, medium, high, or xhigh" >&2; exit 2; }
+      claude_reasoning_effort_explicit=true
       shift 2
       ;;
     --claude-full-model)
@@ -168,6 +217,13 @@ while [ "$#" -gt 0 ]; do
     --opencode-model)
       opencode_model="${2:-}"
       [ -n "$opencode_model" ] || { echo "ERROR: --opencode-model requires a model name" >&2; exit 2; }
+      opencode_model_explicit=true
+      shift 2
+      ;;
+    --opencode-reasoning-effort)
+      opencode_reasoning_effort="${2:-}"
+      mana_story_start_stage_valid_effort "$opencode_reasoning_effort" || { echo "ERROR: --opencode-reasoning-effort must be minimal, low, medium, high, or xhigh" >&2; exit 2; }
+      opencode_reasoning_effort_explicit=true
       shift 2
       ;;
     --opencode-full-model)
@@ -188,6 +244,66 @@ while [ "$#" -gt 0 ]; do
     --no-opencode-subagents)
       opencode_subagents=false
       shift
+      ;;
+    --story-start-discovery-model)
+      story_start_discovery_model="${2:-}"
+      [ -n "$story_start_discovery_model" ] || { echo 'ERROR: --story-start-discovery-model requires a model name' >&2; exit 2; }
+      story_start_stage_routing_requested=true
+      shift 2
+      ;;
+    --story-start-discovery-effort)
+      story_start_discovery_effort="${2:-}"
+      mana_story_start_stage_valid_effort "$story_start_discovery_effort" || { echo 'ERROR: --story-start-discovery-effort must be minimal, low, medium, high, or xhigh' >&2; exit 2; }
+      story_start_stage_routing_requested=true
+      shift 2
+      ;;
+    --story-start-triage-model)
+      story_start_triage_model="${2:-}"
+      [ -n "$story_start_triage_model" ] || { echo 'ERROR: --story-start-triage-model requires a model name' >&2; exit 2; }
+      story_start_stage_routing_requested=true
+      shift 2
+      ;;
+    --story-start-triage-effort)
+      story_start_triage_effort="${2:-}"
+      mana_story_start_stage_valid_effort "$story_start_triage_effort" || { echo 'ERROR: --story-start-triage-effort must be minimal, low, medium, high, or xhigh' >&2; exit 2; }
+      story_start_stage_routing_requested=true
+      shift 2
+      ;;
+    --story-start-planner-model)
+      story_start_planner_model="${2:-}"
+      [ -n "$story_start_planner_model" ] || { echo 'ERROR: --story-start-planner-model requires a model name' >&2; exit 2; }
+      story_start_stage_routing_requested=true
+      shift 2
+      ;;
+    --story-start-planner-effort)
+      story_start_planner_effort="${2:-}"
+      mana_story_start_stage_valid_effort "$story_start_planner_effort" || { echo 'ERROR: --story-start-planner-effort must be minimal, low, medium, high, or xhigh' >&2; exit 2; }
+      story_start_stage_routing_requested=true
+      shift 2
+      ;;
+    --story-start-correction-model)
+      story_start_correction_model="${2:-}"
+      [ -n "$story_start_correction_model" ] || { echo 'ERROR: --story-start-correction-model requires a model name' >&2; exit 2; }
+      story_start_stage_routing_requested=true
+      shift 2
+      ;;
+    --story-start-correction-effort)
+      story_start_correction_effort="${2:-}"
+      mana_story_start_stage_valid_effort "$story_start_correction_effort" || { echo 'ERROR: --story-start-correction-effort must be minimal, low, medium, high, or xhigh' >&2; exit 2; }
+      story_start_stage_routing_requested=true
+      shift 2
+      ;;
+    --story-start-trajectory-checkpoint-model)
+      story_start_trajectory_checkpoint_model="${2:-}"
+      [ -n "$story_start_trajectory_checkpoint_model" ] || { echo 'ERROR: --story-start-trajectory-checkpoint-model requires a model name' >&2; exit 2; }
+      story_start_stage_routing_requested=true
+      shift 2
+      ;;
+    --story-start-trajectory-checkpoint-effort)
+      story_start_trajectory_checkpoint_effort="${2:-}"
+      mana_story_start_stage_valid_effort "$story_start_trajectory_checkpoint_effort" || { echo 'ERROR: --story-start-trajectory-checkpoint-effort must be minimal, low, medium, high, or xhigh' >&2; exit 2; }
+      story_start_stage_routing_requested=true
+      shift 2
       ;;
     --pr|--pr-number)
       pr_number="${2:-}"
@@ -256,6 +372,11 @@ esac
 
 if [ "$story_start_scope_version" = v2 ] && [ "$profile" != story-start ]; then
   echo 'ERROR: Story Start Scope v2 can only be used with the story-start profile' >&2
+  exit 2
+fi
+
+if [ "$story_start_stage_routing_requested" = true ] && { [ "$profile" != story-start ] || [ "$story_start_scope_version" != v2 ]; }; then
+  echo 'ERROR: Story Start stage-specific routing options require story-start with MANA_STORY_START_SCOPE_VERSION=v2' >&2
   exit 2
 fi
 
@@ -847,6 +968,48 @@ if [ "$render_only" = true ] || [ "${MANA_PROFILE_RUNNING:-}" = "1" ] || [ -z "$
   exit 0
 fi
 
+resolve_story_start_stage_route() {
+  local stage="$1" cli_model cli_effort
+  case "$stage" in
+    discovery) cli_model="$story_start_discovery_model"; cli_effort="$story_start_discovery_effort" ;;
+    triage) cli_model="$story_start_triage_model"; cli_effort="$story_start_triage_effort" ;;
+    planner) cli_model="$story_start_planner_model"; cli_effort="$story_start_planner_effort" ;;
+    correction) cli_model="$story_start_correction_model"; cli_effort="$story_start_correction_effort" ;;
+    trajectory-checkpoint) cli_model="$story_start_trajectory_checkpoint_model"; cli_effort="$story_start_trajectory_checkpoint_effort" ;;
+    *) return 1 ;;
+  esac
+  mana_story_start_stage_resolve "$runner" "$stage" "$story_start_model" "$story_start_root_effort" \
+    "$story_start_model_explicit" "$story_start_root_effort_explicit" "$cli_model" "$cli_effort" || return 1
+  case "$stage" in
+    discovery)
+      MANA_STORY_START_STAGE_DISCOVERY_MODEL="$MANA_STORY_START_ROUTE_MODEL"
+      MANA_STORY_START_STAGE_DISCOVERY_EFFORT="$MANA_STORY_START_ROUTE_EFFORT"
+      export MANA_STORY_START_STAGE_DISCOVERY_MODEL MANA_STORY_START_STAGE_DISCOVERY_EFFORT
+      ;;
+    triage)
+      MANA_STORY_START_STAGE_TRIAGE_MODEL="$MANA_STORY_START_ROUTE_MODEL"
+      MANA_STORY_START_STAGE_TRIAGE_EFFORT="$MANA_STORY_START_ROUTE_EFFORT"
+      export MANA_STORY_START_STAGE_TRIAGE_MODEL MANA_STORY_START_STAGE_TRIAGE_EFFORT
+      ;;
+    planner)
+      MANA_STORY_START_STAGE_PLANNER_MODEL="$MANA_STORY_START_ROUTE_MODEL"
+      MANA_STORY_START_STAGE_PLANNER_EFFORT="$MANA_STORY_START_ROUTE_EFFORT"
+      export MANA_STORY_START_STAGE_PLANNER_MODEL MANA_STORY_START_STAGE_PLANNER_EFFORT
+      ;;
+    correction)
+      MANA_STORY_START_STAGE_CORRECTION_MODEL="$MANA_STORY_START_ROUTE_MODEL"
+      MANA_STORY_START_STAGE_CORRECTION_EFFORT="$MANA_STORY_START_ROUTE_EFFORT"
+      export MANA_STORY_START_STAGE_CORRECTION_MODEL MANA_STORY_START_STAGE_CORRECTION_EFFORT
+      ;;
+    trajectory-checkpoint)
+      MANA_STORY_START_STAGE_TRAJECTORY_CHECKPOINT_MODEL="$MANA_STORY_START_ROUTE_MODEL"
+      MANA_STORY_START_STAGE_TRAJECTORY_CHECKPOINT_EFFORT="$MANA_STORY_START_ROUTE_EFFORT"
+      export MANA_STORY_START_STAGE_TRAJECTORY_CHECKPOINT_MODEL MANA_STORY_START_STAGE_TRAJECTORY_CHECKPOINT_EFFORT
+      ;;
+  esac
+  mana_story_start_stage_route_diagnostic "$runner" "$stage"
+}
+
 if [ "$profile" = story-start ] && [ "$story_start_scope_version" = v2 ]; then
   [ -n "$story_start_scope_context" ] || {
     echo 'ERROR: MANA_STORY_START_CONTEXT is required when Story Start Scope v2 is selected' >&2
@@ -856,6 +1019,46 @@ if [ "$profile" = story-start ] && [ "$story_start_scope_version" = v2 ]; then
     echo "ERROR: project root is unavailable: $project_root" >&2
     exit 2
   }
+  story_start_trajectory_mode="$(mana_trajectory_guard_mode)" || exit 2
+  unset MANA_ANALYSIS_TRAJECTORY_MISSION_PATH MANA_ANALYSIS_TRAJECTORY_EVIDENCE_PACKAGE \
+    MANA_ANALYSIS_TRAJECTORY_REANCHOR_HEADER MANA_ANALYSIS_TRAJECTORY_OBSERVATION_PATH \
+    MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT_PATH MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL_PATH
+  if [ "$story_start_trajectory_mode" != OFF ]; then
+    MANA_ANALYSIS_TRAJECTORY_TELEMETRY=true
+    export MANA_ANALYSIS_TRAJECTORY_TELEMETRY
+  fi
+  resolve_trajectory_input() {
+    local value="$1" label="$2" candidate directory resolved
+    case "$value" in
+      /*) candidate="$value" ;;
+      *) candidate="$project_root/$value" ;;
+    esac
+    directory="$(cd "$(dirname "$candidate")" 2>/dev/null && pwd -P)" || {
+      echo "ERROR: $label directory is unavailable" >&2; return 2;
+    }
+    resolved="$directory/${candidate##*/}"
+    case "$resolved" in "$project_root"/*) ;; *) echo "ERROR: $label must resolve inside the target project" >&2; return 2 ;; esac
+    if [ ! -f "$resolved" ] || [ -L "$resolved" ]; then
+      echo "ERROR: $label must be a regular non-symlink file" >&2
+      return 2
+    fi
+    trajectory_resolved_input="$resolved"
+  }
+  if [ -n "${MANA_ANALYSIS_TRAJECTORY_OBSERVATION:-}" ]; then
+    resolve_trajectory_input "$MANA_ANALYSIS_TRAJECTORY_OBSERVATION" MANA_ANALYSIS_TRAJECTORY_OBSERVATION || exit 2
+    MANA_ANALYSIS_TRAJECTORY_OBSERVATION_PATH="$trajectory_resolved_input"
+    export MANA_ANALYSIS_TRAJECTORY_OBSERVATION_PATH
+  fi
+  if [ -n "${MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT:-}" ]; then
+    resolve_trajectory_input "$MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT" MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT || exit 2
+    MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT_PATH="$trajectory_resolved_input"
+    export MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT_PATH
+  fi
+  if [ -n "${MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL:-}" ]; then
+    resolve_trajectory_input "$MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL" MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL || exit 2
+    MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL_PATH="$trajectory_resolved_input"
+    export MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL_PATH
+  fi
   case "$story_start_scope_context" in
     /*) story_start_context_candidate="$story_start_scope_context" ;;
     *) story_start_context_candidate="$project_root/$story_start_scope_context" ;;
@@ -898,13 +1101,46 @@ if [ "$profile" = story-start ] && [ "$story_start_scope_version" = v2 ]; then
       ;;
   esac
   story_start_workspace="$project_root/$story_start_workspace_relative"
+  mana_trajectory_telemetry_init "$story_start_workspace" "$(jq -r '.storyId' "$story_start_context_path")" || \
+    echo 'WARNING: passive Analysis Trajectory telemetry could not be initialized; continuing unchanged' >&2
+  if ! mana_trajectory_guard_initialize "$story_start_context_path" "$story_start_workspace"; then
+    if [ "$story_start_trajectory_mode" = SHADOW ]; then
+      echo 'WARNING: trajectory shadow initialization failed; Story Start control flow is unchanged' >&2
+      MANA_ANALYSIS_TRAJECTORY_MODE=off
+      export MANA_ANALYSIS_TRAJECTORY_MODE
+    else
+      echo 'ERROR: trajectory enforcement initialization failed closed' >&2
+      exit 1
+    fi
+  fi
 
   case "$runner" in
-    codex) story_start_model="$codex_model" ;;
-    claude) story_start_model="$claude_model" ;;
-    opencode) story_start_model="$opencode_model" ;;
+    codex)
+      story_start_model="$codex_model"
+      story_start_root_effort="$codex_reasoning_effort"
+      story_start_model_explicit="$codex_model_explicit"
+      story_start_root_effort_explicit="$codex_reasoning_effort_explicit"
+      ;;
+    claude)
+      story_start_model="$claude_model"
+      story_start_root_effort="$claude_reasoning_effort"
+      story_start_model_explicit="$claude_model_explicit"
+      story_start_root_effort_explicit="$claude_reasoning_effort_explicit"
+      ;;
+    opencode)
+      story_start_model="$opencode_model"
+      story_start_root_effort="$opencode_reasoning_effort"
+      story_start_model_explicit="$opencode_model_explicit"
+      story_start_root_effort_explicit="$opencode_reasoning_effort_explicit"
+      ;;
     *) echo "ERROR: unsupported Story Start Scope v2 runner: $runner" >&2; exit 2 ;;
   esac
+  for story_start_stage in discovery triage planner correction trajectory-checkpoint; do
+    resolve_story_start_stage_route "$story_start_stage" || {
+      echo "ERROR: unable to resolve Story Start Scope v2 route for stage $story_start_stage" >&2
+      exit 2
+    }
+  done
 
   echo
   echo "Starting validated Story Start Scope v2 pipeline through $runner"

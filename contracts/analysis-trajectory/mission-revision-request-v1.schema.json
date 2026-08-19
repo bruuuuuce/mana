@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.mission-revision-request/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "missionId", "expectedRevision", "changeKind", "proposalApprovalRef", "approvalAuthority", "acceptedScopeRefs", "semanticChanges"],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.mission-revision-request/v1"},
+    "missionId": {"type": "string", "pattern": "^mission-[0-9a-f]{24}$"},
+    "expectedRevision": {"type": "integer", "minimum": 1},
+    "changeKind": {"enum": ["APPROVED_MISSION_CHANGE", "APPROVED_SCOPE_EXPANSION"]},
+    "proposalApprovalRef": {"$ref": "common-v1.schema.json#/$defs/ref"},
+    "approvalAuthority": {"$ref": "common-v1.schema.json#/$defs/ref"},
+    "acceptedScopeRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+    "semanticChanges": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "objective": {"type": "string", "minLength": 1, "maxLength": 4096},
+        "acceptanceCriteria": {"type": "array", "minItems": 1, "maxItems": 128, "items": {"$ref": "common-v1.schema.json#/$defs/acceptanceCriterion"}},
+        "mandatoryConstraints": {"type": "array", "maxItems": 128, "items": {"$ref": "common-v1.schema.json#/$defs/mandatoryConstraint"}},
+        "authoritativeInputRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "scopePolicy": {"$ref": "common-v1.schema.json#/$defs/scopePolicy"},
+        "evidenceGaps": {"type": "array", "maxItems": 256},
+        "prohibitedActions": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "stopConditions": {"$ref": "common-v1.schema.json#/$defs/refs"},
+        "softBudgets": {"$ref": "common-v1.schema.json#/$defs/budgets"},
+        "hardBudgets": {"$ref": "common-v1.schema.json#/$defs/budgets"}
+      }
+    }
+  }
+}

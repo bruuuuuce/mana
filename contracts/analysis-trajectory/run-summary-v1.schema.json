@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.run-summary/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "runId", "eventCount", "providerIterationCount", "visitedScopeRefs", "repeatedTargetScopeRefs", "maxConsecutiveIterationsWithoutEvidence", "evidenceAddedPerIteration", "scopeExpansionCount", "openDecisionObservationCount", "routes", "totalCheckpoints", "tokenUsage", "runOutcome", "partial"],
+  "properties": {"schemaVersion": {"const": "mana.analysis-trajectory.run-summary/v1"}, "runId": {"type": "string"}, "eventCount": {"type": "integer"}, "providerIterationCount": {"type": "integer"}, "visitedScopeRefs": {"type": "array"}, "repeatedTargetScopeRefs": {"type": "array"}, "maxConsecutiveIterationsWithoutEvidence": {"type": "integer"}, "evidenceAddedPerIteration": {"type": "array"}, "scopeExpansionCount": {"type": "integer"}, "openDecisionObservationCount": {"type": "integer"}, "routes": {"type": "array"}, "totalCheckpoints": {"const": 0}, "tokenUsage": {"type": "object"}, "runOutcome": {"type": "string"}, "partial": {"type": "boolean"}}
+}
