@@ -24,6 +24,7 @@ mana_story_start_scope_v2_stage_model() {
     triage) variable_name=MANA_STORY_START_STAGE_TRIAGE_MODEL ;;
     planner) variable_name=MANA_STORY_START_STAGE_PLANNER_MODEL ;;
     correction) variable_name=MANA_STORY_START_STAGE_CORRECTION_MODEL ;;
+    trajectory-checkpoint) variable_name=MANA_STORY_START_STAGE_TRAJECTORY_CHECKPOINT_MODEL ;;
     *) return 1 ;;
   esac
   printf '%s' "${!variable_name:-$fallback_model}"
@@ -36,6 +37,7 @@ mana_story_start_scope_v2_stage_effort() {
     triage) variable_name=MANA_STORY_START_STAGE_TRIAGE_EFFORT ;;
     planner) variable_name=MANA_STORY_START_STAGE_PLANNER_EFFORT ;;
     correction) variable_name=MANA_STORY_START_STAGE_CORRECTION_EFFORT ;;
+    trajectory-checkpoint) variable_name=MANA_STORY_START_STAGE_TRAJECTORY_CHECKPOINT_EFFORT ;;
     *) return 1 ;;
   esac
   printf '%s' "${!variable_name:-}"
@@ -148,6 +150,17 @@ architecture or combine alternatives.
 
 NORMALIZED_STORY
 CONTRACT
+  if [ -n "${MANA_ANALYSIS_TRAJECTORY_REANCHOR_HEADER:-}" ] && \
+    [ -f "$MANA_ANALYSIS_TRAJECTORY_REANCHOR_HEADER" ]; then
+    printf '%s\n' 'COMPACT_REANCHOR_HEADER'
+    jq -cS . "$MANA_ANALYSIS_TRAJECTORY_REANCHOR_HEADER"
+  fi
+  if [ -n "${MANA_ANALYSIS_TRAJECTORY_EVIDENCE_PACKAGE:-}" ] && \
+    [ -f "$MANA_ANALYSIS_TRAJECTORY_EVIDENCE_PACKAGE" ]; then
+    printf '%s\n' 'TRAJECTORY_EVIDENCE_PROVENANCE'
+    printf '%s\n' 'This sidecar is provenance and limitations only. It is not implementation scope or a task source.'
+    jq -cS . "$MANA_ANALYSIS_TRAJECTORY_EVIDENCE_PACKAGE"
+  fi
   jq -cS '{storyId, normalizedStory}' "$story"
   printf '%s\n' 'COMPACT_DISCOVERY_V2'
   jq -cS . "$discovery"
@@ -243,6 +256,12 @@ every scenario is scenario_only, and owner review remains required.
 
 NORMALIZED_STORY
 CONTRACT
+  if [ -n "${MANA_ANALYSIS_TRAJECTORY_EVIDENCE_PACKAGE:-}" ] && \
+    [ -f "$MANA_ANALYSIS_TRAJECTORY_EVIDENCE_PACKAGE" ]; then
+    printf '%s\n' 'TRAJECTORY_EVIDENCE_PROVENANCE'
+    printf '%s\n' 'This sidecar carries provenance and explicit limitations only; never reinterpret it as implementation scope, work, or estimates.'
+    jq -cS . "$MANA_ANALYSIS_TRAJECTORY_EVIDENCE_PACKAGE"
+  fi
   jq -cS '{storyId, normalizedStory}' "$story"
   printf '%s\n' 'COMPACT_PLANNING_CONTEXT_V2'
   jq -cS . "$context"
@@ -659,11 +678,22 @@ mana_story_start_scope_v2_run_public() {
   mana_trajectory_telemetry_emit search_scope_entered provider_result discovery "$provider" "$discovery_model" "${discovery_effort:-none}" scope-v2/discovery completed || true
   mana_trajectory_telemetry_observe_artifact discovery "$provider" "$discovery_model" "${discovery_effort:-none}" scope-v2/discovery "$discovery" || true
 
+  if declare -F mana_trajectory_guard_boundary >/dev/null 2>&1 && \
+    ! mana_trajectory_guard_boundary "$provider" "$model" "$workspace" PROVIDER_COMPLETION_BOUNDARY; then
+    mana_trajectory_telemetry_emit analysis_failed trajectory_governor discovery host none none scope-v2/public failed --reason-codes trajectory-enforcement-halted || true
+    mana_trajectory_telemetry_finish || true
+    rm -rf "$scratch"
+    mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" discovery \
+      'Analysis Trajectory enforcement halted at a real provider-completion boundary. Inspect the trajectory integration artifacts.'
+    return 1
+  fi
+
   mana_trajectory_telemetry_emit provider_iteration_started provider_invocation triage "$provider" "$triage_model" "${triage_effort:-none}" scope-v2/triage started || true
   if ! mana_story_start_scope_v2_triage "$provider" "$triage_model" "$triage_effort" "$story" "$discovery" "$triage"; then
     mana_trajectory_telemetry_emit provider_iteration_completed provider_invocation triage "$provider" "$triage_model" "${triage_effort:-none}" scope-v2/triage failed --reason-codes provider-or-schema-failure || true
     mana_trajectory_telemetry_emit analysis_failed public_pipeline triage "$provider" none none scope-v2/public failed --reason-codes triage-failure || true
     mana_trajectory_telemetry_finish || true
+    if declare -F mana_trajectory_guard_cleanup >/dev/null 2>&1; then mana_trajectory_guard_cleanup; fi
     rm -rf "$scratch"
     mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" triage \
       'Scope Triage v2 provider failed or returned an invalid structured artifact.'
@@ -672,6 +702,9 @@ mana_story_start_scope_v2_run_public() {
   mana_trajectory_telemetry_emit provider_iteration_completed provider_invocation triage "$provider" "$triage_model" "${triage_effort:-none}" scope-v2/triage completed || true
   mana_trajectory_telemetry_emit search_scope_changed provider_result triage "$provider" "$triage_model" "${triage_effort:-none}" scope-v2/triage completed || true
   mana_trajectory_telemetry_observe_artifact triage "$provider" "$triage_model" "${triage_effort:-none}" scope-v2/triage "$triage" || true
+  if declare -F mana_trajectory_guard_cleanup >/dev/null 2>&1; then
+    mana_trajectory_guard_cleanup
+  fi
 
   mana_trajectory_telemetry_emit compact_context_synthesis_started host_synthesis build-planning-context host none none scope-v2/planning-context started || true
   if ! python3 "$normalizer" build-planning-context "$discovery" "$triage" "$context"; then

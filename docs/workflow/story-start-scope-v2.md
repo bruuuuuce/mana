@@ -27,6 +27,30 @@ repository or an unclassified discovery dump.
 Without `MANA_STORY_START_SCOPE_VERSION=v2`, the established v1 invocation and
 artifact behavior are unchanged.
 
+## Optional Analysis Trajectory Guard
+
+TG06 can place an additive guard in front of Scope Triage at the real
+Discovery provider-completion boundary:
+
+```bash
+MANA_STORY_START_SCOPE_VERSION=v2 \
+MANA_STORY_START_CONTEXT=.mana/features/PROJ-123/context/story-start-context.json \
+MANA_ANALYSIS_TRAJECTORY_MODE=shadow \
+./mana profile story-start --codex
+```
+
+The default is `off`. `shadow` publishes a Mission Contract, Ledger,
+deterministic recommendation, integration run, and compact evidence package
+without changing control flow. Explicit `enforce` applies validated outcomes
+and fails closed. On-track enforcement adds no checkpoint call. Optional
+structured observation, checkpoint-input, and scope-approval files must be
+project-local; see `docs/policies/analysis-trajectory-integration.md`.
+
+The compact trajectory package is passed to Triage and Planner only as
+provenance and limitations. It is not an implementation-task source and does
+not replace Discovery, Scope Triage, Planner, or the deterministic Scope
+Governor.
+
 ## What The Report Means
 
 The generated Markdown follows this order:

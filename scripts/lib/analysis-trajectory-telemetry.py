@@ -123,6 +123,13 @@ def observe_artifact(args: argparse.Namespace) -> int:
     artifact = json.loads(Path(args.artifact).read_text(encoding="utf-8"))
     if not isinstance(artifact, dict):
         raise ValueError("observed artifact is not an object")
+    allowed_gap_refs = None
+    if args.mission:
+        mission = json.loads(Path(args.mission).read_text(encoding="utf-8"))
+        allowed_gap_refs = {
+            item.get("gapId") for item in mission.get("evidenceGaps", [])
+            if isinstance(item, dict)
+        }
     if args.phase == "discovery":
         observations = [("evidence_gap_opened", "evidence-gap", item.get("id")) for item in artifact.get("openQuestions", [])]
         observations += [("open_decision_observed", "decision", item.get("id")) for item in artifact.get("decisions", []) if item.get("status") == "open"]
@@ -131,6 +138,8 @@ def observe_artifact(args: argparse.Namespace) -> int:
     else:
         raise ValueError(f"unsupported observed artifact phase: {args.phase}")
     for event_type, reference_kind, reference in observations:
+        if reference_kind == "evidence-gap" and allowed_gap_refs is not None and reference not in allowed_gap_refs:
+            continue
         compact_ref(reference)
         child = argparse.Namespace(**vars(args))
         child.event_type = event_type
@@ -185,7 +194,11 @@ def summarize(args: argparse.Namespace) -> int:
         "scopeExpansionCount": sum(event.get("eventType") == "scope_expansion_proposed" for event in events),
         "openDecisionObservationCount": sum(event.get("eventType") == "open_decision_observed" for event in events),
         "routes": [{"provider": provider, "model": model, "effort": effort} for provider, model, effort in routes],
-        "totalCheckpoints": 0,
+        "totalCheckpoints": sum(
+            event.get("eventType") == "provider_iteration_started"
+            and event.get("actionKind") == "trajectory-checkpoint"
+            for event in events
+        ),
         "tokenUsage": {"available": False},
         "runOutcome": terminal.get("outcome") if terminal else "partial",
         "partial": terminal is None,
@@ -221,6 +234,7 @@ def main() -> int:
     observe_parser.add_argument("effort")
     observe_parser.add_argument("target_scope_ref")
     observe_parser.add_argument("artifact")
+    observe_parser.add_argument("--mission")
     args = parser.parse_args()
     try:
         return {"init": init, "emit": emit, "observe-artifact": observe_artifact, "summarize": summarize}[args.command](args)

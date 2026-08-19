@@ -139,6 +139,13 @@ TG03 does not choose runtime publication paths and is not sourced by
 to the later integration phase. Feature-disabled behavior therefore remains
 exactly the pre-TG03 path.
 
+TG06 now supplies that integration without changing the TG03 contracts. The
+default `revise_mission` transition still requires a scope already recorded as
+proposed. Its TG06-only call path may additionally provide the exact scope from
+a validated external expansion-proposal sidecar; the separately supplied
+revision request must still approve that exact scope and satisfy every normal
+hash, revision, history, and newly-allowed-scope check.
+
 ## Observable limits and explicit non-goals
 
 Mana can validate provider invocation/completion, host synthesis, publication,

@@ -9,6 +9,8 @@ tests=(
   analysis-trajectory-guard-tg03-state.sh
   analysis-trajectory-guard-tg04-drift.sh
   analysis-trajectory-guard-tg05-checkpoint.sh
+  analysis-trajectory-guard-tg06-integration.sh
+  analysis-trajectory-guard-tg07-evaluation.sh
   behavioural-evals.sh
   bounded-repair-loop.sh
   bounded-repair.sh

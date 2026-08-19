@@ -128,12 +128,10 @@ delegations, hypotheses, or context expansion. At an opaque provider boundary,
 the artifact lists these facts as unsupported and records structured next
 action as `NOT_OBSERVABLE` instead of inferring it from provider text.
 
-The helper is not sourced by `run-profile.sh` or Story Start Scope v2. It emits
-no runtime metric on the public path because wiring and enforcement belong to
-later phases. The versioned recommendation itself contains explicit signal,
-observability, budget-consumption, zero-provider/network-call, and
-unchanged-control-flow metrics/markers; the TG04 regression suite also proves
-the public files do not reference the detector.
+TG04 itself introduced no public wiring. TG06 now imports the unchanged
+detector through its integration helper and invokes it after the real Story
+Start v2 Discovery completion boundary. The detector remains deterministic
+and zero-token; only the TG06 host layer can apply its recommendation.
 
 ## Commands
 

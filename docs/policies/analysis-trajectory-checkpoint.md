@@ -3,9 +3,10 @@
 TG05 adds an opt-in trajectory checkpoint sidecar. A checkpoint can be built
 only from a current, host-validated TG03 Mission Contract/Ledger/envelope and
 an authoritative TG04 `CHECKPOINT_RECOMMENDED` result that explicitly permits
-TG05. The sidecar does not enter the public Story Start path and does not apply
-its outcome to production control flow; integration and enforcement remain
-TG06 work.
+TG05. TG05 itself did not enter the public Story Start path or apply outcomes.
+TG06 now reuses this unchanged bounded protocol at the real post-Discovery
+boundary and owns all control-flow application described in
+`analysis-trajectory-integration.md`.
 
 Normal tests use synthetic response fixtures and make zero provider/network
 calls. The separate live smoke requires explicit enablement and preconfigured

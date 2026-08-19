@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added Analysis Trajectory Guard as an opt-in shadow pilot with host-owned
+  Mission/Ledger state, deterministic drift policy, bounded re-anchor
+  checkpoints, fail-closed enforcement experiments, a 40-case zero-token
+  evaluation gate, live A/B/C harness, and human rollout materials. Enforcement
+  remains disabled by default.
 - Added opt-in Story Start Scope v2 with schema-bound Discovery, Scope Triage,
   Implementation Planner, deterministic host governance, decision-sensitive
   estimates, explicit human scope expansion, legacy compatibility, and a

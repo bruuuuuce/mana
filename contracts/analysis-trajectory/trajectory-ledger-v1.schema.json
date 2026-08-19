@@ -75,8 +75,8 @@
       "required": ["triggerEventRefs", "outcome", "eventRef"],
       "properties": {
         "triggerEventRefs": {"$ref": "common-v1.schema.json#/$defs/refs"},
-        "outcome": {"const": "NONE"},
-        "eventRef": {"type": "null"}
+        "outcome": {"enum": ["NONE", "ON_TRACK", "REANCHOR_REQUIRED", "SCOPE_TRIAGE_REQUIRED", "STOP_SUFFICIENT_EVIDENCE", "STOP_NO_NEW_EVIDENCE", "STOP_HARD_BUDGET", "NEEDS_OWNER_REVIEW"]},
+        "eventRef": {"$ref": "common-v1.schema.json#/$defs/nullableRef"}
       }
     },
     "currentStatus": {"enum": ["ACTIVE", "COMPLETED", "STOPPED", "FAILED"]},

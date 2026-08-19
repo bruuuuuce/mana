@@ -41,6 +41,9 @@ done
 for f in scripts/lib/analysis-trajectory-checkpoint.py scripts/analysis-trajectory-checkpoint-smoke.sh contracts/analysis-trajectory/checkpoint-governor-config-v1.schema.json contracts/analysis-trajectory/trajectory-checkpoint-request-v1.schema.json contracts/analysis-trajectory/trajectory-checkpoint-response-v1.schema.json contracts/analysis-trajectory/trajectory-checkpoint-validation-v1.schema.json contracts/analysis-trajectory/trajectory-checkpoint-run-v1.schema.json docs/policies/analysis-trajectory-checkpoint.md tests/fixtures/analysis-trajectory-guard/tg05-checkpoint-governor-shadow-v1.json tests/fixtures/analysis-trajectory-guard/tg05-checkpoint-governor-off-v1.json tests/analysis-trajectory-guard-tg05-checkpoint.sh; do
   [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
 done
+for f in scripts/lib/analysis-trajectory-integration.py scripts/lib/analysis-trajectory-integration.sh contracts/analysis-trajectory/trajectory-evidence-package-v1.schema.json contracts/analysis-trajectory/trajectory-integration-run-v1.schema.json contracts/analysis-trajectory/scope-expansion-proposal-v1.schema.json docs/policies/analysis-trajectory-integration.md tests/fixtures/analysis-trajectory-guard/tg06-scope-expansion-observation-v1.json tests/analysis-trajectory-guard-tg06-integration.sh; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
+done
 if [ -f "$root/tests/analysis-trajectory-guard-tg02-telemetry.sh" ] && [ ! -x "$root/tests/analysis-trajectory-guard-tg02-telemetry.sh" ]; then
   echo 'ERROR: tests/analysis-trajectory-guard-tg02-telemetry.sh is not executable' >&2
   status=1
@@ -63,6 +66,24 @@ for f in scripts/lib/analysis-trajectory-checkpoint.py scripts/analysis-trajecto
     status=1
   fi
 done
+for f in scripts/lib/analysis-trajectory-integration.py scripts/lib/analysis-trajectory-integration.sh tests/analysis-trajectory-guard-tg06-integration.sh; do
+  if [ -f "$root/$f" ] && [ ! -x "$root/$f" ]; then
+    echo "ERROR: $f is not executable" >&2
+    status=1
+  fi
+done
+for f in scripts/lib/analysis-trajectory-evaluation.py scripts/analysis-trajectory-live-pilot.sh contracts/analysis-trajectory/evaluation-report-v1.schema.json docs/roadmap/analysis-trajectory-guard/tg07-deterministic-evaluation.json docs/roadmap/analysis-trajectory-guard/tg07-release-readiness.md docs/roadmap/analysis-trajectory-guard/tg07-live-pilot.md docs/roadmap/analysis-trajectory-guard/tg07-human-acceptance-checklist.md docs/roadmap/analysis-trajectory-guard/tg07-architecture.md tests/fixtures/analysis-trajectory-guard/tg07-evaluation-expectations-v1.json tests/analysis-trajectory-guard-tg07-evaluation.sh; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
+done
+for f in scripts/lib/analysis-trajectory-evaluation.py scripts/analysis-trajectory-live-pilot.sh tests/analysis-trajectory-guard-tg07-evaluation.sh; do
+  if [ -f "$root/$f" ] && [ ! -x "$root/$f" ]; then
+    echo "ERROR: $f is not executable" >&2
+    status=1
+  fi
+done
+if [ -f "$root/tests/analysis-trajectory-guard-tg07-evaluation.sh" ]; then
+  bash -n "$root/tests/analysis-trajectory-guard-tg07-evaluation.sh" || status=1
+fi
 if [ -f "$root/scripts/analysis-trajectory-checkpoint-smoke.sh" ]; then
   bash -n "$root/scripts/analysis-trajectory-checkpoint-smoke.sh" || status=1
 fi

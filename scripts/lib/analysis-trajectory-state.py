@@ -580,7 +580,10 @@ def revision_gap_seeds(value: Any) -> list[dict[str, Any]]:
     return seeds
 
 
-def revise_mission(history: dict[str, Any], request: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+def revise_mission(
+    history: dict[str, Any], request: dict[str, Any],
+    approved_external_proposal_scope_refs: set[str] | None = None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
     validate_history(history)
     exact_keys(request, {
         "schemaVersion", "missionId", "expectedRevision", "changeKind",
@@ -649,7 +652,9 @@ def revise_mission(history: dict[str, Any], request: dict[str, Any]) -> tuple[di
         newly_allowed = new_allowed - old_allowed
         if newly_allowed != set(accepted_scope_refs):
             raise StateError("acceptedScopeRefs must exactly match newly allowed scopes")
-        if not newly_allowed <= set(current["scopePolicy"]["proposedExpansionScopeRefs"]):
+        proposal_scope_refs = set(current["scopePolicy"]["proposedExpansionScopeRefs"])
+        proposal_scope_refs.update(approved_external_proposal_scope_refs or set())
+        if not newly_allowed <= proposal_scope_refs:
             raise StateError("scope expansion accepts a scope that was not proposed")
         if newly_allowed & set(revised["scopePolicy"]["proposedExpansionScopeRefs"]):
             raise StateError("accepted scope remains marked as proposed")
@@ -767,6 +772,7 @@ def derive_ledger(mission: dict[str, Any], events: list[dict[str, Any]]) -> dict
     no_evidence_streak = 0
     started = completed = failed = 0
     terminal_status = "ACTIVE"
+    last_checkpoint = {"triggerEventRefs": [], "outcome": "NONE", "eventRef": None}
     visit_events = [
         event for event in events
         if event["eventType"] == "provider_iteration_completed"
@@ -825,6 +831,12 @@ def derive_ledger(mission: dict[str, Any], events: list[dict[str, Any]]) -> dict
             terminal_status = "STOPPED"
         elif event_type == "analysis_failed":
             terminal_status = "FAILED"
+        if event["actionKind"] == "trajectory-checkpoint-applied":
+            last_checkpoint = {
+                "triggerEventRefs": [event["eventId"]],
+                "outcome": event["outcome"],
+                "eventRef": event["eventId"],
+            }
     visit_counts: dict[str, int] = {}
     for target in visited_values:
         visit_counts[target] = visit_counts.get(target, 0) + 1
@@ -880,9 +892,7 @@ def derive_ledger(mission: dict[str, Any], events: list[dict[str, Any]]) -> dict
             "serializedEventBytes": serialized_event_bytes,
             "tokenProxyEstimate": math.ceil(serialized_event_bytes / 4),
         },
-        "lastCheckpoint": {
-            "triggerEventRefs": [], "outcome": "NONE", "eventRef": None,
-        },
+        "lastCheckpoint": last_checkpoint,
         "currentStatus": terminal_status,
         "observability": "OPAQUE_PROVIDER_BOUNDARY" if completed and not started else "HOST_BOUNDARIES",
         "truncations": sorted(truncations, key=lambda item: item["field"]),
@@ -942,8 +952,25 @@ def validate_ledger_shape(ledger: dict[str, Any], mission: dict[str, Any]) -> No
                 raise StateError("ledger counters must be monotonic non-negative integers")
     if not isinstance(ledger["noNewEvidenceStreak"], int) or ledger["noNewEvidenceStreak"] < 0:
         raise StateError("ledger.noNewEvidenceStreak must be non-negative")
-    if ledger["lastCheckpoint"] != {"triggerEventRefs": [], "outcome": "NONE", "eventRef": None}:
-        raise StateError("TG03 ledger cannot claim a checkpoint outcome")
+    checkpoint = ledger["lastCheckpoint"]
+    if not isinstance(checkpoint, dict):
+        raise StateError("ledger.lastCheckpoint must be an object")
+    exact_keys(checkpoint, {"triggerEventRefs", "outcome", "eventRef"}, "ledger.lastCheckpoint")
+    checkpoint_refs = refs(checkpoint["triggerEventRefs"], "ledger.lastCheckpoint.triggerEventRefs")
+    checkpoint_outcomes = {
+        "ON_TRACK", "REANCHOR_REQUIRED", "SCOPE_TRIAGE_REQUIRED",
+        "STOP_SUFFICIENT_EVIDENCE", "STOP_NO_NEW_EVIDENCE",
+        "STOP_HARD_BUDGET", "NEEDS_OWNER_REVIEW",
+    }
+    if checkpoint["outcome"] == "NONE":
+        if checkpoint_refs or checkpoint["eventRef"] is not None:
+            raise StateError("ledger.lastCheckpoint NONE cannot carry event refs")
+    else:
+        if checkpoint["outcome"] not in checkpoint_outcomes:
+            raise StateError("ledger.lastCheckpoint has an unsupported outcome")
+        event_ref = valid_ref(checkpoint["eventRef"], "ledger.lastCheckpoint.eventRef")
+        if not checkpoint_refs or event_ref not in checkpoint_refs:
+            raise StateError("ledger.lastCheckpoint outcome requires its host event ref")
     if ledger["currentStatus"] not in {"ACTIVE", "COMPLETED", "STOPPED", "FAILED"}:
         raise StateError("ledger.currentStatus is invalid")
     if ledger["observability"] not in {"HOST_BOUNDARIES", "OPAQUE_PROVIDER_BOUNDARY"}:

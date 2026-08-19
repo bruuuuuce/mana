@@ -4,6 +4,7 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 . "$root/scripts/lib/provider-dispatch.sh"
 . "$root/scripts/lib/story-start-stage-routing.sh"
 . "$root/scripts/lib/analysis-trajectory-telemetry.sh"
+. "$root/scripts/lib/analysis-trajectory-integration.sh"
 . "$root/scripts/lib/story-start-scope-v2.sh"
 # shellcheck source=lib/profile-metadata.sh
 . "$root/scripts/lib/profile-metadata.sh"
@@ -108,6 +109,12 @@ Story Start Scope v2 opt-in:
   MANA_STORY_START_CONTEXT=<project-relative discovery-package-v1.json>
   --story-start-<discovery|triage|planner|correction|trajectory-checkpoint>-model <model>
   --story-start-<discovery|triage|planner|correction|trajectory-checkpoint>-effort <effort>
+
+Analysis Trajectory Guard TG06 (Story Start v2 only):
+  MANA_ANALYSIS_TRAJECTORY_MODE=off|shadow|enforce
+  MANA_ANALYSIS_TRAJECTORY_OBSERVATION=<project-relative structured boundary fixture>
+  MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT=<project-relative bounded action options>
+  MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL=<project-relative approved revision request>
 
 The default remains v1. The v2 path keeps the same profile/runner invocation,
 publishes additive structured artifacts, and never overwrites legacy Markdown.
@@ -1012,6 +1019,46 @@ if [ "$profile" = story-start ] && [ "$story_start_scope_version" = v2 ]; then
     echo "ERROR: project root is unavailable: $project_root" >&2
     exit 2
   }
+  story_start_trajectory_mode="$(mana_trajectory_guard_mode)" || exit 2
+  unset MANA_ANALYSIS_TRAJECTORY_MISSION_PATH MANA_ANALYSIS_TRAJECTORY_EVIDENCE_PACKAGE \
+    MANA_ANALYSIS_TRAJECTORY_REANCHOR_HEADER MANA_ANALYSIS_TRAJECTORY_OBSERVATION_PATH \
+    MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT_PATH MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL_PATH
+  if [ "$story_start_trajectory_mode" != OFF ]; then
+    MANA_ANALYSIS_TRAJECTORY_TELEMETRY=true
+    export MANA_ANALYSIS_TRAJECTORY_TELEMETRY
+  fi
+  resolve_trajectory_input() {
+    local value="$1" label="$2" candidate directory resolved
+    case "$value" in
+      /*) candidate="$value" ;;
+      *) candidate="$project_root/$value" ;;
+    esac
+    directory="$(cd "$(dirname "$candidate")" 2>/dev/null && pwd -P)" || {
+      echo "ERROR: $label directory is unavailable" >&2; return 2;
+    }
+    resolved="$directory/${candidate##*/}"
+    case "$resolved" in "$project_root"/*) ;; *) echo "ERROR: $label must resolve inside the target project" >&2; return 2 ;; esac
+    if [ ! -f "$resolved" ] || [ -L "$resolved" ]; then
+      echo "ERROR: $label must be a regular non-symlink file" >&2
+      return 2
+    fi
+    trajectory_resolved_input="$resolved"
+  }
+  if [ -n "${MANA_ANALYSIS_TRAJECTORY_OBSERVATION:-}" ]; then
+    resolve_trajectory_input "$MANA_ANALYSIS_TRAJECTORY_OBSERVATION" MANA_ANALYSIS_TRAJECTORY_OBSERVATION || exit 2
+    MANA_ANALYSIS_TRAJECTORY_OBSERVATION_PATH="$trajectory_resolved_input"
+    export MANA_ANALYSIS_TRAJECTORY_OBSERVATION_PATH
+  fi
+  if [ -n "${MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT:-}" ]; then
+    resolve_trajectory_input "$MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT" MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT || exit 2
+    MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT_PATH="$trajectory_resolved_input"
+    export MANA_ANALYSIS_TRAJECTORY_CHECKPOINT_INPUT_PATH
+  fi
+  if [ -n "${MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL:-}" ]; then
+    resolve_trajectory_input "$MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL" MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL || exit 2
+    MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL_PATH="$trajectory_resolved_input"
+    export MANA_ANALYSIS_TRAJECTORY_SCOPE_APPROVAL_PATH
+  fi
   case "$story_start_scope_context" in
     /*) story_start_context_candidate="$story_start_scope_context" ;;
     *) story_start_context_candidate="$project_root/$story_start_scope_context" ;;
@@ -1056,6 +1103,16 @@ if [ "$profile" = story-start ] && [ "$story_start_scope_version" = v2 ]; then
   story_start_workspace="$project_root/$story_start_workspace_relative"
   mana_trajectory_telemetry_init "$story_start_workspace" "$(jq -r '.storyId' "$story_start_context_path")" || \
     echo 'WARNING: passive Analysis Trajectory telemetry could not be initialized; continuing unchanged' >&2
+  if ! mana_trajectory_guard_initialize "$story_start_context_path" "$story_start_workspace"; then
+    if [ "$story_start_trajectory_mode" = SHADOW ]; then
+      echo 'WARNING: trajectory shadow initialization failed; Story Start control flow is unchanged' >&2
+      MANA_ANALYSIS_TRAJECTORY_MODE=off
+      export MANA_ANALYSIS_TRAJECTORY_MODE
+    else
+      echo 'ERROR: trajectory enforcement initialization failed closed' >&2
+      exit 1
+    fi
+  fi
 
   case "$runner" in
     codex)

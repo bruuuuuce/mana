@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.analysis-trajectory.integration-run/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "runId", "mode", "observedBoundary", "missionCorrelation",
+    "recommendationCorrelation", "checkpointCorrelation", "routing", "controlDecision",
+    "acceptedOutcome", "failureCode", "scopeExpanded", "downstreamEvidencePackageRef",
+    "effects", "measurements", "observability"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "mana.analysis-trajectory.integration-run/v1"},
+    "runId": {"type": "string", "pattern": "^trajectory-integration-[0-9a-f]{24}$"},
+    "mode": {"enum": ["SHADOW", "ENFORCE"]},
+    "observedBoundary": {"enum": ["PROVIDER_INVOCATION_BOUNDARY", "PROVIDER_COMPLETION_BOUNDARY", "FINAL_SYNTHESIS_BOUNDARY", "NEXT_ACTION_BOUNDARY"]},
+    "missionCorrelation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["missionId", "missionHash", "missionRevision"],
+      "properties": {
+        "missionId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "missionHash": {"$ref": "common-v1.schema.json#/$defs/hash"},
+        "missionRevision": {"type": "integer", "minimum": 1}
+      }
+    },
+    "recommendationCorrelation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["recommendationId", "recommendationHash", "outcome", "reasonCodes"],
+      "properties": {
+        "recommendationId": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "recommendationHash": {"$ref": "common-v1.schema.json#/$defs/hash"},
+        "outcome": {"type": "string"},
+        "reasonCodes": {"$ref": "common-v1.schema.json#/$defs/refs"}
+      }
+    },
+    "checkpointCorrelation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["requestId", "runId", "callCount"],
+      "properties": {
+        "requestId": {"$ref": "common-v1.schema.json#/$defs/nullableRef"},
+        "runId": {"$ref": "common-v1.schema.json#/$defs/nullableRef"},
+        "callCount": {"type": "integer", "minimum": 0, "maximum": 2}
+      }
+    },
+    "routing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["provider", "model", "effort"],
+      "properties": {
+        "provider": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "model": {"$ref": "common-v1.schema.json#/$defs/ref"},
+        "effort": {"$ref": "common-v1.schema.json#/$defs/ref"}
+      }
+    },
+    "controlDecision": {"enum": ["CONTINUE", "REANCHOR", "PROCEED_DOWNSTREAM", "HALT_OWNER_REVIEW", "HALT_PARTIAL"]},
+    "acceptedOutcome": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+    "failureCode": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+    "scopeExpanded": {"type": "boolean"},
+    "downstreamEvidencePackageRef": {"$ref": "common-v1.schema.json#/$defs/ref"},
+    "effects": {
+      "type": "object", "additionalProperties": false,
+      "required": ["controlFlowChanged", "checkpointCalls", "legacyFallbackUsed"],
+      "properties": {
+        "controlFlowChanged": {"type": "boolean"},
+        "checkpointCalls": {"type": "integer", "minimum": 0, "maximum": 2},
+        "legacyFallbackUsed": {"const": false}
+      }
+    },
+    "measurements": {
+      "type": "object", "additionalProperties": false,
+      "required": ["deterministic", "model"],
+      "properties": {
+        "deterministic": {
+          "type": "object", "additionalProperties": false,
+          "required": ["eventCount", "serializedEventBytes", "serializedLedgerBytes"],
+          "properties": {
+            "eventCount": {"type": "integer", "minimum": 0},
+            "serializedEventBytes": {"type": "integer", "minimum": 0},
+            "serializedLedgerBytes": {"type": "integer", "minimum": 0}
+          }
+        },
+        "model": {
+          "type": "object", "additionalProperties": false,
+          "required": ["checkpointCalls", "usageAvailability"],
+          "properties": {
+            "checkpointCalls": {"type": "integer", "minimum": 0, "maximum": 2},
+            "usageAvailability": {"const": "UNAVAILABLE"}
+          }
+        }
+      }
+    },
+    "observability": {
+      "type": "object", "additionalProperties": false,
+      "required": ["granularity", "unsupportedFacts"],
+      "properties": {
+        "granularity": {"const": "PROVIDER_INVOCATION_LEVEL"},
+        "unsupportedFacts": {"$ref": "common-v1.schema.json#/$defs/refs"}
+      }
+    }
+  }
+}

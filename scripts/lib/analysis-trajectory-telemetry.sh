@@ -49,8 +49,13 @@ mana_trajectory_telemetry_finish() {
 mana_trajectory_telemetry_observe_artifact() {
   [ "$MANA_TRAJECTORY_TELEMETRY_ENABLED" = true ] || return 0
   local phase="$1" provider="$2" model="$3" effort="$4" target_scope_ref="$5" artifact="$6" root
+  local mission_args=()
   root="$(mana_trajectory_telemetry_root)"
+  if [ -n "${MANA_ANALYSIS_TRAJECTORY_MISSION_PATH:-}" ]; then
+    mission_args=(--mission "$MANA_ANALYSIS_TRAJECTORY_MISSION_PATH")
+  fi
   python3 "$root/scripts/lib/analysis-trajectory-telemetry.py" observe-artifact \
     "$MANA_TRAJECTORY_TELEMETRY_EVENTS" "$MANA_TRAJECTORY_TELEMETRY_RUN_ID" \
-    "$phase" "$provider" "$model" "$effort" "$target_scope_ref" "$artifact"
+    "$phase" "$provider" "$model" "$effort" "$target_scope_ref" "$artifact" \
+    "${mission_args[@]}"
 }
