@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.context-runtime.baseline/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "baselineKind", "repository", "providerCapabilities", "staticContext", "profiles"],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.baseline/v1"},
+    "baselineKind": {"const": "static-zero-token"},
+    "repository": {"type": "object"},
+    "providerCapabilities": {"type": "object", "required": ["codex", "claude", "opencode", "note"], "properties": {"codex": {"const": "unknown"}, "claude": {"const": "unknown"}, "opencode": {"const": "unknown"}, "note": {"type": "string"}}},
+    "staticContext": {"type": "object"},
+    "profiles": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["id", "classification", "staticContext"], "properties": {"id": {"type": "string"}, "classification": {"enum": ["deterministic-only", "read-only-analysis", "planning-synthesis", "write-capable", "external-write-capable"]}, "staticContext": {"type": "object"}}}}
+  }
+}

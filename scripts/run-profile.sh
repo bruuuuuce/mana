@@ -2,6 +2,7 @@
 set -u
 root="$(cd "$(dirname "$0")/.." && pwd)"
 . "$root/scripts/lib/provider-dispatch.sh"
+. "$root/scripts/lib/provider-execution.sh"
 . "$root/scripts/lib/story-start-stage-routing.sh"
 . "$root/scripts/lib/analysis-trajectory-telemetry.sh"
 . "$root/scripts/lib/analysis-trajectory-integration.sh"
@@ -1311,7 +1312,7 @@ run_codex() {
     )
   fi
 
-  MANA_PROFILE_RUNNING=1 codex "${codex_args[@]}" "$prompt"
+  MANA_PROVIDER_ARGS=("${codex_args[@]}") MANA_PROFILE_RUNNING=1 mana_provider_execute codex "$project_root" "$profile" "$prompt" codex
 }
 
 run_claude() {
@@ -1323,7 +1324,7 @@ run_claude() {
   mana_provider_profile_args claude "$project_root" "$claude_model" 1 1
   claude_args=("${MANA_PROVIDER_ARGS[@]}")
 
-  MANA_PROFILE_RUNNING=1 claude "${claude_args[@]}" "$prompt"
+  MANA_PROVIDER_ARGS=("${claude_args[@]}") MANA_PROFILE_RUNNING=1 mana_provider_execute claude "$project_root" "$profile" "$prompt" claude
 }
 
 run_opencode() {
@@ -1335,7 +1336,7 @@ run_opencode() {
   mana_provider_profile_args opencode "$project_root" "$opencode_model" "$opencode_max_threads" 1
   opencode_args=("${MANA_PROVIDER_ARGS[@]}")
 
-  MANA_PROFILE_RUNNING=1 opencode "${opencode_args[@]}" "$prompt"
+  MANA_PROVIDER_ARGS=("${opencode_args[@]}") MANA_PROFILE_RUNNING=1 mana_provider_execute opencode "$project_root" "$profile" "$prompt" opencode
 }
 
 case "$runner" in

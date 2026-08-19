@@ -16,6 +16,17 @@ mana_provider_profile_args() {
   esac
 }
 
+# CTX-01 only: Codex owns these invocation flags.  The neutral wrapper owns
+# parsing and the public metric shape; profiles never see provider flags.
+mana_provider_usage_args() {
+  local provider="$1" final_message="$2"
+  MANA_PROVIDER_USAGE_ARGS=()
+  case "$provider" in
+    codex) MANA_PROVIDER_USAGE_ARGS=(--json --output-last-message "$final_message") ;;
+    *) return 1 ;;
+  esac
+}
+
 mana_provider_repair_args() {
   local provider="$1" project="$2" model="$3"
   MANA_PROVIDER_ARGS=()

@@ -266,9 +266,9 @@ if [ "$json" = true ]; then
   # Keep stdout machine-readable. The existing runner's human transcript goes
   # to stderr; it is still the sole execution engine.
   "$root/scripts/mana-workspace.sh" init --root "$project_root" --purpose "$(mana_profile_section_value "$profile_file" artifact_workspace default_purpose)" >&2 || { error='workspace initialization failed'; runtime_emit profile.failed profile "$profile" failed "reason=workspace-initialization" "" false || true; runtime_finish failed; render_json failed; exit 1; }
-  case "$runner" in codex|local/codex) "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --codex >&2 ;;
-    claude) "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --claude >&2 ;;
-    opencode) "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --opencode >&2 ;;
+  case "$runner" in codex|local/codex) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --codex >&2 ;;
+    claude) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --claude >&2 ;;
+    opencode) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --opencode >&2 ;;
     *) error="profile runner '$runner' has no CLI execution adapter; use its native runner"; runtime_emit guard.triggered runner "$runner" blocked "reason=no-cli-adapter" "" true || echo "WARNING: $MANA_RUNTIME_WARNING" >&2; runtime_emit profile.failed profile "$profile" failed "reason=no-cli-adapter" "" false || true; runtime_finish failed; render_json blocked; exit 1 ;;
   esac
   status=$?
@@ -280,9 +280,9 @@ if [ "$json" = true ]; then
 else
   render_human
   "$root/scripts/mana-workspace.sh" init --root "$project_root" --purpose "$(mana_profile_section_value "$profile_file" artifact_workspace default_purpose)" || { runtime_emit profile.failed profile "$profile" failed "reason=workspace-initialization" "" false || true; runtime_finish failed; exit 1; }
-  case "$runner" in codex|local/codex) "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --codex ;;
-    claude) "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --claude ;;
-    opencode) "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --opencode ;;
+  case "$runner" in codex|local/codex) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --codex ;;
+    claude) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --claude ;;
+    opencode) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --opencode ;;
     *) runtime_emit guard.triggered runner "$runner" blocked "reason=no-cli-adapter" "" true || echo "WARNING: $MANA_RUNTIME_WARNING" >&2; echo "MANA CAST BLOCKED"; echo "profile runner '$runner' has no CLI execution adapter; use its native runner"; runtime_finish failed; exit 1 ;;
   esac
   status=$?

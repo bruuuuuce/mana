@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/usage-summary-v1.schema.json",
+  "title": "Mana Context Runtime usage summary v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "executionId",
+    "profileId",
+    "provider",
+    "providerVersion",
+    "status",
+    "usageStatus",
+    "phases",
+    "totals",
+    "turns",
+    "toolCalls",
+    "workers",
+    "compactions",
+    "rawTraceRetained",
+    "parseErrors"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1" },
+    "executionId": { "type": "string", "pattern": "^execution-[A-Za-z0-9._-]+$" },
+    "profileId": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+    "provider": { "type": "string", "enum": ["codex", "claude", "opencode"] },
+    "providerVersion": { "type": ["string", "null"] },
+    "status": { "type": "string", "enum": ["complete", "failed", "interrupted"] },
+    "usageStatus": { "type": "string", "enum": ["measured", "unavailable"] },
+    "phases": { "type": "array", "maxItems": 0 },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input", "cachedInput", "uncachedInput", "output", "reasoning"],
+      "properties": {
+        "input": { "type": ["integer", "null"], "minimum": 0 },
+        "cachedInput": { "type": ["integer", "null"], "minimum": 0 },
+        "uncachedInput": { "type": ["integer", "null"], "minimum": 0 },
+        "output": { "type": ["integer", "null"], "minimum": 0 },
+        "reasoning": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "turns": { "type": ["integer", "null"], "minimum": 0 },
+    "toolCalls": { "type": ["integer", "null"], "minimum": 0 },
+    "workers": { "type": ["integer", "null"], "minimum": 0 },
+    "compactions": { "type": ["integer", "null"], "minimum": 0 },
+    "rawTraceRetained": { "type": "boolean" },
+    "parseErrors": { "type": "integer", "minimum": 0 }
+  }
+}
