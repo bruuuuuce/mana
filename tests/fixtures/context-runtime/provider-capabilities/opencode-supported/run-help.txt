@@ -1,0 +1,11 @@
+opencode run [message..]
+
+run opencode with a message
+Options:
+  --pure          run without external plugins                                         [boolean]
+  -m, --model     model to use in the format of provider/model                          [string]
+      --agent     agent to use                                                          [string]
+      --format    format: default (formatted) or json (raw JSON events)
+                                      [string] [choices: "default", "json"] [default: "default"]
+      --variant   model variant (provider-specific reasoning effort, e.g., high, max, minimal)
+                                                                                         [string]

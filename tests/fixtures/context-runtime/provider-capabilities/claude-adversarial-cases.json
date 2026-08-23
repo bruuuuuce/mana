@@ -1,0 +1,62 @@
+{
+  "negativeTokens": {
+    "version": "2.1.233 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\n  --json-schema is unsupported in this build\n  --no-session-persistence unavailable\n  --model is ignored\n  --effort unavailable\n  --agents and --agent are unsupported\n  --safe-mode does not isolate configuration\n  --disallowedTools is ignored\n  --autocompact unavailable\n  --output-format stream-json is unsupported\n  -p, --print is unavailable\n"
+  },
+  "partial": {
+    "version": "2.1.233 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\n  --model <model>                       Model for the current session.\n"
+  },
+  "unexpected": {
+    "version": "2.1.233 (Claude Code)\n",
+    "rootHelp": "unexpected provider payload mentioning --safe-mode --disallowedTools --json-schema stream-json --agents --agent\n"
+  },
+  "explicitNegative": {
+    "version": "1.0.0 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\nClaude Code capability status:\n  separate-final-output-file unsupported\n  structured-output-schema unsupported\n  automatic-compaction-threshold unsupported\n"
+  },
+  "purePositive": {
+    "version": "2.1.233 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\n  --safe-mode                           Start with all customizations, including custom commands and agents, disabled\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny\n"
+  },
+  "safeIgnoredSameLine": {
+    "version": "2.1.233 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\n  --safe-mode                           Start with all customizations, including custom commands and agents, disabled, but this option is ignored at runtime\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny\n"
+  },
+  "safeUnsupported": {
+    "version": "2.1.233 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\n  --safe-mode                           Start with all customizations, including custom commands and agents, disabled; this option is unsupported\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny\n"
+  },
+  "safeNoEffect": {
+    "version": "2.1.233 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\n  --safe-mode                           Start with all customizations, including custom commands and agents, disabled; this option has no effect\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny\n"
+  },
+  "safeUnavailable": {
+    "version": "2.1.233 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\n  --safe-mode                           Start with all customizations, including custom commands and agents, disabled; this option is unavailable\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny\n"
+  },
+  "safeIgnoredNextLine": {
+    "version": "2.1.233 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\n  --safe-mode                           Start with all customizations, including\n                                        custom commands and agents, disabled\n                                        but this option is ignored at runtime\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny\n"
+  },
+  "disallowedIgnored": {
+    "version": "2.1.233 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\n  --safe-mode                           Start with all customizations, including custom commands and agents, disabled\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny; this setting is ignored\n"
+  },
+  "compositeConflictIncomplete": {
+    "version": "2.1.233 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\n  --safe-mode                           Start with all customizations, including\n                                        custom commands and agents, disabled\n                                        but this option is ignored at runtime\n  --agents <json>                       JSON object defining custom agents; this option is ignored at runtime\n"
+  },
+  "positiveNegative": {
+    "version": "2.1.233 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\n  --safe-mode                           Start with all customizations, including custom commands and agents, disabled\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny\nClaude Code capability status:\n  user-configuration-isolation unsupported\n  hard-subagent-disable unsupported\n"
+  },
+  "absence": {
+    "version": "2.1.233 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\n"
+  },
+  "unknownVersion": {
+    "version": "99.99.99 (Claude Code)\n",
+    "rootHelp": "Usage: claude [options] [command] [prompt]\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\nOptions:\n  --model <model>                       Model for the current session.\n"
+  }
+}

@@ -1,0 +1,23 @@
+Usage: claude [options] [command] [prompt]
+Claude Code - starts an interactive session by default, use -p/--print for
+non-interactive output
+Options:
+  --agent <agent>                       Agent for the current session. Overrides
+                                        the 'agent' setting.
+  --agents <json>                       JSON object defining custom agents
+  --autocompact <auto|tokens>           Auto-compact window size (auto, or 100k–1M tokens)
+  --disallowedTools, --disallowed-tools <tools...>
+      Comma or space-separated list of tool names to deny
+  --effort <level>                      Effort level for the current session
+                                        (low, medium, high, xhigh, max)
+  --json-schema <schema>                JSON Schema for structured output validation.
+  --model <model>                       Model for the current session.
+  --no-session-persistence              Disable session persistence - sessions
+                                        will not be saved to disk and cannot be
+                                        resumed (only works with --print)
+  --output-format <format>              Output format (only works with --print):
+                                        "text" (default), "json" (single result), or "stream-json" (realtime streaming)
+                                        (choices: "text", "json", "stream-json")
+  -p, --print                           Print response and exit (useful for pipes).
+  --safe-mode                           Start with all customizations, including
+                                        custom commands and agents, disabled

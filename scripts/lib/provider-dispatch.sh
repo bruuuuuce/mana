@@ -3,15 +3,41 @@
 # provider discovery, prompt construction, supervision, and lifecycle events.
 
 mana_provider_profile_args() {
-  local provider="$1" project="$2" model="$3" max_threads="$4" max_depth="$5"
+  local provider="$1" project="$2" model="$3" max_threads="$4" max_depth="$5" subagents="${6:-true}"
   MANA_PROVIDER_ARGS=()
+  MANA_PROVIDER_OPENCODE_CONFIG_CONTENT=""
+  case "$subagents" in true|false) ;; *) return 1 ;; esac
   case "$provider" in
     codex)
-      MANA_PROVIDER_ARGS=(--ask-for-approval on-request exec --model "$model" --cd "$project" --sandbox workspace-write -c "agents.max_threads=$max_threads" -c "agents.max_depth=$max_depth" -c "agents.interrupt_message=false") ;;
+      MANA_PROVIDER_ARGS=(--ask-for-approval on-request exec --model "$model" --cd "$project" --sandbox workspace-write)
+      if [ "$subagents" = true ]; then
+        MANA_PROVIDER_ARGS+=(-c "agents.max_threads=$max_threads" -c "agents.max_depth=$max_depth" -c "agents.interrupt_message=false")
+      else
+        # Codex rejects max_threads=0. Disabling both known multi-agent
+        # features removes child tools; depth zero and one inert thread keep
+        # the remaining config valid. User config and stale managed agent
+        # definitions cannot re-enable a disabled feature.
+        MANA_PROVIDER_ARGS+=(--ephemeral --ignore-user-config --disable multi_agent --disable multi_agent_v2 -c "agents.max_threads=1" -c "agents.max_depth=0" -c "agents.interrupt_message=false")
+      fi ;;
     claude)
-      MANA_PROVIDER_ARGS=(-p --agent mana-orchestrator --model "$model" --permission-mode default) ;;
+      if [ "$subagents" = true ]; then
+        MANA_PROVIDER_ARGS=(-p --agent mana-orchestrator --model "$model" --permission-mode default)
+      else
+        # Safe mode excludes project/user custom agents while the explicit
+        # tool deny removes the provider-managed Agent entry point.
+        MANA_PROVIDER_ARGS=(-p --model "$model" --permission-mode default --safe-mode --no-session-persistence --disable-slash-commands --disallowedTools Agent)
+      fi ;;
     opencode)
-      MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model" --agent mana_orchestrator) ;;
+      if [ "$subagents" = true ]; then
+        MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model" --agent mana_orchestrator)
+      else
+        # OPENCODE_CONFIG_CONTENT selects an invocation-local primary whose
+        # built-in Task permission is denied. OpenCode still merges other
+        # config surfaces, so this is real Task containment but not proof of
+        # complete user/project configuration isolation.
+        MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn --arg model "$model" '{agent:{mana_ctx02_no_children:{description:"Mana primary with child execution disabled",mode:"primary",model:$model,permission:{task:"deny"}}}}')" || return 1
+        MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model" --agent mana_ctx02_no_children --pure)
+      fi ;;
     *) return 1 ;;
   esac
 }

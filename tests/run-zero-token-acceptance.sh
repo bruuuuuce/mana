@@ -36,6 +36,7 @@ tests=(
   mana-scout-cycles.sh
   mana-scout.sh
   profile-skill-activation.sh
+  provider-capabilities.sh
   provider-dispatch.sh
   provider-usage.sh
   repair-containment.sh

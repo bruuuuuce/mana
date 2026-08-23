@@ -454,6 +454,16 @@ if ! printf '%s\n' "$opencode_max_threads" | grep -Eq '^[0-9]+$' || [ "$opencode
   exit 2
 fi
 
+# Configured limits preserve the existing public inputs. Effective limits are
+# the provider-neutral policy seen by the prompt and become zero when a hard
+# child-execution deny is selected.
+codex_effective_max_threads="$codex_max_threads"; codex_effective_max_depth="$codex_max_depth"
+claude_effective_max_threads="$claude_max_threads"; claude_effective_max_depth=1
+opencode_effective_max_threads="$opencode_max_threads"; opencode_effective_max_depth=1
+[ "$codex_subagents" = true ] || { codex_effective_max_threads=0; codex_effective_max_depth=0; }
+[ "$claude_subagents" = true ] || { claude_effective_max_threads=0; claude_effective_max_depth=0; }
+[ "$opencode_subagents" = true ] || { opencode_effective_max_threads=0; opencode_effective_max_depth=0; }
+
 : "${opencode_full_model:=$opencode_model}"
 : "${opencode_explorer_model:=$opencode_model}"
 : "${opencode_worker_model:=$opencode_model}"
@@ -678,6 +688,7 @@ install_claude_agent_file() {
 }
 
 ensure_claude_agents() {
+  [ "$claude_subagents" = true ] || return 0
   agents_dir="$project_root/.claude/agents"
   if ! mkdir -p "$agents_dir" 2>/dev/null; then
     claude_agent_install_warnings="${claude_agent_install_warnings}${claude_agent_install_warnings:+
@@ -685,10 +696,9 @@ ensure_claude_agents() {
     return 0
   fi
 
-  orchestrator_content="$(render_claude_agent "mana-orchestrator" "Mana primary orchestrator for profile routing, light evidence inventory, bounded delegation, and final synthesis." "Agent(mana-explorer, mana-full-specialist, mana-worker), Read, Glob, Grep, Bash, Write, Edit" "$claude_model" "default" "low" "$(claude_agent_instructions mana-orchestrator)")"
+  claude_orchestrator_tools="Agent(mana-explorer, mana-full-specialist, mana-worker), Read, Glob, Grep, Bash, Write, Edit"
+  orchestrator_content="$(render_claude_agent "mana-orchestrator" "Mana primary orchestrator for profile routing, light evidence inventory, bounded delegation, and final synthesis." "$claude_orchestrator_tools" "$claude_model" "default" "low" "$(claude_agent_instructions mana-orchestrator)")"
   install_claude_agent_file "$agents_dir/mana-orchestrator.md" "$orchestrator_content" || true
-
-  [ "$claude_subagents" = true ] || return 0
 
   readonly_claude_tools="Read, Glob, Grep, Bash(git diff:*), Bash(git status:*), Bash(git log:*), Bash(git show:*), Bash(rg:*), Bash(find:*)"
   explorer_content="$(render_claude_agent "mana-explorer" "Mana read-only repository evidence discovery and inventory." "$readonly_claude_tools" "$claude_explorer_model" "default" "medium" "$(claude_agent_instructions mana-explorer)")"
@@ -761,6 +771,7 @@ install_opencode_agent_file() {
 }
 
 ensure_opencode_agents() {
+  [ "$opencode_subagents" = true ] || return 0
   agents_dir="$project_root/.opencode/agents"
   if ! mkdir -p "$agents_dir" 2>/dev/null; then
     opencode_agent_install_warnings="${opencode_agent_install_warnings}${opencode_agent_install_warnings:+
@@ -801,8 +812,6 @@ ensure_opencode_agents() {
 
   orchestrator_content="$(render_opencode_agent "mana_orchestrator" "primary" "$opencode_model" "Mana primary orchestrator for profile routing, light evidence inventory, bounded delegation, and final synthesis." "$orchestrator_permissions" "$(opencode_agent_instructions mana_orchestrator)")"
   install_opencode_agent_file "$agents_dir/mana_orchestrator.md" "$orchestrator_content" || true
-
-  [ "$opencode_subagents" = true ] || return 0
 
   explorer_content="$(render_opencode_agent "mana_explorer" "subagent" "$opencode_explorer_model" "Mana read-only repository evidence discovery and inventory." "$readonly_permissions" "$(opencode_agent_instructions mana_explorer)")"
   full_content="$(render_opencode_agent "mana_full_specialist" "subagent" "$opencode_full_model" "Mana high-risk full-model specialist for bounded architecture, database, security, contract, concurrency, and production judgments." "$readonly_permissions" "$(opencode_agent_instructions mana_full_specialist)")"
@@ -847,7 +856,7 @@ if [ "$runner" = "codex" ]; then
   echo "Codex worker model: $codex_worker_model"
   echo "Codex model policy: $codex_model_policy"
   echo "Codex subagents: $codex_subagents"
-  echo "Codex agent limits: max_threads=$codex_max_threads max_depth=$codex_max_depth interrupt_message=false"
+  echo "Codex agent limits: max_threads=$codex_effective_max_threads max_depth=$codex_effective_max_depth interrupt_message=false"
   if [ -n "$model_escalation_skills" ]; then
     echo "Codex delegation/escalation candidate skills: $model_escalation_skills"
     echo "Model routing warning: $model_routing_warning"
@@ -1187,6 +1196,7 @@ Codex worker model: $codex_worker_model
 Codex model policy: $codex_model_policy
 Codex subagents enabled: $codex_subagents
 Codex agent runtime limits: max_threads=$codex_max_threads, max_depth=$codex_max_depth, interrupt_message=false
+Codex effective child limits: max_threads=$codex_effective_max_threads, max_depth=$codex_effective_max_depth
 Model delegation/escalation candidate skills: ${model_escalation_skills:-none}
 Model routing warning: ${model_routing_warning:-none}
 Claude initial model: $claude_model
@@ -1195,12 +1205,14 @@ Claude explorer model: $claude_explorer_model
 Claude worker model: $claude_worker_model
 Claude subagents enabled: $claude_subagents
 Claude delegation limits: max_direct_subagents=$claude_max_threads, max_depth=1
+Claude effective child limits: max_direct_subagents=$claude_effective_max_threads, max_depth=$claude_effective_max_depth
 OpenCode initial model: $opencode_model
 OpenCode full model: $opencode_full_model
 OpenCode explorer model: $opencode_explorer_model
 OpenCode worker model: $opencode_worker_model
 OpenCode subagents enabled: $opencode_subagents
 OpenCode agent runtime limits: max_threads=$opencode_max_threads, max_depth=1
+OpenCode effective child limits: max_threads=$opencode_effective_max_threads, max_depth=$opencode_effective_max_depth
 User Context available: $user_context_available
 User Context entry points: $user_context_entries
 Profile input overrides:
@@ -1276,7 +1288,7 @@ Framework root: $root
 Runner: $runner
 Profile inputs: pr_number=${pr_number:-none}; jira_issue_keys=${jira_keys:-none}; current_branch=${current_branch:-detached}; jira_mcp_configured=$jira_mcp_configured; publish_high_risk_comments=$publish_high_risk_comments; service_discovery_approved=$service_discovery_approved.
 Model routing: root=economy; full-tier candidates=${model_escalation_skills:-none}; escalation warning=${model_routing_warning:-none}.
-Runtime limits: Codex subagents=$codex_subagents/$codex_max_threads; Claude subagents=$claude_subagents/$claude_max_threads; OpenCode subagents=$opencode_subagents/$opencode_max_threads.
+Runtime limits: Codex subagents=$codex_subagents/$codex_max_threads; Claude subagents=$claude_subagents/$claude_max_threads; OpenCode subagents=$opencode_subagents/$opencode_max_threads. Effective child limits: Codex=$codex_effective_max_threads/$codex_effective_max_depth; Claude=$claude_effective_max_threads/$claude_effective_max_depth; OpenCode=$opencode_effective_max_threads/$opencode_effective_max_depth.
 User Context: available=$user_context_available; generated root=.mana/user-context; entry points=$user_context_entries.
 
 Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'. Follow docs/policies/runtime-execution-contract.md and docs/standards/output-contract.md. The skill_activation block of the profile is authoritative: begin with baseline skills, then load a conditional skill only after filtered evidence matches its signal. Use skills/index.yaml for metadata; read only the selected skill bodies.
@@ -1297,7 +1309,7 @@ run_codex() {
     printf '%s\n' "$codex_agent_install_warnings" >&2
   fi
 
-  mana_provider_profile_args codex "$project_root" "$codex_model" "$codex_max_threads" "$codex_max_depth"
+  mana_provider_profile_args codex "$project_root" "$codex_model" "$codex_max_threads" "$codex_max_depth" "$codex_subagents"
   codex_args=("${MANA_PROVIDER_ARGS[@]}")
 
   if [ "$jira_mcp_configured" = true ] && [ "$jira_mcp_config_source" = "env_file" ]; then
@@ -1321,7 +1333,7 @@ run_claude() {
     printf '%s\n' "$claude_agent_install_warnings" >&2
   fi
 
-  mana_provider_profile_args claude "$project_root" "$claude_model" 1 1
+  mana_provider_profile_args claude "$project_root" "$claude_model" "$claude_max_threads" 1 "$claude_subagents"
   claude_args=("${MANA_PROVIDER_ARGS[@]}")
 
   MANA_PROFILE_RUNNING=1 mana_provider_execute claude "$project_root" "$profile" "$prompt" claude "${claude_args[@]}"
@@ -1333,10 +1345,14 @@ run_opencode() {
     printf '%s\n' "$opencode_agent_install_warnings" >&2
   fi
 
-  mana_provider_profile_args opencode "$project_root" "$opencode_model" "$opencode_max_threads" 1
+  mana_provider_profile_args opencode "$project_root" "$opencode_model" "$opencode_max_threads" 1 "$opencode_subagents"
   opencode_args=("${MANA_PROVIDER_ARGS[@]}")
 
-  MANA_PROFILE_RUNNING=1 mana_provider_execute opencode "$project_root" "$profile" "$prompt" opencode "${opencode_args[@]}"
+  if [ -n "$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" ]; then
+    OPENCODE_CONFIG_CONTENT="$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" MANA_PROFILE_RUNNING=1 mana_provider_execute opencode "$project_root" "$profile" "$prompt" opencode "${opencode_args[@]}"
+  else
+    MANA_PROFILE_RUNNING=1 mana_provider_execute opencode "$project_root" "$profile" "$prompt" opencode "${opencode_args[@]}"
+  fi
 }
 
 case "$runner" in

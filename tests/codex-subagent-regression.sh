@@ -173,6 +173,7 @@ run_claude_profile_with_stub "$claude_disabled_project" --no-claude-subagents
 assert_file_contains "$tmp/claude.prompt" "Claude subagents=false/3"
 assert_file_contains "$tmp/claude.prompt" "needs_model_escalation"
 [ ! -e "$claude_disabled_project/.claude/agents/mana-full-specialist.md" ] || fail "--no-claude-subagents should not install Claude Code subagents"
+[ ! -e "$claude_disabled_project/.claude/agents/mana-orchestrator.md" ] || fail "--no-claude-subagents should not install a managed orchestrator"
 
 jira_project="$tmp/jira project"
 mkdir -p "$jira_project/.mana"
@@ -252,7 +253,7 @@ assert_file_contains "$opencode_root_only_project/.opencode/agents/mana_worker.m
 opencode_disabled_project="$tmp/opencode disabled project"
 run_opencode_profile_with_stub "$opencode_disabled_project" --no-opencode-subagents
 assert_file_contains "$tmp/opencode.prompt" "OpenCode subagents=false/3"
-assert_file_contains "$opencode_disabled_project/.opencode/agents/mana_orchestrator.md" "mode: primary"
+[ ! -e "$opencode_disabled_project/.opencode/agents/mana_orchestrator.md" ] || fail "--no-opencode-subagents should not install a managed orchestrator"
 [ ! -e "$opencode_disabled_project/.opencode/agents/mana_full_specialist.md" ] || fail "--no-opencode-subagents should not install OpenCode subagents"
 
 assert_file_contains "$bootstrap_project/.opencode/agents/mana_orchestrator.md" "Mana-managed OpenCode agent"

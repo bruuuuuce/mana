@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/provider-capabilities-v1.schema.json",
+  "title": "Mana provider capability report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "provider",
+    "providerVersion",
+    "probeSource",
+    "probeEvidence",
+    "capabilities"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "mana.context-runtime.provider-capabilities/v1" },
+    "provider": { "enum": ["codex", "claude", "opencode"] },
+    "providerVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][A-Za-z0-9._-]+)?$" },
+    "probeSource": { "enum": ["live", "fixture"] },
+    "probeEvidence": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]*$" }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "structuredEventStream",
+        "separateFinalOutputFile",
+        "structuredOutputSchema",
+        "freshInvocation",
+        "ephemeralSession",
+        "explicitModelSelection",
+        "explicitReasoningEffort",
+        "providerManagedSubagents",
+        "hardSubagentDisable",
+        "childContextInheritanceControl",
+        "childModelRouting",
+        "childReasoningEffortRouting",
+        "recursiveDelegationPrevention",
+        "maximumChildConcurrency",
+        "maximumChildDepth",
+        "toolOutputRetentionTokenLimit",
+        "automaticCompactionThreshold",
+        "customCompactionPrompt",
+        "compactionScope",
+        "userConfigurationIsolation"
+      ],
+      "properties": {
+        "structuredEventStream": { "$ref": "#/$defs/capability" },
+        "separateFinalOutputFile": { "$ref": "#/$defs/capability" },
+        "structuredOutputSchema": { "$ref": "#/$defs/capability" },
+        "freshInvocation": { "$ref": "#/$defs/capability" },
+        "ephemeralSession": { "$ref": "#/$defs/capability" },
+        "explicitModelSelection": { "$ref": "#/$defs/capability" },
+        "explicitReasoningEffort": { "$ref": "#/$defs/capability" },
+        "providerManagedSubagents": { "$ref": "#/$defs/capability" },
+        "hardSubagentDisable": { "$ref": "#/$defs/capability" },
+        "childContextInheritanceControl": { "$ref": "#/$defs/capability" },
+        "childModelRouting": { "$ref": "#/$defs/capability" },
+        "childReasoningEffortRouting": { "$ref": "#/$defs/capability" },
+        "recursiveDelegationPrevention": { "$ref": "#/$defs/capability" },
+        "maximumChildConcurrency": { "$ref": "#/$defs/capability" },
+        "maximumChildDepth": { "$ref": "#/$defs/capability" },
+        "toolOutputRetentionTokenLimit": { "$ref": "#/$defs/capability" },
+        "automaticCompactionThreshold": { "$ref": "#/$defs/capability" },
+        "customCompactionPrompt": { "$ref": "#/$defs/capability" },
+        "compactionScope": { "$ref": "#/$defs/capability" },
+        "userConfigurationIsolation": { "$ref": "#/$defs/capability" }
+      }
+    }
+  },
+  "$defs": {
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "evidence"],
+      "properties": {
+        "status": { "enum": ["supported", "unsupported", "unknown"] },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]*$" }
+        }
+      }
+    }
+  }
+}

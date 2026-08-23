@@ -1,0 +1,62 @@
+{
+  "negativeTokens": {
+    "version": "1.18.18\n",
+    "rootHelp": "Commands:\n  opencode run [message..]  run opencode with a message\nOptions:\n  --pure does not isolate user configuration\n",
+    "runHelp": "opencode run [message..]\n\nrun opencode with a message\nOptions:\n  --format json is unsupported in this build\n  --model unavailable\n  --variant ignored\n  permission.task is unavailable\n",
+    "configProbe": {"probeStatus":"failed","rootTaskDeny":false,"childTaskDeny":false,"childModelConfigured":false,"userConfigLoaded":false,"projectConfigLoaded":false,"nonConflictingConfigPreserved":false,"inlineCollisionResolvedToDeny":false}
+  },
+  "partial": {
+    "version": "1.18.18\n",
+    "rootHelp": "Commands:\n  opencode run [message..]  run opencode with a message\nOptions:\n",
+    "runHelp": "opencode run [message..]\n\nrun opencode with a message\nOptions:\n  -m, --model     model to use in the format of provider/model                          [string]\n",
+    "configProbe": {"probeStatus":"failed","rootTaskDeny":false,"childTaskDeny":false,"childModelConfigured":false,"userConfigLoaded":false,"projectConfigLoaded":false,"nonConflictingConfigPreserved":false,"inlineCollisionResolvedToDeny":false}
+  },
+  "unexpected": {
+    "version": "1.18.18\n",
+    "rootHelp": "unexpected payload mentioning opencode run --pure --agent\n",
+    "runHelp": "unexpected payload mentioning --format json --model --variant permission.task\n",
+    "configProbe": {"probeStatus":"failed","rootTaskDeny":false,"childTaskDeny":false,"childModelConfigured":false,"userConfigLoaded":false,"projectConfigLoaded":false,"nonConflictingConfigPreserved":false,"inlineCollisionResolvedToDeny":false}
+  },
+  "explicitNegative": {
+    "version": "1.0.0\n",
+    "rootHelp": "Commands:\n  opencode run [message..]  run opencode with a message\nOptions:\n",
+    "runHelp": "opencode run [message..]\n\nrun opencode with a message\nOptions:\nOpenCode capability status:\n  separate-final-output-file unsupported\n  structured-output-schema unsupported\n",
+    "configProbe": {"probeStatus":"failed","rootTaskDeny":false,"childTaskDeny":false,"childModelConfigured":false,"userConfigLoaded":false,"projectConfigLoaded":false,"nonConflictingConfigPreserved":false,"inlineCollisionResolvedToDeny":false}
+  },
+  "positiveNegative": {
+    "version": "1.18.18\n",
+    "rootHelp": "Commands:\n  opencode run [message..]  run opencode with a message\nOptions:\n",
+    "runHelp": "opencode run [message..]\n\nrun opencode with a message\nOptions:\n      --format    format: default (formatted) or json (raw JSON events)\n                                      [string] [choices: \"default\", \"json\"] [default: \"default\"]\nOpenCode capability status:\n  structured-event-stream unsupported\n",
+    "configProbe": {"probeStatus":"ok","rootTaskDeny":true,"childTaskDeny":true,"childModelConfigured":true,"userConfigLoaded":true,"projectConfigLoaded":true,"nonConflictingConfigPreserved":true,"inlineCollisionResolvedToDeny":true}
+  },
+  "semanticCollisionFalse": {
+    "version": "1.18.18\n",
+    "rootHelp": "Commands:\n  opencode run [message..]  run opencode with a message\nOptions:\n",
+    "runHelp": "opencode run [message..]\n\nrun opencode with a message\nOptions:\n",
+    "configProbe": {"probeStatus":"ok","rootTaskDeny":true,"childTaskDeny":true,"childModelConfigured":true,"userConfigLoaded":true,"projectConfigLoaded":true,"nonConflictingConfigPreserved":true,"inlineCollisionResolvedToDeny":false}
+  },
+  "semanticChildDenyOnly": {
+    "version": "1.18.18\n",
+    "rootHelp": "Commands:\n  opencode run [message..]  run opencode with a message\nOptions:\n",
+    "runHelp": "opencode run [message..]\n\nrun opencode with a message\nOptions:\n",
+    "configProbe": {"probeStatus":"ok","rootTaskDeny":false,"childTaskDeny":true,"childModelConfigured":false,"userConfigLoaded":false,"projectConfigLoaded":false,"nonConflictingConfigPreserved":false,"inlineCollisionResolvedToDeny":false}
+  },
+  "semanticOkIncomplete": {
+    "version": "1.18.18\n",
+    "rootHelp": "Commands:\n  opencode run [message..]  run opencode with a message\nOptions:\n",
+    "runHelp": "opencode run [message..]\n\nrun opencode with a message\nOptions:\n",
+    "configProbe": {"probeStatus":"ok","rootTaskDeny":true,"childTaskDeny":true,"childModelConfigured":true,"userConfigLoaded":false,"projectConfigLoaded":false,"nonConflictingConfigPreserved":false,"inlineCollisionResolvedToDeny":true}
+  },
+  "absence": {
+    "version": "1.18.18\n",
+    "rootHelp": "Commands:\n  opencode run [message..]  run opencode with a message\nOptions:\n",
+    "runHelp": "opencode run [message..]\n\nrun opencode with a message\nOptions:\n",
+    "configProbe": {"probeStatus":"failed","rootTaskDeny":false,"childTaskDeny":false,"childModelConfigured":false,"userConfigLoaded":false,"projectConfigLoaded":false,"nonConflictingConfigPreserved":false,"inlineCollisionResolvedToDeny":false}
+  },
+  "unknownVersion": {
+    "version": "99.99.99\n",
+    "rootHelp": "Commands:\n  opencode run [message..]  run opencode with a message\nOptions:\n",
+    "runHelp": "opencode run [message..]\n\nrun opencode with a message\nOptions:\n  -m, --model     model to use in the format of provider/model                          [string]\n",
+    "configProbe": {"probeStatus":"failed","rootTaskDeny":false,"childTaskDeny":false,"childModelConfigured":false,"userConfigLoaded":false,"projectConfigLoaded":false,"nonConflictingConfigPreserved":false,"inlineCollisionResolvedToDeny":false}
+  }
+}

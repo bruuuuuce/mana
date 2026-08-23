@@ -1,0 +1,8 @@
+opencode run [message..]
+
+run opencode with a message
+Options:
+  -m, --model     model to use in the format of provider/model                          [string]
+OpenCode capability status:
+  separate-final-output-file unsupported
+  structured-output-schema unsupported
