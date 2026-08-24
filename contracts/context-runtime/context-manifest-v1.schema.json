@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/context-manifest-v1.schema.json",
+  "title": "Mana Context Runtime context manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "executionId", "profileId", "semanticAgents", "baselineSkills", "activatedSkills", "availableConditionalSkills", "requiredArtifacts", "limits"],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.context-manifest/v1"},
+    "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},
+    "profileId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
+    "semanticAgents": {"$ref": "#/$defs/ids"},
+    "baselineSkills": {"$ref": "#/$defs/ids"},
+    "activatedSkills": {"type": "array", "maxItems": 64, "items": {"type": "object", "additionalProperties": false, "required": ["id", "reason", "modelTier", "riskLevel", "delegationGroup"], "properties": {"id": {"$ref": "#/$defs/id"}, "reason": {"type": "string", "minLength": 1, "maxLength": 512}, "modelTier": {"type": "string", "enum": ["economy", "standard", "capable"]}, "riskLevel": {"type": "string", "enum": ["low", "medium", "high"]}, "delegationGroup": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"}}}},
+    "availableConditionalSkills": {"type": "array", "maxItems": 128, "items": {"type": "object", "additionalProperties": false, "required": ["signal", "skill"], "properties": {"signal": {"type": "string", "minLength": 1, "maxLength": 128}, "skill": {"$ref": "#/$defs/id"}}}},
+    "requiredArtifacts": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/path"}},
+    "limits": {"type": "object", "additionalProperties": false, "required": ["directWorkers", "workerDepth", "retrievalCyclesPerQuestion"], "properties": {"directWorkers": {"type": "integer", "minimum": 0, "maximum": 32}, "workerDepth": {"type": "integer", "minimum": 0, "maximum": 4}, "retrievalCyclesPerQuestion": {"type": "integer", "minimum": 1, "maximum": 16}}}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
+    "ids": {"type": "array", "maxItems": 128, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "path": {"type": "string", "minLength": 1, "maxLength": 512, "pattern": "^(?!/)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)[^\\\\]+$"}
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/evidence-manifest-v1.schema.json",
+  "title": "Mana Context Runtime evidence manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "executionId", "items"],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.evidence-manifest/v1"},
+    "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},
+    "items": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/item"}}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^E-[A-Za-z0-9._-]{1,120}$"},
+    "path": {"type": "string", "minLength": 1, "maxLength": 512, "pattern": "^(?!/)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)[^\\\\]+$"},
+    "item": {"type": "object", "additionalProperties": false, "required": ["evidenceId", "kind", "sourceSystem", "sourceLocator", "collectedAt", "digest", "mediaType", "byteSize", "sensitivity", "localPath", "normalizationVersion", "relationships", "collectionStatus", "revisionId"], "properties": {"evidenceId": {"$ref": "#/$defs/id"}, "kind": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"}, "sourceSystem": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"}, "sourceLocator": {"type": "string", "minLength": 1, "maxLength": 2048}, "collectedAt": {"type": "string", "minLength": 20, "maxLength": 40}, "digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}, "mediaType": {"type": "string", "pattern": "^[A-Za-z0-9.+-]+/[A-Za-z0-9.+-]+$"}, "byteSize": {"type": "integer", "minimum": 0, "maximum": 1073741824}, "sensitivity": {"type": "string", "enum": ["public", "internal", "restricted", "secret"]}, "localPath": {"$ref": "#/$defs/path"}, "normalizationVersion": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,80}$"}, "relationships": {"type": "array", "maxItems": 128, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}}, "collectionStatus": {"type": "string", "enum": ["complete", "partial", "unavailable", "failed"]}, "revisionId": {"type": ["string", "null"], "maxLength": 256}}}
+  }
+}

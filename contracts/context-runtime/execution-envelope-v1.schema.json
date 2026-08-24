@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/execution-envelope-v1.schema.json",
+  "title": "Mana Context Runtime execution envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "executionId", "profileId", "projectRoot", "workspace", "target", "permissions", "humanGates", "provider", "runtimeMode"],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.execution-envelope/v1"},
+    "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},
+    "profileId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
+    "projectRoot": {"const": "."},
+    "workspace": {"$ref": "#/$defs/path"},
+    "target": {"$ref": "#/$defs/target"},
+    "permissions": {"$ref": "#/$defs/permissions"},
+    "humanGates": {"type": "array", "maxItems": 32, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 512}},
+    "provider": {"type": "string", "enum": ["codex", "claude", "opencode"]},
+    "runtimeMode": {"const": "context-v2"}
+  },
+  "$defs": {
+    "path": {"type": "string", "minLength": 1, "maxLength": 512, "pattern": "^(?!/)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)[^\\\\]+$"},
+    "target": {"type": "object", "additionalProperties": false, "required": ["repository", "base", "prNumber"], "properties": {"repository": {"type": ["string", "null"], "maxLength": 256}, "base": {"type": ["string", "null"], "maxLength": 256}, "prNumber": {"type": ["integer", "null"], "minimum": 1}}},
+    "permissions": {"type": "object", "additionalProperties": false, "required": ["repositoryWrite", "externalWrite", "approvedExternalActions"], "properties": {"repositoryWrite": {"type": "boolean"}, "externalWrite": {"type": "boolean"}, "approvedExternalActions": {"type": "array", "maxItems": 32, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 128}}}}
+  }
+}

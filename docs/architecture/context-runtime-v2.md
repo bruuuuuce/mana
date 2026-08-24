@@ -70,3 +70,54 @@ managed orchestrator files.
 This is an isolation correction only; CTX-02 does not introduce fresh phase
 execution, delegation packets, context manifests, evidence stores, or
 compaction budgets.
+
+## CTX-03 authority and checkpoint boundary
+
+Model checkpoints are untrusted data, while permissions, immutable execution
+identity, human gates, and completed approval records remain host-owned control
+plane inputs. The host validator represents these as separate types: validating
+a checkpoint cannot construct host authority, and effective permission or
+approval state is derived exclusively from a separately supplied host authority
+context. Model prose is never interpreted as a permission or approval decision.
+
+Every model-owned fact surface uses the shared typed subject contract;
+governance, permissions, approval, control, and unrecognized domains are not
+representable. Application facts may discuss approval-shaped text, but claim
+prose is inert. Evidence IDs are bounded references, not proof that evidence
+exists and never authority. Checkpoints are bounded reference-and-claim
+documents, not carriers for raw logs, full diffs, complete API payloads, or
+copied conversations. Authority evaluation binds checkpoint, host execution,
+and approval record to the same execution ID and execution version. Host
+issuance/completion timestamps are timezone-aware RFC3339 values, and an
+approval completed before issuance is invalid.
+
+Contained JSON reads and artifact writes use no-follow, directory-FD-relative,
+component-by-component traversal. Publication of an absent destination uses a
+kernel no-replace rename. Replacement of an observed regular file uses atomic
+exchange, verifies the displaced inode/device/type, and rolls back an identity
+mismatch. After publication the writer re-attests the parent from the trusted
+root and rolls back if that namespace binding changed. Linux uses `renameat2`
+with `RENAME_NOREPLACE`/`RENAME_EXCHANGE`; macOS uses `renameatx_np` with
+`RENAME_EXCL`/`RENAME_SWAP`. Other platforms, missing libc entry points, and
+filesystems that reject the required operation fail closed; plain rename is
+never a CAS fallback.
+
+Containment and success validity are separate guarantees. Anchored FDs prevent
+an attacker symlink from redirecting the write outside the authorized root.
+Post-publication attestation additionally prevents success from being returned
+when the write landed in a parent directory that was renamed out of its
+authorized path during the operation. This boundary covers hostile namespace
+mutation within the authorized root; it does not claim protection against
+kernel or mount-level compromise.
+
+Failure atomicity is conditional on the kernel rollback primitive succeeding.
+A pre-publication failure leaves the destination unchanged and removes staging;
+a post-publication validation failure with successful rollback restores the
+absent/original state and removes staging. If rollback itself fails, the writer
+returns a typed, non-success `RollbackFailure` with safe project-relative
+recovery metadata and `manualRecoveryRequired`. It does not claim transactional
+cleanup: new content may remain published, and an exchanged original is retained
+as a mode-`0600` recovery artifact rather than deleted as a temporary leak.
+Containment outside the anchored target remains intact, while destination
+reconciliation becomes an explicit host responsibility. This exceptional
+contract does not weaken the normal no-replace/exchange publication protocol.

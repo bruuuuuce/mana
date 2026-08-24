@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/delegation-task-v1.schema.json",
+  "title": "Mana Context Runtime delegation task v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "taskId", "executionId", "parentPhaseId", "owner", "objective", "evidenceRefs", "requiredOutputs", "modelTier", "limits"],
+  "properties": {"schemaVersion": {"const": "mana.context-runtime.delegation-task/v1"}, "taskId": {"type": "string", "pattern": "^T-[A-Za-z0-9._-]{1,120}$"}, "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"}, "parentPhaseId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"}, "owner": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"}, "objective": {"type": "string", "minLength": 1, "maxLength": 4096}, "evidenceRefs": {"type": "array", "maxItems": 128, "uniqueItems": true, "items": {"type": "string", "pattern": "^E-[A-Za-z0-9._-]{1,120}$"}}, "requiredOutputs": {"type": "array", "minItems": 1, "maxItems": 32, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 256}}, "modelTier": {"type": "string", "enum": ["economy", "standard", "capable"]}, "limits": {"type": "object", "additionalProperties": false, "required": ["retrievalCycles", "childDepth"], "properties": {"retrievalCycles": {"type": "integer", "minimum": 1, "maximum": 16}, "childDepth": {"const": 0}}}}
+}

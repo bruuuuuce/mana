@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/delegation-result-v1.schema.json",
+  "title": "Mana Context Runtime delegation result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "taskId", "executionId", "status", "verifiedFacts", "assumptions", "inferences", "openQuestions", "artifactRefs"],
+  "properties": {"schemaVersion": {"const": "mana.context-runtime.delegation-result/v1"}, "taskId": {"type": "string", "pattern": "^T-[A-Za-z0-9._-]{1,120}$"}, "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"}, "status": {"type": "string", "enum": ["complete", "partial", "blocked", "failed"]}, "verifiedFacts": {"$ref": "#/$defs/facts"}, "assumptions": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/claim"}}, "inferences": {"$ref": "#/$defs/facts"}, "openQuestions": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/question"}}, "artifactRefs": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Z]-[A-Za-z0-9._-]{1,120}$"}}},
+  "$defs": {
+    "facts": {"$ref": "model-fact-v1.schema.json#/$defs/facts"},
+    "claim": {"$ref": "model-fact-v1.schema.json#/$defs/claim"},
+    "question": {"$ref": "model-fact-v1.schema.json#/$defs/question"}
+  }
+}

@@ -1,0 +1,1 @@
+{"schemaVersion":"mana.context-runtime.phase-input/v1","executionId":"execution-fixture","phaseId":"investigate","executionEnvelopeRef":"G-001","contextManifestRef":"M-001","objective":"Investigate the bounded fixture.","checkpointRef":null,"evidenceRefs":["E-001"]}

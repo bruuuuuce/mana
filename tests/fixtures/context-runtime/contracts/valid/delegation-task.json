@@ -1,0 +1,1 @@
+{"schemaVersion":"mana.context-runtime.delegation-task/v1","taskId":"T-001","executionId":"execution-fixture","parentPhaseId":"investigate","owner":"source-worker","objective":"Inspect bounded evidence.","evidenceRefs":["E-001"],"requiredOutputs":["facts"],"modelTier":"standard","limits":{"retrievalCycles":3,"childDepth":0}}
