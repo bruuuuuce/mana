@@ -7,8 +7,9 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 . "$root/scripts/lib/analysis-trajectory-telemetry.sh"
 . "$root/scripts/lib/analysis-trajectory-integration.sh"
 . "$root/scripts/lib/story-start-scope-v2.sh"
-# shellcheck source=lib/profile-metadata.sh
+# shellcheck source=scripts/lib/profile-metadata.sh
 . "$root/scripts/lib/profile-metadata.sh"
+. "$root/scripts/lib/execution-plan.sh"
 . "$root/scripts/lib/user-context.sh"
 profile=""
 project_root=""
@@ -68,6 +69,13 @@ story_start_triage_model=""; story_start_triage_effort=""
 story_start_planner_model=""; story_start_planner_effort=""
 story_start_correction_model=""; story_start_correction_effort=""
 story_start_trajectory_checkpoint_model=""; story_start_trajectory_checkpoint_effort=""
+context_manifest=""
+manifest_execution_id=""
+manifest_static_signals=()
+manifest_requested_skills=()
+manifest_deep_load_skills=()
+manifest_validation_args=()
+compiled_manifest=""
 
 usage() {
   cat <<'USAGE'
@@ -104,6 +112,11 @@ Options:
   --jira-key-regex <regex>       Override branch issue-key discovery.
   --allow-service-discovery       Allow epic-analysis to inspect named services read-only.
   --publish-high-risk-comments   Allow requested-pr-review to publish one high-risk PR comment.
+  --context-manifest <path>     Consume this canonical manifest after authoritative validation.
+  --manifest-execution-id <id>  Host-selected execution identity for supplied manifest validation.
+  --static-signal <id>          Declared host activation input used to compile the manifest.
+  --request-skill <id>          Declared semantic activation request used to compile the manifest.
+  --deep-load-skill <id>        Active skill selected for instruction-body loading.
 
 Story Start Scope v2 opt-in:
   MANA_STORY_START_SCOPE_VERSION=v2
@@ -329,6 +342,31 @@ while [ "$#" -gt 0 ]; do
       [ -n "$jira_key_regex" ] || { echo "ERROR: --jira-key-regex requires a regex" >&2; exit 2; }
       shift 2
       ;;
+    --context-manifest)
+      context_manifest="${2:-}"
+      [ -n "$context_manifest" ] || { echo "ERROR: --context-manifest requires a path" >&2; exit 2; }
+      shift 2
+      ;;
+    --manifest-execution-id)
+      manifest_execution_id="${2:-}"
+      [ -n "$manifest_execution_id" ] || { echo "ERROR: --manifest-execution-id requires an id" >&2; exit 2; }
+      shift 2
+      ;;
+    --static-signal)
+      [ -n "${2:-}" ] || { echo "ERROR: --static-signal requires an id" >&2; exit 2; }
+      manifest_static_signals+=("$2")
+      shift 2
+      ;;
+    --request-skill)
+      [ -n "${2:-}" ] || { echo "ERROR: --request-skill requires an id" >&2; exit 2; }
+      manifest_requested_skills+=("$2")
+      shift 2
+      ;;
+    --deep-load-skill)
+      [ -n "${2:-}" ] || { echo "ERROR: --deep-load-skill requires an id" >&2; exit 2; }
+      manifest_deep_load_skills+=("$2")
+      shift 2
+      ;;
     --*)
       echo "ERROR: unknown option: $1" >&2
       exit 2
@@ -509,44 +547,43 @@ fi
 
 "$root/scripts/mana-update-check.sh" --root "$root" --profile "$profile" || exit 1
 
-profile_skills="$(mana_profile_skills "$file")"
-skill_index="$root/skills/index.yaml"
+for value in "${manifest_static_signals[@]}"; do manifest_validation_args+=(--static-signal "$value"); done
+for value in "${manifest_requested_skills[@]}"; do manifest_validation_args+=(--request-skill "$value"); done
+for value in "${manifest_deep_load_skills[@]}"; do manifest_validation_args+=(--deep-load-skill "$value"); done
 
-skill_metadata() {
-  skill_id="$1"
-  awk -v target="$skill_id" '
-    $1 == "-" && $2 == "id:" {
-      if (found) { print risk "|" tier "|" mode "|" group; active = 0; exit }
-      active = ($3 == target)
-      found = active
-      next
-    }
-    active && $1 == "risk_level:" { risk = $2 }
-    active && $1 == "model_tier:" { tier = $2 }
-    active && $1 == "execution_mode:" { mode = $2 }
-    active && $1 == "delegation_group:" { group = $2 }
-    END { if (found && active) print risk "|" tier "|" mode "|" group }
-  ' "$skill_index"
-}
-
-model_escalation_skills=""
-if [ -n "$profile_skills" ]; then
-  while IFS= read -r skill; do
-    [ -n "$skill" ] || continue
-    metadata="$(skill_metadata "$skill")"
-    case "$metadata" in
-      *'|full|'*|high'|'*)
-      model_escalation_skills="${model_escalation_skills}${model_escalation_skills:+ }$skill"
-        ;;
-    esac
-  done <<EOF
-$profile_skills
-EOF
+if [ -z "$context_manifest" ]; then
+  manifest_execution_id="${manifest_execution_id:-${MANA_RUNTIME_EXECUTION_ID:-execution-run-profile-$profile-$$}}"
+  compiled_manifest="$(
+    "$root/scripts/mana-compile-profile.sh" "$profile" --execution-id "$manifest_execution_id" \
+      "${manifest_validation_args[@]}"
+  )" || exit 1
+else
+  manifest_execution_id="${manifest_execution_id:-${MANA_RUNTIME_EXECUTION_ID:-}}"
+  [ -n "$manifest_execution_id" ] || { echo 'ERROR: a supplied --context-manifest requires host --manifest-execution-id' >&2; exit 2; }
+  manifest_parent="$(cd "$(dirname "$context_manifest")" 2>/dev/null && pwd -P)" || {
+    echo 'ERROR: canonical context manifest parent is unavailable' >&2
+    exit 1
+  }
+  context_manifest="$manifest_parent/$(basename "$context_manifest")"
+  compiled_manifest="$(
+    python3 "$root/scripts/lib/context-runtime.py" authoritative-materialize-context-manifest \
+      "$context_manifest" "$root" "$profile" "$manifest_execution_id" \
+      "${manifest_validation_args[@]}"
+  )" || exit 1
 fi
+
+# From this point onward activation and routing consume one immutable shell
+# value emitted by the authoritative boundary. The candidate pathname is never
+# reopened, so post-validation replacement cannot change execution or prompt.
+mana_execution_plan_json "$root" "$compiled_manifest" || { echo "ERROR: $MANA_PLAN_ERROR" >&2; exit 1; }
+
+profile_runner_classes="$MANA_PLAN_RUNNERS"
+activation_migration_warning="$(jq -r '.warnings[]?' <<<"$compiled_manifest")"
+model_escalation_skills="$(jq -r '.modelEscalationSkills | join(" ")' <<<"$compiled_manifest")"
 
 model_routing_warning=""
 if [ -n "$model_escalation_skills" ]; then
-  model_routing_warning="This profile includes full-tier or high-risk skill candidates. The root model is for routing, evidence inventory, low-risk checks, and synthesis only; delegate deep judgment to the configured full specialist or stop with needs_model_escalation if escalation is unavailable."
+  model_routing_warning="This profile has active full-tier or high-risk work. The root model is for routing, evidence inventory, low-risk checks, and synthesis only; delegate deep judgment to the configured full specialist or stop with needs_model_escalation if escalation is unavailable."
 fi
 
 render_codex_agent() {
@@ -858,10 +895,10 @@ if [ "$runner" = "codex" ]; then
   echo "Codex subagents: $codex_subagents"
   echo "Codex agent limits: max_threads=$codex_effective_max_threads max_depth=$codex_effective_max_depth interrupt_message=false"
   if [ -n "$model_escalation_skills" ]; then
-    echo "Codex delegation/escalation candidate skills: $model_escalation_skills"
+    echo "Codex active delegation/escalation skills: $model_escalation_skills"
     echo "Model routing warning: $model_routing_warning"
   else
-    echo "Codex delegation/escalation candidate skills: none"
+    echo "Codex active delegation/escalation skills: none"
   fi
 fi
 if [ "$runner" = "claude" ]; then
@@ -872,10 +909,10 @@ if [ "$runner" = "claude" ]; then
   echo "Claude subagents: $claude_subagents"
   echo "Claude delegation limit: max_direct_subagents=$claude_max_threads, max_depth=1"
   if [ -n "$model_escalation_skills" ]; then
-    echo "Claude delegation/escalation candidate skills: $model_escalation_skills"
+    echo "Claude active delegation/escalation skills: $model_escalation_skills"
     echo "Model routing warning: $model_routing_warning"
   else
-    echo "Claude delegation/escalation candidate skills: none"
+    echo "Claude active delegation/escalation skills: none"
   fi
 fi
 if [ "$runner" = "opencode" ]; then
@@ -886,12 +923,13 @@ if [ "$runner" = "opencode" ]; then
   echo "OpenCode subagents: $opencode_subagents"
   echo "OpenCode agent limits: max_threads=$opencode_max_threads max_depth=1"
   if [ -n "$model_escalation_skills" ]; then
-    echo "OpenCode delegation/escalation candidate skills: $model_escalation_skills"
+    echo "OpenCode active delegation/escalation skills: $model_escalation_skills"
     echo "Model routing warning: $model_routing_warning"
   else
-    echo "OpenCode delegation/escalation candidate skills: none"
+    echo "OpenCode active delegation/escalation skills: none"
   fi
 fi
+[ -z "$activation_migration_warning" ] || echo "WARNING: $activation_migration_warning" >&2
 sed -n '1,220p' "$file"
 echo
 if [ -n "$pr_number" ] || [ "$publish_high_risk_comments" = true ] || [ "$service_discovery_approved" = true ] || [ -n "$jira_keys" ]; then
@@ -1183,6 +1221,9 @@ else
   echo "WARNING: User Context refresh failed: ${MANA_UC_ERROR:-unknown error}. The runner will not treat the local mirror as usable." >&2
 fi
 
+# Kept as a compatibility reference during staged runtime migration; provider
+# execution below uses only the compact canonical-manifest prompt.
+# shellcheck disable=SC2034
 legacy_prompt="$(cat <<PROMPT
 Run the Mana profile '$profile' in this repository.
 
@@ -1197,8 +1238,9 @@ Codex model policy: $codex_model_policy
 Codex subagents enabled: $codex_subagents
 Codex agent runtime limits: max_threads=$codex_max_threads, max_depth=$codex_max_depth, interrupt_message=false
 Codex effective child limits: max_threads=$codex_effective_max_threads, max_depth=$codex_effective_max_depth
-Model delegation/escalation candidate skills: ${model_escalation_skills:-none}
+Active model delegation/escalation skills: ${model_escalation_skills:-none}
 Model routing warning: ${model_routing_warning:-none}
+Skill activation warning: ${activation_migration_warning:-none}
 Claude initial model: $claude_model
 Claude full model: $claude_full_model
 Claude explorer model: $claude_explorer_model
@@ -1229,10 +1271,10 @@ Instructions:
 - Do not run './mana profile $profile' or 'scripts/run-profile.sh $profile' again; this command already rendered the profile and would recurse.
 - Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'.
 - Follow docs/policies/model-tier-routing-policy.md for provider-neutral economy/full routing, downgrade behavior, and Jira/tool access treatment.
-- If the selected runner is Codex, use the economy root model for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed Codex delegation/escalation candidate skills as full-model candidates, not mandatory work.
+- If the selected runner is Codex, use the economy root model for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed active delegation/escalation skills as work that requires the configured full-model path.
 - Codex runtime agents are capability classes only. Mana agents under agents/ remain semantic workflow orchestrators, and Mana skills under skills/ remain reusable domain capabilities. Do not map every Mana agent or every Mana skill to a separate Codex subagent.
 - Codex subagent orchestration is enabled: $codex_subagents. When enabled and available, delegate required high-risk, explicitly full-tier, noisy, or beyond-root-confidence work to project-scoped custom agents: mana_explorer, mana_full_specialist, and mana_worker. Child agents must not delegate further.
-- Inspect candidate skill metadata using progressive loading, determine which skills are truly required by current evidence, group related work by risk domain or execution phase, spawn no more than $codex_max_threads direct subagents, avoid one subagent per skill, prefer parallel delegation only for independent read-heavy work, wait for delegated work to finish, collect compact structured summaries, and synthesize the final Mana output.
+- Use the profile activation map and the active routing summary above; inspect front matter only for activated skills, group related work by risk domain or execution phase, spawn no more than $codex_max_threads direct subagents, avoid one subagent per skill, prefer parallel delegation only for independent read-heavy work, wait for delegated work to finish, collect compact structured summaries, and synthesize the final Mana output.
 - Delegation grouping policy is bounded and deterministic: requirements (story quality, epic/story goal extraction, acceptance-criteria testability), source (source impact, symbol and call-path mapping, technical task decomposition), tests (test inventory, green-border planning, missing-test analysis), architecture (architecture risk, NFR impact, transaction and concurrency review), contracts (API/event contracts and cross-service compatibility), database (schema and Liquibase production risk), security (trust boundaries, secrets, authorization, dependency-security evidence), operations (release, rollback, continuity, incident and production risk), documentation, and implementation.
 - Use mana_explorer for read-heavy evidence discovery, source impact mapping, symbol/call-path discovery, test inventory, contract inventory, dependency evidence, diff classification, and locating relevant Mana or project files.
 - Use mana_full_specialist for architecture, security, database, concurrency, cross-service, production, transactional, backwards-compatibility, model_tier: full, or large/ambiguous diff judgment. The root orchestrator must not directly perform deep high-risk analysis in those domains.
@@ -1240,7 +1282,7 @@ Instructions:
 - Wait for delegated work and aggregate only compact summaries and artifact paths. Do not import raw tool transcripts into the root context.
 - If Codex subagents are disabled, the installed Codex runtime cannot discover custom agents, spawning fails, a specialist returns insufficient evidence, or a high-risk judgment remains unsupported, preserve a concise handoff artifact in the workspace when possible and return status \`needs_model_escalation\`. Tell the user to rerun the same profile with \`MANA_CODEX_MODEL=$codex_full_model\` or \`--codex-model $codex_full_model\`. Do not silently continue a high-risk judgment on the economy model.
 - When Codex subagents are disabled, preserve the legacy economy-first/manual-escalation behavior: do not pretend a specialist ran, and stop with \`needs_model_escalation\` before deep analysis of required full-tier or high-risk work.
-- If the selected runner is Claude Code, use the mana-orchestrator economy root agent for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed delegation/escalation candidate skills as full-model candidates, not mandatory work.
+- If the selected runner is Claude Code, use the mana-orchestrator economy root agent for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed active delegation/escalation skills as work that requires the configured full-model path.
 - Claude Code runtime agents are capability classes only. Mana agents under agents/ remain semantic workflow orchestrators, and Mana skills under skills/ remain reusable domain capabilities. Do not map every Mana agent or every Mana skill to a separate Claude Code subagent.
 - Claude Code subagent orchestration is enabled: $claude_subagents. When enabled and available, delegate required high-risk, explicitly full-tier, noisy, or beyond-root-confidence work to project-scoped agents: mana-explorer, mana-full-specialist, and mana-worker. Child agents do not have the Agent tool and must not delegate further.
 - For Claude Code, spawn no more than $claude_max_threads direct subagents in total, no more than one per capability class, avoid one subagent per skill, prefer parallel delegation only for independent read-heavy work, wait for delegated work to finish, collect compact structured summaries, and synthesize the final Mana output.
@@ -1249,7 +1291,7 @@ Instructions:
 - Use mana-worker only when the selected Mana profile explicitly permits source modification. Never infer write permission from tool access. Do not run mana-worker for analysis-only profiles, and never run parallel writers against the same working tree.
 - If Claude Code subagents are disabled, the installed Claude Code runtime cannot discover custom agents, spawning fails, a specialist returns insufficient evidence, or a high-risk judgment remains unsupported, preserve a concise handoff artifact in the workspace when possible and return status \`needs_model_escalation\`. Tell the user to rerun the same profile with \`MANA_CLAUDE_MODEL=$claude_full_model\` or \`--claude-model $claude_full_model\`. Do not silently continue a high-risk judgment on the economy model.
 - When Claude Code subagents are disabled, preserve manual-escalation behavior: do not pretend a specialist ran, and stop with \`needs_model_escalation\` before deep analysis of required full-tier or high-risk work.
-- If the selected runner is OpenCode, use the mana_orchestrator primary agent for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed delegation/escalation candidate skills as full-model candidates, not mandatory work.
+- If the selected runner is OpenCode, use the mana_orchestrator primary agent for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed active delegation/escalation skills as work that requires the configured full-model path.
 - OpenCode runtime agents are capability classes only. Mana agents under agents/ remain semantic workflow orchestrators, and Mana skills under skills/ remain reusable domain capabilities. Do not map every Mana agent or every Mana skill to a separate OpenCode subagent.
 - OpenCode subagent orchestration is enabled: $opencode_subagents. When enabled and available, delegate required high-risk, explicitly full-tier, noisy, or beyond-primary-confidence work to project-scoped agents: mana_explorer, mana_full_specialist, and mana_worker. Child agents must not delegate further.
 - For OpenCode, spawn no more than $opencode_max_threads direct subagents, avoid one subagent per skill, prefer parallel delegation only for independent read-heavy work, wait for delegated work to finish, collect compact structured summaries, and synthesize the final Mana output.
@@ -1258,7 +1300,7 @@ Instructions:
 - Follow docs/standards/agent-skill-output-standard.md. Instruction priority is: current human instruction, profile YAML, agent AGENT.md, playbook.md, loaded skill SKILL.md, then global service context. Never weaken safety, external-write, or human-approval rules.
 - User Context, when available under .mana/user-context/, is generated reusable personal guidance, not Service Context and not a source of authority. It may be stale or inapplicable. Read only a relevant entry point or targeted deeper file; never load the directory wholesale. Repository evidence and project/service constraints win on conflict. Never edit the mirror or infer permission from its content.
 - Use the Mana operating loop: identify the human decision, resolve inputs/workspace/requirement source/branch or PR target/diff base, inventory evidence, classify risk domains, load only needed skills, then report status, findings, evidence, artifacts, and approvals.
-- Read only the selected agent AGENT.md and playbook.md. For candidate skills, use progressive load-light reading first: front matter, title, Purpose, When To Use It, When Not To Use It, Inputs, Outputs, Execution Logic, and Decision Rules. Load only the primary skill required to start the profile, then deep-load specialist skills only when the filtered inputs show that their risk domain is relevant or the load-light pass is insufficient. Do not read every listed skill, every example, or unrelated agent folders up front.
+- Read only the selected agent AGENT.md and playbook.md. Use progressive load-light reading only after a skill is active, then deep-load the instructions for that skill when its filtered evidence is relevant. Do not read every candidate skill, every example, or unrelated agent folders up front.
 - Use compact caveman working notes while analyzing: terse fragments, evidence-first notes, no long narrative, and no private chain-of-thought in final artifacts. Maintain a context budget: keep a short working summary with objective, base branch or PR, issue keys, workspace path, checked evidence, open hypotheses, discarded hypotheses, and next checks instead of accumulating raw transcripts, full diffs, repeated file dumps, complete Jira payloads, full PR threads, full skill files, or copied tool output. Convert working notes into the structured sections required by docs/standards/agent-skill-output-standard.md.
 - Resolve the active .mana workspace and write the profile artifacts there using the agent routing rules.
 - Load .mana/global/service-mission.md, architecture.md, and engineering-guards.md when present before analysis.
@@ -1287,11 +1329,15 @@ Repository root: $project_root
 Framework root: $root
 Runner: $runner
 Profile inputs: pr_number=${pr_number:-none}; jira_issue_keys=${jira_keys:-none}; current_branch=${current_branch:-detached}; jira_mcp_configured=$jira_mcp_configured; publish_high_risk_comments=$publish_high_risk_comments; service_discovery_approved=$service_discovery_approved.
-Model routing: root=economy; full-tier candidates=${model_escalation_skills:-none}; escalation warning=${model_routing_warning:-none}.
+Model routing: root=economy; active full-tier skills=${model_escalation_skills:-none}; escalation warning=${model_routing_warning:-none}.
+Runner classes selected from active work: $(printf '%s' "$profile_runner_classes" | tr '\n' ',').
 Runtime limits: Codex subagents=$codex_subagents/$codex_max_threads; Claude subagents=$claude_subagents/$claude_max_threads; OpenCode subagents=$opencode_subagents/$opencode_max_threads. Effective child limits: Codex=$codex_effective_max_threads/$codex_effective_max_depth; Claude=$claude_effective_max_threads/$claude_effective_max_depth; OpenCode=$opencode_effective_max_threads/$opencode_effective_max_depth.
 User Context: available=$user_context_available; generated root=.mana/user-context; entry points=$user_context_entries.
+Compiled context manifest (authoritative for activation and routing): $compiled_manifest
 
-Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'. Follow docs/policies/runtime-execution-contract.md and docs/standards/output-contract.md. The skill_activation block of the profile is authoritative: begin with baseline skills, then load a conditional skill only after filtered evidence matches its signal. Use skills/index.yaml for metadata; read only the selected skill bodies.
+The compiled manifest above is authoritative for the activation set, activation reasons, model tier, risk, execution mode, delegation group, parallel safety, escalation, semantic agents, required artifacts, and available conditional catalog. Do not read or reconstruct those decisions from the profile, the complete skill catalog index, candidate skill bodies, or any alternate profile link. Candidate and inactive skills are catalog entries only, never selected work. Load a SKILL.md body only when its id appears in deepLoadedSkills; every deep-loaded id has already passed host activation validation.
+
+You may read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file', only for workflow semantics not already compiled, and may read the selected semantic agent/playbook. Never use those documents to change activation or routing. Follow docs/policies/runtime-execution-contract.md and docs/standards/output-contract.md.
 
 Read only the selected agent AGENT.md and playbook, core service-context files, and evidence required for a concrete hypothesis. Do not recursively invoke Mana. Keep evidence compact and return artifact paths rather than transcripts.
 

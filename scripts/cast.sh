@@ -4,13 +4,13 @@
 set -u
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-# shellcheck source=lib/profile-metadata.sh
+# shellcheck source=scripts/lib/profile-metadata.sh
 . "$root/scripts/lib/profile-metadata.sh"
 . "$root/scripts/lib/json.sh"
 . "$root/scripts/lib/execution-plan.sh"
-# shellcheck source=lib/divination.sh
+# shellcheck source=scripts/lib/divination.sh
 . "$root/scripts/lib/divination.sh"
-# shellcheck source=lib/runtime-events.sh
+# shellcheck source=scripts/lib/runtime-events.sh
 . "$root/scripts/lib/runtime-events.sh"
 
 profile=""
@@ -19,6 +19,17 @@ dry_run=false
 json=false
 from_file=""
 newline=$'\n'
+static_signals=()
+requested_skills=()
+deep_load_skills=()
+manifest_args=()
+manifest_path=""
+manifest_tmp=""
+cast_execution_id=""
+compiled_manifest=""
+
+cleanup() { [ -z "$manifest_tmp" ] || rm -rf "$manifest_tmp"; }
+trap cleanup EXIT
 
 usage() {
   cat <<'USAGE'
@@ -31,6 +42,9 @@ Options:
   --dry-run              Print the execution plan; do not mutate or invoke a runner.
   --json                 Emit one stable JSON result to stdout.
   --from <file>          Use a saved mana divination --json recommendation.
+  --static-signal <id>   Activate one declared host-derived signal (repeatable).
+  --request-skill <id>   Activate one declared semantic request (repeatable).
+  --deep-load-skill <id> Select one active skill body for deep loading (repeatable).
 USAGE
 }
 
@@ -136,7 +150,9 @@ validate_service_context() {
     [ -n "$context" ] || continue
     if [ ! -f "$project_root/$context_root/$context" ]; then
       missing_context="${missing_context}${missing_context:+$newline}$context_root/$context"
-      [ -n "$MANA_RUNTIME_ROOT" ] && runtime_emit evidence.missing service-context "$context_root/$context" missing "reason=required-context" "$context_root/$context" false || true
+      if [ -n "$MANA_RUNTIME_ROOT" ]; then
+        runtime_emit evidence.missing service-context "$context_root/$context" missing "reason=required-context" "$context_root/$context" false || true
+      fi
     elif [ -n "$MANA_RUNTIME_ROOT" ]; then
       runtime_emit evidence.read service-context "$context_root/$context" read "source=service-context" "$context_root/$context" false || true
     fi
@@ -147,8 +163,8 @@ EOF
 }
 
 collect_plan() {
-  mana_execution_plan "$root" "$profile_file" || { fail "$MANA_PLAN_ERROR"; return 1; }
-  semantic_agents="$MANA_PLAN_AGENTS"; skills="$MANA_PLAN_SKILLS"; allowed_tools="$MANA_PLAN_TOOLS"; artifacts="$MANA_PLAN_ARTIFACTS"; model_routing="$MANA_PLAN_ROUTING"; declared_effects="$MANA_PLAN_EFFECTS"; runner_classes="$MANA_PLAN_RUNNERS"
+  mana_execution_plan_json "$root" "$compiled_manifest" || { fail "$MANA_PLAN_ERROR"; return 1; }
+  semantic_agents="$MANA_PLAN_AGENTS"; skills="$MANA_PLAN_SKILLS"; candidate_skills="$MANA_PLAN_CANDIDATE_SKILLS"; inactive_skills="$MANA_PLAN_INACTIVE_SKILLS"; available_conditionals="$MANA_PLAN_AVAILABLE_CONDITIONALS"; deep_loaded_skills="$MANA_PLAN_DEEP_LOADED_SKILLS"; allowed_tools="$MANA_PLAN_TOOLS"; artifacts="$MANA_PLAN_ARTIFACTS"; model_routing="$MANA_PLAN_ROUTING"; declared_effects="$MANA_PLAN_EFFECTS"; runner_classes="$MANA_PLAN_RUNNERS"
   external_systems=""
   while IFS= read -r tool; do add_external_system "$tool"; done <<EOF
 $allowed_tools
@@ -166,6 +182,10 @@ render_human() {
   [ -n "$from_file" ] && echo "divination result: $from_file (advisory only)"
   echo 'Semantic agents:'; printf '%s\n' "$semantic_agents" | sed 's/^/- /'
   echo 'Selected skills:'; printf '%s\n' "$skills" | sed 's/^/- /'
+  echo 'Candidate skill catalog:'; printf '%s\n' "$candidate_skills" | sed 's/^/- /'
+  echo 'Inactive conditional skills:'; printf '%s\n' "${inactive_skills:-none}" | sed 's/^/- /'
+  echo 'Available conditional mappings:'; printf '%s\n' "${available_conditionals:-none}" | sed 's/^/- /'
+  echo 'Deep-loaded skills:'; printf '%s\n' "${deep_loaded_skills:-none}" | sed 's/^/- /'
   echo 'Expected runner classes:'; printf '%s\n' "$runner_classes" | sed 's/^/- /'
   echo 'Model tiers:'; printf '%s\n' "$model_routing" | sed 's/^/- /'
   echo 'Tools that may be used:'; printf '%s\n' "${allowed_tools:-none}" | sed 's/^/- /'
@@ -183,6 +203,10 @@ render_json() {
   [ -n "$from_file" ] && printf '"%s"' "$(json_escape "$from_file")" || printf 'null'
   printf ',"semanticAgents":'; json_list <<<"$semantic_agents"
   printf ',"skills":'; json_list <<<"$skills"
+  printf ',"candidateSkills":'; json_list <<<"$candidate_skills"
+  printf ',"inactiveSkills":'; json_list <<<"$inactive_skills"
+  printf ',"availableConditionalSkills":'; json_list <<<"$available_conditionals"
+  printf ',"deepLoadedSkills":'; json_list <<<"$deep_loaded_skills"
   printf ',"runnerClasses":'; json_list <<<"$runner_classes"
   printf ',"modelRouting":'; json_list <<<"$model_routing"
   printf ',"tools":'; json_list <<<"$allowed_tools"
@@ -192,6 +216,7 @@ render_json() {
   printf ',"blockingConditions":'; json_list <<<"$blocking_conditions"
   printf ',"workspacePaths":'; json_list < <(printf '%b\n' "$workspace_paths")
   printf ',"externalSystems":'; json_list <<<"$external_systems"
+  printf ',"contextManifest":%s' "$compiled_manifest"
   printf ',"repositoryModified":false,"manaStateWritten":%s,"telemetryWritten":%s,"runnerInvoked":%s,"externalToolInvoked":%s' "$([ "$dry_run" = true ] && echo false || echo true)" "$([ "$dry_run" = true ] && echo false || echo true)" "$([ "$dry_run" = true ] && echo false || echo true)" "$([ "$dry_run" = true ] && echo false || echo true)"
   printf ',"readOnly":%s' "$dry_run"
   [ -n "$error" ] && printf ',"error":"%s"' "$(json_escape "$error")"
@@ -204,6 +229,9 @@ while [ "$#" -gt 0 ]; do
     --dry-run) dry_run=true; shift ;;
     --json) json=true; shift ;;
     --from) from_file="${2:-}"; [ -n "$from_file" ] || { error='--from requires a file'; break; }; shift 2 ;;
+    --static-signal) static_signals+=("${2:-}"); [ -n "${2:-}" ] || { error='--static-signal requires a value'; break; }; shift 2 ;;
+    --request-skill) requested_skills+=("${2:-}"); [ -n "${2:-}" ] || { error='--request-skill requires a value'; break; }; shift 2 ;;
+    --deep-load-skill) deep_load_skills+=("${2:-}"); [ -n "${2:-}" ] || { error='--deep-load-skill requires a value'; break; }; shift 2 ;;
     --help|-h) usage; exit 0 ;;
     --*) error="unknown option: $1"; break ;;
     *) if [ -z "$profile" ]; then profile="$1"; shift; else error="unexpected argument: $1"; break; fi ;;
@@ -212,7 +240,7 @@ done
 
 if [ -z "$error" ] && [ -n "$from_file" ] && [ -n "$profile" ]; then error='provide either a profile or --from, not both'; fi
 if [ -z "$error" ] && [ ! -d "$project_root" ]; then error="project root not found: $project_root"; fi
-if [ -z "$error" ]; then project_root="$(cd "$project_root" && pwd)"; fi
+if [ -z "$error" ]; then project_root="$(cd "$project_root" && pwd -P)"; fi
 if [ -z "$error" ] && [ -n "$from_file" ]; then load_divination_result || true; fi
 if [ -z "$error" ] && [ -z "$profile" ]; then error='a profile or --from divination.json is required'; fi
 if [ -z "$error" ]; then validate_profile || true; fi
@@ -222,11 +250,40 @@ if [ -z "$error" ] && [ -n "$from_file" ]; then
   if [ "$saved_fingerprint" != "$current_fingerprint" ]; then error="stale divination result: profile metadata changed (saved $saved_fingerprint, current $current_fingerprint); run mana divination again"; fi
 fi
 if [ -z "$error" ]; then validate_service_context || true; fi
-if [ -z "$error" ]; then collect_plan; fi
+
+if [ -z "$error" ]; then
+  manifest_tmp="$(mktemp -d "${TMPDIR:-/tmp}/mana-cast-manifest.XXXXXX")"
+  manifest_tmp="$(cd "$manifest_tmp" && pwd -P)"
+  manifest_path="$manifest_tmp/context-manifest-v1.json"
+  if [ "$dry_run" = true ]; then
+    cast_execution_id="execution-cast-dry-run-$profile"
+  else
+    cast_execution_id="execution-$(date -u +%Y%m%dT%H%M%SZ)-$$"
+  fi
+  for value in "${static_signals[@]}"; do manifest_args+=(--static-signal "$value"); done
+  for value in "${requested_skills[@]}"; do manifest_args+=(--request-skill "$value"); done
+  for value in "${deep_load_skills[@]}"; do manifest_args+=(--deep-load-skill "$value"); done
+  if ! compiled_manifest="$(
+    "$root/scripts/mana-compile-profile.sh" "$profile" --execution-id "$cast_execution_id" "${manifest_args[@]}"
+  )"; then
+    error='context manifest compilation or authoritative validation failed'
+  elif ! printf '%s\n' "$compiled_manifest" > "$manifest_path"; then
+    error='canonical context manifest materialization failed'
+  fi
+fi
+if [ -z "$error" ]; then collect_plan || true; fi
 
 # All checks above are read-only. Runtime telemetry begins only after this
 # boundary, so blocked preflight never creates .mana/runtime.
-if [ -z "$error" ] && [ "$dry_run" != true ]; then runtime_init "$project_root" "$profile" || echo "WARNING: $MANA_RUNTIME_WARNING" >&2; fi
+if [ -z "$error" ] && [ "$dry_run" != true ]; then
+  runtime_init "$project_root" "$profile" "$cast_execution_id" || echo "WARNING: $MANA_RUNTIME_WARNING" >&2
+  published_manifest="$project_root/.mana/runtime/manifests/$cast_execution_id/context-manifest-v1.json"
+  if ! "$root/scripts/lib/context-runtime.sh" write-model context-manifest "$manifest_path" "$project_root" ".mana/runtime/manifests/$cast_execution_id/context-manifest-v1.json" >/dev/null; then
+    error='canonical context manifest publication failed'
+  else
+    manifest_path="$published_manifest"
+  fi
+fi
 
 if [ -n "$error" ]; then
   if [ "$json" = true ]; then
@@ -242,6 +299,8 @@ if [ "$dry_run" = true ]; then
   if [ "$json" = true ]; then render_json dry-run; else render_human; fi
   exit 0
 fi
+
+run_profile_manifest_args=(--context-manifest "$manifest_path" --manifest-execution-id "$cast_execution_id" "${manifest_args[@]}")
 
 # The runtime event publisher is the only writer of execution telemetry.
 runtime_emit profile.started profile "$profile" started "runner=$runner" "" false || true
@@ -266,9 +325,9 @@ if [ "$json" = true ]; then
   # Keep stdout machine-readable. The existing runner's human transcript goes
   # to stderr; it is still the sole execution engine.
   "$root/scripts/mana-workspace.sh" init --root "$project_root" --purpose "$(mana_profile_section_value "$profile_file" artifact_workspace default_purpose)" >&2 || { error='workspace initialization failed'; runtime_emit profile.failed profile "$profile" failed "reason=workspace-initialization" "" false || true; runtime_finish failed; render_json failed; exit 1; }
-  case "$runner" in codex|local/codex) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --codex >&2 ;;
-    claude) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --claude >&2 ;;
-    opencode) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --opencode >&2 ;;
+    case "$runner" in codex|local/codex) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --codex "${run_profile_manifest_args[@]}" >&2 ;;
+    claude) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --claude "${run_profile_manifest_args[@]}" >&2 ;;
+    opencode) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --opencode "${run_profile_manifest_args[@]}" >&2 ;;
     *) error="profile runner '$runner' has no CLI execution adapter; use its native runner"; runtime_emit guard.triggered runner "$runner" blocked "reason=no-cli-adapter" "" true || echo "WARNING: $MANA_RUNTIME_WARNING" >&2; runtime_emit profile.failed profile "$profile" failed "reason=no-cli-adapter" "" false || true; runtime_finish failed; render_json blocked; exit 1 ;;
   esac
   status=$?
@@ -280,9 +339,9 @@ if [ "$json" = true ]; then
 else
   render_human
   "$root/scripts/mana-workspace.sh" init --root "$project_root" --purpose "$(mana_profile_section_value "$profile_file" artifact_workspace default_purpose)" || { runtime_emit profile.failed profile "$profile" failed "reason=workspace-initialization" "" false || true; runtime_finish failed; exit 1; }
-  case "$runner" in codex|local/codex) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --codex ;;
-    claude) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --claude ;;
-    opencode) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --opencode ;;
+  case "$runner" in codex|local/codex) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --codex "${run_profile_manifest_args[@]}" ;;
+    claude) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --claude "${run_profile_manifest_args[@]}" ;;
+    opencode) MANA_RUNTIME_EXECUTION_ID="$MANA_RUNTIME_EXECUTION_ID" "$root/scripts/run-profile.sh" "$profile" --project-root "$project_root" --opencode "${run_profile_manifest_args[@]}" ;;
     *) runtime_emit guard.triggered runner "$runner" blocked "reason=no-cli-adapter" "" true || echo "WARNING: $MANA_RUNTIME_WARNING" >&2; echo "MANA CAST BLOCKED"; echo "profile runner '$runner' has no CLI execution adapter; use its native runner"; runtime_finish failed; exit 1 ;;
   esac
   status=$?

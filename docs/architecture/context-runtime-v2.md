@@ -121,3 +121,77 @@ as a mode-`0600` recovery artifact rather than deleted as a temporary leak.
 Containment outside the anchored target remains intact, while destination
 reconciliation becomes an explicit host responsibility. This exceptional
 contract does not weaken the normal no-replace/exchange publication protocol.
+
+## CTX-04 profile compilation and activation authority
+
+The host compiles the profile document graph before model invocation. The
+top-level `skills:` list remains the complete candidate catalog, while
+`skill_activation.baseline` and `skill_activation.conditional` define the
+authoritative activation graph. Initial model-tier escalation is calculated
+from baseline work only. A conditional skill becomes active only through a
+declared host signal or a classifier request that the compiler validates back
+to a declared conditional mapping.
+
+The compiled manifest separates candidates, baseline skills, host-signal
+activations, semantic requests, active skills, inactive skills, remaining
+conditional signals, and explicitly deep-loaded instruction paths. Routing
+metadata is copied only for active work. Full skill bodies and the complete
+skill index are not part of the manifest. An instruction path can be exposed
+for deep loading only after its skill is active.
+
+Activation describes required work; it is not authority. In particular,
+`executionMode: write` produces a `writePermissionRequirements` entry but no
+permission or approval field. Effective permissions remain exclusively in the
+separate host-owned governance/authority inputs defined by CTX-03.
+
+Profiles without `skill_activation` use an explicit `legacy-fallback`: every
+declared candidate remains initially active and the compiler/legacy renderer
+emits a migration warning. This preserves existing single-run behavior while
+making non-migrated profiles visible. The legacy renderer remains available;
+CTX-04 adds no phase runner, evidence store, or runtime-v2 default.
+
+CTX-04-R1 makes the compiled manifest the single routing input:
+
+```text
+profile + authoritative catalogs + host signals/requests
+  -> compile canonical context-manifest-v1
+  -> structural validation
+  -> authoritative comparison against a host-derived expected manifest
+  -> cast/execution-plan
+  -> run-profile prompt and runner-class routing
+```
+
+`execution-plan.sh` no longer derives selected work, escalation, model tier,
+risk, execution mode, delegation group, or parallel safety from the full
+profile candidate list. `cast.sh` compiles once, publishes the same canonical
+bytes after the execution boundary, and passes that immutable manifest to
+`run-profile.sh`. A directly invoked runner compiles one manifest itself. The
+runner validates any supplied manifest against the framework root, profile ID,
+execution ID, static signals, semantic requests, and deep-load requests before
+materializing the accepted canonical bytes into one immutable in-memory value
+used by both execution-plan and prompt construction. It never reopens the
+caller-owned candidate pathname after validation. A caller cannot supply
+alternate profile, skill-index, agent, or expected-manifest documents to make
+candidate data authoritative.
+
+Structural schema validation and authoritative semantic validation are
+separate operations. Cross-field consistency is defense in depth only;
+semantic anti-tampering is the byte comparison with a fresh expected manifest
+derived from host-resolved framework sources. This covers skill membership and
+provenance, active metadata, execution mode, artifacts, semantic agents,
+fallback mode, conditionals, and deep loading.
+
+Activation parsing has exactly three outcomes. An absent `skill_activation`
+key selects `legacy-fallback`; a present valid block selects `declarative`; a
+present malformed, partial, duplicate, conflicting, or unknown-key block is a
+hard failure. Mapping one conditional skill from more than one signal is
+invalid, so activation evidence is never discarded by choosing one trigger.
+The deterministic legacy warning is present in the manifest and emitted on
+stderr while canonical JSON remains isolated on stdout.
+
+The host compiler may read the complete skill index and authoritative agent or
+artifact metadata. The model prompt receives the compiled manifest, selected
+semantic workflow documents, and only explicitly deep-loaded active skill
+bodies; it is not asked to inspect the complete index or inactive candidates
+to reconstruct routing. This is CTX-04 progressive loading only and introduces
+no CTX-05 evidence store or CTX-06 phase runtime.

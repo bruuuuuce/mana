@@ -27,7 +27,10 @@ MODEL_KINDS = {
     "finding-validation": "finding-validation-v1.schema.json",
     "usage-summary": "usage-summary-v1.schema.json",
 }
-STRUCTURAL_ONLY_KINDS = {"execution-envelope": "execution-envelope-v1.schema.json"}
+STRUCTURAL_ONLY_KINDS = {
+    "execution-envelope": "execution-envelope-v1.schema.json",
+    "context-manifest": "context-manifest-v1.schema.json",
+}
 HOST_AUTHORITY_SCHEMA = "host-authority-context-v1.schema.json"
 
 # Version-specific transport limits. CTX-01 usage-summary-v1 intentionally has
@@ -53,6 +56,12 @@ MAX_PROSE_LINES = 4
 DIFF_HEADER = re.compile(r"(?m)^diff --git |^--- [^\n]+\n\+\+\+ [^\n]+\n@@ ")
 LOG_LINE = re.compile(r"^(?:\d{4}-\d{2}-\d{2}[T ][0-9:.+-]+Z?|\[[^\]\n]{1,32}\])(?:\s+|$)")
 THREAD_LINE = re.compile(r"^(?:author|reviewer|commenter|user|assistant)\s*:", re.I)
+IDENTIFIER = re.compile(r"^[A-Za-z0-9_-]{1,120}$")
+SIGNAL_IDENTIFIER = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
+LEGACY_ACTIVATION_WARNING = (
+    "Legacy activation fallback: profile has no skill_activation block; "
+    "all candidate skills are active until migration."
+)
 
 
 class ContractError(ValueError):
@@ -297,6 +306,8 @@ def _validate_schema(kind: str, value: dict[str, Any], schema_name: str) -> None
 
 def semantic_validate(kind: str, value: dict[str, Any]) -> None:
     reject_unsafe_content(value)
+    if kind == "context-manifest":
+        semantic_validate_context_manifest(value)
     for facts_key in ("verifiedFacts", "findings"):
         for index, fact in enumerate(value.get(facts_key, [])):
             if not fact.get("evidenceRefs"):
@@ -304,6 +315,419 @@ def semantic_validate(kind: str, value: dict[str, Any]) -> None:
     for index, question in enumerate(value.get("openQuestions", [])):
         if not question.get("requiredEvidence"):
             raise ContractError(f"openQuestions[{index}]: required evidence is mandatory")
+
+
+def semantic_validate_context_manifest(value: dict[str, Any]) -> None:
+    """Check internal consistency only; this is not authoritative validation."""
+    candidate_ids = value["declaredCandidateSkills"]
+    active_records = value["activatedSkills"]
+    active_ids = [record["id"] for record in active_records]
+    inactive_ids = value["inactiveSkills"]
+    candidate_set, active_set, inactive_set = set(candidate_ids), set(active_ids), set(inactive_ids)
+
+    if len(active_ids) != len(active_set):
+        raise ContractError("context manifest activates a skill more than once")
+    if active_set & inactive_set:
+        raise ContractError("context manifest marks a skill both active and inactive")
+    if active_set | inactive_set != candidate_set:
+        raise ContractError("context manifest active/inactive skills must exactly partition declared candidates")
+
+    baseline_set = set(value["baselineSkills"])
+    if not baseline_set <= active_set:
+        raise ContractError("context manifest baseline skills must be declared and active")
+
+    static_records = value["staticallyActivatedSkills"]
+    semantic_records = value["semanticallyRequestedSkills"]
+    available_records = value["availableConditionalSkills"]
+    for label, records in (
+        ("static activation", static_records),
+        ("semantic request", semantic_records),
+    ):
+        requested = [record["skill"] for record in records]
+        signals = [record["signal"] for record in records]
+        if len(requested) != len(set(requested)):
+            raise ContractError(f"context manifest contains duplicate {label} skills")
+        if len(signals) != len(set(signals)):
+            raise ContractError(f"context manifest contains duplicate {label} signals")
+        if not set(requested) <= active_set:
+            raise ContractError(f"context manifest {label} contains an undeclared or inactive skill")
+    available_skills = [record["skill"] for record in available_records]
+    available_signals = [record["signal"] for record in available_records]
+    if len(available_signals) != len(set(available_signals)):
+        raise ContractError("context manifest contains duplicate available conditional signals")
+    if not set(available_skills) <= inactive_set:
+        raise ContractError("available conditional skills must be declared and inactive")
+
+    static_pairs = {(record["skill"], record["signal"]) for record in static_records}
+    semantic_pairs = {(record["skill"], record["signal"]) for record in semantic_records}
+    for record in active_records:
+        identity, reason, signal = record["id"], record["reason"], record["activationSignal"]
+        valid_reason = (
+            (reason == "baseline" and identity in baseline_set and signal is None)
+            or (reason == "static-signal" and (identity, signal) in static_pairs)
+            or (reason == "semantic-request" and (identity, signal) in semantic_pairs)
+            or (reason == "legacy-fallback" and value["activationMode"] == "legacy-fallback" and signal is None)
+        )
+        if not valid_reason:
+            raise ContractError(f"activated skill {identity!r} has inconsistent activation provenance")
+
+    deep_records = value["deepLoadedSkills"]
+    deep_ids = [record["id"] for record in deep_records]
+    if len(deep_ids) != len(set(deep_ids)) or not set(deep_ids) <= active_set:
+        raise ContractError("deep-loaded skills must be unique and active")
+    for record in deep_records:
+        if record["instructionPath"] != f"skills/{record['id']}/SKILL.md":
+            raise ContractError("deep-loaded instruction path does not match its active skill")
+
+    escalation_expected = {
+        record["id"] for record in active_records
+        if record["modelTier"] == "full" or record["riskLevel"] == "high"
+    }
+    if set(value["modelEscalationSkills"]) != escalation_expected:
+        raise ContractError("model escalation skills do not match active full/high-risk work")
+    write_expected = {record["id"] for record in active_records if record["executionMode"] == "write"}
+    if set(value["writePermissionRequirements"]) != write_expected:
+        raise ContractError("write permission requirements do not match active write work")
+
+    if value["activationMode"] == "legacy-fallback":
+        if (
+            baseline_set != candidate_set or inactive_set or static_records
+            or semantic_records or available_records
+            or any(record["reason"] != "legacy-fallback" for record in active_records)
+            or not value["warnings"]
+        ):
+            raise ContractError("legacy fallback must keep every candidate active and emit a warning")
+
+
+def _host_text(path: Path, label: str) -> str:
+    try:
+        if not path.is_file():
+            raise ContractError(f"authoritative {label} is missing")
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        raise ContractError(f"cannot read authoritative {label}: {error}") from error
+
+
+def _top_level_scalar(text: str, key: str, label: str) -> str:
+    matches: list[str] = []
+    pattern = re.compile(rf"^{re.escape(key)}:[ \t]*(.*?)[ \t]*$")
+    for line in text.splitlines():
+        match = pattern.fullmatch(line)
+        if match:
+            matches.append(match.group(1))
+    if len(matches) != 1 or not matches[0]:
+        raise ContractError(f"authoritative {label} must declare exactly one non-empty {key}")
+    return matches[0]
+
+
+def _top_level_list(text: str, key: str, label: str) -> list[str]:
+    lines = text.splitlines()
+    headers = [index for index, line in enumerate(lines) if re.fullmatch(rf"{re.escape(key)}:[ \t]*", line)]
+    if len(headers) != 1:
+        raise ContractError(f"authoritative {label} must declare exactly one {key} list")
+    values: list[str] = []
+    for line in lines[headers[0] + 1:]:
+        if line and not line[0].isspace() and not line.startswith("- ") and not line.lstrip().startswith("#"):
+            break
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        match = re.fullmatch(r"[ ]*-[ ]+([^\s][^\r\n]*?)[ ]*", line)
+        if not match:
+            raise ContractError(f"authoritative {label} has malformed {key} list entry")
+        values.append(match.group(1))
+    if not values:
+        raise ContractError(f"authoritative {label} declares an empty {key} list")
+    if len(values) != len(set(values)):
+        raise ContractError(f"authoritative {label} declares duplicate {key} entries")
+    return values
+
+
+def _validate_ids(values: list[str], label: str) -> None:
+    for value in values:
+        if IDENTIFIER.fullmatch(value) is None:
+            raise ContractError(f"authoritative {label} contains malformed identifier")
+
+
+def _parse_skill_activation(text: str, profile_id: str) -> tuple[str, list[str], dict[str, str]]:
+    """Return absent/valid activation; every present malformed shape fails."""
+    lines = text.splitlines()
+    occurrences = [
+        (index, line) for index, line in enumerate(lines)
+        if re.match(r"^[ \t]*skill_activation[ \t]*:", line)
+    ]
+    if not occurrences:
+        return "legacy-fallback", [], {}
+    if len(occurrences) != 1:
+        raise ContractError(f"profile {profile_id!r} declares skill_activation more than once")
+    start, header = occurrences[0]
+    if header != "skill_activation:":
+        raise ContractError(f"profile {profile_id!r} has malformed skill_activation header")
+
+    block: list[str] = []
+    for line in lines[start + 1:]:
+        if line and not line[0].isspace() and not line.lstrip().startswith("#"):
+            break
+        block.append(line)
+
+    baseline: list[str] = []
+    conditional: dict[str, str] = {}
+    seen_sections: set[str] = set()
+    active_section: str | None = None
+    for line in block:
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        if "\t" in line:
+            raise ContractError(f"profile {profile_id!r} has tab-indented skill_activation")
+        indent = len(line) - len(line.lstrip(" "))
+        content = line[indent:]
+        section_match = re.fullmatch(r"(baseline|conditional):[ ]*", content)
+        if indent == 2 and section_match:
+            active_section = section_match.group(1)
+            if active_section in seen_sections:
+                raise ContractError(f"profile {profile_id!r} duplicates skill_activation.{active_section}")
+            seen_sections.add(active_section)
+            continue
+        if indent == 2 and re.fullmatch(r"[A-Za-z0-9_-]+:.*", content):
+            raise ContractError(f"profile {profile_id!r} has unknown key in skill_activation")
+        if active_section == "baseline":
+            item = re.fullmatch(r"-[ ]+([^\s][A-Za-z0-9_-]*)[ ]*", content)
+            if indent not in {2, 4} or item is None:
+                raise ContractError(f"profile {profile_id!r} has malformed skill_activation.baseline entry")
+            skill = item.group(1)
+            if IDENTIFIER.fullmatch(skill) is None:
+                raise ContractError(f"profile {profile_id!r} has malformed baseline skill id")
+            baseline.append(skill)
+            continue
+        if active_section == "conditional":
+            item = re.fullmatch(r"([A-Za-z0-9_-]+):[ ]+([A-Za-z0-9_-]+)[ ]*", content)
+            if indent != 4 or item is None:
+                raise ContractError(f"profile {profile_id!r} has malformed skill_activation.conditional entry")
+            signal, skill = item.groups()
+            if SIGNAL_IDENTIFIER.fullmatch(signal) is None or IDENTIFIER.fullmatch(skill) is None:
+                raise ContractError(f"profile {profile_id!r} has malformed conditional signal or skill id")
+            if signal in conditional:
+                raise ContractError(f"profile {profile_id!r} declares duplicate conditional signal {signal!r}")
+            conditional[signal] = skill
+            continue
+        raise ContractError(f"profile {profile_id!r} has partially valid or malformed skill_activation")
+
+    if seen_sections != {"baseline", "conditional"}:
+        raise ContractError(f"profile {profile_id!r} skill_activation requires baseline and conditional mappings")
+    if not baseline:
+        raise ContractError(f"profile {profile_id!r} skill_activation.baseline must be a non-empty list")
+    if len(baseline) != len(set(baseline)):
+        raise ContractError(f"profile {profile_id!r} declares duplicate baseline skill")
+    conditional_skills = list(conditional.values())
+    duplicates = sorted({skill for skill in conditional_skills if conditional_skills.count(skill) > 1})
+    if duplicates:
+        raise ContractError(f"profile {profile_id!r} maps one conditional skill to multiple signals: {duplicates[0]}")
+    conflict = set(baseline) & set(conditional_skills)
+    if conflict:
+        raise ContractError(f"profile {profile_id!r} marks a skill baseline and conditional: {sorted(conflict)[0]}")
+    return "declarative", baseline, conditional
+
+
+def _parse_skill_index(framework_root: Path) -> dict[str, dict[str, str]]:
+    text = _host_text(framework_root / "skills" / "index.yaml", "skill index")
+    records: dict[str, dict[str, str]] = {}
+    current: dict[str, str] | None = None
+    for line in text.splitlines():
+        match = re.fullmatch(r"  - id: ([A-Za-z0-9_-]+)[ ]*", line)
+        if match:
+            identity = match.group(1)
+            if identity in records:
+                raise ContractError("authoritative skill index declares duplicate skill id")
+            current = {"id": identity}
+            records[identity] = current
+            continue
+        if current is not None:
+            field = re.fullmatch(r"    (path|risk_level|model_tier|execution_mode|delegation_group|capability|verification_spec):[ ]+([^\s]+)[ ]*", line)
+            if field:
+                current[field.group(1)] = field.group(2)
+    required = {"path", "risk_level", "model_tier", "execution_mode", "delegation_group"}
+    for identity, record in records.items():
+        if not required <= record.keys():
+            raise ContractError(f"authoritative skill index metadata is incomplete for {identity!r}")
+    return records
+
+
+def _front_matter(text: str, label: str) -> list[str]:
+    lines = text.splitlines()
+    boundaries = [index for index, line in enumerate(lines) if line == "---"]
+    if len(boundaries) < 2 or boundaries[0] != 0:
+        raise ContractError(f"authoritative {label} has malformed front matter")
+    return lines[1:boundaries[1]]
+
+
+def _front_matter_scalar(lines: list[str], key: str) -> str | None:
+    values = [match.group(1) for line in lines if (match := re.fullmatch(rf"{re.escape(key)}:[ ]*(.*?)[ ]*", line))]
+    if len(values) > 1:
+        raise ContractError(f"authoritative front matter duplicates {key}")
+    return values[0] if values else None
+
+
+def _front_matter_list(lines: list[str], key: str) -> list[str]:
+    headers = [index for index, line in enumerate(lines) if re.fullmatch(rf"{re.escape(key)}:[ ]*", line)]
+    if not headers:
+        return []
+    if len(headers) != 1:
+        raise ContractError(f"authoritative front matter duplicates {key}")
+    values: list[str] = []
+    for line in lines[headers[0] + 1:]:
+        match = re.fullmatch(r"  - (.+?)[ ]*", line)
+        if match:
+            values.append(match.group(1))
+            continue
+        if line and not line[0].isspace():
+            break
+        if line.strip():
+            raise ContractError(f"authoritative front matter has malformed {key} entry")
+    return values
+
+
+def _canonical_framework_root(value: str | Path) -> Path:
+    root = Path(value).resolve()
+    if not root.is_dir():
+        raise ContractError("authoritative framework root is not a directory")
+    return root
+
+
+def compile_context_manifest(
+    framework_root: str | Path, profile_id: str, execution_id: str, *,
+    static_signals: list[str] | None = None,
+    requested_skills: list[str] | None = None,
+    deep_load_skills: list[str] | None = None,
+) -> dict[str, Any]:
+    """Compile exclusively from host-resolved framework sources and inputs."""
+    root = _canonical_framework_root(framework_root)
+    if IDENTIFIER.fullmatch(profile_id) is None:
+        raise ContractError("profile id is malformed")
+    if re.fullmatch(r"execution-[A-Za-z0-9._-]{1,120}", execution_id) is None:
+        raise ContractError("execution id is malformed")
+    profile_path = root / "profiles" / f"{profile_id}.yaml"
+    profile_text = _host_text(profile_path, "profile")
+    if _top_level_scalar(profile_text, "name", "profile") != profile_id:
+        raise ContractError("authoritative profile name does not match profile id")
+    candidates = _top_level_list(profile_text, "skills", "profile")
+    agents = _top_level_list(profile_text, "agents", "profile")
+    _validate_ids(candidates, "profile skills")
+    _validate_ids(agents, "profile agents")
+    activation_mode, baseline, conditional = _parse_skill_activation(profile_text, profile_id)
+    if activation_mode == "legacy-fallback":
+        baseline = list(candidates)
+    if not set(baseline) <= set(candidates):
+        raise ContractError("authoritative baseline skill is not a declared candidate")
+    if not set(conditional.values()) <= set(candidates):
+        raise ContractError("authoritative conditional skill is not a declared candidate")
+
+    index = _parse_skill_index(root)
+    for skill in candidates:
+        if skill not in index:
+            raise ContractError(f"authoritative profile declares unknown skill {skill!r}")
+        path = index[skill]["path"]
+        if not is_safe_relative_path(path) or not (root / path).is_file():
+            raise ContractError(f"authoritative skill metadata has unsafe or missing path for {skill!r}")
+
+    static_signals = list(static_signals or [])
+    requested_skills = list(requested_skills or [])
+    deep_load_skills = list(deep_load_skills or [])
+    for label, values in (("static signal", static_signals), ("semantic skill request", requested_skills), ("deep-load request", deep_load_skills)):
+        if len(values) != len(set(values)):
+            raise ContractError(f"duplicate {label}")
+    if activation_mode == "legacy-fallback" and (static_signals or requested_skills):
+        raise ContractError("legacy profile does not accept declarative activation requests")
+    for signal in static_signals:
+        if SIGNAL_IDENTIFIER.fullmatch(signal) is None or signal not in conditional:
+            raise ContractError(f"undeclared static activation signal {signal!r}")
+    inverse = {skill: signal for signal, skill in conditional.items()}
+    for skill in requested_skills:
+        if IDENTIFIER.fullmatch(skill) is None or skill not in inverse:
+            raise ContractError(f"undeclared semantic skill request {skill!r}")
+    static_skills = {conditional[signal] for signal in static_signals}
+    if static_skills & set(requested_skills):
+        raise ContractError("one conditional skill cannot be activated by both static and semantic requests")
+
+    active_reasons: dict[str, tuple[str, str | None]] = {
+        skill: ("legacy-fallback" if activation_mode == "legacy-fallback" else "baseline", None)
+        for skill in baseline
+    }
+    for signal in static_signals:
+        active_reasons[conditional[signal]] = ("static-signal", signal)
+    for skill in requested_skills:
+        active_reasons[skill] = ("semantic-request", inverse[skill])
+    active_ids = sorted(active_reasons)
+    for skill in deep_load_skills:
+        if skill not in active_reasons:
+            raise ContractError(f"cannot deep-load inactive or undeclared skill {skill!r}")
+
+    activated: list[dict[str, Any]] = []
+    escalation: list[str] = []
+    write_requirements: list[str] = []
+    for skill in active_ids:
+        metadata = index[skill]
+        tier = metadata["model_tier"] or "unspecified"
+        risk = metadata["risk_level"] or "unspecified"
+        mode = metadata["execution_mode"] or "unspecified"
+        group = metadata["delegation_group"] or "unspecified"
+        if tier not in {"economy", "full", "unspecified"}:
+            raise ContractError(f"authoritative model tier is invalid for {skill!r}")
+        if risk not in {"low", "medium", "high", "unspecified"}:
+            raise ContractError(f"authoritative risk level is invalid for {skill!r}")
+        if mode not in {"read", "write", "unspecified"}:
+            raise ContractError(f"authoritative execution mode is invalid for {skill!r}")
+        skill_text = _host_text(root / metadata["path"], f"skill {skill}")
+        parallel_value = _front_matter_scalar(_front_matter(skill_text, f"skill {skill}"), "parallel_safe")
+        if parallel_value not in {None, "", "true", "false"}:
+            raise ContractError(f"authoritative parallel_safe is invalid for {skill!r}")
+        parallel = True if parallel_value == "true" else False if parallel_value == "false" else None
+        reason, signal = active_reasons[skill]
+        activated.append({"id": skill, "reason": reason, "activationSignal": signal, "modelTier": tier, "riskLevel": risk, "executionMode": mode, "delegationGroup": group, "parallelSafe": parallel})
+        if tier == "full" or risk == "high":
+            escalation.append(skill)
+        if mode == "write":
+            write_requirements.append(skill)
+
+    artifacts: set[str] = set()
+    for agent in agents:
+        agent_path = root / "agents" / agent / "AGENT.md"
+        front_matter = _front_matter(_host_text(agent_path, f"agent {agent}"), f"agent {agent}")
+        for artifact in _front_matter_list(front_matter, "outputs"):
+            if not any(character.isspace() for character in artifact) and ("." in artifact or "/" in artifact):
+                if not is_safe_relative_path(artifact):
+                    raise ContractError(f"authoritative agent output is unsafe for {agent!r}")
+                artifacts.add(artifact)
+
+    inactive = sorted(set(candidates) - set(active_ids))
+    available = [{"signal": signal, "skill": skill} for signal, skill in sorted(conditional.items()) if skill in inactive]
+    manifest = {
+        "schemaVersion": "mana.context-runtime.context-manifest/v1", "executionId": execution_id,
+        "profileId": profile_id, "activationMode": activation_mode, "semanticAgents": sorted(agents),
+        "declaredCandidateSkills": sorted(candidates), "baselineSkills": sorted(baseline),
+        "staticallyActivatedSkills": [{"signal": signal, "skill": conditional[signal]} for signal in sorted(static_signals)],
+        "semanticallyRequestedSkills": [{"skill": skill, "signal": inverse[skill]} for skill in sorted(requested_skills)],
+        "activatedSkills": activated,
+        "deepLoadedSkills": [{"id": skill, "instructionPath": index[skill]["path"]} for skill in sorted(deep_load_skills)],
+        "inactiveSkills": inactive, "availableConditionalSkills": available,
+        "modelEscalationSkills": sorted(escalation), "writePermissionRequirements": sorted(write_requirements),
+        "requiredArtifacts": sorted(artifacts),
+        "limits": {"directWorkers": 2, "workerDepth": 0, "retrievalCyclesPerQuestion": 3},
+        "warnings": [LEGACY_ACTIVATION_WARNING] if activation_mode == "legacy-fallback" else [],
+    }
+    validate_model("context-manifest", manifest)
+    return manifest
+
+
+def authoritative_validate_context_manifest(
+    candidate: dict[str, Any], framework_root: str | Path, profile_id: str,
+    execution_id: str, *, static_signals: list[str] | None = None,
+    requested_skills: list[str] | None = None, deep_load_skills: list[str] | None = None,
+) -> None:
+    """Compare candidate data with a fresh derivation from trusted host sources."""
+    validate_model("context-manifest", candidate)
+    expected = compile_context_manifest(framework_root, profile_id, execution_id, static_signals=static_signals, requested_skills=requested_skills, deep_load_skills=deep_load_skills)
+    if canonical_bytes(candidate) != canonical_bytes(expected):
+        differing = next((key for key in sorted(set(candidate) | set(expected)) if candidate.get(key) != expected.get(key)), "unknown")
+        raise ContractError(f"authoritative context manifest mismatch at $.{differing}")
 
 
 def validate_model(kind: str, value: dict[str, Any]) -> None:
@@ -862,11 +1286,14 @@ def usage() -> int:
     print(
         "Usage:\n"
         "  context-runtime.py validate-model <kind> <input.json>\n"
-        "  context-runtime.py validate-structure execution-envelope <input.json>\n"
+        "  context-runtime.py validate-structure <execution-envelope|context-manifest> <input.json>\n"
         "  context-runtime.py write-model <kind> <input.json> <project-root> <relative-output>\n"
         "  context-runtime.py host-validate-authority <authority.json>\n"
         "  context-runtime.py host-write-authority <authority.json> <project-root> <relative-output>\n"
-        "  context-runtime.py evaluate-checkpoint <checkpoint.json> [authority.json]",
+        "  context-runtime.py evaluate-checkpoint <checkpoint.json> [authority.json]\n"
+        "  context-runtime.py compile-context-manifest <framework-root> <profile-id> <execution-id> [activation options]\n"
+        "  context-runtime.py authoritative-validate-context-manifest <manifest.json> <framework-root> <profile-id> <execution-id> [activation options]\n"
+        "  context-runtime.py authoritative-materialize-context-manifest <manifest.json> <framework-root> <profile-id> <execution-id> [activation options]",
         file=sys.stderr,
     )
     return 2
@@ -877,6 +1304,64 @@ def main(argv: list[str]) -> int:
         return usage()
     command = argv[1]
     try:
+        if command in {
+            "compile-context-manifest",
+            "authoritative-validate-context-manifest",
+            "authoritative-materialize-context-manifest",
+        }:
+            offset = 2
+            candidate_path: Path | None = None
+            if command in {
+                "authoritative-validate-context-manifest",
+                "authoritative-materialize-context-manifest",
+            }:
+                if len(argv) < 6:
+                    return usage()
+                candidate_path = Path(argv[offset])
+                offset += 1
+            if len(argv) < offset + 3:
+                return usage()
+            framework_root, profile_id, execution_id = argv[offset:offset + 3]
+            offset += 3
+            static_signals: list[str] = []
+            requested_skills: list[str] = []
+            deep_load_skills: list[str] = []
+            while offset < len(argv):
+                option = argv[offset]
+                if offset + 1 >= len(argv):
+                    raise ContractError(f"{option} requires a value")
+                value = argv[offset + 1]
+                if option == "--static-signal":
+                    static_signals.append(value)
+                elif option == "--request-skill":
+                    requested_skills.append(value)
+                elif option == "--deep-load-skill":
+                    deep_load_skills.append(value)
+                else:
+                    raise ContractError(f"unknown context manifest option: {option}")
+                offset += 2
+            if candidate_path is not None:
+                candidate = safe_read_json(candidate_path)
+                authoritative_validate_context_manifest(
+                    candidate, framework_root, profile_id, execution_id,
+                    static_signals=static_signals, requested_skills=requested_skills,
+                    deep_load_skills=deep_load_skills,
+                )
+                if command == "authoritative-materialize-context-manifest":
+                    # Emit the exact in-memory value that passed authoritative
+                    # comparison. Consumers can capture these bytes once and
+                    # never reopen the caller-controlled candidate pathname.
+                    sys.stdout.buffer.write(canonical_bytes(candidate) + b"\n")
+                return 0
+            manifest = compile_context_manifest(
+                framework_root, profile_id, execution_id,
+                static_signals=static_signals, requested_skills=requested_skills,
+                deep_load_skills=deep_load_skills,
+            )
+            if manifest["activationMode"] == "legacy-fallback":
+                print(f"WARNING: {LEGACY_ACTIVATION_WARNING}", file=sys.stderr)
+            sys.stdout.buffer.write(canonical_bytes(manifest) + b"\n")
+            return 0
         if command == "validate-model" and len(argv) == 4:
             validate_model(argv[2], safe_read_json(Path(argv[3])))
             return 0

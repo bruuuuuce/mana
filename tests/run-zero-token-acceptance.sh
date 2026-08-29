@@ -21,6 +21,7 @@ tests=(
   context-runtime-authority.py
   context-runtime-race.py
   context-runtime-schemas.sh
+  context-runtime-profile-compiler.sh
   divination.sh
   epic-analysis-profile.sh
   explorer-retrieval.sh

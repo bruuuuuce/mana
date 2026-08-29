@@ -175,3 +175,59 @@ caller owns recovery using the structured state, must re-attest the namespace
 before acting, and must preserve the reported original recovery artifact until
 the destination has been reconciled. No incomplete rollback is a successful
 write.
+
+## Compiled context manifest (CTX-04)
+
+`context-manifest-v1` is model-owned routing data, not a governance envelope.
+It records the complete declared candidate set and a disjoint active/inactive
+partition, with baseline, static-signal, semantic-request, and deep-load state
+kept explicit. Conditional entries expose only signal and skill identifiers.
+Active entries carry provider-neutral model tier, risk, execution mode,
+delegation group, and parallel-safety metadata. Missing legacy metadata stays
+`unspecified` or `null`; it is never guessed into a stronger guarantee.
+
+`modelEscalationSkills` is derived only from active skills whose declared tier
+is `full` or whose risk is `high`. `writePermissionRequirements` similarly
+reports active write-capable skills, but does not grant permission. Permission,
+approval, execution identity, and human-gate fields are structurally absent
+from the manifest and continue to come only from the host authority context.
+
+The compiler may expose an `instructionPath` only in `deepLoadedSkills`, and
+only for an already active skill. This permits the host to deep-load selected
+instructions without putting `skills/index.yaml`, inactive skill bodies, or
+the full candidate catalog metadata into a model prompt.
+
+### Context-manifest validation boundary
+
+`validate-structure context-manifest` proves only JSON Schema conformance and
+safe bounded fields. `validate-model context-manifest` additionally checks
+internal cross-field consistency, but neither operation authenticates profile
+semantics. The authoritative operation is:
+
+```text
+context-runtime.py authoritative-validate-context-manifest \
+  <candidate.json> <framework-root> <profile-id> <execution-id> \
+  [--static-signal ...] [--request-skill ...] [--deep-load-skill ...]
+```
+
+Runtime consumers use the corresponding
+`authoritative-materialize-context-manifest` operation. It performs the same
+comparison but emits the canonical in-memory candidate that passed it. Cast,
+execution-plan, and run-profile retain those emitted bytes as one immutable
+value; they do not validate a pathname and then reopen it for routing or prompt
+construction.
+
+It resolves the profile, full skill index, skill front matter, semantic-agent
+catalog, and required outputs below the framework root; recompiles the expected
+manifest from the host-declared inputs; then requires canonical equality. It
+does not accept a profile path, catalog copy, expected manifest, or governance
+boolean from the candidate's caller. Any difference in activation, reason,
+metadata, execution mode, delegation, parallel safety, artifacts, agents,
+fallback mode, conditional mapping, or deep-load set is rejected.
+
+`skill_activation` is declarative only when its present block is completely
+valid. Absence alone selects legacy fallback. Present scalar/wrong-shape,
+unknown keys, malformed IDs/signals, duplicate signals, duplicate baseline
+entries, baseline/conditional conflicts, partial blocks, and multiple signals
+for one conditional skill are invalid profiles and never produce a fallback
+manifest.
