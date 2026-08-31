@@ -231,3 +231,64 @@ unknown keys, malformed IDs/signals, duplicate signals, duplicate baseline
 entries, baseline/conditional conflicts, partial blocks, and multiple signals
 for one conditional skill are invalid profiles and never produce a fallback
 manifest.
+
+## Host-owned evidence retrieval (CTX-05)
+
+CTX-05 materializes the existing `evidence-manifest-v1` contract below the
+local, Git-ignored `.mana/runtime-evidence/` root. Every load passes the full
+schema and semantic validator; malformed items, unknown fields or schema
+versions, out-of-bound metadata, inconsistent payload metadata, and an
+`evidenceId` that does not match canonical record identity are rejected by
+list, show, read, extract, and subsequent collection. A failed operation never
+publishes a replacement manifest that bypasses those checks.
+
+`sourcePayload` and `normalizedRepresentation` distinguish the collected
+sanitized source from the representation used for retrieval; `localPath`
+remains the normalized representation for compatibility. Content blob paths
+are derived from their sanitized-byte digest and are immutable. Source and
+normalized blobs use separate namespaces and may be reused by multiple
+records. Their digests and byte sizes are verified on reuse and retrieval;
+collision or tamper is a hard failure.
+
+Evidence record identity is not raw blob identity. The host derives `E-*` from
+canonical metadata binding at least the execution, kind, source system,
+sanitized locator, revision, raw digest, normalized digest, and normalization
+version. Status and other record metadata are also bound. The timestamp is not
+part of identity. Thus the same provenance and bytes deduplicate to one record,
+while a source/locator/kind/revision or normalized representation/version
+change produces another record even when a physical blob can be shared. The
+caller never supplies an evidence ID.
+
+The evidence store opens the authorized project root once per CTX-03 operation
+and uses component-wise `O_NOFOLLOW`/`O_DIRECTORY` traversal, `fstat`, final-FD
+reads, parent re-attestation, and the CTX-03 atomic no-replace/exchange writer.
+Blob publication is immutable/no-replace. Manifest publication, rollback, and
+temporary cleanup remain relative to the already opened parent FD. No
+pathname validation is followed by a pathname reopen, replace, or cleanup, and
+source inputs cannot escape the authorized project root.
+
+Sanitization precedes every digest, ID, and persisted byte. It covers
+Authorization and Proxy-Authorization, Cookie and Set-Cookie, sensitive URI
+query fields, URI user information, credential-named JSON/form fields, and
+equivalent textual cookie/token/password/API-key assignments. JSON and forms
+must parse before they can be complete. XML/YAML and other declared structured
+forms without a safe sanitizer fail closed. Neither raw credentials, hashes of
+raw credentials, nor an unsanitized locator belong in manifests or output.
+
+`complete` requires validated source and normalized blobs and is the only
+retrievable status. `partial` requires an explicit sanitized partial payload,
+bounded cause, and one or more bounded gap descriptions. `failed` and
+`unavailable` require bounded privacy-safe cause metadata and prohibit payload
+fields. A collection timestamp records when Mana collected the record and must
+never be read as source freshness; collectors record `revisionId` where the
+source offers one.
+
+The evidence API never returns an unbounded payload to a model-facing caller.
+Direct reads are UTF-8-only and bounded to 16 KiB; binary and oversized
+evidence require an explicit bounded extractor. Line and byte selectors must be
+strict subsets; selecting the whole payload is rejected. JSON selectors use
+RFC 6901 with only `~0`/`~1` escapes and canonical array indexes (`0` or a
+non-zero digit followed by digits). Negative, empty, inverted, and out-of-range
+ranges fail without fallback. The post-selection byte cap applies to every
+result, and range results preserve evidence ID, source system, sanitized
+locator, digest, revision, and status.

@@ -80,6 +80,7 @@ section() {
   section "Tests" "$workspace/tests"
   section "Validation" "$workspace/validation"
   section "PR" "$workspace/pr"
+  section "Context Runtime Evidence" "$project_root/.mana/runtime-evidence/executions"
   echo "## Guidance"
   echo
   echo "- Read this index before deep-loading evidence artifacts."

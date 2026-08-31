@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ctypes
 import errno
+import hashlib
 import json
 import os
 import re
@@ -308,6 +309,8 @@ def semantic_validate(kind: str, value: dict[str, Any]) -> None:
     reject_unsafe_content(value)
     if kind == "context-manifest":
         semantic_validate_context_manifest(value)
+    elif kind == "evidence-manifest":
+        semantic_validate_evidence_manifest(value)
     for facts_key in ("verifiedFacts", "findings"):
         for index, fact in enumerate(value.get(facts_key, [])):
             if not fact.get("evidenceRefs"):
@@ -315,6 +318,61 @@ def semantic_validate(kind: str, value: dict[str, Any]) -> None:
     for index, question in enumerate(value.get("openQuestions", [])):
         if not question.get("requiredEvidence"):
             raise ContractError(f"openQuestions[{index}]: required evidence is mandatory")
+
+
+def evidence_record_identity(execution_id: str, item: dict[str, Any]) -> bytes:
+    """Return the canonical, timestamp-independent CTX-05 record identity."""
+    return canonical_bytes({
+        "executionId": execution_id,
+        "kind": item["kind"],
+        "sourceSystem": item["sourceSystem"],
+        "sourceLocator": item["sourceLocator"],
+        "revisionId": item["revisionId"],
+        "rawDigest": item.get("digest"),
+        "normalizedDigest": item.get("normalizedRepresentation", {}).get("digest"),
+        "normalizationVersion": item["normalizationVersion"],
+        "mediaType": item["mediaType"],
+        "sensitivity": item["sensitivity"],
+        "relationships": item["relationships"],
+        "collectionStatus": item["collectionStatus"],
+        "collectionError": item.get("collectionError"),
+        "gaps": item.get("gaps", []),
+    })
+
+
+def evidence_record_id(execution_id: str, item: dict[str, Any]) -> str:
+    return "E-" + hashlib.sha256(evidence_record_identity(execution_id, item)).hexdigest()
+
+
+def semantic_validate_evidence_manifest(value: dict[str, Any]) -> None:
+    """Validate CTX-05 identities and payload/status invariants."""
+    execution_id = value["executionId"]
+    identifiers: list[str] = []
+    for index, item in enumerate(value["items"]):
+        identifier = item["evidenceId"]
+        identifiers.append(identifier)
+        if identifier != evidence_record_id(execution_id, item):
+            raise ContractError(f"items[{index}]: evidenceId does not match canonical record identity")
+        status = item["collectionStatus"]
+        if status in {"complete", "partial"}:
+            source = item["sourcePayload"]
+            normalized = item["normalizedRepresentation"]
+            if item["digest"] != source["digest"]:
+                raise ContractError(f"items[{index}]: digest does not match source payload")
+            if item["localPath"] != normalized["localPath"] or item["byteSize"] != normalized["byteSize"]:
+                raise ContractError(f"items[{index}]: compatibility payload metadata is inconsistent")
+            raw_hex = source["digest"].split(":", 1)[1]
+            normalized_hex = normalized["digest"].split(":", 1)[1]
+            if source["localPath"] != f".mana/runtime-evidence/payloads/source/{raw_hex}.bin":
+                raise ContractError(f"items[{index}]: source blob path does not match its digest")
+            if normalized["localPath"] != f".mana/runtime-evidence/payloads/normalized/{normalized_hex}.bin":
+                raise ContractError(f"items[{index}]: normalized blob path does not match its digest")
+        try:
+            _parse_timestamp(item["collectedAt"], f"items[{index}].collectedAt")
+        except ContractError:
+            raise
+    if len(identifiers) != len(set(identifiers)):
+        raise ContractError("evidence manifest contains duplicate evidence IDs")
 
 
 def semantic_validate_context_manifest(value: dict[str, Any]) -> None:
@@ -924,13 +982,28 @@ def _test_read_sync(point: str) -> None:
         _TEST_READ_SYNC_HOOK(point)
 
 
-def safe_read_json(path: Path) -> dict[str, Any]:
-    """Read JSON through an FD-anchored, component-wise no-follow walk."""
-    nofollow, directory = _require_secure_dir_fd_support()
+def _anchored_components(path: Path, project_root: Path | None) -> tuple[Path, list[str]]:
+    if project_root is None:
+        if path.is_absolute():
+            return Path(path.anchor), list(path.parts[1:])
+        return Path("."), list(path.parts)
+    root = Path(os.path.abspath(project_root))
     if path.is_absolute():
-        anchor, components = Path(path.anchor), list(path.parts[1:])
-    else:
-        anchor, components = Path("."), list(path.parts)
+        candidate = Path(os.path.abspath(path))
+        try:
+            relative = candidate.relative_to(root)
+        except ValueError as error:
+            raise ContractError("input path escapes the authorized root") from error
+        return root, list(relative.parts)
+    return root, list(path.parts)
+
+
+def safe_read_bytes(
+    path: Path, *, project_root: Path | None = None, max_bytes: int | None = None,
+) -> bytes:
+    """Read a regular file through an FD-anchored no-follow boundary."""
+    nofollow, directory = _require_secure_dir_fd_support()
+    anchor, components = _anchored_components(path, project_root)
     if not components or any(component in {"", ".", ".."} for component in components):
         raise ContractError("input path must not contain empty, dot, or traversal components")
     root_fd, parent_fds, fd = -1, [], -1
@@ -943,11 +1016,18 @@ def safe_read_json(path: Path) -> dict[str, Any]:
         _test_read_sync("after-final-open")
         if not _same_existing_directory_from_root(root_fd, components[:-1], parent_fd, nofollow, directory):
             raise ContractError("input parent binding changed during traversal")
-        with os.fdopen(fd, encoding="utf-8") as handle:
-            fd = -1
-            value = json.load(handle)
-    except (OSError, json.JSONDecodeError) as error:
-        raise ContractError(f"cannot read JSON input: {error}") from error
+        chunks, total = [], 0
+        while True:
+            chunk = os.read(fd, 64 * 1024)
+            if not chunk:
+                break
+            total += len(chunk)
+            if max_bytes is not None and total > max_bytes:
+                raise ContractError(f"input exceeds its {max_bytes} byte limit")
+            chunks.append(chunk)
+        return b"".join(chunks)
+    except OSError as error:
+        raise ContractError(f"cannot read input: {error}") from error
     finally:
         if fd >= 0:
             os.close(fd)
@@ -955,9 +1035,64 @@ def safe_read_json(path: Path) -> dict[str, Any]:
             os.close(opened_fd)
         if root_fd >= 0:
             os.close(root_fd)
+
+
+def safe_read_json(path: Path) -> dict[str, Any]:
+    """Read JSON through an FD-anchored, component-wise no-follow walk."""
+    try:
+        value = json.loads(safe_read_bytes(path).decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ContractError(f"cannot read JSON input: {error}") from error
     if not isinstance(value, dict):
         raise ContractError("contract value must be a JSON object")
     return value
+
+
+def ensure_secure_directory(project_root: Path, relative: str) -> None:
+    """Create/reopen one directory tree below an anchored trusted root."""
+    if not is_safe_relative_path(relative):
+        raise ContractError("directory path must be a safe project-relative path")
+    nofollow, directory = _require_secure_dir_fd_support()
+    root_fd, opened = -1, []
+    try:
+        root_fd = _open_directory(project_root, dir_fd=None, nofollow=nofollow, directory=directory)
+        target_fd, opened = _walk_parent(root_fd, relative.split("/"), nofollow, directory)
+        if not _same_directory_from_root(root_fd, relative.split("/"), target_fd, nofollow, directory):
+            raise ContractError("directory binding changed during creation")
+    finally:
+        for fd in reversed(opened):
+            os.close(fd)
+        if root_fd >= 0:
+            os.close(root_fd)
+
+
+def validate_secure_root(project_root: Path) -> None:
+    """Open and classify a trusted root without creating any entry."""
+    nofollow, directory = _require_secure_dir_fd_support()
+    fd = _open_directory(project_root, dir_fd=None, nofollow=nofollow, directory=directory)
+    os.close(fd)
+
+
+def safe_list_directory(project_root: Path, relative: str) -> list[str]:
+    """List a directory only while its root-relative binding remains valid."""
+    if not is_safe_relative_path(relative):
+        raise ContractError("directory path must be a safe project-relative path")
+    nofollow, directory = _require_secure_dir_fd_support()
+    root_fd, opened = -1, []
+    try:
+        root_fd = _open_directory(project_root, dir_fd=None, nofollow=nofollow, directory=directory)
+        target_fd, opened = _walk_existing_parent(root_fd, relative.split("/"), nofollow, directory)
+        names = os.listdir(target_fd)
+        if not _same_existing_directory_from_root(root_fd, relative.split("/"), target_fd, nofollow, directory):
+            raise ContractError("directory binding changed during listing")
+        return sorted(names)
+    except OSError as error:
+        raise ContractError(f"cannot list directory: {error}") from error
+    finally:
+        for fd in reversed(opened):
+            os.close(fd)
+        if root_fd >= 0:
+            os.close(root_fd)
 
 
 class _RenamePrimitives:
@@ -1169,9 +1304,18 @@ def _rollback_exchange(
         ) from error
 
 
-def atomic_write(project_root: Path, relative: str, value: dict[str, Any]) -> Path:
+_EXPECTED_CURRENT_UNSET = object()
+
+
+def atomic_write_bytes(
+    project_root: Path, relative: str, payload: bytes, *, immutable: bool = False,
+    expected_current: bytes | None | object = _EXPECTED_CURRENT_UNSET,
+) -> Path:
+    """Publish bytes with CTX-03 no-replace/exchange and anchored cleanup."""
     if not is_safe_relative_path(relative):
         raise ContractError("output path must be a safe project-relative path")
+    if not isinstance(payload, bytes):
+        raise ContractError("atomic byte payload must be bytes")
     nofollow, directory = _require_secure_dir_fd_support()
     primitives = _require_rename_primitives()
     components = relative.split("/")
@@ -1184,7 +1328,44 @@ def atomic_write(project_root: Path, relative: str, value: dict[str, Any]) -> Pa
         _test_sync("after-parent-open")
         original_identity = _inspect_destination(parent_fd, target_name)
         _test_sync("after-destination-inspection")
-        payload = canonical_bytes(value) + b"\n"
+        must_read_existing = original_identity is not None and (
+            immutable or expected_current is not _EXPECTED_CURRENT_UNSET
+        )
+        if expected_current is None and original_identity is not None:
+            raise ContractError("destination appeared after the caller observed it absent")
+        if isinstance(expected_current, bytes) and original_identity is None:
+            raise ContractError("destination disappeared after the caller validated it")
+        if must_read_existing:
+            existing_fd = -1
+            try:
+                existing_fd = os.open(target_name, os.O_RDONLY | os.O_NONBLOCK | nofollow, dir_fd=parent_fd)
+                if (
+                    not stat.S_ISREG(os.fstat(existing_fd).st_mode)
+                    or _entry_identity(os.fstat(existing_fd)) != original_identity
+                ):
+                    raise ContractError("immutable destination identity changed during verification")
+                existing_chunks = []
+                while True:
+                    chunk = os.read(existing_fd, 64 * 1024)
+                    if not chunk:
+                        break
+                    existing_chunks.append(chunk)
+                _test_sync("after-immutable-read")
+                if (
+                    not _verify_identity(parent_fd, target_name, original_identity)
+                    or not _same_directory_from_root(root_fd, parent_components, parent_fd, nofollow, directory)
+                ):
+                    raise ContractError("immutable destination binding changed during verification")
+                existing_payload = b"".join(existing_chunks)
+                if isinstance(expected_current, bytes) and existing_payload != expected_current:
+                    raise ContractError("destination changed after caller validation")
+                if immutable and existing_payload == payload:
+                    return Path(os.path.abspath(project_root)) / relative
+                if immutable:
+                    raise ContractError("immutable evidence payload collision")
+            finally:
+                if existing_fd >= 0:
+                    os.close(existing_fd)
         for _ in range(128):
             candidate = f".{target_name}.tmp.{secrets.token_hex(8)}"
             try:
@@ -1280,6 +1461,11 @@ def atomic_write(project_root: Path, relative: str, value: dict[str, Any]) -> Pa
         if root_fd >= 0:
             os.close(root_fd)
     return Path(os.path.abspath(project_root)) / relative
+
+
+def atomic_write(project_root: Path, relative: str, value: dict[str, Any]) -> Path:
+    """Preserve the public CTX-03 canonical-JSON writer contract."""
+    return atomic_write_bytes(project_root, relative, canonical_bytes(value) + b"\n")
 
 
 def usage() -> int:

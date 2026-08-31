@@ -195,3 +195,49 @@ semantic workflow documents, and only explicitly deep-loaded active skill
 bodies; it is not asked to inspect the complete index or inactive candidates
 to reconstruct routing. This is CTX-04 progressive loading only and introduces
 no CTX-05 evidence store or CTX-06 phase runtime.
+
+## CTX-05 host-owned evidence store and bounded retrieval
+
+`mana evidence` is a provider-neutral local API for collecting evidence once
+and retrieving it by stable `E-*` reference. It writes only under the
+Git-ignored `.mana/runtime-evidence/` root. Each execution owns an
+`evidence-manifest-v1` inventory. Immutable source and normalized content blobs
+are stored separately and deduplicated by the digest of their sanitized bytes.
+An evidence record is a different identity layer: its deterministic `E-*` ID
+also binds execution, kind, source system, sanitized locator, revision, raw and
+normalized digests, normalization version, media type, sensitivity,
+relationships, and collection status. Unchanged bytes with unchanged
+provenance return the prior record; shared bytes with different provenance or
+normalization remain distinct evidence records without duplicating blobs.
+
+Collection redacts credential-shaped values and authorization headers before
+any digest, record ID, payload, or source locator is produced. The policy covers
+authorization/proxy authorization, cookies, credential-named JSON and form
+fields, textual credential assignments, URI user information, and sensitive
+query parameters. JSON must parse before a `complete` record can be written;
+structured media that cannot be sanitized safely is rejected. Digests and IDs
+therefore describe only the sanitized persisted bytes and metadata. Collection
+time is operational metadata, never a claim of source freshness; `revisionId`
+records source freshness only when the collector has it.
+
+All evidence I/O reuses the CTX-03 root-FD boundary: component-wise no-follow
+traversal, directory FDs, final-FD classification, parent re-attestation, and
+the kernel no-replace/exchange writer with anchored rollback and cleanup.
+Input, manifest, blob, publication, and enumeration paths do not use a
+check-then-reopen pathname sequence. Evidence input is confined to the
+authorized project root.
+
+The manifest makes all collection outcomes explicit. `complete` has validated
+source and normalized blobs and permits retrieval. `partial` has a sanitized
+partial payload plus bounded error and gap metadata, but is never retrieved as
+complete. `failed` and `unavailable` contain bounded privacy-safe cause metadata
+and no payload; retrieval is rejected.
+
+`read` emits only UTF-8 text, enforces a 16 KiB output cap, and rejects binary
+or oversized content. `extract` (and the compatibility `read --lines` form) is
+the explicit bounded path for a strict-subset line, RFC 6901 JSON Pointer, or
+byte-range selection. Full line/byte ranges, non-canonical array indexes,
+invalid pointer escapes, empty/inverted/out-of-range ranges, and implicit
+full-payload fallback are rejected. Every range result carries the originating
+evidence provenance and is capped after selection. CTX-05 adds no phase runner,
+model call, permission, or approval surface.

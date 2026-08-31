@@ -278,6 +278,7 @@ Usage:
   ./mana jira-mcp [args...]             Run Jira MCP Docker wrapper.
   ./mana sonar [args...]                Configure/check/run local sonar-scanner.
   ./mana dependency-evidence [args...]  Collect local dependency evidence inventory.
+  ./mana evidence <cmd> [args...]       Collect and retrieve bounded local evidence.
   ./mana evidence-index [args...]       Build active workspace evidence index.
   ./mana validate-mana                  Validate the linked Mana repository.
   ./mana path                           Print linked Mana path.
@@ -325,6 +326,7 @@ Examples:
   ./mana sonar --init-config
   ./mana sonar --check
   ./mana dependency-evidence --collect
+  ./mana evidence list --execution execution-example
   ./mana evidence-index
 USAGE
     ;;
@@ -408,6 +410,9 @@ USAGE
     ;;
   dependency-evidence)
     exec "$MANA_HOME/scripts/run-dependency-evidence.sh" --project-root "$project_root" "$@"
+    ;;
+  evidence)
+    exec "$MANA_HOME/scripts/mana-evidence.sh" --project-root "$project_root" "$@"
     ;;
   evidence-index)
     exec "$MANA_HOME/scripts/run-evidence-index.sh" --project-root "$project_root" "$@"

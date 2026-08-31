@@ -18,6 +18,13 @@ runtime = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = runtime
 SPEC.loader.exec_module(runtime)
 
+EVIDENCE_MODULE_PATH = ROOT / "scripts" / "lib" / "evidence-store.py"
+EVIDENCE_SPEC = importlib.util.spec_from_file_location("mana_evidence_store_race", EVIDENCE_MODULE_PATH)
+assert EVIDENCE_SPEC and EVIDENCE_SPEC.loader
+evidence = importlib.util.module_from_spec(EVIDENCE_SPEC)
+sys.modules[EVIDENCE_SPEC.name] = evidence
+EVIDENCE_SPEC.loader.exec_module(evidence)
+
 
 def expect_failure(action, invariant: str) -> None:
     try:
@@ -50,6 +57,18 @@ def capture_rollback_failure(action, invariant: str):
 def assert_no_temps(root: Path) -> None:
     residue = [path for path in root.rglob(".*.tmp.*") if path.exists() or path.is_symlink()]
     assert not residue, f"temporary residue remains: {residue}"
+
+
+def expect_evidence_failure(action, invariant: str) -> None:
+    try:
+        action()
+    except (evidence.EvidenceError, evidence.runtime.ContractError, OSError):
+        return
+    raise AssertionError(f"evidence operation did not fail closed: {invariant}")
+
+
+def evidence_args(project: Path, *arguments: str):
+    return evidence.parser().parse_args(["--project-root", str(project), *arguments])
 
 
 def assert_rollback_contract(error, *, destination_state: str) -> None:
@@ -483,4 +502,265 @@ with tempfile.TemporaryDirectory(prefix="mana-context-race-") as name:
     assert source.parent == nested
     assert not (outside / "input.json").exists()
 
-print("Context Runtime CTX-03 race-safe reader/writer tests passed")
+
+# CTX-05 reuses the same boundary for input, manifest, and blob I/O. Suppress
+# successful command metadata while exercising the in-process race hooks.
+evidence.emit = lambda value: None
+
+with tempfile.TemporaryDirectory(prefix="mana-evidence-race-") as name:
+    sandbox = Path(name).resolve()
+
+    def evidence_project(case_name: str) -> tuple[Path, Path, Path]:
+        project = sandbox / case_name / "project"
+        outside = sandbox / case_name / "outside"
+        inputs = project / "inputs"
+        inputs.mkdir(parents=True)
+        outside.mkdir(parents=True)
+        (inputs / "source.txt").write_text("bounded source\n", encoding="utf-8")
+        return project, outside, inputs
+
+    def collect_args(project: Path, execution: str = "execution-race"):
+        return evidence_args(
+            project, "collect", "--execution", execution, "--kind", "source",
+            "--source-system", "fixture", "--source-locator", "race-fixture",
+            "--input", "inputs/source.txt", "--media-type", "text/plain",
+        )
+
+    # Ingest final-component swap: replace the authorized input with a symlink
+    # after its parent FD is open but before the final O_NOFOLLOW open.
+    project, outside, inputs = evidence_project("ingest-input-destination-swap")
+    source, saved = inputs / "source.txt", inputs / "source-saved.txt"
+    victim = outside / "source.txt"
+    victim.write_text("outside-secret\n", encoding="utf-8")
+    fired = [False]
+
+    def swap_ingest_input(point: str) -> None:
+        if point == "after-parent-component:0" and not fired[0]:
+            fired[0] = True
+            source.rename(saved)
+            source.symlink_to(victim)
+
+    evidence.runtime._TEST_READ_SYNC_HOOK = swap_ingest_input
+    expect_evidence_failure(lambda: evidence.collect(collect_args(project)), "ingest input destination swap")
+    evidence.runtime._TEST_READ_SYNC_HOOK = None
+    assert fired[0]
+    assert victim.read_text(encoding="utf-8") == "outside-secret\n"
+    assert not (project / ".mana").exists()
+
+    # Ingest blob destination swap at the kernel publication boundary. The
+    # late symlink is preserved and its outside referent is never modified.
+    project, outside, inputs = evidence_project("ingest-blob-destination-swap")
+    victim = outside / "victim.bin"
+    victim.write_bytes(b"outside-unchanged")
+    fired = [False]
+
+    def swap_blob_destination(point: str) -> None:
+        if point == "after-final-prepublish-check" and not fired[0]:
+            fired[0] = True
+            payload = (inputs / "source.txt").read_bytes()
+            blob_name = evidence.digest(evidence.sanitize_payload(payload, "text/plain")).split(":", 1)[1] + ".bin"
+            (project / evidence.SOURCE_DIR / blob_name).symlink_to(victim)
+
+    evidence.runtime._TEST_SYNC_HOOK = swap_blob_destination
+    expect_evidence_failure(lambda: evidence.collect(collect_args(project)), "ingest blob destination swap")
+    evidence.runtime._TEST_SYNC_HOOK = None
+    assert fired[0]
+    assert victim.read_bytes() == b"outside-unchanged"
+    assert_no_temps(project)
+
+    # Cleanup stays anchored when the blob parent is renamed and replaced by a
+    # symlink after staging. Publication into the opened directory is rolled
+    # back there; no pathname cleanup touches the replacement/outside tree.
+    project, outside, inputs = evidence_project("ingest-cleanup-parent-swap")
+    moved = project / ".mana/runtime-evidence/payloads/source-moved"
+    source_dir = project / evidence.SOURCE_DIR
+    fired = [False]
+
+    def swap_blob_parent(point: str) -> None:
+        if point == "after-final-prepublish-check" and not fired[0]:
+            fired[0] = True
+            source_dir.rename(moved)
+            source_dir.symlink_to(outside, target_is_directory=True)
+
+    evidence.runtime._TEST_SYNC_HOOK = swap_blob_parent
+    expect_evidence_failure(lambda: evidence.collect(collect_args(project)), "anchored ingest cleanup")
+    evidence.runtime._TEST_SYNC_HOOK = None
+    assert fired[0]
+    assert list(outside.iterdir()) == []
+    assert list(moved.iterdir()) == []
+    assert_no_temps(project)
+
+    # Manifest final-component swap during read is rejected by O_NOFOLLOW.
+    project, outside, inputs = evidence_project("manifest-read-destination-swap")
+    evidence.collect(collect_args(project))
+    execution_dir = project / evidence.EXECUTIONS_DIR / "execution-race"
+    manifest = execution_dir / "manifest.json"
+    saved = execution_dir / "manifest-saved.json"
+    attacker = outside / "manifest.json"
+    attacker.write_text('{"schemaVersion":"attacker"}\n', encoding="utf-8")
+    fired = [False]
+
+    def swap_manifest_destination(point: str) -> None:
+        if point == "after-parent-component:3" and not fired[0]:
+            fired[0] = True
+            manifest.rename(saved)
+            manifest.symlink_to(attacker)
+
+    evidence.runtime._TEST_READ_SYNC_HOOK = swap_manifest_destination
+    expect_evidence_failure(
+        lambda: evidence.list_items(evidence_args(project, "list", "--execution", "execution-race")),
+        "manifest read destination swap",
+    )
+    evidence.runtime._TEST_READ_SYNC_HOOK = None
+    assert fired[0]
+    assert attacker.read_text(encoding="utf-8") == '{"schemaVersion":"attacker"}\n'
+
+    # Manifest parent swap after the final file is open fails the root-relative
+    # re-attestation and never accepts the now-detached manifest.
+    project, outside, inputs = evidence_project("manifest-read-parent-swap")
+    evidence.collect(collect_args(project))
+    execution_dir = project / evidence.EXECUTIONS_DIR / "execution-race"
+    moved = project / evidence.EXECUTIONS_DIR / "execution-race-moved"
+    fired = [False]
+
+    def swap_manifest_parent(point: str) -> None:
+        if point == "after-final-open" and not fired[0]:
+            fired[0] = True
+            execution_dir.rename(moved)
+            execution_dir.symlink_to(outside, target_is_directory=True)
+
+    evidence.runtime._TEST_READ_SYNC_HOOK = swap_manifest_parent
+    expect_evidence_failure(
+        lambda: evidence.list_items(evidence_args(project, "list", "--execution", "execution-race")),
+        "manifest read parent swap",
+    )
+    evidence.runtime._TEST_READ_SYNC_HOOK = None
+    assert fired[0]
+    assert not (outside / "manifest.json").exists()
+
+    # Payload final-component swap occurs on the second matching parent walk
+    # (the first is manifest.json). The attacker symlink is rejected.
+    project, outside, inputs = evidence_project("payload-read-destination-swap")
+    evidence.collect(collect_args(project))
+    manifest_value = evidence.read_manifest(project, "execution-race", create=False)
+    record = manifest_value["items"][0]
+    blob = project / record["normalizedRepresentation"]["localPath"]
+    saved = blob.with_name("saved.bin")
+    attacker = outside / blob.name
+    attacker.write_bytes(b"outside-payload")
+    matching_walks = [0]
+
+    def swap_payload_destination(point: str) -> None:
+        if point == "after-parent-component:3":
+            matching_walks[0] += 1
+            if matching_walks[0] == 2:
+                blob.rename(saved)
+                blob.symlink_to(attacker)
+
+    evidence.runtime._TEST_READ_SYNC_HOOK = swap_payload_destination
+    expect_evidence_failure(
+        lambda: evidence.read(evidence_args(project, "read", record["evidenceId"])),
+        "payload read destination swap",
+    )
+    evidence.runtime._TEST_READ_SYNC_HOOK = None
+    assert matching_walks[0] >= 2
+    assert attacker.read_bytes() == b"outside-payload"
+
+    # Payload parent replacement after open is detected by re-attestation.
+    project, outside, inputs = evidence_project("payload-read-parent-swap")
+    evidence.collect(collect_args(project))
+    manifest_value = evidence.read_manifest(project, "execution-race", create=False)
+    record = manifest_value["items"][0]
+    normalized_dir = project / evidence.NORMALIZED_DIR
+    moved = normalized_dir.with_name("normalized-moved")
+    final_opens = [0]
+
+    def swap_payload_parent(point: str) -> None:
+        if point == "after-final-open":
+            final_opens[0] += 1
+            if final_opens[0] == 2:
+                normalized_dir.rename(moved)
+                normalized_dir.symlink_to(outside, target_is_directory=True)
+
+    evidence.runtime._TEST_READ_SYNC_HOOK = swap_payload_parent
+    expect_evidence_failure(
+        lambda: evidence.read(evidence_args(project, "read", record["evidenceId"])),
+        "payload read parent swap",
+    )
+    evidence.runtime._TEST_READ_SYNC_HOOK = None
+    assert final_opens[0] >= 2
+    assert not (outside / Path(record["localPath"]).name).exists()
+
+    # Manifest publication parent swap happens after both immutable blob
+    # publications. Post-publication attestation rolls manifest.json back via
+    # the opened execution directory FD.
+    project, outside, inputs = evidence_project("manifest-publication-parent-swap")
+    execution_dir = project / evidence.EXECUTIONS_DIR / "execution-race"
+    moved = project / evidence.EXECUTIONS_DIR / "execution-race-moved"
+    publications = [0]
+
+    def swap_manifest_publication_parent(point: str) -> None:
+        if point == "after-final-prepublish-check":
+            publications[0] += 1
+            if publications[0] == 3:
+                execution_dir.rename(moved)
+                execution_dir.symlink_to(outside, target_is_directory=True)
+
+    evidence.runtime._TEST_SYNC_HOOK = swap_manifest_publication_parent
+    expect_evidence_failure(lambda: evidence.collect(collect_args(project)), "manifest publication parent swap")
+    evidence.runtime._TEST_SYNC_HOOK = None
+    assert publications[0] == 3
+    assert not (moved / "manifest.json").exists()
+    assert not (outside / "manifest.json").exists()
+    assert_no_temps(project)
+
+    # A manifest destination introduced at the last publication boundary wins
+    # the no-replace CAS; the evidence writer neither follows nor overwrites it.
+    project, outside, inputs = evidence_project("manifest-publication-destination-swap")
+    execution_dir = project / evidence.EXECUTIONS_DIR / "execution-race"
+    victim = outside / "victim.json"
+    victim.write_text("outside-unchanged\n", encoding="utf-8")
+    publications = [0]
+
+    def swap_manifest_publication_destination(point: str) -> None:
+        if point == "after-final-prepublish-check":
+            publications[0] += 1
+            if publications[0] == 3:
+                (execution_dir / "manifest.json").symlink_to(victim)
+
+    evidence.runtime._TEST_SYNC_HOOK = swap_manifest_publication_destination
+    expect_evidence_failure(lambda: evidence.collect(collect_args(project)), "manifest publication destination swap")
+    evidence.runtime._TEST_SYNC_HOOK = None
+    assert publications[0] == 3
+    assert (execution_dir / "manifest.json").is_symlink()
+    assert victim.read_text(encoding="utf-8") == "outside-unchanged\n"
+    assert_no_temps(project)
+
+    # Existing-manifest update binds publication to the exact bytes validated
+    # at load. A regular destination replacement before writer inspection is
+    # preserved and the update fails rather than blessing the swapped entry.
+    project, outside, inputs = evidence_project("manifest-update-destination-swap")
+    evidence.collect(collect_args(project))
+    execution_dir = project / evidence.EXECUTIONS_DIR / "execution-race"
+    manifest = execution_dir / "manifest.json"
+    saved = execution_dir / "manifest-saved.json"
+    parent_opens = [0]
+
+    def swap_existing_manifest_before_inspection(point: str) -> None:
+        if point == "after-parent-open":
+            parent_opens[0] += 1
+            if parent_opens[0] == 3:
+                manifest.rename(saved)
+                manifest.write_text('{"attacker":true}\n', encoding="utf-8")
+
+    update = collect_args(project)
+    update.source_locator = "changed-provenance"
+    evidence.runtime._TEST_SYNC_HOOK = swap_existing_manifest_before_inspection
+    expect_evidence_failure(lambda: evidence.collect(update), "existing manifest changed after validated load")
+    evidence.runtime._TEST_SYNC_HOOK = None
+    assert parent_opens[0] == 3
+    assert manifest.read_text(encoding="utf-8") == '{"attacker":true}\n'
+    assert saved.read_text(encoding="utf-8").startswith('{"executionId":"execution-race"')
+    assert_no_temps(project)
+
+print("Context Runtime CTX-03/CTX-05 race-safe reader/writer tests passed")
