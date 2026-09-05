@@ -139,6 +139,12 @@ wrong_checkpoint_version_result = runtime.evaluate_checkpoint(wrong_checkpoint_v
 assert wrong_checkpoint_version_result.permissions is None
 assert not wrong_checkpoint_version_result.approvals and wrong_checkpoint_version_result.unresolved_approvals
 
+wrong_checkpoint_profile = copy.deepcopy(checkpoint)
+wrong_checkpoint_profile["profileId"] = "other-profile"
+wrong_checkpoint_profile_result = runtime.evaluate_checkpoint(wrong_checkpoint_profile, authority)
+assert wrong_checkpoint_profile_result.permissions is None
+assert not wrong_checkpoint_profile_result.approvals
+
 authority_v2_value = copy.deepcopy(host_value)
 authority_v2_value["executionIdentity"]["executionVersion"] = 2
 authority_v2_value["approvalRecords"][0]["executionVersion"] = 2
@@ -169,6 +175,12 @@ malformed_checkpoint_version["executionVersion"] = "v1"
 must_reject(
     lambda: runtime.validate_model("phase-checkpoint", malformed_checkpoint_version),
     "malformed checkpoint executionVersion",
+)
+missing_checkpoint_profile = copy.deepcopy(checkpoint)
+del missing_checkpoint_profile["profileId"]
+must_reject(
+    lambda: runtime.validate_model("phase-checkpoint", missing_checkpoint_profile),
+    "missing checkpoint profileId",
 )
 must_reject(lambda: runtime.evaluate_checkpoint(checkpoint, host_value), "untyped authority dictionary")
 

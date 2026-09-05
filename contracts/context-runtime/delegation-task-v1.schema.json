@@ -4,6 +4,104 @@
   "title": "Mana Context Runtime delegation task v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "taskId", "executionId", "parentPhaseId", "owner", "objective", "evidenceRefs", "requiredOutputs", "modelTier", "limits"],
-  "properties": {"schemaVersion": {"const": "mana.context-runtime.delegation-task/v1"}, "taskId": {"type": "string", "pattern": "^T-[A-Za-z0-9._-]{1,120}$"}, "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"}, "parentPhaseId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"}, "owner": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"}, "objective": {"type": "string", "minLength": 1, "maxLength": 4096}, "evidenceRefs": {"type": "array", "maxItems": 128, "uniqueItems": true, "items": {"type": "string", "pattern": "^E-[A-Za-z0-9._-]{1,120}$"}}, "requiredOutputs": {"type": "array", "minItems": 1, "maxItems": 32, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 256}}, "modelTier": {"type": "string", "enum": ["economy", "standard", "capable"]}, "limits": {"type": "object", "additionalProperties": false, "required": ["retrievalCycles", "childDepth"], "properties": {"retrievalCycles": {"type": "integer", "minimum": 1, "maximum": 16}, "childDepth": {"const": 0}}}}
+  "required": [
+    "schemaVersion", "executionId", "executionVersion", "workspaceId",
+    "profileId", "phaseId", "attempt", "planId", "taskId", "taskDigest",
+    "owner", "questionKey", "ownershipKey", "question", "scope", "taskType",
+    "effectClass", "delegationAllowed", "maxChildDepth", "skills",
+    "evidenceRefs", "evidenceGaps", "expectedOutput", "stopConditions", "limits"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.delegation-task/v1"},
+    "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},
+    "executionVersion": {"type": "integer", "minimum": 1},
+    "workspaceId": {"type": "string", "pattern": "^W-[a-f0-9]{64}$"},
+    "profileId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
+    "phaseId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"},
+    "attempt": {"type": "integer", "minimum": 1, "maximum": 17},
+    "planId": {"type": "string", "pattern": "^P-[a-f0-9]{64}$"},
+    "taskId": {"type": "string", "pattern": "^T-[A-Za-z0-9._-]{1,120}$"},
+    "taskDigest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "owner": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
+    "questionKey": {"type": "string", "pattern": "^Q-[a-f0-9]{64}$"},
+    "ownershipKey": {"type": "string", "pattern": "^O-[a-f0-9]{64}$"},
+    "question": {"type": "string", "minLength": 1, "maxLength": 512},
+    "scope": {"$ref": "#/$defs/scope"},
+    "taskType": {
+      "type": "string",
+      "enum": ["inspect-evidence", "analyze-source", "inventory-tests", "map-contract", "verify-claim"]
+    },
+    "effectClass": {"const": "read"},
+    "delegationAllowed": {"const": false},
+    "maxChildDepth": {"const": 0},
+    "skills": {
+      "type": "array", "maxItems": 16, "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"}
+    },
+    "evidenceRefs": {
+      "type": "array", "maxItems": 64, "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^E-[a-f0-9]{64}$"}
+    },
+    "evidenceGaps": {
+      "type": "array", "maxItems": 16,
+      "items": {"$ref": "#/$defs/evidenceGap"}
+    },
+    "expectedOutput": {
+      "type": "object", "additionalProperties": false,
+      "required": ["contract", "sections"],
+      "properties": {
+        "contract": {"const": "mana.context-runtime.delegation-result/v1"},
+        "sections": {
+          "type": "array", "minItems": 1, "maxItems": 8, "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["verifiedFacts", "findings", "assumptions", "inferences", "openQuestions", "evidenceGaps", "artifactRefs", "uncertainty"]
+          }
+        }
+      }
+    },
+    "stopConditions": {
+      "type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true,
+      "items": {"type": "string", "enum": ["question-answered", "evidence-unavailable", "specialist-required"]}
+    },
+    "limits": {
+      "type": "object", "additionalProperties": false,
+      "required": ["retrievalCycles"],
+      "properties": {"retrievalCycles": {"type": "integer", "minimum": 1, "maximum": 16}}
+    }
+  },
+  "$defs": {
+    "scope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["domain", "subjectKind", "subjectId", "boundaries"],
+      "properties": {
+        "domain": {
+          "type": "string",
+          "enum": ["architecture", "contracts", "database", "evidence", "operations", "requirements", "security", "source", "tests"]
+        },
+        "subjectKind": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"},
+        "subjectId": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"},
+        "boundaries": {
+          "type": "array", "minItems": 1, "maxItems": 16,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["kind", "ref"],
+            "properties": {
+              "kind": {"type": "string", "enum": ["artifact", "evidence", "module", "requirement", "symbol", "test"]},
+              "ref": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"}
+            }
+          }
+        }
+      }
+    },
+    "evidenceGap": {
+      "type": "object", "additionalProperties": false,
+      "required": ["description", "kind", "impact"],
+      "properties": {
+        "description": {"type": "string", "minLength": 1, "maxLength": 256},
+        "kind": {"type": "string", "enum": ["missing-source", "missing-test", "unavailable-record", "insufficient-coverage", "unknown"]},
+        "impact": {"type": "string", "enum": ["blocks-fact", "blocks-completion", "reduces-confidence"]}
+      }
+    }
+  }
 }

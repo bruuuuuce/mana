@@ -21,12 +21,12 @@ ID to the execution ID/version and includes human provenance. Schema validation
 alone does not authenticate provenance: the runtime must obtain this value from
 its trusted host path. CTX-03 deliberately adds no PKI.
 
-Every authority-participating checkpoint contains both `executionId` and
-`executionVersion`. `evaluate_checkpoint(checkpoint, authority)` accepts authority only as a
+Every authority-participating checkpoint contains `executionId`,
+`executionVersion`, and `profileId`. `evaluate_checkpoint(checkpoint, authority)` accepts authority only as a
 validated `HostAuthorityContext`, never as fields extracted from the
 checkpoint. Effective permissions are copied only from that host value. A
 requested approval is complete only when checkpoint, host identity, and host
-approval record all match on execution ID and execution version, and the record
+approval record all match on execution ID, execution version, and profile, and the record
 also matches approval ID and gate ID. Unknown, mismatched, or evidence-shaped
 IDs remain unresolved and convey no effective permission.
 
@@ -242,6 +242,13 @@ versions, out-of-bound metadata, inconsistent payload metadata, and an
 list, show, read, extract, and subsequent collection. A failed operation never
 publishes a replacement manifest that bypasses those checks.
 
+Each manifest requires a canonical `workspaceId`. The evidence host derives it
+from the authorized Mana workspace's manifest-backed kind and name; no CLI or
+model data may submit a workspace ID, and no absolute path is persisted as
+identity. The identifier participates in evidence record identity, so unchanged
+same-workspace evidence retains CTX-05 deduplication while equal execution IDs
+in different workspaces do not become interchangeable.
+
 `sourcePayload` and `normalizedRepresentation` distinguish the collected
 sanitized source from the representation used for retrieval; `localPath`
 remains the normalized representation for compatibility. Content blob paths
@@ -251,7 +258,7 @@ records. Their digests and byte sizes are verified on reuse and retrieval;
 collision or tamper is a hard failure.
 
 Evidence record identity is not raw blob identity. The host derives `E-*` from
-canonical metadata binding at least the execution, kind, source system,
+canonical metadata binding at least the execution, workspace, kind, source system,
 sanitized locator, revision, raw digest, normalized digest, and normalization
 version. Status and other record metadata are also bound. The timestamp is not
 part of identity. Thus the same provenance and bytes deduplicate to one record,
@@ -292,3 +299,371 @@ non-zero digit followed by digits). Negative, empty, inverted, and out-of-range
 ranges fail without fallback. The post-selection byte cap applies to every
 result, and range results preserve evidence ID, source system, sanitized
 locator, digest, revision, and status.
+
+## Phase-run directory skeleton (CTX-06A)
+
+The CTX-06A initializer owns one new run directory:
+
+```text
+.mana/runtime/runs/<execution-id>/
+  execution-envelope-v1.json
+  context-manifest-v1.json
+  run-directory-v1.json
+  run-state-v1.json                 # sole mutable HEAD, added by CTX-06B
+  .transition-head.lock             # inode-stable host CAS mutex
+  .provider-phase.lock              # CTX-06C whole-run provider mutex
+  phases/
+    001-<phase-id>/phase-input-v1.json
+  transitions/                      # immutable CTX-06B-R1B bundles
+    T-<sha256>/
+      transition-v1.json
+      checkpoint-v1.json
+      run-state-v1.json
+      phase-input-v1.json           # only when the committed state is active
+      authority-v1.json             # only for resume
+```
+
+`run-directory-v1.json` is host-generated bookkeeping, with an ordered unique
+phase list, canonical phase policies, a workspace/evidence-manifest binding,
+and fixed references used by the initial phase input. The only source of that
+list is the profile's host-owned `context_runtime.pipeline`; phase IDs have
+explicit consecutive ordinals, and
+unknown keys, duplicate phases, incomplete policy, or list/ordinal disagreement
+fail. The initializer exposes no `--phase` ordering surface and treats a profile
+without this declaration as explicitly not configured for runtime v2.
+
+The run record is not a model checkpoint and cannot carry permissions, approval
+records, evidence payloads, or provider output. The envelope is structurally
+validated and derives its workspace, target, and human gates from host inputs
+constrained by authoritative profile metadata. An existing workspace directory
+and matching workspace manifest are required. Target nullability follows
+`target_kind`; required target metadata cannot be omitted. A profile with
+`human_approval_requirement: true` must declare at least one runtime human gate.
+CTX-06A grants neither repository nor external write permission. The context
+manifest is freshly compiled from authoritative framework sources.
+The envelope and run record both carry the same host-derived `workspaceId` in
+addition to the project-relative workspace locator. That ID is re-derived from
+the authorized workspace whenever a durable run is loaded.
+
+The initial phase input validates against `phase-input-v1` and starts with
+`checkpointRef: null`. `G-001` and `M-001` are local run-directory references
+to the envelope and manifest respectively, not authority delegated to model
+data. Its objective is host-owned, single-line, non-structured, and bounded to
+1024 characters. It cannot contain raw evidence, transcript objects, or
+authority fields. Evidence references are empty unless the caller supplies the
+canonical same-project, same-execution CTX-05 manifest, which the host binds to
+the envelope workspace in the run record. The manifest's required `workspaceId`
+must equal the re-derived envelope/run identity. Selected IDs must exist there and
+match the initial phase's allowed evidence kinds and statuses. CTX-06A does not
+create input directories for later phases, so one evidence list cannot be
+copied indiscriminately across phase policies.
+
+Role-labelled transcript turns are recognized case-insensitively for `user`,
+`assistant`, `system`, `developer`, and `tool` at the beginning of the objective
+or after the supported structural separators `;` and `|`. These role markers
+are rejected; ordinary prose that merely contains the same words is not.
+
+The final run path is never populated directly. The host creates a private
+mode-`0700` staging directory under the authorized runs parent and retains its
+inode-attested staging and parent directory FDs while it materializes and
+re-validates all five CTX-06A/R1A records. It publishes the whole tree with one FD-relative
+kernel no-replace rename, then crosses an explicit host commit barrier. The
+final path is therefore either absent or complete; any existing entry, empty
+or otherwise, is a collision. A signal guard records `SIGINT`/`SIGTERM` during
+the publication critical section. It does not depend on one `sigpending()`
+check followed by unmasking. Failure, `KeyboardInterrupt`, and recorded signals
+before the barrier abort the transaction. When publication already occurred,
+abort first uses the held parent FD and no-replace rename to move the exact
+published inode from the final name to a private quarantine/abort name. The
+same held directory FD is then recursively cleaned without following links or
+using a pathname-based tree-removal boundary. `_published` remains false until
+the barrier has been crossed; after it, the run is committed. A subsequent
+`SIGINT` or `SIGTERM` retains the committed final run, returns 130 or 143
+respectively, and is reported explicitly as post-commit rather than as an
+abort. A completed pre-barrier abort leaves no final, staging, or quarantine
+residue.
+
+The initializer makes no provider call and does not accept model output.
+Checkpoint validation, resume, provider dispatch, future phase materialization,
+lifecycle events, metrics, and legacy selection are outside CTX-06A.
+
+## Authoritative state-machine contract (CTX-06B-R1A)
+
+`run-state-v1.json` is host-owned and schema-valid. It contains execution ID,
+execution version, profile ID, revision, active/interrupted/blocked/completed
+status, current phase/ordinal/attempt, latest checkpoint reference, and the
+per-phase attempt map. Non-initial states also carry their deterministic
+transition ID and the digest of the exact previous state. Initial state is
+fixed at revision zero with both bindings null, attempt one
+for phase one and zero for every future phase. Its field set cannot carry
+transcript, evidence payload, permissions, approvals, provider output, or
+model-proposed transition counters.
+
+Every profile phase declares canonical `retry_limit: 0..16`; the run-directory
+projection exposes it as `policy.retryLimit`. The maximum attempt number is one
+plus that retry limit. Attempts and revision are reducer outputs only. A state
+claiming a future phase attempt, exceeding a phase retry limit, omitting a
+materialized prior attempt, or placing revision below the materialized attempt
+history is invalid.
+
+`phase-checkpoint-v1` requires `profileId` in addition to execution ID and
+version. The R1A reducer accepts separately validated previous state,
+checkpoint, envelope, authoritative pipeline declaration, CTX-04 manifest,
+optional CTX-05 manifest, and optional typed `HostAuthorityContext`. It never
+accepts a proposed next run state. All records must bind to the envelope's one
+execution/version/profile. The reducer recompiles the CTX-04 manifest from the
+authoritative framework sources and validates the CTX-05 manifest's execution
+and workspace identities before using either. A missing workspace binding or a
+same-execution manifest from a different workspace fails closed.
+
+All nested factual `evidenceRefs` resolve against CTX-05 and the current phase
+evidence policy. Top-level handoff `evidenceRefs` resolve against the requested
+target phase policy. An absent ID, wrong collection status, wrong kind, or
+cross-execution manifest fails closed.
+
+Approval prose and approval requests remain untrusted. Requests may name only
+profile-declared human gates, and only `evaluate_checkpoint` with a matching
+typed host authority can resolve them. Terminal completion must request every
+declared gate exactly once and receive matching host approval records. An
+unresolved approval or model-reported block derives `blocked` state without an
+attempt increment. A blocked state can reconsider only its same accepted
+checkpoint, with matching authority; authority cannot enlarge `retryLimit`.
+
+`partial` and `blocked` permit only `repeat-current-phase`. `complete` permits
+only the immediately next declared phase, or `stop` from the final declared
+phase. Consequently `completed` can be derived only at the pipeline terminal.
+Completed and interrupted states reject further R1A transitions.
+
+R1A remains the pure validation/reduction boundary. Durable publication is the
+separate R1B protocol below. CTX-06C and later provider execution remain outside
+this contract.
+
+## Immutable transition publication (CTX-06B-R1B)
+
+`accept-checkpoint` and `resume` never publish checkpoint, next state, and next
+phase input as independent authoritative files. The host first derives the
+complete operation in memory. It hashes the canonical previous state, canonical
+checkpoint, operation kind, and (for resume) typed host-authority snapshot to
+derive `T-<sha256>`. It then materializes one private mode-`0700` staging tree,
+re-reads every canonical record through held descriptors, and publishes the
+whole transition directory with a single kernel no-replace rename. The final
+bundle name is immutable: identical publication converges on the existing
+bytes, while any digest/content mismatch fails closed.
+
+The bundle manifest records the previous revision, previous state digest,
+previous transition ID, checkpoint and authority digests, resulting state
+digest, fixed local references, and the reducer's effective-authority result.
+The bundled next state names the same transition ID and previous-state digest.
+An active result contains exactly one derived `phase-input-v1.json`; blocked or
+completed results contain none. A resume additionally contains the validated
+host-authority snapshot used by the reducer.
+
+Bundle visibility is not the authority boundary. `run-state-v1.json` is the
+single mutable HEAD and is replaced once, using the exact previously read bytes
+as the CAS expectation. Writers hold the inode-stable run-local lock while they
+re-read that expectation and perform the atomic replacement, so a losing writer
+never transiently publishes its state before discovering the conflict. Only the
+bundle whose transition ID is named by the
+committed HEAD is current; earlier authoritative bundles remain reachable
+through `previousTransitionId`. A published bundle that lost or has not yet
+reached the CAS is immutable but non-authoritative. Therefore its checkpoint
+and phase input cannot become authoritative merely by existing, and a
+checkpoint is authoritative only while reachable from the committed HEAD
+chain. Consumers must resolve current phase input through HEAD's transition ID,
+never by directory discovery.
+
+An exact retry has the same operation digest and transition ID. If its bundle
+is already in the committed chain, the operation returns idempotently. If the
+bundle is published and its previous-state digest still equals HEAD, the host
+replays only the HEAD CAS. `reconcile` applies the same rule and deterministically
+selects at most one eligible published bundle; repeated reconciliation after a
+commit is a no-op. A reused checkpoint/operation identity with different
+checkpoint or authority bytes is a conflicting duplicate and is rejected.
+When competing valid operations start from one HEAD, immutable publication may
+leave multiple candidates, but only one exact-byte CAS can advance revision;
+all losers remain non-authoritative and stale. Concurrent identical resume
+operations converge on one deterministic bundle and one committed revision.
+
+R1B performs no provider call and adds no provider dispatch, lifecycle events,
+metrics, or CTX-06C+ behavior.
+
+### CTX-06B-R1D post-exchange cleanup
+
+For the existing-destination run-state CAS, atomic exchange leaves the new HEAD
+at `run-state-v1.json` and the displaced expected HEAD at the writer's private
+temporary name. Immediately after exchange the writer changes the temporary's
+tracked identity to the displaced inode, verifies it is the exact observed CAS
+expectation, and unlinks it relative to the held run-directory FD with no-follow
+classification. Successful operation includes directory synchronization and
+leaves no private temporary.
+
+If the process dies after exchange and before unlink, the new HEAD remains the
+authority boundary. Reconciliation first validates and replays its complete
+immutable transition chain, then derives the exact previous state of the
+transition currently named by HEAD. It may delete one run-state temporary only
+when that entry is a regular no-follow FD read whose canonical bytes and digest
+equal that derived previous state and whose namespace identity remains stable.
+The private filename is discovery input only, never deletion authority.
+Multiple candidates, malformed names, changed identities, non-regular entries,
+unexpected bytes, stale previous states, or an uncommitted relationship are
+ambiguous and fail closed without deletion.
+
+## Permanent transition fault verification (CTX-06B-R1C)
+
+R1C adds no state-machine or publication semantics. Its permanent zero-token
+fault matrix interrupts checkpoint acceptance, next-phase input construction,
+both sides of bundle publication, the publication primitive itself, both sides
+of HEAD CAS, the CAS primitive itself, retry, and crash reconciliation. Every
+case re-opens canonical HEAD and replays its complete reachable transition chain
+before exercising the permitted retry or reconciliation path.
+
+The same matrix injects concurrent resume and rejects resume without matching
+authority, forged state/history, foreign CTX-04 and CTX-05 manifests, nested
+unknown evidence references, retry beyond the declared limit, and non-terminal
+early stop. Assertions distinguish visible immutable candidates from the single
+authority named by HEAD; no candidate checkpoint or phase input is treated as
+authoritative through directory visibility.
+
+## Fresh provider phase integration (CTX-06C)
+
+CTX-06C adds two consumers above the unchanged CTX-06A/06B authority boundary:
+
+```text
+mana-context-pipeline.sh prepare-phase <execution-id> ...
+run-profile-v2.sh <execution-id> --project-root <root> ...
+```
+
+`prepare-phase` revalidates all run records, workspace identity, the
+authoritative CTX-04 derivation, and the entire committed transition chain. It
+selects current input only from the initial immutable record or from the
+bundle named by HEAD. Its internal phase-execution packet contains canonical
+copies of the envelope, context manifest, current policy/input, and optional
+previous checkpoint. It contains no provider output, transcript, raw evidence,
+permission override, alternate phase selector, or caller-owned path to reopen.
+
+Provider work is serialized by the mode-`0600` run-local
+`.provider-phase.lock`. The lock prevents duplicate invocation by cooperating
+hosts; it is not a second state authority. `run-state-v1.json`, its exact-byte
+CAS, and the reachable immutable bundle chain retain all transition authority.
+
+Before the first model call, the host validates a fresh CTX-02 capability
+report for the run's declared provider. `freshInvocation`, `ephemeralSession`,
+`explicitModelSelection`, and `hardSubagentDisable` must be `supported`.
+Neither `unknown` nor `unsupported` is treated as support. All phase workers
+are child-free in CTX-06C, including a declaration of `subagents: optional`;
+CTX-07 owns any later provider-managed child adapter. A missing native
+structured-output capability may use an explicitly reported host-validation
+fallback because every result still passes the same mandatory schema and
+semantic validator. Isolation and model-selection capabilities have no prompt-
+only fallback.
+
+The provider prompt includes the exact canonical execution envelope on every
+invocation, plus only current phase data and the prior validated checkpoint.
+The invocation is read-only. Model tier comes exclusively from the current
+authoritative phase policy and maps to the configured provider economy/full
+model; model output cannot select it. The CTX-06C provider transport accepts
+only `phase-checkpoint-v1`. An invalid JSON object, wrong schema, wrong
+execution/profile/phase binding, invalid evidence, permission-shaped state, or
+illegal next action is rejected before or by `accept-checkpoint` and cannot
+advance HEAD. Provider or semantic failures are not automatically retried.
+
+Provider streams and unvalidated final output exist only in private temporary
+files. After validation, the checkpoint becomes durable only inside the
+immutable transition bundle and only the winning CAS makes it authoritative.
+An interrupted later phase therefore leaves the last committed checkpoint and
+derived phase input resumable, without retaining a provider transcript.
+
+CTX-06C lifecycle events are additive operational metadata. They expose phase,
+ordinal, attempt, model tier, provider, transition status, and evidence IDs,
+never prompts, response content, checkpoint claims, source content, tool
+payloads, credentials, reasoning, or usage values. Usage remains on the
+separate CTX-01 surface. The existing aggregate files stay at:
+
+```text
+.mana/runtime/metrics/<execution-id>/usage-summary-v1.{json,md}
+```
+
+Per-invocation numeric records are stored below `phases/` and the aggregate
+`phases` array records phase ID, ordinal, semantic attempt, invocation number,
+provider version, status, numeric totals, and bounded operational counts.
+Absent provider values remain `null`; totals do not estimate them. Raw traces
+are deleted by default. Explicit debug retention moves each trace to its
+matching phase record with mode `0600`.
+
+The public legacy renderer/runner remains selected unless the caller explicitly
+requests `v2` and supplies an existing initialized execution. A missing or
+invalid run, unsupported phase output schema, provider capability gap, or
+runtime error fails closed and never causes an implicit legacy execution.
+
+## Delegation ownership and merge contracts (CTX-07A)
+
+`delegation-plan-v1`, every contained `delegation-task-v1`, and every
+`delegation-result-v1` carry the same required binding tuple:
+
+```text
+executionId, executionVersion, workspaceId, profileId, phaseId, attempt,
+planId, taskId, taskDigest
+```
+
+The plan itself omits only task-specific `taskId` and `taskDigest`. `bind-plan`
+copies the phase tuple only from the packet selected through CTX-06B HEAD,
+derives `questionKey` from canonical question + typed scope + task type +
+expected output, derives `ownershipKey` from question key + owner, derives
+`planId` from canonical validated plan identity bytes, and finally derives each
+`taskDigest` from the canonical fully bound task. Validation recomputes all
+values. Absolute paths and sensitive material are not valid identity fields.
+
+Canonical question identity is exact and deterministic. The same derived
+`questionKey` cannot occur in two tasks, even with different owners, and a task
+ID cannot occur twice. No semantic equivalence between paraphrases is implied.
+
+Task authority is structural. `effectClass` is exactly `read`,
+`delegationAllowed` is false, `maxChildDepth` is zero, and `taskType` belongs to
+the versioned read-only action enum. A packet explicitly carries typed scope,
+skills, expected output, bounded stop conditions, `evidenceRefs`, and
+`evidenceGaps`. Unknown fields are rejected, including instructions, commands,
+tools, permissions, authority, approvals, transcript/history, ambient context,
+or nested delegation. Question prose cannot alter these fields. CTX-07B owns
+runtime sandbox and child-tool enforcement; CTX-07A only proves that accepted
+contracts request no broader capability.
+
+`evidenceRefs` are canonical CTX-05 IDs. They must exist in the authoritative
+manifest, match its execution/workspace, be explicitly available in the
+current phase input, and satisfy current phase kind/status policy.
+`evidenceGaps` are bounded `{description, kind, impact}` records. They are not
+manifest IDs, are not resolved through CTX-05, grant no authority, and cannot
+be cited as evidence for a fact.
+
+`bind-result` copies the binding tuple and owner from the validated task. Its
+`resultDigest` is SHA-256 over canonical result identity after omitting only
+the digest field and repeated `sourceResultDigest` values; the host then writes
+that digest into every point-provenance record. Facts, findings, assumptions,
+inferences, open questions, evidence gaps, artifact references, and uncertainty
+all retain `taskId`, `planId`, `sourceResultDigest`, and pertinent evidence
+references. Facts, findings, and inferences require real task-authorized CTX-05
+evidence. The schema has no skill activation, scope expansion, permission,
+approval completion, owner replacement, transcript, reasoning, or bulk-evidence
+surface.
+
+`delegation-merge-v1` is lossless output, not state authority. It preserves the
+full canonical result per task plus canonical aggregate collections, exact
+point provenance, evidence/artifact references, uncertainty, missing task IDs,
+conflicts, and `complete|incomplete|conflicted` status. Result argument order
+cannot alter bytes. Unknown or duplicate task results fail; missing or
+non-complete results cannot produce `complete`. There is no last-write-wins.
+
+Claims use a host-validated `claimKey` derived from typed subject + predicate
+and an `affirmed|denied|uncertain` stance. Affirmed and denied claims sharing a
+key create an explicit conflict while both source elements remain present.
+Matching stances remain separate; different keys are neither agreement nor
+contradiction. CTX-07A performs no model synthesis.
+
+Central transport limits are 64 KiB plan, 32 KiB task, 64 KiB result, and
+256 KiB merge; task count is at most 32 and still capped by CTX-04
+`directWorkers`. Each result category is capped at 32 entries, task evidence
+gaps at 16, normal prose at 512 characters, and gap descriptions at 256.
+Schema cardinalities and host canonical-byte checks both fail closed.
+
+No CTX-07A command writes a run artifact, advances HEAD, invokes a provider,
+starts a subprocess provider, contacts a model/network, or enables a child.
+Those behaviors remain outside CTX-07A.

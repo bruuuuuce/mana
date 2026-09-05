@@ -11,7 +11,11 @@ tmp="$(mktemp -d "${TMPDIR:-/tmp}/mana-context-runtime-evidence.XXXXXX")"
 tmp="$(cd "$tmp" && pwd -P)"
 trap 'rm -rf "$tmp"' EXIT
 project="$tmp/project"
-mkdir -p "$project/inputs"
+workspace='.mana/sessions/evidence-fixture'
+export MANA_EVIDENCE_WORKSPACE="$workspace"
+mkdir -p "$project/inputs" "$project/$workspace"
+printf '%s\n' 'workspace_type: "session"' 'workspace_id: "evidence-fixture"' \
+  > "$project/$workspace/manifest.yaml"
 cp "$fixtures/source.txt" "$project/inputs/source.txt"
 cp "$fixtures/normalized.txt" "$project/inputs/normalized.txt"
 fail() { echo "FAIL: $*" >&2; exit 1; }
@@ -38,11 +42,25 @@ python3 "$root/tests/lib/json_schema_subset.py" "$schema" "$manifest" || fail 'm
 jq -e '
   .items as $items | $items[0] as $item |
   ($items | length == 1) and
+  .workspaceId == "W-61067c6356d57488b68dbe36cc5b578f63536d4c83d2e9f0ffb453f938e10ff2" and
   $item.sourcePayload.localPath != $item.normalizedRepresentation.localPath and
   $item.localPath == $item.normalizedRepresentation.localPath and
   $item.evidenceId != ("E-" + ($item.digest | ltrimstr("sha256:"))) and
   $item.sourceLocator == "https://example.test/source?access_token=%5BREDACTED%5D&revision=7"
 ' "$manifest" >/dev/null || fail 'blob/record identity or source/normalized separation is invalid'
+
+# Workspace identity is derived from the authorized Mana workspace. The same
+# execution cannot be rebound by supplying another workspace path, and callers
+# have no surface for supplying an arbitrary persisted workspaceId.
+mkdir -p "$project/.mana/sessions/other-evidence"
+printf '%s\n' 'workspace_type: session' 'workspace_id: other-evidence' \
+  > "$project/.mana/sessions/other-evidence/manifest.yaml"
+rejects "$cli" --project-root "$project" collect --execution execution-evidence-fixture \
+  --workspace .mana/sessions/other-evidence --kind source --source-system fixture \
+  --source-locator foreign-workspace --input inputs/source.txt --media-type text/plain
+rejects env -u MANA_EVIDENCE_WORKSPACE "$cli" --project-root "$project" collect \
+  --execution execution-missing-workspace --kind source --source-system fixture \
+  --source-locator missing-workspace --input inputs/source.txt --media-type text/plain
 
 # Redaction happens before digest, identity, or persistence for headers,
 # assignments, URI userinfo/query values, JSON fields, and forms.
@@ -207,7 +225,9 @@ rejects "$cli" --project-root "$project" collect --execution execution-other --k
 rg -F '## Context Runtime Evidence' "$project/.mana/features/evidence-index/evidence/index.md" >/dev/null || fail 'existing evidence index omitted CTX-05 evidence'
 
 wrapper_project="$tmp/wrapper-project"
-mkdir -p "$wrapper_project/inputs"
+mkdir -p "$wrapper_project/inputs" "$wrapper_project/$workspace"
+printf '%s\n' 'workspace_type: "session"' 'workspace_id: "evidence-fixture"' \
+  > "$wrapper_project/$workspace/manifest.yaml"
 cp "$fixtures/source.txt" "$wrapper_project/inputs/source.txt"
 "$root/scripts/bootstrap-project.sh" --project-root "$wrapper_project" >/dev/null
 "$wrapper_project/mana" evidence collect --execution execution-wrapper --kind source --source-system fixture --source-locator wrapper-fixture --input inputs/source.txt --media-type text/plain >/dev/null

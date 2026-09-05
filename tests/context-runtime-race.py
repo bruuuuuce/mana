@@ -517,11 +517,18 @@ with tempfile.TemporaryDirectory(prefix="mana-evidence-race-") as name:
         inputs.mkdir(parents=True)
         outside.mkdir(parents=True)
         (inputs / "source.txt").write_text("bounded source\n", encoding="utf-8")
+        workspace = project / ".mana/sessions/evidence-race"
+        workspace.mkdir(parents=True)
+        (workspace / "manifest.yaml").write_text(
+            'workspace_type: "session"\nworkspace_id: "evidence-race"\n',
+            encoding="utf-8",
+        )
         return project, outside, inputs
 
     def collect_args(project: Path, execution: str = "execution-race"):
         return evidence_args(
             project, "collect", "--execution", execution, "--kind", "source",
+            "--workspace", ".mana/sessions/evidence-race",
             "--source-system", "fixture", "--source-locator", "race-fixture",
             "--input", "inputs/source.txt", "--media-type", "text/plain",
         )
@@ -545,7 +552,7 @@ with tempfile.TemporaryDirectory(prefix="mana-evidence-race-") as name:
     evidence.runtime._TEST_READ_SYNC_HOOK = None
     assert fired[0]
     assert victim.read_text(encoding="utf-8") == "outside-secret\n"
-    assert not (project / ".mana").exists()
+    assert not (project / evidence.STORE_BASE).exists()
 
     # Ingest blob destination swap at the kernel publication boundary. The
     # late symlink is preserved and its outside referent is never modified.

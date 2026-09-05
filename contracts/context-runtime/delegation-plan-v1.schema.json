@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/delegation-plan-v1.schema.json",
+  "title": "Mana Context Runtime host delegation plan v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "executionId", "executionVersion", "workspaceId",
+    "profileId", "phaseId", "attempt", "planId", "tasks"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.delegation-plan/v1"},
+    "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},
+    "executionVersion": {"type": "integer", "minimum": 1},
+    "workspaceId": {"type": "string", "pattern": "^W-[a-f0-9]{64}$"},
+    "profileId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
+    "phaseId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"},
+    "attempt": {"type": "integer", "minimum": 1, "maximum": 17},
+    "planId": {"type": "string", "pattern": "^P-[a-f0-9]{64}$"},
+    "tasks": {
+      "type": "array", "minItems": 1, "maxItems": 32,
+      "items": {"$ref": "delegation-task-v1.schema.json"}
+    }
+  }
+}

@@ -5,7 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "schemaVersion", "checkpointId", "executionId", "executionVersion", "phaseId", "status",
+    "schemaVersion", "checkpointId", "executionId", "executionVersion", "profileId", "phaseId", "status",
     "verifiedFacts", "assumptions", "inferences", "openQuestions",
     "closedHypotheses", "candidateFindings", "approvalRequests",
     "activatedSkills", "evidenceRefs", "nextActionRequest"
@@ -15,6 +15,7 @@
     "checkpointId": {"type": "string", "pattern": "^C-[A-Za-z0-9._-]{1,120}$"},
     "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},
     "executionVersion": {"type": "integer", "minimum": 1},
+    "profileId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
     "phaseId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"},
     "status": {"type": "string", "enum": ["complete", "partial", "blocked"]},
     "verifiedFacts": {"$ref": "model-fact-v1.schema.json#/$defs/facts"},

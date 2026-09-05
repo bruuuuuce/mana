@@ -4,10 +4,11 @@
   "title": "Mana Context Runtime evidence manifest v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "executionId", "items"],
+  "required": ["schemaVersion", "executionId", "workspaceId", "items"],
   "properties": {
     "schemaVersion": {"const": "mana.context-runtime.evidence-manifest/v1"},
     "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},
+    "workspaceId": {"type": "string", "pattern": "^W-[a-f0-9]{64}$"},
     "items": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/item"}}
   },
   "$defs": {

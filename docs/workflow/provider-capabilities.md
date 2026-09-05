@@ -136,6 +136,23 @@ to supported by the capability report. High-risk work must continue to return
 host-launched phase workers remain the reliable fallback planned for later
 phases.
 
+## CTX-06C phase-worker gate
+
+The fresh-phase runner consumes this report mechanically. It requires
+`freshInvocation`, `ephemeralSession`, `explicitModelSelection`, and
+`hardSubagentDisable` to be `supported` before any model call. An unknown state
+is a capability gap, not permission to approximate the control with prompt
+text. All CTX-06C phase workers disable provider-managed children; optional
+child execution is deferred to CTX-07.
+
+Native `structuredOutputSchema` support is used when proven. When that one
+transport capability is unknown or unsupported, mandatory host validation is
+an explicit safe fallback: the limitation is warned and recorded, and invalid
+output cannot advance HEAD. The isolation/model gates have no such fallback.
+With the current probes Codex and Claude can satisfy the phase-worker gate;
+OpenCode cannot yet prove `hardSubagentDisable` and is rejected before a model
+invocation.
+
 ## Failures and privacy
 
 Missing binaries, version failures, command-level help/probe failures, malformed versions,

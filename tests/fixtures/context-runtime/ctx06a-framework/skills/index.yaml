@@ -1,0 +1,7 @@
+skills:
+  - id: ctx06a-fixture-skill
+    path: skills/ctx06a-fixture-skill/SKILL.md
+    risk_level: low
+    model_tier: economy
+    execution_mode: read
+    delegation_group: unspecified

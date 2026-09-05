@@ -12,6 +12,21 @@ For each execution Mana writes only the following metric artifacts:
   usage-summary-v1.md
 ```
 
+CTX-06C retains those canonical aggregate paths and adds bounded per-invocation
+records below the same private execution directory:
+
+```text
+.mana/runtime/metrics/<execution-id>/phases/
+  <ordinal>-<phase>-attempt-<n>-invocation-<n>.json
+  <ordinal>-<phase>-attempt-<n>-invocation-<n>-raw-provider-events.jsonl  # debug opt-in only
+```
+
+The aggregate JSON `phases` array carries phase ID, ordinal, semantic attempt,
+provider invocation number, provider version, status, numeric usage, and
+operational counts. Aggregate totals sum only values actually reported; an
+entirely unreported field remains `null`. Existing single-invocation summaries
+with `phases: []` remain valid.
+
 The JSON document follows
 `contracts/context-runtime/usage-summary-v1.schema.json`. It contains numeric
 provider usage when supplied by the provider, bounded operational counts, and
@@ -43,6 +58,8 @@ Mana prints a warning and stores the raw stream as
 `raw-provider-events.jsonl` beside the summary with restrictive permissions.
 That file can contain sensitive provider data and must not be treated as a
 delivery artifact. Retention is opt-in; invalid values fail the invocation.
+For a phased run, each retained trace is moved to its matching phase metric
+record before the next provider starts, so traces cannot overwrite one another.
 
 Summaries contain no prompts, final messages, responses, tool payloads, source
 content, environment-variable values, credentials, personal notes, or private

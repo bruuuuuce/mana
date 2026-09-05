@@ -135,13 +135,17 @@ def _missing_contract_error(error: runtime.ContractError) -> bool:
     return False
 
 
-def validate_manifest(value: dict[str, Any], execution: str | None = None) -> None:
+def validate_manifest(
+    value: dict[str, Any], execution: str | None = None, workspace_id: str | None = None,
+) -> None:
     try:
         runtime.validate_model("evidence-manifest", value)
     except runtime.ContractError as error:
         fail(f"invalid local evidence manifest: {error}")
     if execution is not None and value["executionId"] != execution:
         fail("local evidence manifest execution mismatch")
+    if workspace_id is not None and value["workspaceId"] != workspace_id:
+        fail("local evidence manifest workspace mismatch")
     for item in value["items"]:
         if sanitize_locator(item["sourceLocator"]) != item["sourceLocator"]:
             fail("local evidence manifest contains an unsanitized source locator")
@@ -153,14 +157,23 @@ def validate_manifest(value: dict[str, Any], execution: str | None = None) -> No
                 fail("local evidence manifest contains unsafe gap metadata")
 
 
-def load_manifest(root: Path, execution: str, *, create: bool) -> tuple[dict[str, Any], bytes | None]:
+def load_manifest(
+    root: Path, execution: str, *, create: bool, workspace_id: str | None = None,
+) -> tuple[dict[str, Any], bytes | None]:
     relative = manifest_relative(execution)
     try:
         payload = runtime.safe_read_bytes(Path(relative), project_root=root, max_bytes=256 * 1024)
     except runtime.ContractError as error:
         if create and _missing_contract_error(error):
-            value = {"schemaVersion": SCHEMA, "executionId": execution, "items": []}
-            validate_manifest(value, execution)
+            if workspace_id is None:
+                fail("workspace binding is required to create an evidence manifest")
+            value = {
+                "schemaVersion": SCHEMA,
+                "executionId": execution,
+                "workspaceId": workspace_id,
+                "items": [],
+            }
+            validate_manifest(value, execution, workspace_id)
             return value, None
         if _missing_contract_error(error):
             fail(f"no evidence manifest for {execution}")
@@ -171,7 +184,7 @@ def load_manifest(root: Path, execution: str, *, create: bool) -> tuple[dict[str
         fail(f"invalid local evidence manifest: {error}")
     if not isinstance(value, dict):
         fail("invalid local evidence manifest: expected an object")
-    validate_manifest(value, execution)
+    validate_manifest(value, execution, workspace_id)
     return value, payload
 
 
@@ -180,10 +193,11 @@ def read_manifest(root: Path, execution: str, *, create: bool) -> dict[str, Any]
 
 
 def write_manifest(
-    root: Path, execution: str, value: dict[str, Any], *, expected_current: bytes | None,
+    root: Path, execution: str, workspace_id: str, value: dict[str, Any], *,
+    expected_current: bytes | None,
 ) -> None:
     value["items"] = sorted(value["items"], key=lambda item: item["evidenceId"])
-    validate_manifest(value, execution)
+    validate_manifest(value, execution, workspace_id)
     runtime.atomic_write_bytes(
         root, manifest_relative(execution), canonical(value) + b"\n",
         expected_current=expected_current,
@@ -428,6 +442,13 @@ def _record_without_timestamp(item: dict[str, Any]) -> bytes:
 def collect(args: argparse.Namespace) -> None:
     root = project_root(args.project_root)
     execution = require_execution(args.execution)
+    workspace = args.workspace or os.environ.get("MANA_EVIDENCE_WORKSPACE")
+    if not workspace:
+        fail("collect requires an authorized --workspace")
+    try:
+        workspace_id = runtime.derive_workspace_id(root, workspace)
+    except runtime.ContractError as error:
+        fail(f"invalid evidence workspace: {error}")
     kind_name = require_identifier("kind", args.kind)
     source_system = require_identifier("source system", args.source_system)
     if args.sensitivity not in SENSITIVITIES:
@@ -487,17 +508,19 @@ def collect(args: argparse.Namespace) -> None:
         item["collectionError"] = collection_error
     if gaps:
         item["gaps"] = gaps
-    item["evidenceId"] = runtime.evidence_record_id(execution, item)
+    item["evidenceId"] = runtime.evidence_record_id(execution, workspace_id, item)
 
     # All caller input and the prospective complete manifest are validated
     # before any evidence byte is written.
     initialize_store(root)
     runtime.ensure_secure_directory(root, f"{EXECUTIONS_DIR}/{execution}")
-    manifest, manifest_payload = load_manifest(root, execution, create=True)
+    manifest, manifest_payload = load_manifest(
+        root, execution, create=True, workspace_id=workspace_id
+    )
     existing = next((value for value in manifest["items"] if value["evidenceId"] == item["evidenceId"]), None)
     if existing is None:
         prospective = {**manifest, "items": [*manifest["items"], item]}
-        validate_manifest(prospective, execution)
+        validate_manifest(prospective, execution, workspace_id)
     else:
         if _record_without_timestamp(existing) != _record_without_timestamp(item):
             fail("evidence record identity collision or manifest tamper detected")
@@ -509,7 +532,9 @@ def collect(args: argparse.Namespace) -> None:
         runtime.atomic_write_bytes(root, item["sourcePayload"]["localPath"], source, immutable=True)
         runtime.atomic_write_bytes(root, item["normalizedRepresentation"]["localPath"], normalized, immutable=True)
     manifest["items"].append(item)
-    write_manifest(root, execution, manifest, expected_current=manifest_payload)
+    write_manifest(
+        root, execution, workspace_id, manifest, expected_current=manifest_payload
+    )
     emit({"evidenceId": item["evidenceId"], "collectionStatus": status, "deduplicated": False})
 
 
@@ -623,6 +648,7 @@ def parser() -> argparse.ArgumentParser:
     sub = result.add_subparsers(dest="command", required=True)
     collect_parser = sub.add_parser("collect")
     collect_parser.add_argument("--execution", required=True)
+    collect_parser.add_argument("--workspace")
     collect_parser.add_argument("--kind", required=True)
     collect_parser.add_argument("--source-system", required=True)
     collect_parser.add_argument("--source-locator", required=True)

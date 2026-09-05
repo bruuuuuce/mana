@@ -76,6 +76,8 @@ manifest_requested_skills=()
 manifest_deep_load_skills=()
 manifest_validation_args=()
 compiled_manifest=""
+context_runtime_version="${MANA_CONTEXT_RUNTIME_VERSION:-legacy}"
+runtime_execution_id=""
 
 usage() {
   cat <<'USAGE'
@@ -117,6 +119,8 @@ Options:
   --static-signal <id>          Declared host activation input used to compile the manifest.
   --request-skill <id>          Declared semantic activation request used to compile the manifest.
   --deep-load-skill <id>        Active skill selected for instruction-body loading.
+  --context-runtime <mode>      Select legacy (default) or the opt-in v2 phase runner.
+  --runtime-execution-id <id>   Existing CTX-06A run to execute in v2 mode.
 
 Story Start Scope v2 opt-in:
   MANA_STORY_START_SCOPE_VERSION=v2
@@ -367,6 +371,16 @@ while [ "$#" -gt 0 ]; do
       manifest_deep_load_skills+=("$2")
       shift 2
       ;;
+    --context-runtime)
+      context_runtime_version="${2:-}"
+      [ -n "$context_runtime_version" ] || { echo "ERROR: --context-runtime requires legacy or v2" >&2; exit 2; }
+      shift 2
+      ;;
+    --runtime-execution-id)
+      runtime_execution_id="${2:-}"
+      [ -n "$runtime_execution_id" ] || { echo "ERROR: --runtime-execution-id requires an id" >&2; exit 2; }
+      shift 2
+      ;;
     --*)
       echo "ERROR: unknown option: $1" >&2
       exit 2
@@ -505,6 +519,30 @@ opencode_effective_max_threads="$opencode_max_threads"; opencode_effective_max_d
 : "${opencode_full_model:=$opencode_model}"
 : "${opencode_explorer_model:=$opencode_model}"
 : "${opencode_worker_model:=$opencode_model}"
+
+case "$context_runtime_version" in
+  legacy) ;;
+  v2)
+    [ "$render_only" = false ] || { echo 'ERROR: --render-only is a legacy renderer; execute an initialized run for context runtime v2' >&2; exit 2; }
+    [ -n "$runner" ] || { echo 'ERROR: context runtime v2 requires one provider runner flag' >&2; exit 2; }
+    runtime_execution_id="${runtime_execution_id:-${MANA_RUNTIME_EXECUTION_ID:-${manifest_execution_id:-}}}"
+    [ -n "$runtime_execution_id" ] || { echo 'ERROR: context runtime v2 requires --runtime-execution-id or MANA_RUNTIME_EXECUTION_ID' >&2; exit 2; }
+    [ "$publish_high_risk_comments" = false ] || { echo 'ERROR: CTX-06C is read-only and cannot publish PR comments' >&2; exit 2; }
+    [ "$service_discovery_approved" = false ] || { echo 'ERROR: CTX-06C does not implement profile-specific service discovery' >&2; exit 2; }
+    v2_args=(
+      "$runtime_execution_id" --project-root "$project_root" --framework-root "$root"
+      --profile "$profile" --provider "$runner"
+      --codex-model "$codex_model" --codex-full-model "$codex_full_model"
+      --claude-model "$claude_model" --claude-full-model "$claude_full_model"
+      --opencode-model "$opencode_model" --opencode-full-model "$opencode_full_model"
+    )
+    for value in "${manifest_static_signals[@]}"; do v2_args+=(--static-signal "$value"); done
+    for value in "${manifest_requested_skills[@]}"; do v2_args+=(--request-skill "$value"); done
+    for value in "${manifest_deep_load_skills[@]}"; do v2_args+=(--deep-load-skill "$value"); done
+    exec "$root/scripts/run-profile-v2.sh" "${v2_args[@]}"
+    ;;
+  *) echo 'ERROR: context runtime must be legacy or v2' >&2; exit 2 ;;
+esac
 
 current_branch=""
 if git -C "$project_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then

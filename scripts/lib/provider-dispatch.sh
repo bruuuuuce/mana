@@ -53,6 +53,44 @@ mana_provider_usage_args() {
   esac
 }
 
+# CTX-06C fresh phase worker.  Every adapter is read-only and mechanically
+# disables provider-managed children; optional children are a CTX-07 concern.
+# The final argument states whether the current CTX-02 probe proved native
+# schema enforcement.  Host validation remains mandatory in either case.
+mana_provider_phase_args() {
+  local provider="$1" project="$2" model="$3" output_schema="$4" native_schema="${5:-false}" schema_json=""
+  MANA_PROVIDER_ARGS=()
+  MANA_PROVIDER_OPENCODE_CONFIG_CONTENT=""
+  MANA_PROVIDER_PHASE_OUTPUT_MODE="direct-json"
+  case "$native_schema" in true|false) ;; *) return 1 ;; esac
+  [ -f "$output_schema" ] && [ ! -L "$output_schema" ] || return 1
+  case "$provider" in
+    codex)
+      MANA_PROVIDER_ARGS=(--ask-for-approval never exec)
+      [ "$native_schema" = false ] || MANA_PROVIDER_ARGS+=(--output-schema "$output_schema")
+      MANA_PROVIDER_ARGS+=(--model "$model" --cd "$project" --sandbox read-only --ephemeral --ignore-user-config)
+      MANA_PROVIDER_ARGS+=(--disable multi_agent --disable multi_agent_v2 -c "agents.max_threads=1" -c "agents.max_depth=0" -c "agents.interrupt_message=false")
+      ;;
+    claude)
+      MANA_PROVIDER_ARGS=(-p --model "$model" --permission-mode default --safe-mode --no-session-persistence --disable-slash-commands --disallowedTools 'Agent,Bash,Edit,Write,WebFetch,WebSearch')
+      if [ "$native_schema" = true ]; then
+        schema_json="$(jq -c . "$output_schema")" || return 1
+        MANA_PROVIDER_ARGS+=(--output-format json --json-schema "$schema_json")
+        MANA_PROVIDER_PHASE_OUTPUT_MODE="claude-structured-json"
+      fi
+      ;;
+    opencode)
+      # CTX-02 proves the inline Task deny but does not currently prove hard
+      # subagent disable.  CTX-06C's capability gate therefore rejects this
+      # adapter before invocation; keep its argv deterministic for a future
+      # capability improvement without claiming support now.
+      MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn --arg model "$model" '{agent:{mana_ctx06_phase:{description:"Mana read-only fresh phase worker",mode:"primary",model:$model,permission:{task:"deny",edit:"deny",bash:"deny"}}}}')" || return 1
+      MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model" --agent mana_ctx06_phase --pure)
+      ;;
+    *) return 1 ;;
+  esac
+}
+
 mana_provider_repair_args() {
   local provider="$1" project="$2" model="$3"
   MANA_PROVIDER_ARGS=()

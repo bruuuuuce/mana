@@ -1,0 +1,26 @@
+name: ctx06a-missing-gate
+trigger: test_fixture
+runner: codex
+agents:
+  - ctx06a-fixture-agent
+skills:
+  - ctx06a-fixture-skill
+skill_activation:
+  baseline:
+    - ctx06a-fixture-skill
+  conditional:
+context_runtime:
+  version: 2
+  workspace_kind: session
+  target_kind: pull_request
+  human_gates: []
+  pipeline:
+    - id: classify
+      ordinal: 1
+      model_tier: economy
+      output_schema: phase-checkpoint-v1
+      subagents: forbidden
+      evidence_kinds: [source]
+      evidence_statuses: [complete]
+      retry_limit: 1
+human_approval_requirement: true

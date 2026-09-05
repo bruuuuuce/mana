@@ -23,6 +23,10 @@ tests=(
   context-runtime-schemas.sh
   context-runtime-profile-compiler.sh
   context-runtime-evidence-store.sh
+  context-runtime-phase-runner.sh
+  context-runtime-phase-resume.sh
+  context-runtime-phase-provider.sh
+  context-runtime-delegation.sh
   divination.sh
   epic-analysis-profile.sh
   explorer-retrieval.sh

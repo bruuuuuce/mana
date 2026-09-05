@@ -22,6 +22,14 @@ artifact, and approval-recorded events are intentionally deferred: current
 runners do not expose a safe structured callback for them, and Mana will not
 infer them from model transcripts.
 
+CTX-06C additionally emits `phase.started`, `provider.invoked`,
+`provider.completed`, `phase.checkpoint.accepted`, `phase.completed`,
+`phase.blocked`, `phase.failed`, `phase.interrupted`, and an explicit
+`provider.capability-fallback` when host schema validation replaces an
+unproven native schema transport. These events contain phase/attempt/status and
+evidence IDs only. They never contain the phase prompt, checkpoint claims,
+provider response, event stream, source content, or usage counters.
+
 Deterministic `mana verify` executions use the same envelope with
 `verification.started`, `check.started`, `check.passed`, `check.failed`,
 `check.blocked`, `check.inconclusive`, `evidence.created`, and

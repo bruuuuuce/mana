@@ -31,6 +31,11 @@ MODEL_KINDS = {
 STRUCTURAL_ONLY_KINDS = {
     "execution-envelope": "execution-envelope-v1.schema.json",
     "context-manifest": "context-manifest-v1.schema.json",
+    "provider-capabilities": "provider-capabilities-v1.schema.json",
+    "run-state": "run-state-v1.schema.json",
+    "transition-bundle": "transition-bundle-v1.schema.json",
+    "delegation-plan": "delegation-plan-v1.schema.json",
+    "delegation-merge": "delegation-merge-v1.schema.json",
 }
 HOST_AUTHORITY_SCHEMA = "host-authority-context-v1.schema.json"
 
@@ -43,15 +48,32 @@ MAX_BYTES: dict[str, int | None] = {
     "evidence-manifest": 256 * 1024,
     "phase-input": 64 * 1024,
     "phase-checkpoint": 16 * 1024,
+    "provider-capabilities": 64 * 1024,
+    "run-state": 16 * 1024,
+    "transition-bundle": 32 * 1024,
+    "delegation-plan": 64 * 1024,
+    "delegation-merge": 256 * 1024,
     "delegation-task": 32 * 1024,
-    "delegation-result": 16 * 1024,
+    "delegation-result": 64 * 1024,
     "finding-validation": 16 * 1024,
     "usage-summary": None,
+}
+DELEGATION_LIMITS = {
+    "tasks": 32,
+    "skillsPerTask": 16,
+    "evidenceRefsPerTask": 64,
+    "taskEvidenceGaps": 16,
+    "claimsPerCategory": 32,
+    "questions": 32,
+    "gaps": 32,
+    "artifactRefs": 32,
+    "proseChars": 512,
+    "gapDescriptionChars": 256,
 }
 PATH_FIELD_NAMES = {"projectroot", "workspace", "localpath", "outputpath"}
 PROSE_FIELD_NAMES = {
     "claim", "question", "reason", "objective", "requiredevidence",
-    "nextaction", "description",
+    "nextaction", "description", "constraints", "stopconditions",
 }
 MAX_PROSE_LINES = 4
 DIFF_HEADER = re.compile(r"(?m)^diff --git |^--- [^\n]+\n\+\+\+ [^\n]+\n@@ ")
@@ -315,15 +337,53 @@ def semantic_validate(kind: str, value: dict[str, Any]) -> None:
         for index, fact in enumerate(value.get(facts_key, [])):
             if not fact.get("evidenceRefs"):
                 raise ContractError(f"{facts_key}[{index}]: facts require evidence references")
-    for index, question in enumerate(value.get("openQuestions", [])):
-        if not question.get("requiredEvidence"):
-            raise ContractError(f"openQuestions[{index}]: required evidence is mandatory")
+    if kind != "delegation-result":
+        for index, question in enumerate(value.get("openQuestions", [])):
+            if not question.get("requiredEvidence"):
+                raise ContractError(f"openQuestions[{index}]: required evidence is mandatory")
 
 
-def evidence_record_identity(execution_id: str, item: dict[str, Any]) -> bytes:
+def derive_workspace_id(project_root: Path, workspace: str) -> str:
+    """Derive a non-path workspace identity from one authorized Mana workspace."""
+    if not is_safe_relative_path(workspace):
+        raise ContractError("workspace must be a safe project-relative path")
+    components = workspace.split("/")
+    if (
+        len(components) != 3
+        or components[0] != ".mana"
+        or components[1] not in {"features", "sessions"}
+        or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,119}", components[2]) is None
+    ):
+        raise ContractError("workspace must name one canonical Mana feature or session workspace")
+    workspace_kind = "feature" if components[1] == "features" else "session"
+    safe_list_directory(project_root, workspace)
+    payload = safe_read_bytes(
+        Path(f"{workspace}/manifest.yaml"), project_root=project_root, max_bytes=16 * 1024
+    )
+    try:
+        manifest = payload.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise ContractError(f"workspace manifest is not UTF-8: {error}") from error
+    expected = {"workspace_type": workspace_kind, "workspace_id": components[2]}
+    for key, value in expected.items():
+        observed = re.findall(rf"(?m)^{key}:[ ]*(.*?)[ ]*$", manifest)
+        if observed not in ([value], [f'"{value}"']):
+            raise ContractError("workspace manifest does not authorize the requested workspace identity")
+    identity = {
+        "identityVersion": "mana.context-runtime.workspace-identity/v1",
+        "workspaceKind": workspace_kind,
+        "workspaceName": components[2],
+    }
+    return "W-" + hashlib.sha256(canonical_bytes(identity)).hexdigest()
+
+
+def evidence_record_identity(
+    execution_id: str, workspace_id: str, item: dict[str, Any]
+) -> bytes:
     """Return the canonical, timestamp-independent CTX-05 record identity."""
     return canonical_bytes({
         "executionId": execution_id,
+        "workspaceId": workspace_id,
         "kind": item["kind"],
         "sourceSystem": item["sourceSystem"],
         "sourceLocator": item["sourceLocator"],
@@ -340,18 +400,21 @@ def evidence_record_identity(execution_id: str, item: dict[str, Any]) -> bytes:
     })
 
 
-def evidence_record_id(execution_id: str, item: dict[str, Any]) -> str:
-    return "E-" + hashlib.sha256(evidence_record_identity(execution_id, item)).hexdigest()
+def evidence_record_id(execution_id: str, workspace_id: str, item: dict[str, Any]) -> str:
+    return "E-" + hashlib.sha256(
+        evidence_record_identity(execution_id, workspace_id, item)
+    ).hexdigest()
 
 
 def semantic_validate_evidence_manifest(value: dict[str, Any]) -> None:
     """Validate CTX-05 identities and payload/status invariants."""
     execution_id = value["executionId"]
+    workspace_id = value["workspaceId"]
     identifiers: list[str] = []
     for index, item in enumerate(value["items"]):
         identifier = item["evidenceId"]
         identifiers.append(identifier)
-        if identifier != evidence_record_id(execution_id, item):
+        if identifier != evidence_record_id(execution_id, workspace_id, item):
             raise ContractError(f"items[{index}]: evidenceId does not match canonical record identity")
         status = item["collectionStatus"]
         if status in {"complete", "partial"}:
@@ -847,6 +910,7 @@ def evaluate_checkpoint(checkpoint: dict[str, Any], authority: HostAuthorityCont
     if (
         checkpoint["executionId"] != identity["executionId"]
         or checkpoint["executionVersion"] != identity["executionVersion"]
+        or checkpoint["profileId"] != identity["profileId"]
     ):
         return EffectiveAuthority(None, None, None, (), tuple(requests))
     records = {
@@ -1095,6 +1159,355 @@ def safe_list_directory(project_root: Path, relative: str) -> list[str]:
             os.close(root_fd)
 
 
+def _remove_directory_contents(directory_fd: int, nofollow: int, directory: int) -> None:
+    """Remove an open directory tree without following or reopening pathnames."""
+    for name in os.listdir(directory_fd):
+        metadata = os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
+        if stat.S_ISDIR(metadata.st_mode):
+            child_fd = _open_directory(name, dir_fd=directory_fd, nofollow=nofollow, directory=directory)
+            try:
+                if _entry_identity(os.fstat(child_fd)) != _entry_identity(metadata):
+                    raise ContractError("cleanup entry identity changed")
+                _remove_directory_contents(child_fd, nofollow, directory)
+            finally:
+                os.close(child_fd)
+            if _entry_identity(os.stat(name, dir_fd=directory_fd, follow_symlinks=False)) != _entry_identity(metadata):
+                raise ContractError("cleanup directory identity changed")
+            os.rmdir(name, dir_fd=directory_fd)
+        else:
+            os.unlink(name, dir_fd=directory_fd)
+
+
+class PrivateStagingDirectory:
+    """One inode-stable private tree from staging through publication or abort."""
+
+    def __init__(
+        self, project_root: Path, parent_relative: str, name: str,
+        root_fd: int, parent_fds: list[int], staging_fd: int,
+        nofollow: int, directory: int,
+    ) -> None:
+        self._project_root = Path(os.path.abspath(project_root))
+        self._parent_relative = parent_relative
+        self._parent_components = parent_relative.split("/")
+        self._name = name
+        self._root_fd = root_fd
+        self._parent_fds = parent_fds
+        self._parent_fd = parent_fds[-1]
+        self._staging_fd = staging_fd
+        self._nofollow = nofollow
+        self._directory = directory
+        self._identity = _entry_identity(os.fstat(staging_fd))
+        self._publication_name: str | None = None
+        self._published = False
+        self._closed = False
+
+    @classmethod
+    def create(
+        cls, project_root: Path, parent_relative: str, prefix: str,
+    ) -> "PrivateStagingDirectory":
+        if not is_safe_relative_path(parent_relative):
+            raise ContractError("staging parent must be a safe project-relative path")
+        if re.fullmatch(r"[A-Za-z0-9._-]{1,160}", prefix) is None:
+            raise ContractError("staging prefix is malformed")
+        ensure_secure_directory(project_root, parent_relative)
+        nofollow, directory = _require_secure_dir_fd_support()
+        root_fd, parent_fds, staging_fd = -1, [], -1
+        name: str | None = None
+        created_identity: tuple[int, int, int] | None = None
+        try:
+            root_fd = _open_directory(
+                project_root, dir_fd=None, nofollow=nofollow, directory=directory
+            )
+            parent_fd, parent_fds = _walk_existing_parent(
+                root_fd, parent_relative.split("/"), nofollow, directory
+            )
+            for _ in range(128):
+                candidate = f".{prefix}.stage.{secrets.token_hex(8)}"
+                try:
+                    os.mkdir(candidate, mode=0o700, dir_fd=parent_fd)
+                    name = candidate
+                    created_identity = _entry_identity(
+                        os.stat(candidate, dir_fd=parent_fd, follow_symlinks=False)
+                    )
+                    break
+                except FileExistsError:
+                    continue
+            if name is None:
+                raise ContractError("could not allocate a private staging directory")
+            staging_fd = _open_directory(
+                name, dir_fd=parent_fd, nofollow=nofollow, directory=directory
+            )
+            os.fchmod(staging_fd, 0o700)
+            metadata = os.fstat(staging_fd)
+            if stat.S_IMODE(metadata.st_mode) != 0o700:
+                raise ContractError("staging directory is not mode 0700")
+            if (
+                created_identity != _entry_identity(metadata)
+                or not _verify_identity(parent_fd, name, created_identity)
+            ):
+                raise ContractError("staging directory binding changed during creation")
+            if not _same_existing_directory_from_root(
+                root_fd, parent_relative.split("/"), parent_fd, nofollow, directory
+            ):
+                raise ContractError("staging parent binding changed during creation")
+            result = cls(
+                project_root, parent_relative, name, root_fd, parent_fds,
+                staging_fd, nofollow, directory,
+            )
+            root_fd, parent_fds, staging_fd = -1, [], -1
+            return result
+        except BaseException:
+            if name is not None and parent_fds:
+                try:
+                    if (
+                        staging_fd >= 0 and created_identity is not None
+                        and _entry_identity(os.fstat(staging_fd)) == created_identity
+                    ):
+                        _remove_directory_contents(staging_fd, nofollow, directory)
+                    if (
+                        created_identity is not None
+                        and _verify_identity(parent_fds[-1], name, created_identity)
+                    ):
+                        os.rmdir(name, dir_fd=parent_fds[-1])
+                except (ContractError, OSError):
+                    pass
+            raise
+        finally:
+            if staging_fd >= 0:
+                os.close(staging_fd)
+            for fd in reversed(parent_fds):
+                os.close(fd)
+            if root_fd >= 0:
+                os.close(root_fd)
+
+    def _require_open(self) -> None:
+        if self._closed:
+            raise ContractError("staging directory handle is closed")
+
+    def _attest_parent(self) -> bool:
+        return _same_existing_directory_from_root(
+            self._root_fd, self._parent_components, self._parent_fd,
+            self._nofollow, self._directory,
+        )
+
+    def _attest_staging_name(self) -> bool:
+        return self._attest_parent() and _verify_identity(
+            self._parent_fd, self._name, self._identity
+        )
+
+    def _attest_publication_name(self) -> bool:
+        return (
+            self._publication_name is not None
+            and self._attest_parent()
+            and _verify_identity(
+                self._parent_fd, self._publication_name, self._identity
+            )
+        )
+
+    def ensure_directory(self, relative: str) -> None:
+        self._require_open()
+        if not is_safe_relative_path(relative):
+            raise ContractError("staged directory path must be safe and relative")
+        target_fd, opened = _walk_parent(
+            self._staging_fd, relative.split("/"), self._nofollow, self._directory
+        )
+        try:
+            if not _same_directory_from_root(
+                self._staging_fd, relative.split("/"), target_fd,
+                self._nofollow, self._directory,
+            ):
+                raise ContractError("staged directory binding changed during creation")
+        finally:
+            for fd in reversed(opened):
+                os.close(fd)
+
+    def write_bytes(self, relative: str, payload: bytes) -> None:
+        """Create one mode-0600 staged file relative to the held staging FD."""
+        self._require_open()
+        if not is_safe_relative_path(relative):
+            raise ContractError("staged file path must be safe and relative")
+        if not isinstance(payload, bytes):
+            raise ContractError("staged payload must be bytes")
+        components = relative.split("/")
+        parent_fd, opened = _walk_existing_parent(
+            self._staging_fd, components[:-1], self._nofollow, self._directory
+        )
+        fd = -1
+        identity: tuple[int, int, int] | None = None
+        try:
+            fd = os.open(
+                components[-1],
+                os.O_WRONLY | os.O_CREAT | os.O_EXCL | self._nofollow,
+                0o600,
+                dir_fd=parent_fd,
+            )
+            os.fchmod(fd, 0o600)
+            metadata = os.fstat(fd)
+            if not stat.S_ISREG(metadata.st_mode) or stat.S_IMODE(metadata.st_mode) != 0o600:
+                raise ContractError("staged output is not a mode-0600 regular file")
+            identity = _entry_identity(metadata)
+            offset = 0
+            while offset < len(payload):
+                written = os.write(fd, payload[offset:])
+                if written <= 0:
+                    raise OSError(errno.EIO, "short staged write")
+                offset += written
+            os.fsync(fd)
+            if not _same_existing_directory_from_root(
+                self._staging_fd, components[:-1], parent_fd,
+                self._nofollow, self._directory,
+            ) or not _verify_identity(parent_fd, components[-1], identity):
+                raise ContractError("staged output binding changed during write")
+        except BaseException:
+            if identity is not None:
+                try:
+                    if _verify_identity(parent_fd, components[-1], identity):
+                        os.unlink(components[-1], dir_fd=parent_fd)
+                except OSError:
+                    pass
+            raise
+        finally:
+            if fd >= 0:
+                os.close(fd)
+            for opened_fd in reversed(opened):
+                os.close(opened_fd)
+
+    def read_bytes(self, relative: str, *, max_bytes: int) -> bytes:
+        """Re-validate one staged regular file through the held staging FD."""
+        self._require_open()
+        if not is_safe_relative_path(relative):
+            raise ContractError("staged input path must be safe and relative")
+        components = relative.split("/")
+        parent_fd, opened = _walk_existing_parent(
+            self._staging_fd, components[:-1], self._nofollow, self._directory
+        )
+        fd = -1
+        try:
+            fd = os.open(
+                components[-1], os.O_RDONLY | os.O_NONBLOCK | self._nofollow,
+                dir_fd=parent_fd,
+            )
+            metadata = os.fstat(fd)
+            if not stat.S_ISREG(metadata.st_mode):
+                raise ContractError("staged input is not a regular file")
+            identity = _entry_identity(metadata)
+            chunks: list[bytes] = []
+            total = 0
+            while True:
+                chunk = os.read(fd, 64 * 1024)
+                if not chunk:
+                    break
+                total += len(chunk)
+                if total > max_bytes:
+                    raise ContractError(f"staged input exceeds its {max_bytes} byte limit")
+                chunks.append(chunk)
+            if not _same_existing_directory_from_root(
+                self._staging_fd, components[:-1], parent_fd,
+                self._nofollow, self._directory,
+            ) or not _verify_identity(parent_fd, components[-1], identity):
+                raise ContractError("staged input binding changed during validation")
+            return b"".join(chunks)
+        finally:
+            if fd >= 0:
+                os.close(fd)
+            for opened_fd in reversed(opened):
+                os.close(opened_fd)
+
+    def publish_noreplace(self, final_name: str) -> Path:
+        """Publish the complete tree without crossing the caller's commit barrier."""
+        self._require_open()
+        if re.fullmatch(r"[A-Za-z0-9._-]{1,160}", final_name) is None:
+            raise ContractError("final run directory name is malformed")
+        if not self._attest_staging_name():
+            raise ContractError("staging directory binding changed before commit")
+        primitives = _require_rename_primitives()
+        try:
+            primitives.noreplace(self._parent_fd, self._name, self._parent_fd, final_name)
+        except FileExistsError as error:
+            raise ContractError(
+                f"phase run directory collision: {self._parent_relative}/{final_name}"
+            ) from error
+        self._publication_name = final_name
+        if (
+            not _verify_identity(self._parent_fd, final_name, self._identity)
+            or not self._attest_parent()
+        ):
+            try:
+                primitives.noreplace(
+                    self._parent_fd, final_name, self._parent_fd, self._name
+                )
+                if not self._attest_staging_name():
+                    raise OSError(errno.EIO, "rolled-back staging identity mismatch")
+                self._publication_name = None
+            except OSError as rollback_error:
+                raise ContractError(
+                    "published run directory could not be re-attested or rolled back"
+                ) from rollback_error
+            raise ContractError("publication parent binding changed during commit")
+        return self._project_root / self._parent_relative / final_name
+
+    def commit_publication(self) -> None:
+        """Mark an already attested publication committed after the host barrier."""
+        self._require_open()
+        if self._published or self._publication_name is None:
+            raise ContractError("run publication is not awaiting commit")
+        # The caller crosses its signal barrier immediately before this assignment.
+        # No filesystem operation or other fallible work belongs between the two.
+        self._published = True
+
+    def _depublish_to_abort(self) -> None:
+        """Atomically hide an uncommitted final entry behind a private abort name."""
+        if self._publication_name is None:
+            return
+        if self._published:
+            raise ContractError("committed run publication cannot be aborted")
+        if not self._attest_publication_name():
+            raise ContractError("published run directory binding changed before abort")
+        primitives = _require_rename_primitives()
+        abort_name: str | None = None
+        for _ in range(128):
+            candidate = f".{self._name}.abort.{secrets.token_hex(8)}"
+            try:
+                primitives.noreplace(
+                    self._parent_fd, self._publication_name,
+                    self._parent_fd, candidate,
+                )
+                abort_name = candidate
+                break
+            except FileExistsError:
+                continue
+        if abort_name is None:
+            raise ContractError("could not allocate a private abort directory")
+        self._name = abort_name
+        self._publication_name = None
+        if not self._attest_staging_name():
+            raise ContractError("aborted run directory binding changed after de-publication")
+        os.fsync(self._parent_fd)
+
+    def cleanup(self) -> None:
+        """Remove staging or an aborted publication through held descriptors only."""
+        self._require_open()
+        if self._published:
+            return
+        self._depublish_to_abort()
+        if not self._attest_staging_name():
+            raise ContractError("staging directory binding changed before cleanup")
+        _remove_directory_contents(self._staging_fd, self._nofollow, self._directory)
+        if not self._attest_staging_name():
+            raise ContractError("staging directory binding changed during cleanup")
+        os.rmdir(self._name, dir_fd=self._parent_fd)
+        os.fsync(self._parent_fd)
+
+    def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        os.close(self._staging_fd)
+        for fd in reversed(self._parent_fds):
+            os.close(fd)
+        os.close(self._root_fd)
+
+
 class _RenamePrimitives:
     """Minimal Linux/macOS wrappers for kernel no-replace and exchange rename."""
     RENAME_NOREPLACE = 1
@@ -1175,6 +1588,37 @@ def _regular_identity(parent_fd: int, name: str) -> tuple[int, int, int] | None:
     if not stat.S_ISREG(metadata.st_mode):
         return None
     return _entry_identity(metadata)
+
+
+def _verified_regular_bytes(
+    parent_fd: int, name: str, expected: tuple[int, int, int], max_bytes: int,
+) -> bytes | None:
+    """Read one identity-pinned regular entry without following its name."""
+    nofollow = getattr(os, "O_NOFOLLOW", 0)
+    fd = -1
+    try:
+        fd = os.open(name, os.O_RDONLY | os.O_NONBLOCK | nofollow, dir_fd=parent_fd)
+        metadata = os.fstat(fd)
+        if not stat.S_ISREG(metadata.st_mode) or _entry_identity(metadata) != expected:
+            return None
+        chunks: list[bytes] = []
+        total = 0
+        while True:
+            chunk = os.read(fd, 64 * 1024)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > max_bytes:
+                return None
+            chunks.append(chunk)
+        if not _verify_identity(parent_fd, name, expected):
+            return None
+        return b"".join(chunks)
+    except OSError:
+        return None
+    finally:
+        if fd >= 0:
+            os.close(fd)
 
 
 def _restrict_recovery_artifact(
@@ -1322,6 +1766,7 @@ def atomic_write_bytes(
     parent_components, target_name = components[:-1], components[-1]
     root_fd, parent_fds, temporary_name, temporary_fd = -1, [], None, -1
     temporary_identity: tuple[int, int, int] | None = None
+    temporary_expected_payload: bytes | None = None
     try:
         root_fd = _open_directory(project_root, dir_fd=None, nofollow=nofollow, directory=directory)
         parent_fd, parent_fds = _walk_parent(root_fd, parent_components, nofollow, directory)
@@ -1414,7 +1859,26 @@ def atomic_write_bytes(
             temporary_name = None
         else:
             primitives.exchange(parent_fd, temporary_name, parent_fd, target_name)
-            if not _verify_identity(parent_fd, temporary_name, original_identity):
+            # The exchange changes which inode the private name denotes. From
+            # this point onward it is the displaced original, not the staged
+            # payload. Track and verify that identity before any cleanup. This
+            # also makes exception cleanup safe at the permanent post-exchange
+            # fault point below.
+            temporary_identity = original_identity
+            temporary_expected_payload = (
+                expected_current if isinstance(expected_current, bytes) else None
+            )
+            displaced_expected = (
+                not isinstance(expected_current, bytes)
+                or _verified_regular_bytes(
+                    parent_fd, temporary_name, original_identity,
+                    len(expected_current),
+                ) == expected_current
+            )
+            if (
+                not _verify_identity(parent_fd, temporary_name, original_identity)
+                or not displaced_expected
+            ):
                 try:
                     _rollback_exchange(
                         primitives, parent_fd, target_name, temporary_name,
@@ -1429,6 +1893,7 @@ def atomic_write_bytes(
                     raise
                 temporary_name = None
                 raise ContractError("destination identity changed before atomic replacement")
+            _test_sync("after-exchange-before-cleanup")
             if not _same_directory_from_root(root_fd, parent_components, parent_fd, nofollow, directory):
                 try:
                     _rollback_exchange(
@@ -1444,6 +1909,17 @@ def atomic_write_bytes(
                 temporary_name = None
                 raise ContractError("output parent binding changed during publication")
             os.fsync(parent_fd)
+            if (
+                not _verify_identity(parent_fd, temporary_name, original_identity)
+                or (
+                    isinstance(expected_current, bytes)
+                    and _verified_regular_bytes(
+                        parent_fd, temporary_name, original_identity,
+                        len(expected_current),
+                    ) != expected_current
+                )
+            ):
+                raise ContractError("displaced destination changed before cleanup")
             os.unlink(temporary_name, dir_fd=parent_fd)
             temporary_name = None
             os.fsync(parent_fd)
@@ -1452,7 +1928,17 @@ def atomic_write_bytes(
             os.close(temporary_fd)
         if temporary_name is not None and temporary_identity is not None and parent_fds:
             try:
-                if _verify_identity(parent_fds[-1], temporary_name, temporary_identity):
+                verified_payload = (
+                    temporary_expected_payload is None
+                    or _verified_regular_bytes(
+                        parent_fds[-1], temporary_name, temporary_identity,
+                        len(temporary_expected_payload),
+                    ) == temporary_expected_payload
+                )
+                if (
+                    verified_payload
+                    and _verify_identity(parent_fds[-1], temporary_name, temporary_identity)
+                ):
                     os.unlink(temporary_name, dir_fd=parent_fds[-1])
             except FileNotFoundError:
                 pass
@@ -1472,7 +1958,7 @@ def usage() -> int:
     print(
         "Usage:\n"
         "  context-runtime.py validate-model <kind> <input.json>\n"
-        "  context-runtime.py validate-structure <execution-envelope|context-manifest> <input.json>\n"
+        "  context-runtime.py validate-structure <execution-envelope|context-manifest|provider-capabilities|run-state|transition-bundle> <input.json>\n"
         "  context-runtime.py write-model <kind> <input.json> <project-root> <relative-output>\n"
         "  context-runtime.py host-validate-authority <authority.json>\n"
         "  context-runtime.py host-write-authority <authority.json> <project-root> <relative-output>\n"

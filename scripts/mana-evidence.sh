@@ -2,7 +2,7 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-# shellcheck source=lib/evidence-store.sh
+# shellcheck source=scripts/lib/evidence-store.sh
 . "$root/scripts/lib/evidence-store.sh"
 
 usage() {
@@ -10,7 +10,8 @@ usage() {
 Usage: scripts/mana-evidence.sh [--project-root <path>] <command> [options]
 
 Commands:
-  collect    Store a sanitized complete/partial record, or a failed/unavailable record.
+  collect    Store a workspace-bound sanitized record (requires --workspace or
+             host MANA_EVIDENCE_WORKSPACE).
   list       List evidence metadata for an execution.
   show       Show metadata for one evidence reference.
   read       Emit a bounded text range for one evidence reference.

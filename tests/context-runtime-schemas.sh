@@ -24,6 +24,11 @@ checkpoint="$fixtures/valid/phase-checkpoint.json"
 "$validator" validate-structure execution-envelope "$envelope"
 "$validator" host-validate-authority "$authority"
 python3 "$root/tests/lib/json_schema_subset.py" "$root/contracts/context-runtime/host-authority-context-v1.schema.json" "$authority"
+jq 'del(.workspaceId)' "$envelope" > "$tmp/envelope-missing-workspace-id.json"
+rejects "$validator" validate-structure execution-envelope "$tmp/envelope-missing-workspace-id.json"
+jq 'del(.workspaceId)' "$fixtures/valid/evidence-manifest.json" \
+  > "$tmp/evidence-missing-workspace-id.json"
+rejects "$validator" validate-model evidence-manifest "$tmp/evidence-missing-workspace-id.json"
 
 # Generic model validation and the removed boolean cannot confer host authority.
 rejects "$validator" validate-model execution-envelope "$envelope"
@@ -34,6 +39,8 @@ jq '.verifiedFacts[0].evidenceRefs = []' "$checkpoint" > "$tmp/no-provenance.jso
 rejects "$validator" validate-model phase-checkpoint "$tmp/no-provenance.json"
 jq 'del(.executionVersion)' "$checkpoint" > "$tmp/missing-execution-version.json"
 rejects "$validator" validate-model phase-checkpoint "$tmp/missing-execution-version.json"
+jq 'del(.profileId)' "$checkpoint" > "$tmp/missing-profile-id.json"
+rejects "$validator" validate-model phase-checkpoint "$tmp/missing-profile-id.json"
 jq '.executionVersion = "v1"' "$checkpoint" > "$tmp/malformed-execution-version.json"
 rejects "$validator" validate-model phase-checkpoint "$tmp/malformed-execution-version.json"
 jq '.schemaVersion = "mana.context-runtime.phase-checkpoint/v999"' "$checkpoint" > "$tmp/unknown-version.json"
@@ -46,6 +53,9 @@ for expression in \
   '.effectivePermissions = {externalWrite:true}' \
   '.approvalComplete = true' \
   '.approvalRecords = [{approvalId:"APR-fake"}]' \
+  '.attempt = 99' \
+  '.revision = 99' \
+  '.retryLimit = 99' \
   '.payload = {nested:{arbitrary:true}}'; do
   jq "$expression" "$checkpoint" > "$tmp/reserved.json"
   rejects "$validator" validate-model phase-checkpoint "$tmp/reserved.json"
