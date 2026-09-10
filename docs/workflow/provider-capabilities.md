@@ -153,6 +153,29 @@ With the current probes Codex and Claude can satisfy the phase-worker gate;
 OpenCode cannot yet prove `hardSubagentDisable` and is rejected before a model
 invocation.
 
+## CTX-07B-R1A fresh host-worker gate
+
+Fresh delegation workers apply the same four non-negotiable capability checks
+as CTX-06C: `freshInvocation`, `ephemeralSession`,
+`explicitModelSelection`, and `hardSubagentDisable` must all be supported.
+`explicitReasoningEffort` must also be supported when the host route requires
+an effort value.
+Unknown or unsupported fails before any worker invocation with
+`needs_model_escalation`. The worker-specific provider adapter is always
+read-only and child-free. It never enables an in-thread child; that optional
+mechanism and its additional context/model/recursion capability decisions are
+owned by CTX-07C.
+
+When native schema enforcement is supported, the worker supplies
+`delegation-result-draft-v1.schema.json`. Otherwise the only safe fallback is
+the same mandatory host validation used by CTX-06C. Host validation binds the
+draft to its exact CTX-07A task and rejects unauthorized evidence, fields, and
+output sections. Model routing is host-derived before invocation and uses
+explicit provider model and effort controls; output cannot request another
+tier. Capability probing proves these mechanisms only. Concrete model
+admission belongs to Mana's versioned worker policy, and provider rejection
+remains an explicit transport failure.
+
 ## Failures and privacy
 
 Missing binaries, version failures, command-level help/probe failures, malformed versions,

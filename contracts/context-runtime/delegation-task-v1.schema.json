@@ -42,6 +42,18 @@
       "type": "array", "maxItems": 64, "uniqueItems": true,
       "items": {"type": "string", "pattern": "^E-[a-f0-9]{64}$"}
     },
+    "evidenceExtracts": {
+      "type": "array", "maxItems": 64, "uniqueItems": true,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["evidenceId", "selector", "maxBytes"],
+        "properties": {
+          "evidenceId": {"type": "string", "pattern": "^E-[a-f0-9]{64}$"},
+          "selector": {"type": "string", "pattern": "^(lines:[1-9][0-9]*:[1-9][0-9]*|json:/[^\\s]+|bytes:[1-9][0-9]*:[1-9][0-9]*)$", "maxLength": 256},
+          "maxBytes": {"type": "integer", "minimum": 1, "maximum": 16384}
+        }
+      }
+    },
     "evidenceGaps": {
       "type": "array", "maxItems": 16,
       "items": {"$ref": "#/$defs/evidenceGap"}

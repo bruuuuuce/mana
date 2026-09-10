@@ -1,6 +1,6 @@
 # Context Runtime v2 architecture decision
 
-Status: accepted for staged implementation through CTX-07A.
+Status: accepted for staged implementation through CTX-07B-R2E.
 
 ## Decisions
 
@@ -518,3 +518,147 @@ claims remain preserved. The merge performs no semantic synthesis, creates no
 facts or severity, writes no run artifact, advances no HEAD, and invokes no
 provider. Fresh workers/model routing remain CTX-07B; provider-managed children
 remain CTX-07C.
+
+## CTX-07B-R2 host-owned isolated worker runtime
+
+`scripts/run-context-workers.sh` consumes one CTX-07A bound plan that still
+matches the active phase selected through CTX-06B HEAD. It does not take a
+phase-global worker lock: deterministic per-task claims serialize equal work
+while unrelated read-only tasks remain parallel. The
+canonical plan remains host-private. Every provider process receives one
+versioned, host-built worker context packet. The packet contains the pertinent
+read-only execution envelope, exactly one validated CTX-07A task, a task-only
+CTX-04 projection with the canonical source-manifest digest, metadata and full
+body for only the task's active skills, authorized evidence references, the
+output contract, and the host-selected model/effort route. It excludes parent
+transcript/prompt, siblings, phase input/checkpoint, candidate and inactive
+skill bodies, raw evidence, complete run state, and additional permissions.
+
+The framework root is derived from the canonical installed runner and is not a
+CLI, environment, packet, or manifest input. Policy, skill metadata/bodies,
+capability metadata, and schemas are read component-by-component without
+following links. Model routing is fully materialized before invocation; a
+later policy mutation cannot rewrite the selected packet or provider argv.
+
+Each real attempt starts a separate provider process. The CTX-02 gate must prove fresh
+invocation, ephemeral session, explicit root-model selection, and hard child
+disable before any worker call. Codex and Claude use the same read-only,
+user-isolated, child-free controls as CTX-06C through a worker-specific adapter.
+The current OpenCode capability report still cannot prove hard child disable
+and is rejected. Unknown and unsupported isolation capabilities fail before a
+model call with `needs_model_escalation`; there is no prompt-only fallback and
+no provider-managed child path in CTX-07B. Native structured output is used
+when proven, while the existing mandatory host validation is the only allowed
+fallback for that transport capability.
+
+Model routing is a pure host derivation. A task routes to `full` when its typed
+scope is architecture, contracts, database, operations, or security, or when
+one of its CTX-04-authorized task skills declares `modelTier: full` or
+`riskLevel: high`. Other bounded read tasks route to `economy`. A checked-in,
+versioned Mana policy maps provider, tier, concrete model ID, reasoning effort,
+and admitted scope/risk. Worker CLI flags, environment variables, task fields,
+question prose, and provider output cannot select or weaken the route.
+
+CTX-02 proves only explicit model and, when required, effort selection
+mechanisms. Mana policy admission is separate; neither proves that a concrete
+model ID exists at runtime. Provider rejection of a host-selected model is an
+explicit transport failure. Missing full/high-risk mappings fail closed. The
+complete CTX-07A validator runs before policy resolution or packet creation.
+
+The host may run independent plan tasks concurrently, capped by both the
+CTX-04 `directWorkers` limit already enforced by CTX-07A and an optional lower
+host concurrency setting. Every accepted task is structurally read-only and
+parallel-safe, so CTX-07B has zero writers. Each worker may retrieve only the
+task's authorized CTX-05 references through the bounded evidence API; evidence
+content is materialized only as bounded authorized extracts in a private mode
+`0700` capsule. The provider runs with that capsule as its cwd under a verified
+host isolation backend. Absence or uncertainty of that backend fails before
+provider invocation; there is no content-only fallback. The provider receives
+neither project/run/evidence-store paths nor sibling evidence. Capsule files
+are regular, single-link, read-only inputs. The capsule and default-discard raw
+trace are removed on success, failure, timeout, and interruption; only an
+already materialized host debug-policy decision can retain the trace.
+
+Each provider is the leader of a dedicated process session. Host-owned timeout
+and grace values drive TERM then KILL of the entire process group, followed by
+wait/reap. Timeout, SIGINT, and SIGTERM remain distinct terminal outcomes.
+The group is also drained when its leader exits successfully or fails before
+its descendants. The watchdog owns and reaps its timer processes. Backend
+selection uses the fixed OS path `/usr/bin/sandbox-exec`, never caller `PATH`.
+The OS probe uses physical capsule paths and the minimal dyld bootstrap reads;
+system runtime reads do not grant access to project or evidence content.
+Failure to prepare metric storage stops transport before provider execution.
+
+The provider emits a `delegation-result-draft-v1` object. The host validates
+the transport schema and declared output sections, then delegates all binding,
+digest, provenance, evidence, ownership, and semantic validation to the
+unchanged CTX-07A `bind-result` implementation. Canonical results are published
+first as immutable per-invocation attempt artifacts and become authoritative
+only when a per-task result HEAD is committed with CTX-03 CAS. Reuse requires
+safe reread, full CTX-07A validation, task/execution/digest binding, and HEAD
+reachability. Attempt artifacts not reachable from the task-result HEAD are
+not authoritative. The CTX-06 phase HEAD is never changed by worker result
+publication.
+
+The host creates a unique invocation ID when it acquires the deterministic
+task-execution claim. Known terminal failures close the claim immediately;
+expired active claims can be reconciled by CAS. Privacy-safe immutable events
+cover claim, start, result acceptance/reuse, completion, failure, timeout,
+interruption, and reconciliation. Immutable usage artifacts are keyed by
+invocation ID and retain null for unavailable token dimensions; reuse creates
+no invocation or usage duplicate. A deterministic aggregate names every
+included invocation and is rebuilt from those immutable artifacts.
+
+Before result publication, the host writes an immutable per-invocation receipt
+containing the already bound result, safe numeric usage, and terminal claim.
+Under a short FD-anchored per-task state lock, recovery replays attempt, HEAD,
+metrics, deterministic lifecycle events, aggregate, and finally claim closure.
+The lock is never held during provider execution. Replaying a receipt cannot
+invoke a provider or advance phase HEAD. An explicit publication failure before
+HEAD records a separate immutable failure receipt, preventing the original
+intent from becoming authoritative on retry. A committed HEAD is irreversible.
+Claims validate exact fields, host identity and the code-owned lease duration.
+Recovered staging is removed only after canonical/semantic validation and a
+fresh FD-relative inode/byte check; ambiguous or hostile artifacts fail closed.
+
+A provider or validation failure receives no retry, contributes no accepted
+result, produces an incomplete merge, and returns nonzero. The worker runner
+writes no delegation artifact into the run, advances no HEAD, grants no
+authority, and performs no semantic synthesis. Optional provider-managed child
+adapters and their capability fallbacks remain exclusively CTX-07C.
+
+CTX-07B-R2E captures provider stdout and stderr as separate streams. Stdout is
+the untrusted transport object. Stderr exists only in a per-invocation
+temporary mode-`0600` file below a mode-`0700` private directory; it is deleted
+after every handled terminal outcome and is never copied to runner output,
+lifecycle, usage, aggregate metrics, claims, results, receipts, or public error
+text. A transport failure exposes only a bounded host-generated category,
+provider, invocation ID, and exit status. Provider-controlled diagnostics are
+never excerpted.
+
+Raw trace retention is separate from stderr. The versioned host policy at
+`config/context-runtime/worker-debug-policy-v1.json`, loaded from the canonical
+framework root, defaults to `discard`. Production exposes no CLI, environment,
+task, manifest, or provider-output retention switch. The host materializes the
+policy identity, digest, and boolean decision before invocation, so a later
+source-policy change cannot affect the current prepared plan. Explicit
+`retain` preserves the provider stdout/event trace on complete, failed,
+timed-out, and interrupted attempts at
+`worker-executions/<taskExecutionKey>/attempts/<invocationId>/raw-provider-trace`.
+The file is mode `0600`, its attempt directory is mode `0700`, and its immutable
+invocation metric reports the actual filesystem state. Concurrent invocations
+use distinct IDs and paths; reuse creates neither an invocation nor a trace.
+Lifecycle and aggregate metrics contain no raw bytes or trace path.
+
+A retained raw trace is a local, potentially sensitive debug artifact. It is
+not privacy-safe and is not a delivery artifact. The debug policy does not
+retain the separate provider stderr stream.
+
+The permanent R2E recovery fixtures exercise real boundaries. `after-provider`
+invokes and reaps the provider before crashing ahead of normalization;
+`before-bind` completes normalization before crashing; and `after-bind` creates
+a valid CTX-07A-bound result before crashing ahead of task-result HEAD
+publication. Each proves provider reach, absent result HEAD, unchanged CTX-06
+HEAD, stale-claim reconciliation, exactly one new successful invocation,
+immutable metrics and truthful lifecycle for both attempts, and no recovery
+temporary residue.

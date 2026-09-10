@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Provider-neutral argument construction. Callers retain responsibility for
 # provider discovery, prompt construction, supervision, and lifecycle events.
+# shellcheck disable=SC2034 # MANA_PROVIDER_* globals are the sourced adapter API.
 
 mana_provider_profile_args() {
   local provider="$1" project="$2" model="$3" max_threads="$4" max_depth="$5" subagents="${6:-true}"
@@ -91,6 +92,43 @@ mana_provider_phase_args() {
   esac
 }
 
+# CTX-07B fresh host-launched delegation worker.  This is deliberately a
+# separate adapter entry point from provider-managed children (CTX-07C).  Each
+# invocation is read-only, ephemeral, explicitly model-routed, and has every
+# known child mechanism disabled.
+mana_provider_worker_args() {
+  local provider="$1" project="$2" model="$3" reasoning_effort="$4" output_schema="$5" native_schema="${6:-false}" schema_json=""
+  MANA_PROVIDER_ARGS=()
+  MANA_PROVIDER_OPENCODE_CONFIG_CONTENT=""
+  case "$reasoning_effort" in minimal|low|medium|high|xhigh|max) ;; *) return 1 ;; esac
+  case "$native_schema" in true|false) ;; *) return 1 ;; esac
+  [ -f "$output_schema" ] && [ ! -L "$output_schema" ] || return 1
+  case "$provider" in
+    codex)
+      MANA_PROVIDER_ARGS=(--ask-for-approval never exec)
+      [ "$native_schema" = false ] || MANA_PROVIDER_ARGS+=(--output-schema "$output_schema")
+      MANA_PROVIDER_ARGS+=(--model "$model" --cd "$project" --sandbox read-only --ephemeral --ignore-user-config)
+      MANA_PROVIDER_ARGS+=(-c "model_reasoning_effort=\"$reasoning_effort\"")
+      MANA_PROVIDER_ARGS+=(--disable multi_agent --disable multi_agent_v2 -c "agents.max_threads=1" -c "agents.max_depth=0" -c "agents.interrupt_message=false")
+      ;;
+    claude)
+      MANA_PROVIDER_ARGS=(-p --model "$model" --effort "$reasoning_effort" --permission-mode default --safe-mode --no-session-persistence --disable-slash-commands --disallowedTools 'Agent,Bash,Edit,Write,WebFetch,WebSearch')
+      if [ "$native_schema" = true ]; then
+        schema_json="$(jq -c . "$output_schema")" || return 1
+        MANA_PROVIDER_ARGS+=(--output-format json --json-schema "$schema_json")
+      fi
+      ;;
+    opencode)
+      # The current CTX-02 report cannot prove hard child disable, so CTX-07B
+      # rejects this path before invocation.  Keep the future adapter isolated
+      # without claiming the missing capability today.
+      MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn --arg model "$model" '{agent:{mana_ctx07_worker:{description:"Mana read-only fresh delegation worker",mode:"primary",model:$model,permission:{task:"deny",edit:"deny",bash:"deny"}}}}')" || return 1
+      MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model" --variant "$reasoning_effort" --agent mana_ctx07_worker --pure)
+      ;;
+    *) return 1 ;;
+  esac
+}
+
 mana_provider_repair_args() {
   local provider="$1" project="$2" model="$3"
   MANA_PROVIDER_ARGS=()
@@ -98,7 +136,7 @@ mana_provider_repair_args() {
     codex)
       MANA_PROVIDER_ARGS=(--ask-for-approval never exec --model "$model" --cd "$project" --sandbox workspace-write --ephemeral --ignore-user-config --disable multi_agent --disable multi_agent_v2 -c "agents.max_threads=1" -c "agents.max_depth=0" -c "agents.interrupt_message=false") ;;
     claude)
-      MANA_PROVIDER_ARGS=(-p --model "$model" --permission-mode acceptEdits --safe-mode --no-session-persistence --disable-slash-commands --allowedTools Read,Edit,Write --disallowedTools Agent,Bash,WebFetch,WebSearch) ;;
+      MANA_PROVIDER_ARGS=(-p --model "$model" --permission-mode acceptEdits --safe-mode --no-session-persistence --disable-slash-commands --allowedTools 'Read,Edit,Write' --disallowedTools 'Agent,Bash,WebFetch,WebSearch') ;;
     opencode)
       MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model" --agent mana_worker) ;;
     stub)
@@ -131,7 +169,7 @@ mana_provider_synthesis_args() {
       [ -z "$reasoning_effort" ] || MANA_PROVIDER_ARGS+=(-c "model_reasoning_effort=\"$reasoning_effort\"")
       MANA_PROVIDER_ARGS+=(--disable multi_agent --disable multi_agent_v2 -c "agents.max_threads=1" -c "agents.max_depth=0" -c "agents.interrupt_message=false") ;;
     claude)
-      MANA_PROVIDER_ARGS=(-p --model "$model" --permission-mode default --no-session-persistence --disable-slash-commands --disallowedTools Agent,Bash,Read,Edit,Write,WebFetch,WebSearch) ;;
+      MANA_PROVIDER_ARGS=(-p --model "$model" --permission-mode default --no-session-persistence --disable-slash-commands --disallowedTools 'Agent,Bash,Read,Edit,Write,WebFetch,WebSearch') ;;
     opencode)
       MANA_PROVIDER_ARGS=(run --dir "$workspace" --model "$model" --agent mana_explorer) ;;
     stub)

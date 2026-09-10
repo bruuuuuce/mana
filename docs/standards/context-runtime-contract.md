@@ -667,3 +667,169 @@ Schema cardinalities and host canonical-byte checks both fail closed.
 No CTX-07A command writes a run artifact, advances HEAD, invokes a provider,
 starts a subprocess provider, contacts a model/network, or enables a child.
 Those behaviors remain outside CTX-07A.
+
+## Host-owned isolated worker contract (CTX-07B-R2A-E)
+
+`run-context-workers.sh` is the only CTX-07B provider boundary. Its input is a
+bound `delegation-plan-v1`; the host reloads the current phase through CTX-06B
+HEAD and reuses the complete CTX-07A plan validator before inspecting any task.
+The production runner derives its framework root from its canonical installed
+location. It accepts no framework-root or model/effort override from CLI,
+environment, task data, or provider output. The checked-in routing policy,
+skill metadata/bodies, capability metadata, and Mana contracts are therefore
+host authority. Test fixtures use a separate, explicitly test-only entry
+point. `run-state-v1.json` and its reachable transition chain remain the sole
+phase HEAD authority.
+
+One plan task means one new provider process. Before the first process, the
+host requires CTX-02 `freshInvocation`, `ephemeralSession`,
+`explicitModelSelection`, and `hardSubagentDisable` to be `supported`. When the
+host policy requires a reasoning effort, `explicitReasoningEffort` must also
+be `supported`. Unknown
+or unsupported is a deterministic `needs_model_escalation` failure before invocation.
+The worker adapter is read-only, disables provider-managed children and depth,
+isolates user configuration where the provider proves it, and never selects an
+enabled child path. CTX-07B has no CTX-07C adapter or fallback. An unproven
+native output schema alone may use mandatory host validation; isolation and
+model selection cannot.
+
+The provider-visible input consists of invariant worker transport rules and
+exactly one canonical `worker-context-packet-v1`. Its only payload fields are
+the pertinent read-only governance envelope; one validated
+`delegation-task-v1`; a task-only CTX-04 projection carrying the digest of the
+canonical source manifest; metadata and full body for each task-active skill;
+authorized evidence references; the output contract; and host-owned
+model/effort selection. It contains no sibling, parent transcript/prompt,
+phase input/checkpoint, inactive or candidate skill body, raw evidence,
+complete run state, additional authority, or ambient caller context.
+
+Routing uses only typed, host-validated inputs. The full tier is mandatory for
+the architecture, contracts, database, operations, and security scope domains,
+and for a task containing an active CTX-04 skill whose declared model tier is
+full or risk is high. Every other valid read task uses the economy tier. The
+versioned policy below `config/context-runtime/` is the sole mapping from
+provider/tier to concrete model ID, effort, and allowed scope/risk. Question
+prose, ownership labels, result data, provider defaults, CLI flags, environment
+variables, and provider-managed child routing are never model-selection
+inputs. CTX-07A validates the complete plan before routing; every route is
+resolved before the first packet is constructed.
+
+Capability support, Mana admission, and runtime model availability are
+distinct. CTX-02 proves the explicit selection mechanism, the host policy
+admits a concrete route, and the provider may still reject the model ID at
+transport time. Such rejection is a transport failure, never proof that the
+capability probe had verified model existence. A missing or duplicate mapping,
+or a disallowed full/high-risk route, fails closed before invocation.
+
+Parallel execution is bounded by `contextManifest.limits.directWorkers`; a
+caller may lower but cannot raise that host limit. CTX-07A has already proven
+that every selected task has unique ownership/question identity, read effect,
+parallel-safe skills, no delegation, and depth zero. Thus CTX-07B permits only
+independent parallel readers and has no writer surface.
+
+Provider output uses
+`contracts/context-runtime/delegation-result-draft-v1.schema.json`. All result
+collections are present, but a collection not declared in the task's
+`expectedOutput.sections` must be empty; undeclared uncertainty must be the
+canonical `none` value. After transport validation, CTX-07A alone adds binding,
+owner, plan/task/result digests, point provenance, and the exact evidence union.
+The unchanged CTX-07A validator rejects foreign, stale, unauthorized, or
+oversized output before merge.
+
+Before invocation the host creates a private capsule containing only the
+validated worker packet, governance/manifest projections, active skill bodies,
+output contract, and bounded authorized CTX-05 extracts. The capsule contains
+no original path locator, run HEAD/state, full evidence store/manifest, sibling
+task/evidence, parent transcript, or unmaterialized source. A verified
+host-owned read-isolation backend must restrict the provider to the capsule;
+unknown, unavailable, or unsupported containment fails closed with zero
+provider invocation. No provider-specific content-only fallback exists.
+
+Providers run as leaders of dedicated process sessions. Provider stdout and
+stderr are captured separately. Stderr is written only to a per-invocation
+temporary regular file with mode `0600` below a private mode-`0700` directory;
+it is never inherited, excerpted, or copied to runner stdout/stderr, lifecycle,
+usage, aggregates, claims, results, receipts, or public error text. The
+temporary is removed on every handled terminal path. A public transport error
+is host-generated and bounded to the failure category, provider, invocation ID,
+and exit status or signal; it contains no provider-controlled text.
+
+A host-owned timeout
+causes TERM of the process group, a bounded host-owned grace, KILL of the
+group, and wait/reap. Signals preserve terminal status 130/143; timeout uses
+124. Capsule and temporary output are cleaned on every terminal path.
+
+Worker raw trace retention comes only from the versioned
+`worker-debug-policy-v1` object below the canonical framework root. The default
+is `discard`. Production accepts no retention CLI option, rejects
+`MANA_RUNTIME_USAGE_RETAIN_RAW_TRACE` and worker equivalents, and has no task or
+model field for retention. The host materializes policy identity, digest, and
+decision in its private prepared plan before invocation; a later source-policy
+change cannot alter that plan. With explicit `retain`, the raw provider
+stdout/event stream is copied to the matching invocation attempt as
+`raw-provider-trace`, with mode `0600` under a mode-`0700` directory. Distinct
+invocation IDs make concurrent paths collision-free. Complete, failed,
+timed-out, and interrupted attempts may retain a trace, and
+`rawTraceRetained` is true only when the matching file exists. Reuse creates no
+new invocation or trace. Aggregates and lifecycle events contain no raw bytes
+or trace path.
+
+The raw trace is a potentially sensitive local debug artifact, not a delivery
+artifact or a privacy-safe metric. Provider stderr is a separate temporary
+diagnostic stream and the debug policy never retains it.
+
+The deterministic `taskExecutionKey` identifies equal work; a fresh
+host-generated `invocationId` identifies each real attempt. Claims are
+FD-anchored CTX-03 CAS records. An expired claim is reconciled by CAS, while a
+known failure is made terminal immediately. No phase-global worker lock is
+used.
+
+After transport/schema checks and CTX-07A bind-result validation, canonical
+result bytes are fsynced into an immutable per-invocation attempt artifact.
+Only a successful per-task result-HEAD CAS makes that artifact authoritative.
+Reuse requires the HEAD-reachable artifact to pass a fresh safe read and full
+binding, digest, CTX-04/05, and semantic validation. Conflicting, stale,
+foreign, malformed, partial, and orphaned artifacts are never reused. Worker
+publication does not advance the CTX-06 phase HEAD.
+
+The worker transaction first persists `attempts/<invocationId>/receipt.json`:
+a host-only immutable `worker-receipt/v1` record with terminal claim, validated
+result and bounded numeric usage. It is recovery intent, not result authority.
+Publication order is receipt, immutable `result.json`, task-result HEAD,
+immutable metrics/events, derived aggregate, terminal claim CAS. A short
+directory-FD `flock` serializes these state operations per task; it never serializes
+provider invocations for different tasks. Recovery validates the receipt using
+current CTX-07A authority before replaying any missing step. Exact replay is
+idempotent, including event identities and usage. Expired claims without a
+receipt close as interrupted with unavailable usage before a new attempt.
+
+An explicit publication failure before HEAD may write immutable `failure.json`
+alongside the receipt; it cancels that intent and preserves failure lifecycle
+and usage. It cannot cancel a committed HEAD. Fully written staging files are
+reconciled against canonical claims/receipts, accepted result semantics and
+immutable metric records. Cleanup verifies bytes, inode, link count and parent
+binding through held descriptors. Malformed, partial or foreign recovery
+candidates fail closed without deletion; names alone never authorize cleanup.
+
+Lifecycle events and per-invocation usage summaries are immutable,
+privacy-safe operational metadata rather than authority. Completion occurs
+only after task-result HEAD commit. Failure, timeout, interruption, result
+acceptance/reuse, and stale-claim reconciliation are distinct. Missing token
+dimensions remain null. Reuse creates neither a provider call nor a duplicate
+usage record. Aggregates name included invocation IDs and are reconstructed
+from immutable per-invocation records.
+
+Accepted results and merge inputs stay in one private temporary directory.
+The command emits the unchanged canonical `delegation-merge-v1` on stdout and
+does not persist the merge, publish a checkpoint, or advance phase HEAD. Failed provider or
+result validation has no retry and no accepted task result; successful sibling
+results remain losslessly represented and missing tasks are explicit in the
+incomplete merge. No provider transcript is retained by default; raw retention
+is controlled only by the host debug policy.
+
+The R2E recovery matrix invokes the provider before each `after-provider`,
+`before-bind`, and `after-bind` crash. It proves transport, normalization, and
+binding reach their declared boundaries; keeps task-result HEAD absent at the
+crash point; reconciles the claim; preserves the crashed invocation metric and
+lifecycle without a false completion; and permits exactly one new
+authoritative retry. Provider-managed children remain CTX-07C scope.

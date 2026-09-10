@@ -46,7 +46,7 @@ PLAN_DRAFT_FIELDS = {"schemaVersion", "tasks"}
 TASK_DRAFT_FIELDS = {
     "taskId", "owner", "question", "scope", "taskType", "effectClass",
     "delegationAllowed", "maxChildDepth", "skills", "evidenceRefs",
-    "evidenceGaps", "expectedOutput", "stopConditions", "limits",
+    "evidenceExtracts", "evidenceGaps", "expectedOutput", "stopConditions", "limits",
 }
 RESULT_DRAFT_FIELDS = {
     "schemaVersion", "taskId", "status", "verifiedFacts", "findings",
@@ -309,6 +309,9 @@ def _validate_task_policy(
     for index, gap in enumerate(task["evidenceGaps"]):
         validate_gap_shape(gap, f"delegation task {task['taskId']} evidenceGaps[{index}]")
     validate_evidence_refs(task["evidenceRefs"], packet, evidence_manifest, f"delegation task {task['taskId']}")
+    extracts = task.get("evidenceExtracts", [])
+    if any(item["evidenceId"] not in set(task["evidenceRefs"]) for item in extracts if isinstance(item, dict) and "evidenceId" in item):
+        fail(f"delegation task {task['taskId']} authorizes an extract outside its evidence refs")
     active_skills = _active_skills(packet)
     for skill_id in task["skills"]:
         skill = active_skills.get(skill_id)
@@ -382,6 +385,10 @@ def bind_plan(
     bindings = host_bindings(packet)
     tasks: list[dict[str, Any]] = []
     for index, raw_task in enumerate(draft["tasks"]):
+        # R1B is backwards compatible with R1A task drafts: absence means no
+        # evidence bytes are admitted into the worker capsule.
+        if isinstance(raw_task, dict) and set(raw_task) == TASK_DRAFT_FIELDS - {"evidenceExtracts"}:
+            raw_task = {**raw_task, "evidenceExtracts": []}
         task_draft = _require_fields(raw_task, TASK_DRAFT_FIELDS, f"delegation task draft {index}")
         task = {
             "schemaVersion": "mana.context-runtime.delegation-task/v1",
@@ -396,6 +403,7 @@ def bind_plan(
             "maxChildDepth": task_draft["maxChildDepth"],
             "skills": sorted(task_draft["skills"]) if isinstance(task_draft["skills"], list) else task_draft["skills"],
             "evidenceRefs": sorted(task_draft["evidenceRefs"]) if isinstance(task_draft["evidenceRefs"], list) else task_draft["evidenceRefs"],
+            "evidenceExtracts": sorted(task_draft.get("evidenceExtracts", []), key=runtime.canonical_bytes),
             "evidenceGaps": _sorted_objects(task_draft["evidenceGaps"]) if isinstance(task_draft["evidenceGaps"], list) and all(isinstance(item, dict) for item in task_draft["evidenceGaps"]) else task_draft["evidenceGaps"],
             "expectedOutput": deepcopy(task_draft["expectedOutput"]),
             "stopConditions": sorted(task_draft["stopConditions"]) if isinstance(task_draft["stopConditions"], list) else task_draft["stopConditions"],

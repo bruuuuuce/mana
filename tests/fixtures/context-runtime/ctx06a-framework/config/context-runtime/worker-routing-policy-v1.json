@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "mana.context-runtime.worker-routing-policy/v1",
+  "policyId": "ctx07b-fixture-routing-v1",
+  "mappings": [
+    {
+      "provider": "claude",
+      "modelTier": "economy",
+      "modelId": "sonnet-fixture",
+      "reasoningEffort": "medium",
+      "allowedScopeDomains": ["evidence", "requirements", "source", "tests"],
+      "allowedRiskLevels": ["low", "medium", "unspecified"]
+    },
+    {
+      "provider": "claude",
+      "modelTier": "full",
+      "modelId": "opus-fixture",
+      "reasoningEffort": "high",
+      "allowedScopeDomains": ["architecture", "contracts", "database", "evidence", "operations", "requirements", "security", "source", "tests"],
+      "allowedRiskLevels": ["high", "low", "medium", "unspecified"]
+    }
+  ]
+}

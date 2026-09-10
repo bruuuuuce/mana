@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "mana.context-runtime.worker-debug-policy/v1",
+  "policyId": "ctx07b-fixture-debug-retain-v1",
+  "rawTraceRetention": "retain"
+}

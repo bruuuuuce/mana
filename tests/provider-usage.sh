@@ -10,7 +10,7 @@ trap 'rm -rf "$tmp"' EXIT
 project="$tmp/project with spaces"; temporary="$tmp/temporary files with spaces"; mkdir -p "$project" "$temporary" "$tmp/bin"
 fail() { echo "FAIL: $*" >&2; exit 1; }
 assert_no_temporary_trace() {
-  ! find "$temporary" \( -name 'mana-provider-events.*' -o -name 'mana-provider-final.*' \) -print | grep -q . || fail "$1 left a temporary provider file"
+  ! find "$temporary" \( -name 'mana-provider-events.*' -o -name 'mana-provider-stderr.*' -o -name 'mana-provider-final.*' \) -print | grep -q . || fail "$1 left a temporary provider file"
 }
 cp "$root/tests/fixtures/context-runtime/provider-usage-stub.sh" "$tmp/bin/codex"
 cp "$root/tests/fixtures/context-runtime/provider-no-usage-stub.sh" "$tmp/bin/claude"
@@ -117,7 +117,7 @@ cp "$tmp/bin/claude" "$tmp/bin/opencode"
 assert_provider_argv opencode opencode run --dir 'directory with spaces' --model 'model with spaces' --flag repeat --flag repeat
 
 run_interruption_case() {
-  local signal_name="$1" expected_status="$2" case_id ready delivered pid status deadline
+  local signal_name="$1" expected_status="$2" case_id ready delivered pid status deadline trace provider_stderr summary
   case_id="signal-$(printf '%s' "$signal_name" | tr '[:upper:]' '[:lower:]')"
   ready="$tmp/$signal_name.ready"
   delivered="$tmp/$signal_name.delivered"
@@ -128,7 +128,13 @@ run_interruption_case() {
   while [ ! -f "$ready" ] && [ "$SECONDS" -lt "$deadline" ]; do sleep 0.05; done
   [ -f "$ready" ] || fail "$signal_name provider stub did not become ready"
   trace="$(find "$temporary" -name 'mana-provider-events.*' -print)"
-  [ -n "$trace" ] && [ "$(stat -f '%Lp' "$trace")" = 600 ] || fail "$signal_name temporary raw trace permissions are not restrictive"
+  if [ -z "$trace" ] || [ "$(stat -f '%Lp' "$trace")" != 600 ]; then
+    fail "$signal_name temporary raw trace permissions are not restrictive"
+  fi
+  provider_stderr="$(find "$temporary" -name 'mana-provider-stderr.*' -print)"
+  if [ -z "$provider_stderr" ] || [ "$(stat -f '%Lp' "$provider_stderr")" != 600 ]; then
+    fail "$signal_name temporary provider stderr permissions are not restrictive"
+  fi
   kill -"$signal_name" "$pid"
   if wait "$pid"; then fail "$signal_name interruption became success"; else status=$?; fi
   [ "$status" = "$expected_status" ] || fail "$signal_name exit status changed: $status"
