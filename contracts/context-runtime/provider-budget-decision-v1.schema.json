@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Host materialized provider budget decision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "executionId", "executionVersion", "profileId", "provider", "policyId", "policyDigest", "minimumMode", "requestedMode", "effectiveMode", "decisionSource", "decisionReason", "policySnapshot"],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.provider-budget-decision/v1"},
+    "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},
+    "executionVersion": {"type": "integer", "minimum": 1, "maximum": 2147483647},
+    "profileId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
+    "provider": {"enum": ["codex", "claude", "opencode"]},
+    "policyId": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,120}$"},
+    "policyDigest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "minimumMode": {"enum": ["compact", "standard", "deep"]},
+    "requestedMode": {"enum": [null, "compact", "standard", "deep"]},
+    "effectiveMode": {"enum": ["compact", "standard", "deep"]},
+    "decisionSource": {"enum": ["host-policy", "profile-risk", "human-cli"]},
+    "decisionReason": {"enum": ["human-request-raised-budget", "host-minimum-preserved"]},
+    "policySnapshot": {"$ref": "provider-budget-policy-v1.schema.json"}
+  }
+}

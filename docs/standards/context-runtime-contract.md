@@ -963,3 +963,136 @@ stderr containment, trace policy, process-group supervision, isolation
 backend, and merge rules remain in force. CTX-07C adds no provider retry,
 writer, phase transition, semantic synthesis, or correctness dependency on
 provider-managed children.
+
+## Host-owned compaction and budget contract (CTX-08)
+
+`config/context-runtime/provider-budget-policy-v1.json` is the sole CTX-08
+policy input. Its exact versioned field set carries an explicit calibration
+state, a versioned compact prompt, and profile-selectable `compact`,
+`standard`, and `deep` modes. All current values carry the calibration state
+`provisional-no-empirical-baseline`. A policy that claims calibrated values, a
+mode outside that set, a non-positive limit, an enabled child setting, or an
+active-context warning above its compaction threshold is rejected before
+provider reach.
+
+The host resolves the policy from the authoritative framework root and pairs
+each requested provider control with its exact CTX-02 tri-state record:
+`automaticCompactionThreshold`, `customCompactionPrompt`, `compactionScope`,
+`toolOutputRetentionTokenLimit`, `maximumChildConcurrency`, and
+`hardSubagentDisable`. Only `supported` may produce provider argv or provider
+configuration. `unknown` and `unsupported` produce explicit no-apply records;
+they are never replaced by provider defaults, prompt prose, a version guess,
+or another provider's feature. A supported control without a checked-in exact
+host adapter is also an explicit `host-adapter-unimplemented` no-apply record.
+The current phase adapter accepts only the
+proven Claude automatic threshold. CTX-06C's pre-existing hard child disable
+continues to be required independently of budget policy.
+
+The compact prompt must preserve human goal, immutable governance and
+approvals, execution identity, activated skills and reasons, verified facts
+with CTX-05 references, open evidence, decisions, closed hypotheses, blockers,
+provenance, and next bounded actions. It must distinguish assumptions and
+inferences from verified facts. It may discard or summarize raw transcripts,
+complete payloads, repeated evidence, resolved exploration, superseded plans,
+inactive skills, and already-applied explanatory material. This prompt is
+provider configuration only when capability-gated; it is not authority.
+
+The host may emit an advisory when its byte/4 prompt estimate or CTX-01
+measured aggregate reaches a configured provisional threshold. It evaluates
+cumulative input, cached input, and uncached input separately and retains the
+canonical CTX-01 aggregate unchanged. An advisory may recommend evidence
+offloading, a narrower task, checkpoint plus a fresh phase, or a human scope
+decision. It cannot skip a required skill/specialist/evidence check, resolve a
+human gate, alter permissions, change CTX-06 HEAD, or make compaction a
+correctness boundary. CTX-05 remains canonical for full evidence regardless of
+any provider tool-output retention control.
+
+### CTX-08-R1 authority and immutable mode decision
+
+Production phase and worker runners derive the framework root from their
+canonical installation, never from CLI, environment, task, checkpoint or
+provider data. `run-profile-v2.sh` no longer accepts `--framework-root`.
+The canonical `tests/run-profile-v2-test-only.sh` and
+`tests/context-budget-test-only.py` entry points use a fixed fixture root;
+production cannot select these through an option or environment value.
+
+Policy and its inline versioned compact prompt are read together through the
+CTX-03 trusted-root directory-FD reader: component-wise `O_DIRECTORY` and
+`O_NOFOLLOW`, final `fstat`, a 256 KiB bound, stable metadata/single-link
+classification, and parent/final identity re-attestation. There is no external
+prompt reference in v1; reference fields, missing/outside-root prompt paths,
+and provider/capability mapping overrides are rejected. The entire policy
+passes its JSON Schema and host semantic validation, including every profile
+and every selected or unselected mode. Duplicate fields are rejected.
+
+`NUMERIC_CEILINGS` in `scripts/lib/context-budget.py` centralizes implementation
+safety ceilings, mirrored by schema maxima and checked for agreement by the
+permanent regression suite. Compaction and active-context ceilings are
+10,000,000 tokens each; cumulative, cached and uncached input ceilings are
+1,000,000,000 tokens each; tool-output retention is at most 1,048,576 tokens;
+child concurrency is at most 32. All limits are positive integers. These are
+finite implementation bounds, not calibrated thresholds or provider model
+availability claims. Provider rejection remains an explicit transport failure.
+
+The authoritative order is `compact < standard < deep`. Every numeric policy
+dimension must be nondecreasing across that order; all child execution values
+remain `disabled`. Each profile policy declares `minimumMode`. The default
+minimum is `standard`; an authoritative CTX-04 model-escalation skill raises
+the minimum to `deep`. This changes budgets only, never task routing, skill or
+evidence coverage, permissions, approval, or child transport selection.
+
+Before the first invocation the host publishes one immutable
+`provider-budget-decision-v1.json` under the existing CTX-06 run directory.
+It contains execution/version/profile/provider identity, policy ID and digest,
+minimum/requested/effective modes, technical decision source/reason, and the
+canonical validated policy snapshot. `--budget-mode` is only a request from
+the observed `human-cli` surface; it is not proof of a human identity. Without
+a request the source is `host-policy` or `profile-risk`; a weaker request
+preserves the minimum and a stronger initial request raises the budget.
+Schema, reconstructed decision, canonical bytes, private modes and a separate
+host commitment to the file digest/device/inode are verified on reuse.
+
+Phase resume/retry and workers reuse the same snapshot without reopening the
+source policy. A source change cannot affect the current execution. Later
+weaker requests preserve the saved decision; a stronger request after
+materialization fails explicitly and requires a new execution. Concurrent
+materialization is serialized by an FD-attested run-local budget mutex.
+This mutex does not replace CTX-06 HEAD or its approval/CAS authority.
+
+### CTX-08-R1 coherent usage and advisories
+
+CTX-01's numeric-only parser and the host budget checker share the supported
+integer domain `0..9007199254740991`. Cached and uncached input cannot exceed
+total; when all three are reported, cached plus uncached must equal total.
+Negative, noninteger, conflicting alias and overflow values are parse errors;
+invalid traces have null totals, `usageStatus: unavailable` and nonzero
+`parseErrors`. They never become a measured or below-budget decision.
+Complete coherent dimensions use `measured`; coherent missing dimensions use
+the additive `partial` status. No missing uncached value is inferred.
+
+Phase and worker invocations store separate privacy-safe budget advisory
+records, including policy digest, effective mode, reported numeric dimensions,
+usage validity/availability, warning and optional byte/4 prompt estimate.
+These are budget/metric artifacts, not runtime events or checkpoints. The
+run's budget aggregate is reconstructed from unique immutable invocation
+records across phases and workers. An unreported dimension retains null when
+coverage is incomplete; immutable CTX-01/06/07 records retain every actual
+reported value. Invalid usage produces an explicit invalid advisory and may
+recommend a human scope decision. Reuse adds no invocation or usage record.
+
+Each new advisory evaluates both `invocationUsageCheck` (only this invocation's
+reported usage) and `aggregateUsageCheck` (unique invocation coverage so far).
+The runner-facing `usageCheck` retains the invocation's availability/measured
+status unless either scope is invalid, and forwards the union of both warning
+sets. Invalidity takes priority and recommends a human scope decision; otherwise
+a threshold exceeded in either scope recommends a checkpoint and fresh phase.
+Missing aggregate coverage never suppresses a measured or partial invocation's
+threshold warning, and never turns null aggregate dimensions into estimates.
+Existing immutable advisories are reused unchanged rather than rewritten.
+
+Exceeded budgets remain warnings recommending fresh phases or human scope,
+without skipping required skills, full/high specialists, evidence or approval,
+changing model tier, truncating completion, or claiming a clean semantic
+verdict. Compaction remains only a capability-gated optimization. Initial
+thresholds remain `provisional-no-empirical-baseline`; future CTX-09/shadow and
+pilots will provide calibration evidence, but are not implemented by R1.

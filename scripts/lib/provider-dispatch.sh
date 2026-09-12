@@ -59,11 +59,12 @@ mana_provider_usage_args() {
 # The final argument states whether the current CTX-02 probe proved native
 # schema enforcement.  Host validation remains mandatory in either case.
 mana_provider_phase_args() {
-  local provider="$1" project="$2" model="$3" output_schema="$4" native_schema="${5:-false}" schema_json=""
+  local provider="$1" project="$2" model="$3" output_schema="$4" native_schema="${5:-false}" automatic_compaction_threshold="${6:-}" schema_json=""
   MANA_PROVIDER_ARGS=()
   MANA_PROVIDER_OPENCODE_CONFIG_CONTENT=""
   MANA_PROVIDER_PHASE_OUTPUT_MODE="direct-json"
   case "$native_schema" in true|false) ;; *) return 1 ;; esac
+  case "$automatic_compaction_threshold" in '' ) ;; *[!0123456789]* ) return 1 ;; esac
   [ -f "$output_schema" ] && [ ! -L "$output_schema" ] || return 1
   case "$provider" in
     codex)
@@ -74,6 +75,8 @@ mana_provider_phase_args() {
       ;;
     claude)
       MANA_PROVIDER_ARGS=(-p --model "$model" --permission-mode default --safe-mode --no-session-persistence --disable-slash-commands --disallowedTools 'Agent,Bash,Edit,Write,WebFetch,WebSearch')
+      # CTX-08 supplies this only when CTX-02 has proven the exact control.
+      [ -z "$automatic_compaction_threshold" ] || MANA_PROVIDER_ARGS+=(--autocompact "$automatic_compaction_threshold")
       if [ "$native_schema" = true ]; then
         schema_json="$(jq -c . "$output_schema")" || return 1
         MANA_PROVIDER_ARGS+=(--output-format json --json-schema "$schema_json")
@@ -97,11 +100,12 @@ mana_provider_phase_args() {
 # invocation is read-only, ephemeral, explicitly model-routed, and has every
 # known child mechanism disabled.
 mana_provider_worker_args() {
-  local provider="$1" project="$2" model="$3" reasoning_effort="$4" output_schema="$5" native_schema="${6:-false}" schema_json=""
+  local provider="$1" project="$2" model="$3" reasoning_effort="$4" output_schema="$5" native_schema="${6:-false}" automatic_compaction_threshold="${7:-}" schema_json=""
   MANA_PROVIDER_ARGS=()
   MANA_PROVIDER_OPENCODE_CONFIG_CONTENT=""
   case "$reasoning_effort" in minimal|low|medium|high|xhigh|max) ;; *) return 1 ;; esac
   case "$native_schema" in true|false) ;; *) return 1 ;; esac
+  case "$automatic_compaction_threshold" in '' ) ;; *[!0123456789]* ) return 1 ;; esac
   [ -f "$output_schema" ] && [ ! -L "$output_schema" ] || return 1
   case "$provider" in
     codex)
@@ -113,6 +117,7 @@ mana_provider_worker_args() {
       ;;
     claude)
       MANA_PROVIDER_ARGS=(-p --model "$model" --effort "$reasoning_effort" --permission-mode default --safe-mode --no-session-persistence --disable-slash-commands --disallowedTools 'Agent,Bash,Edit,Write,WebFetch,WebSearch')
+      [ -z "$automatic_compaction_threshold" ] || MANA_PROVIDER_ARGS+=(--autocompact "$automatic_compaction_threshold")
       if [ "$native_schema" = true ]; then
         schema_json="$(jq -c . "$output_schema")" || return 1
         MANA_PROVIDER_ARGS+=(--output-format json --json-schema "$schema_json")

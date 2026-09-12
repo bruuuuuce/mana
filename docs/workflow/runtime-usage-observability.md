@@ -69,3 +69,40 @@ included.
 
 Use `mana runtime metrics <execution-id> --json` to inspect the JSON summary;
 without `--json` Mana renders its compact Markdown companion.
+
+## CTX-08 budget advisories
+
+CTX-08 reads the same privacy-safe aggregate after each phased invocation. It
+uses measured `input`, `cachedInput`, and `uncachedInput` only when CTX-01
+reports them; byte/4 prompt sizing is labelled an estimate and is never copied
+into the usage summary as measured provider usage. A compaction event does not
+erase the aggregate's cumulative input total.
+
+The initial policy values are provisional because this repository contains no
+real measured CTX-01 profile execution. Collect at least one real profile run
+with cached and uncached dimensions before calibrating the values. Until then,
+an advisory stays a warning and recommends a fresh phase or human scope
+decision without changing gates, skills, evidence, permissions, or HEAD.
+
+CTX-08-R1 adds `partial` for coherent usage with unreported dimensions.
+Complete coherent dimensions remain `measured`; no usage remains
+`unavailable`. Negative/noninteger/overflow values, cached or uncached above
+total, or an inconsistent reported total/cached/uncached sum produce explicit
+parse errors and unavailable/null numeric totals. Missing uncached input is
+never derived. Aggregates keep a dimension null when invocation coverage is
+incomplete; individual records preserve the reported values.
+
+Both phase and worker runners apply the same budget checker and persist
+privacy-safe per-invocation advisories under the existing v2 run. Those records
+and the derived budget usage aggregate are separate from token-free runtime
+events. Reuse creates no new record; retries keep distinct invocation records.
+Invalid usage cannot produce a measured below-threshold advisory. The saved
+policy/mode decision is reused across phase resume and worker execution.
+
+New advisories expose `invocationUsageCheck` and `aggregateUsageCheck` separately.
+The existing runner-facing `usageCheck` forwards warnings from either scope,
+with invalid usage taking priority over a fresh-phase recommendation. Its usage
+status describes the current invocation unless either scope is invalid. An
+earlier missing or partial invocation cannot hide a later reported threshold
+exceedance; aggregate dimensions with incomplete coverage remain null. Reused
+immutable advisories are not rewritten.

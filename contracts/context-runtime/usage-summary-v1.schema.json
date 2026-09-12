@@ -28,7 +28,7 @@
     "provider": { "type": "string", "enum": ["codex", "claude", "opencode"] },
     "providerVersion": { "type": ["string", "null"] },
     "status": { "type": "string", "enum": ["complete", "failed", "interrupted"] },
-    "usageStatus": { "type": "string", "enum": ["measured", "unavailable"] },
+    "usageStatus": { "type": "string", "enum": ["measured", "partial", "unavailable"] },
     "phases": {
       "type": "array",
       "maxItems": 4096,
@@ -81,7 +81,7 @@
         "invocation": { "type": "integer", "minimum": 1, "maximum": 999 },
         "providerVersion": { "type": ["string", "null"] },
         "status": { "type": "string", "enum": ["complete", "failed", "interrupted"] },
-        "usageStatus": { "type": "string", "enum": ["measured", "unavailable"] },
+        "usageStatus": { "type": "string", "enum": ["measured", "partial", "unavailable"] },
         "totals": { "$ref": "#/$defs/totals" },
         "turns": { "type": ["integer", "null"], "minimum": 0 },
         "toolCalls": { "type": ["integer", "null"], "minimum": 0 },

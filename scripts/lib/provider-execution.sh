@@ -15,33 +15,6 @@ mana_usage_json_number_or_null() {
   case "${1:-}" in ''|null) printf 'null' ;; *[!0-9]*) printf 'null' ;; *) printf '%s' "$1" ;; esac
 }
 
-# This is deliberately below Bash's signed-integer ceiling. Values arriving
-# from a provider are validated by jq and again here before Bash sees them in
-# arithmetic. Totals that exceed this supported domain become unavailable;
-# Mana never rounds or invents a usage value.
-MANA_USAGE_MAX_INTEGER=9007199254740991
-
-mana_usage_supported_integer() {
-  case "${1:-}" in ''|*[!0-9]*) return 1 ;; esac
-  [ "${#1}" -lt "${#MANA_USAGE_MAX_INTEGER}" ] && return 0
-  [ "${#1}" -gt "${#MANA_USAGE_MAX_INTEGER}" ] && return 1
-  [ "$1" -le "$MANA_USAGE_MAX_INTEGER" ]
-}
-
-mana_usage_add() {
-  # $1 current total (or empty), $2 already validated provider integer.
-  # The caller receives the result in MANA_USAGE_ADD_RESULT.
-  local current="$1" increment="$2"
-  mana_usage_supported_integer "$increment" || return 1
-  if [ -z "$current" ]; then
-    MANA_USAGE_ADD_RESULT="$increment"
-    return 0
-  fi
-  mana_usage_supported_integer "$current" || return 1
-  (( current <= MANA_USAGE_MAX_INTEGER - increment )) || return 1
-  MANA_USAGE_ADD_RESULT=$((current + increment))
-}
-
 mana_usage_write_summary() {
   # $1 metrics directory; the remaining arguments are controlled operational
   # values only.  Do not add arbitrary strings here: this artifact is a
@@ -98,58 +71,19 @@ mana_usage_write_summary() {
 }
 
 mana_usage_parse_codex_trace() {
-  # $1 trace.  The compact record emitted for each valid JSON object contains
-  # numbers and booleans only, so large tool payloads are never copied into a
-  # metric or a parser intermediary.
-  local trace="$1" line record input cached uncached output reasoning invalid
-  MANA_USAGE_INPUT=""; MANA_USAGE_CACHED=""; MANA_USAGE_UNCACHED=""; MANA_USAGE_OUTPUT=""; MANA_USAGE_REASONING=""
-  MANA_USAGE_TURNS=""; MANA_USAGE_TOOL_CALLS=""; MANA_USAGE_WORKERS=""; MANA_USAGE_COMPACTIONS=""; MANA_USAGE_PARSE_ERRORS=0
-  [ -f "$trace" ] || return 0
-  while IFS= read -r line || [ -n "$line" ]; do
-    record="$(printf '%s' "$line" | jq -cer --argjson maxInteger "$MANA_USAGE_MAX_INTEGER" '
-      def usage_field($keys):
-        [$keys[] as $key | select((.usage? | type) == "object") | select(.usage | has($key)) | .usage[$key]] as $values |
-        if ($values | length) == 0 then {value:null, invalid:false}
-        elif ($values[0] | type == "number" and floor == . and . >= 0 and . <= $maxInteger) then {value:($values[0] | tostring), invalid:false}
-        else {value:null, invalid:true}
-        end;
-      if type != "object" then error("object expected") else
-        {input:usage_field(["input_tokens", "inputTokens", "input"]),
-         cached:usage_field(["cached_input_tokens", "cachedInputTokens", "cached_input", "cachedInput"]),
-         uncached:usage_field(["uncached_input_tokens", "uncachedInputTokens", "uncached_input", "uncachedInput"]),
-         output:usage_field(["output_tokens", "outputTokens", "output"]),
-         reasoning:usage_field(["reasoning_tokens", "reasoningTokens", "reasoning"]),
-         turn:((.type? == "turn.completed") or (.event? == "turn.completed")),
-         tool:((.type? == "item.completed") and ((.item.type? == "function_call") or (.item.type? == "tool_call") or (.item.type? == "command_execution"))) or (.type? == "tool.completed"),
-         worker:((.type? == "agent.completed") or (.type? == "worker.completed")),
-         compaction:((.type? == "compaction.completed") or (.type? == "context.compacted"))}
-      end' 2>/dev/null)" || { MANA_USAGE_PARSE_ERRORS=$((MANA_USAGE_PARSE_ERRORS + 1)); continue; }
-    # A count of zero is meaningful only after at least one well-formed event
-    # has been observed. Otherwise preserve the provider's absence as null.
-    [ -n "$MANA_USAGE_TURNS" ] || { MANA_USAGE_TURNS=0; MANA_USAGE_TOOL_CALLS=0; MANA_USAGE_WORKERS=0; }
-    invalid="$(jq -r '[.input.invalid, .cached.invalid, .uncached.invalid, .output.invalid, .reasoning.invalid] | any' <<<"$record")"
-    [ "$invalid" = true ] && MANA_USAGE_PARSE_ERRORS=$((MANA_USAGE_PARSE_ERRORS + 1))
-    input="$(jq -r '.input.value // empty' <<<"$record")"; cached="$(jq -r '.cached.value // empty' <<<"$record")"; uncached="$(jq -r '.uncached.value // empty' <<<"$record")"; output="$(jq -r '.output.value // empty' <<<"$record")"; reasoning="$(jq -r '.reasoning.value // empty' <<<"$record")"
-    if [ -n "$input" ]; then
-      if mana_usage_add "$MANA_USAGE_INPUT" "$input"; then MANA_USAGE_INPUT="$MANA_USAGE_ADD_RESULT"; else MANA_USAGE_INPUT=""; MANA_USAGE_PARSE_ERRORS=$((MANA_USAGE_PARSE_ERRORS + 1)); fi
-    fi
-    if [ -n "$cached" ]; then
-      if mana_usage_add "$MANA_USAGE_CACHED" "$cached"; then MANA_USAGE_CACHED="$MANA_USAGE_ADD_RESULT"; else MANA_USAGE_CACHED=""; MANA_USAGE_PARSE_ERRORS=$((MANA_USAGE_PARSE_ERRORS + 1)); fi
-    fi
-    if [ -n "$uncached" ]; then
-      if mana_usage_add "$MANA_USAGE_UNCACHED" "$uncached"; then MANA_USAGE_UNCACHED="$MANA_USAGE_ADD_RESULT"; else MANA_USAGE_UNCACHED=""; MANA_USAGE_PARSE_ERRORS=$((MANA_USAGE_PARSE_ERRORS + 1)); fi
-    fi
-    if [ -n "$output" ]; then
-      if mana_usage_add "$MANA_USAGE_OUTPUT" "$output"; then MANA_USAGE_OUTPUT="$MANA_USAGE_ADD_RESULT"; else MANA_USAGE_OUTPUT=""; MANA_USAGE_PARSE_ERRORS=$((MANA_USAGE_PARSE_ERRORS + 1)); fi
-    fi
-    if [ -n "$reasoning" ]; then
-      if mana_usage_add "$MANA_USAGE_REASONING" "$reasoning"; then MANA_USAGE_REASONING="$MANA_USAGE_ADD_RESULT"; else MANA_USAGE_REASONING=""; MANA_USAGE_PARSE_ERRORS=$((MANA_USAGE_PARSE_ERRORS + 1)); fi
-    fi
-    [ "$(jq -r .turn <<<"$record")" = true ] && MANA_USAGE_TURNS=$((MANA_USAGE_TURNS + 1))
-    [ "$(jq -r .tool <<<"$record")" = true ] && MANA_USAGE_TOOL_CALLS=$((MANA_USAGE_TOOL_CALLS + 1))
-    [ "$(jq -r .worker <<<"$record")" = true ] && MANA_USAGE_WORKERS=$((MANA_USAGE_WORKERS + 1))
-    if [ "$(jq -r .compaction <<<"$record")" = true ]; then MANA_USAGE_COMPACTIONS=$(( ${MANA_USAGE_COMPACTIONS:-0} + 1 )); fi
-  done < "$trace"
+  local parser_result
+  parser_result="$(python3 "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/provider-usage-parser.py" "$1")" || return 1
+  MANA_USAGE_INPUT="$(jq -r '.totals.input // empty' <<<"$parser_result")"
+  MANA_USAGE_CACHED="$(jq -r '.totals.cachedInput // empty' <<<"$parser_result")"
+  MANA_USAGE_UNCACHED="$(jq -r '.totals.uncachedInput // empty' <<<"$parser_result")"
+  MANA_USAGE_OUTPUT="$(jq -r '.totals.output // empty' <<<"$parser_result")"
+  MANA_USAGE_REASONING="$(jq -r '.totals.reasoning // empty' <<<"$parser_result")"
+  MANA_USAGE_TURNS="$(jq -r '.turns // empty' <<<"$parser_result")"
+  MANA_USAGE_TOOL_CALLS="$(jq -r '.toolCalls // empty' <<<"$parser_result")"
+  MANA_USAGE_WORKERS="$(jq -r '.workers // empty' <<<"$parser_result")"
+  MANA_USAGE_COMPACTIONS="$(jq -r '.compactions // empty' <<<"$parser_result")"
+  MANA_USAGE_PARSE_ERRORS="$(jq -r '.parseErrors' <<<"$parser_result")"
+  MANA_USAGE_STATUS="$(jq -r '.usageStatus' <<<"$parser_result")"
 }
 
 _mana_provider_execute() {
@@ -176,6 +110,7 @@ _mana_provider_execute() {
   chmod 700 "$metrics_dir" || { echo 'ERROR: usage metric storage permissions unavailable' >&2; return 1; }
   local provider_tmp_dir="${MANA_PROVIDER_EXEC_TEMP_DIR:-${TMPDIR:-/tmp}}"
   [ -d "$provider_tmp_dir" ] || return 1
+  provider_tmp_dir="$(cd "$provider_tmp_dir" && pwd -P)" || return 1
   trace="$(mktemp "$provider_tmp_dir/mana-provider-events.XXXXXX")" || return 1
   chmod 600 "$trace" || { rm -f "$trace"; return 1; }
   provider_stderr="$(mktemp "$provider_tmp_dir/mana-provider-stderr.XXXXXX")" || { rm -f "$trace"; return 1; }
@@ -238,7 +173,7 @@ _mana_provider_execute() {
     if [ "$provider" = codex ] && [ -f "${trace:-}" ]; then
       mana_usage_parse_codex_trace "$trace"
       input="$MANA_USAGE_INPUT"; cached="$MANA_USAGE_CACHED"; uncached="$MANA_USAGE_UNCACHED"; output="$MANA_USAGE_OUTPUT"; reasoning="$MANA_USAGE_REASONING"; turns="$MANA_USAGE_TURNS"; tool_calls="$MANA_USAGE_TOOL_CALLS"; workers="$MANA_USAGE_WORKERS"; compactions="$MANA_USAGE_COMPACTIONS"; parse_errors="$MANA_USAGE_PARSE_ERRORS"
-      if [ -n "$input$cached$uncached$output$reasoning" ]; then usage_status=measured; else usage_status=unavailable; fi
+      usage_status="$MANA_USAGE_STATUS"
     fi
     case "$exit_status" in 0) summary_status=complete ;; 129|130|143) summary_status=interrupted ;; *) summary_status=failed ;; esac
     if [ "$retain_raw" = true ] && [ -f "${trace:-}" ]; then

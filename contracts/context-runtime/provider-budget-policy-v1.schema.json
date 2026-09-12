@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/provider-budget-policy-v1.schema.json",
+  "title": "Mana Context Runtime provider budget policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "policyId", "calibration", "compactionPrompt", "profiles"],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.provider-budget-policy/v1"},
+    "policyId": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,120}$"},
+    "calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "requiredEvidence"],
+      "properties": {
+        "status": {"const": "provisional-no-empirical-baseline"},
+        "requiredEvidence": {"type": "string", "minLength": 1, "maxLength": 1024}
+      }
+    },
+    "compactionPrompt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "text"],
+      "properties": {
+        "version": {"type": "string", "pattern": "^[A-Za-z0-9._/-]{1,120}$"},
+        "text": {"type": "string", "minLength": 1, "maxLength": 16384}
+      }
+    },
+    "profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/profile"}
+    }
+  },
+  "$defs": {
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimumMode", "modes"],
+      "properties": {
+        "minimumMode": {"type": "string", "enum": ["compact", "standard", "deep"]},
+        "modes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["compact", "standard", "deep"],
+          "properties": {
+            "compact": {"$ref": "#/$defs/mode"},
+            "standard": {"$ref": "#/$defs/mode"},
+            "deep": {"$ref": "#/$defs/mode"}
+          }
+        }
+      }
+    },
+    "mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "automaticCompactionThresholdTokens", "activeContextWarningTokens",
+        "cumulativeInputWarningTokens", "cachedInputWarningTokens",
+        "uncachedInputWarningTokens", "toolOutputRetentionTokens",
+        "maximumChildConcurrency", "childExecution", "compactionScope"
+      ],
+      "properties": {
+        "automaticCompactionThresholdTokens": {"type": "integer", "minimum": 1, "maximum": 10000000},
+        "activeContextWarningTokens": {"type": "integer", "minimum": 1, "maximum": 10000000},
+        "cumulativeInputWarningTokens": {"type": "integer", "minimum": 1, "maximum": 1000000000},
+        "cachedInputWarningTokens": {"type": "integer", "minimum": 1, "maximum": 1000000000},
+        "uncachedInputWarningTokens": {"type": "integer", "minimum": 1, "maximum": 1000000000},
+        "toolOutputRetentionTokens": {"type": "integer", "minimum": 1, "maximum": 1048576},
+        "maximumChildConcurrency": {"type": "integer", "minimum": 1, "maximum": 32},
+        "childExecution": {"const": "disabled"},
+        "compactionScope": {"const": "current-provider-context"}
+      }
+    }
+  }
+}

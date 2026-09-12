@@ -288,10 +288,10 @@ def aggregate_metrics(
         "provider": provider,
         "providerVersion": next(iter(versions)) if len(versions) == 1 else None,
         "status": run_status,
-        "usageStatus": "measured" if any(record["usageStatus"] == "measured" for record in records) else "unavailable",
+        "usageStatus": "unavailable",
         "phases": records,
         "totals": {
-            key: supported_sum([record["totals"][key] for record in records])
+            key: supported_sum([record["totals"][key] for record in records]) if all(record["totals"][key] is not None for record in records) else None
             for key in ("input", "cachedInput", "uncachedInput", "output", "reasoning")
         },
         "turns": supported_sum([record["turns"] for record in records]),
@@ -301,6 +301,16 @@ def aggregate_metrics(
         "rawTraceRetained": any(record["rawTraceRetained"] for record in records),
         "parseErrors": sum(record["parseErrors"] for record in records),
     }
+    if any(all(record["totals"][key] is not None for record in records)
+           and sum(record["totals"][key] for record in records) > MAX_USAGE_INTEGER
+           for key in runtime.USAGE_FIELDS):
+        aggregate["parseErrors"] += 1
+    classification = runtime.usage_totals_status(aggregate["totals"], aggregate["parseErrors"])
+    if classification == "invalid":
+        aggregate["totals"] = dict.fromkeys(runtime.USAGE_FIELDS)
+        aggregate["parseErrors"] = max(1, aggregate["parseErrors"])
+    else:
+        aggregate["usageStatus"] = classification
     runtime.validate_model("usage-summary", aggregate)
     return aggregate
 
@@ -394,6 +404,7 @@ def archive_metrics(
         "schemaVersion": "mana.context-runtime.phase-metric-archive/v1",
         "executionId": execution_id,
         "phaseId": phase_id,
+        "ordinal": ordinal,
         "attempt": attempt,
         "invocation": invocation,
         "summaryRef": relative,

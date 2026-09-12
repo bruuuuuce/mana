@@ -223,3 +223,28 @@ Capability reports contain no prompt, response, source, reasoning, credential,
 arbitrary environment, transcript, or tool payload. They contain only schema
 and provider version metadata, safe probe evidence identifiers, and capability
 states.
+
+## CTX-08 compaction and budget gate
+
+CTX-08 resolves a host-owned budget policy before a fresh phase invocation and
+matches every requested provider setting to this report. A setting is emitted
+only for the exact `supported` capability. `unknown` and `unsupported` are
+reported as no-apply outcomes, never inferred from version numbers, provider
+defaults, or another provider's syntax.
+
+The current recognized Claude `--autocompact <auto|tokens>` declaration proves
+only `automaticCompactionThreshold`; the CTX-08 adapter can therefore pass its
+host-selected threshold exactly. Codex and OpenCode compaction controls remain
+unknown with current probes. Custom compact prompts, scope, tool-output
+retention, and enabled-child concurrency remain unavailable to CTX-08 unless
+their own capability record becomes `supported`. Existing hard child disable
+is still controlled by the CTX-06C/CTX-07 gate and is never loosened by a
+budget selection.
+
+CTX-08-R1 selects the threshold from a validated immutable run policy snapshot,
+resolved only from the canonical Mana installation. Human budget requests
+cannot change capability states or permissions. The dedicated budget suite
+captures real stub invocation argv for Claude supported/unknown/unsupported
+and verifies conservative Codex/OpenCode plans. Custom prompt, scope and tool
+retention controls remain omitted when unknown, unsupported or lacking an
+exact host adapter. Fresh invocation remains the correctness boundary.

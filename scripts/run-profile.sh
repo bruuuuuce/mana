@@ -78,6 +78,7 @@ manifest_validation_args=()
 compiled_manifest=""
 context_runtime_version="${MANA_CONTEXT_RUNTIME_VERSION:-legacy}"
 runtime_execution_id=""
+budget_mode=""
 
 usage() {
   cat <<'USAGE'
@@ -121,6 +122,7 @@ Options:
   --deep-load-skill <id>        Active skill selected for instruction-body loading.
   --context-runtime <mode>      Select legacy (default) or the opt-in v2 phase runner.
   --runtime-execution-id <id>   Existing CTX-06A run to execute in v2 mode.
+  --budget-mode <mode>          Human v2 budget request; compact, standard, or deep, preserving host minimum.
 
 Story Start Scope v2 opt-in:
   MANA_STORY_START_SCOPE_VERSION=v2
@@ -381,6 +383,11 @@ while [ "$#" -gt 0 ]; do
       [ -n "$runtime_execution_id" ] || { echo "ERROR: --runtime-execution-id requires an id" >&2; exit 2; }
       shift 2
       ;;
+    --budget-mode)
+      budget_mode="${2:-}"
+      case "$budget_mode" in compact|standard|deep) ;; *) echo 'ERROR: --budget-mode must be compact, standard, or deep' >&2; exit 2 ;; esac
+      shift 2
+      ;;
     --*)
       echo "ERROR: unknown option: $1" >&2
       exit 2
@@ -530,12 +537,13 @@ case "$context_runtime_version" in
     [ "$publish_high_risk_comments" = false ] || { echo 'ERROR: CTX-06C is read-only and cannot publish PR comments' >&2; exit 2; }
     [ "$service_discovery_approved" = false ] || { echo 'ERROR: CTX-06C does not implement profile-specific service discovery' >&2; exit 2; }
     v2_args=(
-      "$runtime_execution_id" --project-root "$project_root" --framework-root "$root"
+      "$runtime_execution_id" --project-root "$project_root"
       --profile "$profile" --provider "$runner"
       --codex-model "$codex_model" --codex-full-model "$codex_full_model"
       --claude-model "$claude_model" --claude-full-model "$claude_full_model"
       --opencode-model "$opencode_model" --opencode-full-model "$opencode_full_model"
     )
+    [ -z "$budget_mode" ] || v2_args+=(--budget-mode "$budget_mode")
     for value in "${manifest_static_signals[@]}"; do v2_args+=(--static-signal "$value"); done
     for value in "${manifest_requested_skills[@]}"; do v2_args+=(--request-skill "$value"); done
     for value in "${manifest_deep_load_skills[@]}"; do v2_args+=(--deep-load-skill "$value"); done

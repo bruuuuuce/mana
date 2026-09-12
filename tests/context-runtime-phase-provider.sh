@@ -4,10 +4,11 @@ set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 pipeline="$root/scripts/mana-context-pipeline.sh"
-runner="$root/scripts/run-profile-v2.sh"
+runner="$root/tests/run-profile-v2-test-only.sh"
 framework="$root/tests/fixtures/context-runtime/ctx06a-framework"
 fixture_root="$root/tests/fixtures/context-runtime"
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/mana-context-06c.XXXXXX")"
+tmp="$(cd "$tmp" && pwd -P)"
 trap 'rm -rf "$tmp"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
 
@@ -37,7 +38,7 @@ run_fixture() {
   shift 4
   PATH="$tmp/bin:$PATH" CTX06C_FIXTURE_ROOT="$fixture_root" \
     CTX06C_STATE_DIR="$state" CTX06C_SCENARIO="$scenario" \
-    "$runner" "$execution" --project-root "$project" --framework-root "$framework" \
+    "$runner" "$execution" --project-root "$project" \
       --profile ctx06c-fixture --provider codex \
       --codex-model economy-fixture --codex-full-model full-fixture "$@"
 }
@@ -46,6 +47,24 @@ run_fixture() {
 # disables child execution. CTX-07 provider-managed children remain absent.
 . "$root/scripts/lib/provider-dispatch.sh"
 schema="$root/contracts/context-runtime/phase-checkpoint-v1.schema.json"
+budget_helper="$root/tests/context-budget-test-only.py"
+budget_policy="$framework/config/context-runtime/provider-budget-policy-v1.json"
+budget_resolution="$tmp/budget-resolution.json"
+python3 "$root/tests/lib/json_schema_subset.py" "$root/contracts/context-runtime/provider-budget-policy-v1.schema.json" "$budget_policy" || fail 'CTX-08 fixture budget policy violates its schema'
+python3 "$root/tests/lib/json_schema_subset.py" "$root/contracts/context-runtime/provider-budget-policy-v1.schema.json" "$root/config/context-runtime/provider-budget-policy-v1.json" || fail 'CTX-08 production budget policy violates its schema'
+"$budget_helper" resolve ctx06c-fixture standard > "$budget_resolution" || fail 'CTX-08 did not resolve its host policy'
+jq -e '.calibration.status=="provisional-no-empirical-baseline" and .mode=="standard" and .limits.automaticCompactionThresholdTokens==100000' "$budget_resolution" >/dev/null || fail 'CTX-08 policy lost its provisional standard budget'
+"$budget_helper" resolve ctx06c-fixture deep > "$tmp/budget-deep.json" || fail 'CTX-08 did not resolve deep budget'
+jq -e --slurpfile standard "$budget_resolution" '.limits.automaticCompactionThresholdTokens > $standard[0].limits.automaticCompactionThresholdTokens and .limits.cumulativeInputWarningTokens > $standard[0].limits.cumulativeInputWarningTokens and .limits.childExecution=="disabled"' "$tmp/budget-deep.json" >/dev/null || fail 'deep CTX-08 budget did not increase without enabling children'
+for concept in 'current human goal' 'immutable governance constraints' 'verified facts with evidence references' 'Never turn an assumption or inference into a verified fact.' 'Never remove an unresolved blocker'; do
+  jq -r '.compactionPrompt.text' "$budget_policy" | grep -Fq -- "$concept" || fail "versioned compact prompt omitted required concept: $concept"
+done
+"$root/scripts/mana-provider-capabilities.sh" codex --fixture "$fixture_root/provider-capabilities/codex-supported" > "$tmp/codex-capabilities.json"
+"$budget_helper" capability-plan "$budget_resolution" "$tmp/codex-capabilities.json" > "$tmp/codex-budget-plan.json" || fail 'CTX-08 rejected a valid Codex capability report'
+jq -e '.controls.automaticCompactionThreshold == {status:"unknown",requested:100000,applied:false,reason:"capability-unknown"} and .controls.toolOutputRetentionTokenLimit.applied==false and .controls.hardSubagentDisable.applied==true' "$tmp/codex-budget-plan.json" >/dev/null || fail 'CTX-08 guessed an unsupported Codex control'
+"$root/scripts/mana-provider-capabilities.sh" claude --fixture "$fixture_root/provider-capabilities/claude-supported" > "$tmp/claude-capabilities.json"
+"$budget_helper" capability-plan "$budget_resolution" "$tmp/claude-capabilities.json" > "$tmp/claude-budget-plan.json" || fail 'CTX-08 rejected a valid Claude capability report'
+jq -e '.controls.automaticCompactionThreshold == {status:"supported",requested:100000,applied:true,reason:"capability-supported"} and .controls.customCompactionPrompt.applied==false and .controls.compactionScope.applied==false' "$tmp/claude-budget-plan.json" >/dev/null || fail 'CTX-08 capability gating did not preserve explicit unknown controls'
 mana_provider_phase_args codex '/project with spaces' economy-fixture "$schema" true || fail 'Codex phase adapter failed'
 printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- '--output-schema' || fail 'Codex native schema flag missing'
 printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- 'read-only' || fail 'Codex phase sandbox is not read-only'
@@ -56,6 +75,9 @@ mana_provider_phase_args claude '/project with spaces' economy-fixture "$schema"
 printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- '--safe-mode' || fail 'Claude safe mode missing'
 printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- '--json-schema' || fail 'Claude native schema flag missing'
 printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- 'Agent,Bash,Edit,Write,WebFetch,WebSearch' || fail 'Claude write/child tool deny missing'
+mana_provider_phase_args claude '/project with spaces' economy-fixture "$schema" true 100000 || fail 'Claude CTX-08 compaction adapter failed'
+printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- '--autocompact' || fail 'supported Claude compaction control missing from exact argv'
+awk 'previous == "--autocompact" && $0 == "100000" { found=1 } { previous=$0 } END { exit(found ? 0 : 1) }' <(printf '%s\n' "${MANA_PROVIDER_ARGS[@]}") || fail 'Claude compaction threshold was not passed exactly'
 mana_provider_phase_args opencode '/project with spaces' economy-fixture "$schema" false || fail 'OpenCode phase adapter construction failed'
 jq -e '.agent.mana_ctx06_phase.permission == {task:"deny",edit:"deny",bash:"deny"}' \
   <<<"$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" >/dev/null || fail 'OpenCode phase deny configuration changed'
@@ -75,6 +97,8 @@ grep -Fxq economy-fixture "$state/model.1" || fail 'economy phase used the wrong
 grep -Fxq full-fixture "$state/model.2" || fail 'full phase used the wrong model'
 grep -Fxq "$schema" "$state/schema.1" || fail 'phase schema was not host-owned'
 grep -Fxq "$schema" "$state/schema.2" || fail 'terminal phase schema was not host-owned'
+! grep -Fxq -- '--autocompact' "$state/argv.1" || fail 'unknown Codex compaction control was guessed into provider argv'
+! grep -Fxq -- '--autocompact' "$state/argv.2" || fail 'unknown Codex compaction control was guessed into provider argv'
 grep -Fxq "$project" "$state/cwd.1" || fail 'first provider process used the wrong working directory'
 grep -Fxq "$project" "$state/cwd.2" || fail 'second provider process used the wrong working directory'
 jq -e '.status=="completed" and .revision==2 and .currentPhaseId=="synthesize" and .attempts=={classify:1,synthesize:1}' \
@@ -101,6 +125,11 @@ jq -e '.status=="complete" and .providerVersion=="0.148.0" and (.phases|length)=
        .totals=={input:20,cachedInput:4,uncachedInput:16,output:6,reasoning:2} and
        .rawTraceRetained==false' "$metrics" >/dev/null || fail 'phase usage was not aggregated safely'
 [ "$(find "$project/.mana/runtime/metrics/$execution/phases" -name '*.json' -type f | wc -l | tr -d ' ')" = 2 ] || fail 'per-phase metric snapshots are missing'
+"$budget_helper" usage-check "$budget_resolution" "$metrics" > "$tmp/budget-no-warning.json" || fail 'CTX-08 could not read a measured CTX-01 aggregate'
+jq -e '.measured==true and .warnings==[]' "$tmp/budget-no-warning.json" >/dev/null || fail 'CTX-08 warned below provisional thresholds'
+jq -n '{usageStatus:"measured",totals:{input:360000,cachedInput:180000,uncachedInput:180000,output:1,reasoning:1}}' > "$tmp/budget-warning-summary.json"
+"$budget_helper" usage-check "$budget_resolution" "$tmp/budget-warning-summary.json" > "$tmp/budget-warning.json" || fail 'CTX-08 could not evaluate measured thresholds'
+jq -e '.measured==true and (.warnings|sort)==["cached-input","cumulative-input","uncached-input"] and .recommendation=="checkpoint-and-fresh-phase"' "$tmp/budget-warning.json" >/dev/null || fail 'CTX-08 did not keep cumulative, cached, and uncached warnings distinct'
 events="$project/.mana/runtime/events/$execution.jsonl"
 [ "$(grep -Fc '"eventType":"phase.started"' "$events")" = 2 ] || fail 'phase lifecycle start events are incomplete'
 [ "$(grep -Fc '"eventType":"provider.invoked"' "$events")" = 2 ] || fail 'provider lifecycle events are incomplete'
@@ -194,7 +223,7 @@ limited_state="$tmp/capability-gap/provider-state"
 initialize "$limited_project" "$limited_execution"
 if PATH="$tmp/bin:$PATH" CTX06C_FIXTURE_ROOT="$fixture_root" CTX06C_STATE_DIR="$limited_state" \
   CTX06C_SCENARIO=complete CTX06C_CAPABILITY_SET=codex-limited \
-  "$runner" "$limited_execution" --project-root "$limited_project" --framework-root "$framework" \
+  "$runner" "$limited_execution" --project-root "$limited_project" \
     --profile ctx06c-fixture --provider codex > "$tmp/capability-gap.out" 2> "$tmp/capability-gap.err"; then
   fail 'capability gap silently invoked a provider phase'
 fi

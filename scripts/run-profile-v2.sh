@@ -6,14 +6,34 @@ umask 077
 
 original_argv=("$@")
 
-root="$(cd "$(dirname "$0")/.." && pwd)"
+script_path="${BASH_SOURCE[0]}"
+while [ -L "$script_path" ]; do
+  script_directory="$(cd "$(dirname "$script_path")" && pwd -P)"
+  script_target="$(readlink "$script_path")"
+  case "$script_target" in
+    /*) script_path="$script_target" ;;
+    *) script_path="$script_directory/$script_target" ;;
+  esac
+done
+root="$(cd "$(dirname "$script_path")/.." && pwd -P)"
+phase_entrypoint="$root/scripts/run-profile-v2.sh"
+invoked_path="$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")"
+framework_root="$root"
+budget_helper="$root/scripts/lib/context-budget.py"
+if [ "$invoked_path" = "$root/tests/run-profile-v2-test-only.sh" ]; then
+  [ -n "${BASH_SOURCE[1]:-}" ] || { echo 'ERROR: canonical test-only source entry point required' >&2; exit 2; }
+  harness_source="$(cd "$(dirname "${BASH_SOURCE[1]}")" && pwd -P)/$(basename "${BASH_SOURCE[1]}")"
+  [ "$harness_source" = "$invoked_path" ] || { echo 'ERROR: canonical test-only source entry point required' >&2; exit 2; }
+  framework_root="$root/tests/fixtures/context-runtime/ctx06a-framework"
+  budget_helper="$root/tests/context-budget-test-only.py"
+  phase_entrypoint="$root/tests/run-profile-v2-test-only.sh"
+fi
 . "$root/scripts/lib/provider-dispatch.sh"
 . "$root/scripts/lib/provider-execution.sh"
 . "$root/scripts/lib/runtime-events.sh"
 
 execution_id=""
 project_root=""
-framework_root="$root"
 expected_profile=""
 expected_provider=""
 codex_model="${MANA_CODEX_MODEL:-gpt-5.4-mini}"
@@ -23,13 +43,13 @@ claude_full_model="${MANA_CLAUDE_FULL_MODEL:-opus}"
 opencode_model="${MANA_OPENCODE_MODEL:-opencode/gpt-5.1-codex}"
 opencode_full_model="${MANA_OPENCODE_FULL_MODEL:-${MANA_OPENCODE_MODEL:-opencode/gpt-5.1-codex}}"
 activation_args=()
+budget_mode=""
 
 usage() {
   cat <<'USAGE'
 Usage: scripts/run-profile-v2.sh <execution-id> --project-root <path> [options]
 
 Options:
-  --framework-root <path>       Authoritative Mana framework root.
   --profile <id>                Require this profile identity.
   --provider <id>               Require this provider identity.
   --codex-model <model>         Economy-tier Codex model.
@@ -41,6 +61,7 @@ Options:
   --static-signal <id>          Original authoritative CTX-04 input.
   --request-skill <id>          Original authoritative CTX-04 input.
   --deep-load-skill <id>        Original authoritative CTX-04 input.
+  --budget-mode <mode>          Human request for compact, standard, or deep; host minimum is preserved.
 
 The run must already exist through mana-context-pipeline.sh initialize.
 The command performs no automatic semantic or transport retry.
@@ -53,13 +74,16 @@ valid_model() {
   [ -n "$1" ] && [ "${#1}" -le 240 ] && [ "$1" = "${1//$'\n'/}" ] && [ "$1" = "${1//$'\r'/}" ]
 }
 
+for override_name in MANA_FRAMEWORK_ROOT MANA_CONTEXT_FRAMEWORK_ROOT MANA_WORKER_FRAMEWORK_ROOT MANA_BUDGET_POLICY_PATH MANA_PROVIDER_BUDGET_POLICY MANA_BUDGET_MODE MANA_CONTEXT_BUDGET_MODE MANA_BUDGET_MINIMUM_MODE; do
+  [ -z "${!override_name+x}" ] || fail "caller budget authority override is forbidden: $override_name"
+done
+
 [ "$#" -gt 0 ] || { usage >&2; exit 2; }
 execution_id="$1"
 shift
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --project-root) project_root="${2:-}"; [ -n "$project_root" ] || fail '--project-root requires a path'; shift 2 ;;
-    --framework-root) framework_root="${2:-}"; [ -n "$framework_root" ] || fail '--framework-root requires a path'; shift 2 ;;
     --profile) expected_profile="${2:-}"; [ -n "$expected_profile" ] || fail '--profile requires an id'; shift 2 ;;
     --provider) expected_provider="${2:-}"; [ -n "$expected_provider" ] || fail '--provider requires an id'; shift 2 ;;
     --codex-model) codex_model="${2:-}"; shift 2 ;;
@@ -71,6 +95,10 @@ while [ "$#" -gt 0 ]; do
     --static-signal|--request-skill|--deep-load-skill)
       [ -n "${2:-}" ] || fail "$1 requires an id"
       activation_args+=("$1" "$2")
+      shift 2 ;;
+    --budget-mode)
+      budget_mode="${2:-}"
+      case "$budget_mode" in compact|standard|deep) ;; *) fail '--budget-mode must be compact, standard, or deep' ;; esac
       shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "ERROR: unknown option: $1" >&2; usage >&2; exit 2 ;;
@@ -90,7 +118,7 @@ pipeline="$root/scripts/mana-context-pipeline.sh"
 phase_helper="$root/scripts/lib/context-phase-runtime.py"
 if [ "${MANA_CONTEXT_PHASE_LOCK_HELD:-}" != "$execution_id" ]; then
   exec "$phase_helper" with-run-lock "$project_root" "$execution_id" \
-    "$root/scripts/run-profile-v2.sh" "${original_argv[@]}"
+    "$phase_entrypoint" "${original_argv[@]}"
 fi
 temporary="$(mktemp -d "${TMPDIR:-/tmp}/mana-context-phase.XXXXXX")"
 temporary="$(cd "$temporary" && pwd -P)"
@@ -188,6 +216,34 @@ else
   emit provider.capability-fallback provider "$provider" selected "capability=structuredOutputSchema status=$schema_capability fallback=host-validation" '' false
 fi
 
+# CTX-08 is a host-owned advisory layer. It is resolved from the authoritative
+# framework policy and CTX-02 report, never from profile prose or provider
+# output. Fresh CTX-06 phase boundaries remain the correctness mechanism.
+budget_request_args=()
+[ -z "$budget_mode" ] || budget_request_args=(--requested-mode "$budget_mode")
+"$budget_helper" decision "$execution_id" --project-root "$project_root" "${activation_args[@]}" "${budget_request_args[@]}" > "$temporary/budget-resolution.json" || fail 'CTX-08 provider budget decision is invalid'
+"$budget_helper" capability-plan "$temporary/budget-resolution.json" "$temporary/capabilities.json" > "$temporary/budget-plan.json" || fail 'CTX-08 capability-gated budget plan is invalid'
+while IFS= read -r budget_gap; do
+  echo "WARNING: CTX-08 provider control is $budget_gap; it was not guessed or applied." >&2
+done < <(jq -r '.controls | to_entries[] | select(.value.applied == false) | (.key + "=" + .value.status)' "$temporary/budget-plan.json")
+automatic_compaction_threshold="$(jq -r '.controls.automaticCompactionThreshold | if .applied then (.requested | tostring) else "" end' "$temporary/budget-plan.json")"
+archive_phase_metrics() {
+  local phase_id="$1" ordinal="$2" attempt="$3" metric_status="$4" budget_check invocation_key
+  "$phase_helper" archive-metrics "$project_root" "$execution_id" "$profile" "$provider" "$phase_id" "$ordinal" "$attempt" "$provider_version" "$metric_status" > "$temporary/metric-archive.json" 2>/dev/null || {
+    echo 'WARNING: phase usage metrics could not be archived' >&2
+    return 0
+  }
+  budget_check="$temporary/budget-usage-check.json"
+  invocation_key="$(jq -r '.ordinal|tostring' "$temporary/metric-archive.json")-$phase_id-$attempt-$(jq -r .invocation "$temporary/metric-archive.json")"
+  if "$budget_helper" advisory "$temporary/budget-resolution.json" "$project_root/$(jq -r .summaryRef "$temporary/metric-archive.json")" "$project_root" "$invocation_key" "$temporary/prompt.txt" > "$budget_check"; then
+    if [ "$(jq -r '.usageCheck.warnings | length' "$budget_check")" -gt 0 ]; then
+      echo 'WARNING: CTX-08 provider budget advisory (threshold or unavailable/invalid usage); preserve all required specialist, evidence, and human gates, then use the next fresh phase or request human scope.' >&2
+    fi
+  else
+    echo 'WARNING: CTX-08 usage advisory could not be evaluated' >&2
+  fi
+}
+
 provider_invocations=0
 last_transition_id=""
 last_revision="$(jq -r .revision "$temporary/packet.json")"
@@ -225,7 +281,7 @@ while :; do
   esac
 
   schema_path="$root/contracts/context-runtime/phase-checkpoint-v1.schema.json"
-  mana_provider_phase_args "$provider" "$project_root" "$model" "$schema_path" "$native_schema" || {
+  mana_provider_phase_args "$provider" "$project_root" "$model" "$schema_path" "$native_schema" "$automatic_compaction_threshold" || {
     finish_runtime failed
     fail "provider phase adapter rejected $provider"
   }
@@ -234,6 +290,10 @@ while :; do
   if ! "$phase_helper" render-prompt "$temporary/packet.json" > "$temporary/prompt.txt"; then
     finish_runtime failed
     fail 'phase prompt rendering failed'
+  fi
+  if "$budget_helper" prompt-check "$temporary/budget-resolution.json" "$temporary/prompt.txt" > "$temporary/budget-prompt-check.json" && \
+    [ "$(jq -r .warning "$temporary/budget-prompt-check.json")" = true ]; then
+    echo 'WARNING: CTX-08 active-context estimate reached its provisional advisory threshold; preserve required checks and use a fresh phase if narrowing is needed.' >&2
   fi
   : > "$temporary/provider-output.json"
   : > "$temporary/checkpoint.json"
@@ -260,7 +320,7 @@ while :; do
 
   if [ "$provider_status" -ne 0 ]; then
     case "$provider_status" in 129|130|143) metric_status=interrupted; event_type=phase.interrupted ;; *) metric_status=failed; event_type=phase.failed ;; esac
-    "$phase_helper" archive-metrics "$project_root" "$execution_id" "$profile" "$provider" "$phase_id" "$ordinal" "$attempt" "$provider_version" "$metric_status" >/dev/null 2>&1 || echo 'WARNING: phase usage metrics could not be archived' >&2
+    archive_phase_metrics "$phase_id" "$ordinal" "$attempt" "$metric_status"
     emit provider.completed provider "$provider" "$metric_status" "phase=$phase_id exitStatus=$provider_status" '' false
     emit "$event_type" phase "$phase_id" "$metric_status" "ordinal=$ordinal attempt=$attempt exitStatus=$provider_status" '' false
     finish_runtime failed
@@ -269,13 +329,13 @@ while :; do
 
   emit provider.completed provider "$provider" completed "phase=$phase_id exitStatus=0" '' false
   if ! "$phase_helper" normalize-output "$provider" "$temporary/provider-output.json" > "$temporary/checkpoint.json"; then
-    "$phase_helper" archive-metrics "$project_root" "$execution_id" "$profile" "$provider" "$phase_id" "$ordinal" "$attempt" "$provider_version" failed >/dev/null 2>&1 || echo 'WARNING: phase usage metrics could not be archived' >&2
+    archive_phase_metrics "$phase_id" "$ordinal" "$attempt" failed
     emit phase.failed phase "$phase_id" failed "ordinal=$ordinal attempt=$attempt reason=invalid-provider-output" '' false
     finish_runtime failed
     fail "provider output for phase $phase_id is not a valid checkpoint"
   fi
   if ! transition="$($pipeline accept-checkpoint "$execution_id" "${pipeline_args[@]}" --checkpoint "$temporary/checkpoint.json")"; then
-    "$phase_helper" archive-metrics "$project_root" "$execution_id" "$profile" "$provider" "$phase_id" "$ordinal" "$attempt" "$provider_version" failed >/dev/null 2>&1 || echo 'WARNING: phase usage metrics could not be archived' >&2
+    archive_phase_metrics "$phase_id" "$ordinal" "$attempt" failed
     emit phase.failed phase "$phase_id" failed "ordinal=$ordinal attempt=$attempt reason=checkpoint-rejected" '' false
     finish_runtime failed
     fail "checkpoint for phase $phase_id was rejected by the authoritative state machine"
@@ -285,7 +345,7 @@ while :; do
   last_revision="$(jq -er .revision "$temporary/transition.json")"
   last_transition_id="$(jq -er '.transitionId // ""' "$temporary/transition.json")"
   checkpoint_refs="$(jq -r '.evidenceRefs | join(" ")' "$temporary/checkpoint.json")"
-  "$phase_helper" archive-metrics "$project_root" "$execution_id" "$profile" "$provider" "$phase_id" "$ordinal" "$attempt" "$provider_version" complete >/dev/null 2>&1 || echo 'WARNING: phase usage metrics could not be archived' >&2
+  archive_phase_metrics "$phase_id" "$ordinal" "$attempt" complete
   emit phase.checkpoint.accepted checkpoint "$(jq -r .checkpointId "$temporary/checkpoint.json")" accepted "phase=$phase_id revision=$last_revision runStatus=$transition_status" "$checkpoint_refs" false
   emit phase.completed phase "$phase_id" completed "ordinal=$ordinal attempt=$attempt runStatus=$transition_status" "$checkpoint_refs" false
 

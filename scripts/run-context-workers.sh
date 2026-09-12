@@ -24,6 +24,9 @@ retain_test_only=false
 attested_child_test_only=false
 framework_root="$root"
 if [ "$invoked_path" = "$test_entrypoint" ] || [ "$invoked_path" = "$retain_test_entrypoint" ] || [ "$invoked_path" = "$attested_child_test_entrypoint" ]; then
+  [ -n "${BASH_SOURCE[1]:-}" ] || { echo 'ERROR: canonical test-only source entry point required' >&2; exit 2; }
+  harness_source="$(cd "$(dirname "${BASH_SOURCE[1]}")" && pwd -P)/$(basename "${BASH_SOURCE[1]}")"
+  [ "$harness_source" = "$invoked_path" ] || { echo 'ERROR: canonical test-only source entry point required' >&2; exit 2; }
   # This branch is reachable only through the host-owned test harness at the
   # exact canonical repository path.  The production entry point never reads
   # a framework authority from CLI or environment.
@@ -52,6 +55,7 @@ expected_profile=""
 expected_provider=""
 max_parallel=""
 provider_children="disabled"
+budget_mode=""
 activation_args=()
 
 usage() {
@@ -63,6 +67,7 @@ Options:
   --provider <id>               Require this provider identity.
   --max-parallel <count>        Host concurrency cap (default: manifest directWorkers).
   --provider-children <mode>    disabled (default), prefer, or require.
+  --budget-mode <mode>          CTX-08 provisional host budget: compact, standard (default), or deep.
   --static-signal <id>          Original authoritative CTX-04 input.
   --request-skill <id>          Original authoritative CTX-04 input.
   --deep-load-skill <id>        Original authoritative CTX-04 input.
@@ -79,6 +84,7 @@ fail() { echo "ERROR: $*" >&2; exit 1; }
 # Worker model and effort are never caller configuration. Reject the legacy
 # per-run variables explicitly so an operator cannot believe they took effect.
 for override_name in \
+  MANA_BUDGET_POLICY_PATH MANA_PROVIDER_BUDGET_POLICY MANA_BUDGET_MODE MANA_CONTEXT_BUDGET_MODE MANA_BUDGET_MINIMUM_MODE \
   MANA_FRAMEWORK_ROOT MANA_CONTEXT_FRAMEWORK_ROOT MANA_WORKER_FRAMEWORK_ROOT MANA_WORKER_POLICY_PATH \
   MANA_MODEL MANA_WORKER_MODEL MANA_WORKER_REASONING_EFFORT \
   MANA_RUNTIME_EXECUTION_ID MANA_RUNTIME_USAGE_RETAIN_RAW_TRACE \
@@ -89,7 +95,7 @@ for override_name in \
   MANA_CLAUDE_MODEL MANA_CLAUDE_FULL_MODEL MANA_CLAUDE_REASONING_EFFORT \
   MANA_OPENCODE_MODEL MANA_OPENCODE_FULL_MODEL MANA_OPENCODE_REASONING_EFFORT
 do
-  [ -z "${!override_name-}" ] || fail "caller worker authority override is forbidden: $override_name"
+  [ -z "${!override_name+x}" ] || fail "caller worker authority override is forbidden: $override_name"
 done
 
 [ "$#" -gt 0 ] || { usage >&2; exit 2; }
@@ -105,6 +111,10 @@ while [ "$#" -gt 0 ]; do
     --provider-children)
       provider_children="${2:-}"
       case "$provider_children" in disabled|prefer|require) ;; *) fail '--provider-children must be disabled, prefer, or require' ;; esac
+      shift 2 ;;
+    --budget-mode)
+      budget_mode="${2:-}"
+      case "$budget_mode" in compact|standard|deep) ;; *) fail '--budget-mode must be compact, standard, or deep' ;; esac
       shift 2 ;;
     --static-signal|--request-skill|--deep-load-skill)
       [ -n "${2:-}" ] || fail "$1 requires an id"
@@ -190,6 +200,16 @@ if ! "$phase_helper" validate-capabilities "$provider" "$temporary/capabilities.
   fail 'needs_model_escalation: provider capability report failed its CTX-02 contract'
 fi
 mv "$temporary/capabilities.canonical.json" "$temporary/capabilities.json"
+budget_helper="$root/scripts/lib/context-budget.py"
+[ "$test_only" = false ] || budget_helper="$root/tests/context-budget-test-only.py"
+budget_request_args=()
+[ -z "$budget_mode" ] || budget_request_args=(--requested-mode "$budget_mode")
+"$budget_helper" decision "$execution_id" --project-root "$project_root" "${activation_args[@]}" "${budget_request_args[@]}" > "$temporary/budget-resolution.json" || fail 'needs_model_escalation: CTX-08 provider budget decision is invalid'
+"$budget_helper" capability-plan "$temporary/budget-resolution.json" "$temporary/capabilities.json" > "$temporary/budget-plan.json" || fail 'needs_model_escalation: CTX-08 capability-gated budget plan is invalid'
+while IFS= read -r budget_gap; do
+  echo "WARNING: CTX-08 provider control is $budget_gap; it was not guessed or applied." >&2
+done < <(jq -r '.controls | to_entries[] | select(.value.applied == false) | (.key + "=" + .value.status)' "$temporary/budget-plan.json")
+automatic_compaction_threshold="$(jq -r '.controls.automaticCompactionThreshold | if .applied then (.requested | tostring) else "" end' "$temporary/budget-plan.json")"
 effort_required="$(jq -r '[.workers[].contextPacket.modelSelection.reasoningEffort != null] | any' "$temporary/prepared.json")"
 if mana_context_select_worker_transport "$provider" "$provider_children" "$effort_required" "$temporary/capabilities.json"; then
   worker_transport="$MANA_CONTEXT_WORKER_TRANSPORT"
@@ -309,7 +329,7 @@ run_worker() {
   if [ "$worker_transport" = provider-managed-child ]; then
     mana_provider_child_worker_args "$provider" "$capsule" "$model" "$effort" "$capsule_schema"
   else
-    mana_provider_worker_args "$provider" "$capsule" "$model" "$effort" "$capsule_schema" "$native_schema"
+    mana_provider_worker_args "$provider" "$capsule" "$model" "$effort" "$capsule_schema" "$native_schema" "$automatic_compaction_threshold"
   fi || {
     echo "ERROR: provider worker adapter rejected $provider" >&2
     "$worker_helper" finalize-task --project-root "$project_root" --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" --status failed || true
@@ -340,6 +360,16 @@ run_worker() {
     fi
   fi
   usage_summary="$scratch/.mana/runtime/metrics/execution-$invocation_id/usage-summary-v1.json"
+  if [ -f "$usage_summary" ]; then
+    if "$budget_helper" advisory "$temporary/budget-resolution.json" "$usage_summary" "$project_root" "$invocation_id" "$worker_dir/prompt.txt" > "$worker_dir/budget-advisory.json"; then
+      if jq -e '(.usageCheck.warnings|length)>0 or .promptCheck.warning' "$worker_dir/budget-advisory.json" >/dev/null; then
+        echo 'WARNING: CTX-08 worker budget advisory; preserve all required specialist, evidence and human gates; use a fresh phase or human scope decision.' >&2
+      fi
+    else
+      : > "$worker_dir/budget-advisory-unavailable"
+      echo 'WARNING: CTX-08 worker usage advisory unavailable; usage was not treated as below budget.' >&2
+    fi
+  fi
   if [ -f "$usage_summary" ] && [ ! -L "$usage_summary" ]; then usage_args=(--usage-summary "$usage_summary"); fi
   raw_trace="$scratch/.mana/runtime/metrics/execution-$invocation_id/raw-provider-events.jsonl"
   if [ -f "$raw_trace" ] && [ ! -L "$raw_trace" ]; then usage_args+=(--raw-trace "$raw_trace"); fi
@@ -419,6 +449,13 @@ wait_batch() {
       else
         printf 'ERROR: worker_failure exitStatus=%s\n' "$worker_status" >&2
       fi
+    fi
+    if [ -f "$temporary/workers/$task_id/budget-advisory.json" ]; then
+      if jq -e '(.usageCheck.warnings|length)>0 or .promptCheck.warning' "$temporary/workers/$task_id/budget-advisory.json" >/dev/null; then
+        echo 'WARNING: CTX-08 worker budget advisory; preserve all required specialist, evidence and human gates; use a fresh phase or human scope decision.' >&2
+      fi
+    elif [ -f "$temporary/workers/$task_id/budget-advisory-unavailable" ]; then
+      echo 'WARNING: CTX-08 worker usage advisory unavailable; usage was not treated as below budget.' >&2
     fi
   done
   active_pids=()

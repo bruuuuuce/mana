@@ -60,15 +60,15 @@ for invalid_case in float negative numeric-string null large-invalid; do
 done
 run_case large-valid large-valid || fail 'large valid integer fixture failed'
 large_valid="$project/.mana/runtime/metrics/execution-large-valid/usage-summary-v1.json"
-jq -e '.usageStatus == "measured" and .totals.input == 9007199254740991 and .parseErrors == 0' "$large_valid" >/dev/null || fail 'large supported integer was not retained exactly'
+jq -e '.usageStatus == "partial" and .totals.input == 9007199254740991 and .parseErrors == 0' "$large_valid" >/dev/null || fail 'large supported integer was not retained exactly'
 
 if run_case interrupted interrupted; then fail 'interrupted fixture succeeded'; fi
 interrupted="$project/.mana/runtime/metrics/execution-interrupted/usage-summary-v1.json"
-jq -e '.status == "interrupted" and .usageStatus == "measured" and .totals.input == 5' "$interrupted" >/dev/null || fail 'interrupted run has no partial usage artifact'
+jq -e '.status == "interrupted" and .usageStatus == "partial" and .totals.input == 5' "$interrupted" >/dev/null || fail 'interrupted run has no partial usage artifact'
 
 if run_case failure failure; then fail 'provider failure fixture succeeded'; fi
 failure="$project/.mana/runtime/metrics/execution-failure/usage-summary-v1.json"
-jq -e '.status == "failed" and .usageStatus == "measured" and .totals.input == 8 and .totals.output == 2' "$failure" >/dev/null || fail 'provider failure has no partial usage artifact'
+jq -e '.status == "failed" and .usageStatus == "partial" and .totals.input == 8 and .totals.output == 2' "$failure" >/dev/null || fail 'provider failure has no partial usage artifact'
 assert_no_temporary_trace provider-failure
 
 run_case retained complete true || fail 'debug retention fixture failed'
@@ -143,7 +143,7 @@ run_interruption_case() {
   [ -f "$delivered" ] || fail "$signal_name signal-delivery acknowledgement was not written"
   [ "$(cat "$delivered")" = TERM ] || fail "$signal_name was not delivered to the provider stub as SIGTERM"
   summary="$project/.mana/runtime/metrics/execution-$case_id/usage-summary-v1.json"
-  if ! jq -e '.status == "interrupted" and .usageStatus == "measured" and .totals.input == 5' "$summary" >/dev/null; then
+  if ! jq -e '.status == "interrupted" and .usageStatus == "partial" and .totals.input == 5' "$summary" >/dev/null; then
     cat "$tmp/$case_id.err" >&2
     fail "$signal_name interruption did not write a safe partial summary"
   fi

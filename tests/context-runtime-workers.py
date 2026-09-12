@@ -265,6 +265,8 @@ class Suite:
             assert "--model" in argv
             assert "--safe-mode" in argv
             assert "Agent,Bash,Edit,Write,WebFetch,WebSearch" in argv
+            assert "--autocompact" in argv
+            assert argv[argv.index("--autocompact") + 1] == "200000"
         self.cases += 1
 
     def concurrent_runners_converge_per_task(self) -> None:

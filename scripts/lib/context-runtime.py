@@ -261,6 +261,8 @@ class Evaluator:
                 for index, item in enumerate(value):
                     errors.extend(self.evaluate(item, schema["items"], document, f"{location}[{index}]"))
         if isinstance(value, dict):
+            if len(value) < schema.get("minProperties", 0) or len(value) > schema.get("maxProperties", 2**31):
+                errors.append(f"{location}: property count is outside bounds")
             for name in schema.get("required", []):
                 if name not in value:
                     errors.append(f"{location}: missing required field {name!r}")
@@ -327,12 +329,47 @@ def _validate_schema(kind: str, value: dict[str, Any], schema_name: str) -> None
         raise ContractError("; ".join(errors[:8]))
 
 
+USAGE_MAX_INTEGER = 9007199254740991
+USAGE_FIELDS = ("input", "cachedInput", "uncachedInput", "output", "reasoning")
+
+
+def usage_totals_status(totals: Any, parse_errors: Any = 0) -> str:
+    """Classify numeric usage without deriving an unreported dimension."""
+    if (not isinstance(totals, dict) or set(totals) - set(USAGE_FIELDS)
+            or not isinstance(parse_errors, int) or isinstance(parse_errors, bool)
+            or parse_errors < 0 or parse_errors > 0):
+        return "invalid"
+    values = [totals.get(key) for key in USAGE_FIELDS]
+    if any(value is not None and (not isinstance(value, int) or isinstance(value, bool)
+           or value < 0 or value > USAGE_MAX_INTEGER) for value in values):
+        return "invalid"
+    total, cached, uncached = values[:3]
+    if total is not None:
+        if any(value is not None and value > total for value in (cached, uncached)):
+            return "invalid"
+        if cached is not None and uncached is not None and cached + uncached != total:
+            return "invalid"
+    if not any(value is not None for value in values):
+        return "unavailable"
+    return "measured" if all(value is not None for value in values) else "partial"
+
+
 def semantic_validate(kind: str, value: dict[str, Any]) -> None:
     reject_unsafe_content(value)
     if kind == "context-manifest":
         semantic_validate_context_manifest(value)
     elif kind == "evidence-manifest":
         semantic_validate_evidence_manifest(value)
+    elif kind == "usage-summary":
+        for record in [value, *value["phases"]]:
+            status = usage_totals_status(record["totals"], record["parseErrors"])
+            # Invalid traces have unavailable numeric totals and explicit
+            # parseErrors. They remain auditable, never measured or partial.
+            if status == "invalid":
+                if record["usageStatus"] != "unavailable" or any(v is not None for v in record["totals"].values()):
+                    raise ContractError("invalid usage must be unavailable with null totals")
+            elif record["usageStatus"] != status:
+                raise ContractError("usage status differs from numeric availability")
     for facts_key in ("verifiedFacts", "findings"):
         for index, fact in enumerate(value.get(facts_key, [])):
             if not fact.get("evidenceRefs"):

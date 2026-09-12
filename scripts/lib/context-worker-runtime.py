@@ -504,6 +504,7 @@ def claim_task(project_root: str, prepared_path: str, task_path: str) -> dict[st
 
 def _metric_record(key: str, invocation_id: str, status: str, usage_summary: str | None) -> dict[str, Any]:
     usage_status = "unavailable"
+    parse_errors = 0
     raw_trace_retained = False
     totals = {"input": None, "cachedInput": None, "uncachedInput": None,
               "output": None, "reasoning": None}
@@ -517,11 +518,13 @@ def _metric_record(key: str, invocation_id: str, status: str, usage_summary: str
             fail("worker usage summary must be an object")
         runtime.validate_model("usage-summary", usage)
         usage_status = usage["usageStatus"]
+        parse_errors = usage["parseErrors"]
         totals = deepcopy(usage["totals"])
         raw_trace_retained = usage["rawTraceRetained"]
     return {"schemaVersion": "mana.context-runtime.worker-invocation-usage/v1",
             "invocationId": invocation_id, "taskExecutionKey": key, "status": status,
             "usageStatus": usage_status, "totals": totals,
+            "parseErrors": parse_errors,
             "rawTraceRetained": raw_trace_retained}
 
 
@@ -678,6 +681,12 @@ def _validate_metric(metric: dict[str, Any], key: str, invocation: str, status: 
         fail("invalid worker metric value")
     if metric["usageStatus"] == "unavailable" and any(v is not None for v in metric["totals"].values()):
         fail("unavailable worker usage contains measurements")
+    classification = runtime.usage_totals_status(metric["totals"], metric["parseErrors"])
+    if classification == "invalid":
+        if metric["usageStatus"] != "unavailable" or any(v is not None for v in metric["totals"].values()):
+            fail("invalid worker usage is not unavailable")
+    elif metric["usageStatus"] != classification:
+        fail("worker usage availability is inconsistent")
 
 
 def _validate_receipt(
@@ -848,8 +857,14 @@ def _aggregate_records(key: str, records: list[dict[str, Any]]) -> dict[str, Any
         "taskExecutionKey": key,
         "invocationIds": [record["invocationId"] for record in records],
         "invocationCount": len(records), "statuses": statuses,
-        "totals": {name: totals[name] if availability[name] else None for name in totals},
+        "totals": {name: totals[name] if availability[name] and all(record["totals"][name] is not None for record in records) else None for name in totals},
+        "parseErrors": sum(record["parseErrors"] for record in records),
     }
+    classification = runtime.usage_totals_status(aggregate["totals"], aggregate["parseErrors"])
+    if classification == "invalid":
+        aggregate["totals"] = dict.fromkeys(runtime.USAGE_FIELDS)
+        aggregate["parseErrors"] = max(1, aggregate["parseErrors"])
+    aggregate["usageStatus"] = "unavailable" if classification == "invalid" else classification
     return aggregate
 
 

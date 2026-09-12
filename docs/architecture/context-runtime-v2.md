@@ -739,3 +739,60 @@ reach, and `require` fails closed. After test-only managed-child provider reach,
 transport or validation failure is terminal and never falls back to CTX-07B.
 No CTX-06 phase HEAD is changed and no provider-managed child is necessary for
 runtime correctness.
+
+## CTX-08 compaction and provider budgets
+
+CTX-08 adds a versioned host policy at
+`config/context-runtime/provider-budget-policy-v1.json`. It resolves a
+per-profile `compact`, `standard`, or `deep` advisory budget before a CTX-06C
+provider invocation. The policy contains a versioned compact prompt and
+separate active-context, cumulative-input, cached-input, uncached-input,
+tool-output, and child-concurrency values. `deep` raises only the budget
+values; it neither grants permissions nor enables a child path.
+
+The runner first validates the current CTX-02 report, then produces a private
+control plan. Each provider setting is applied only when its exact capability
+is `supported`. `unknown` and `unsupported` remain visible warnings and do not
+become a guessed flag, prompt convention, or configuration fallback. Presently
+the proven Claude auto-compaction threshold can be passed as `--autocompact`.
+Custom compact prompts, compaction scope, retained tool-output limits, and
+provider child concurrency remain absent unless a future report proves their
+specific controls. Existing CTX-06C hard child disable remains mandatory and
+is not relaxed by this policy.
+
+Prompt-size estimates are advisory byte/4 planning estimates, never reported
+as provider token usage. After CTX-01 archives each invocation, CTX-08 checks
+the privacy-safe invocation summary and the unique invocation aggregate
+separately, forwarding cumulative, cached, and uncached threshold warnings
+from either scope. Incomplete aggregate coverage retains null dimensions and
+cannot hide an invocation's reported exceedance. Provider compaction does not
+reset reported cumulative input. A warning recommends a
+checkpoint and fresh phase or a human scope decision; it never advances HEAD,
+changes activated skills, drops canonical CTX-05 evidence, bypasses a required
+specialist, or weakens a human/high-risk gate.
+
+Fresh CTX-06 phase construction remains the sole deterministic context-disposal
+boundary. Provider compaction is a safety net and cannot prove that a directive
+was removed. The checked-in thresholds are explicitly
+`provisional-no-empirical-baseline`: no real CTX-01 measured profile execution
+exists in the repository. Calibration requires at least one measured profile
+run with separately reported cached and uncached input before values may be
+tuned or described as calibrated.
+
+CTX-08-R1 removes the production phase runner's alternate framework root and
+uses the CTX-03 FD boundary for the complete policy/inline prompt. Every profile
+and mode passes schema, finite implementation ceilings and
+`compact <= standard <= deep` validation. A private immutable run budget
+decision records minimum, request, effective mode and technical provenance,
+plus a policy snapshot/digest and host commitment. Fresh phase, resume, retry
+and worker execution reuse this snapshot. A human CLI request can raise the
+initial budget but cannot lower the host/profile-risk minimum or weaken any
+semantic or approval requirement.
+
+Numeric accounting now distinguishes complete, partial, unavailable and
+parse-invalid usage. Phase and worker advisories share the same validity and
+budget checks and a reproducible invocation aggregate. Invalid/unavailable
+usage is reported explicitly rather than interpreted as below threshold.
+The legacy path creates none of these CTX-08 artifacts. See the CTX-08-R1
+contract and `tests/context-runtime-budgets.sh` for the permanent regression
+matrix. R1 introduces no shadow execution or later roadmap phase.
