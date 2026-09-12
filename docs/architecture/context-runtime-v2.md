@@ -1,6 +1,6 @@
 # Context Runtime v2 architecture decision
 
-Status: accepted for staged implementation through CTX-07B-R2E.
+Status: accepted for staged implementation through CTX-07C.
 
 ## Decisions
 
@@ -662,3 +662,80 @@ publication. Each proves provider reach, absent result HEAD, unchanged CTX-06
 HEAD, stale-claim reconciliation, exactly one new successful invocation,
 immutable metrics and truthful lifecycle for both attempts, and no recovery
 temporary residue.
+
+## CTX-07C optional provider-managed child adapter
+
+`run-context-workers.sh` preserves CTX-07B as its default and correctness-
+critical transport. The additive `--provider-children disabled|prefer|require`
+host policy is evaluated only after the complete CTX-07A plan and host routing
+have been materialized. `disabled` is the default. `prefer` selects a managed
+child only when the current CTX-02 report proves every required property and
+otherwise selects CTX-07B before any provider invocation. `require` reports
+`needs_model_escalation` and invokes no provider on the same capability gap.
+
+The enabled gate requires fresh and ephemeral root invocation, explicit root
+model selection, provider-managed children, controllable isolated child
+context, effective child model routing, recursive-delegation prevention,
+enforced child concurrency and depth, native structured output, and complete
+user/project configuration isolation. Root and child effort routing are also
+required whenever the host policy supplies an effort. `unknown` and
+`unsupported` are both gaps. Provider prose, task text, environment variables,
+and version assumptions cannot enable the path.
+
+CTX-07C-R2 requires `managedChildExecutionAttestation`: an ordered,
+provider-native event stream. The adapter validates canonical sequence numbers
+and a finite `root.started -> child.started -> child.task.bound ->
+child.completed|child.failed` state machine. It rejects reordered, duplicate,
+foreign, stale, incomplete, post-terminal, or ambiguously identified events;
+wall-clock timestamps are not ordering authority.
+
+After verification the host publishes an immutable, canonical mode-`0600`
+managed-child receipt below the current mode-`0700` attempt directory. It binds
+provider root/child identity, execution/version/workspace/profile/phase/attempt,
+plan/task identity, terminal status, and the ordered-event digest to the
+host-owned invocation. It contains no provider event payload, prompt, source,
+reasoning, credential, or arbitrary response data. The model result cannot
+supply transport, invocation, attestation, receipt, or execution-receipt
+fields. CTX-07C-R3 separates terminal audit validity from success authority.
+`validate_managed_child_receipt_record` and
+`read_committed_managed_child_receipt_record` accept both `completed` and
+`failed`; neither grants result authority. All managed-child bind, publication,
+recovery, result-HEAD validation, reuse, and merge paths use
+`load_committed_completed_managed_child_receipt`, which requires `completed`.
+A committed `child.failed` remains readable for lifecycle/audit but cannot
+authorize a semantic result, even with self-consistent fabricated provenance,
+digests, result artifact, global binding, and task-result HEAD.
+
+Managed-child authority is a fresh host-owned lookup. Python bind/validation
+take project-root and host-invocation identity and derive the task execution
+key from the validated current packet/task. Merge selects each invocation from
+the task's committed HEAD. The resolver reads canonical private receipt bytes
+through CTX-03 and checks the ordered-event digest, all identities and task
+bindings, current run HEAD, current task claim, and any existing result HEAD.
+An immutable no-replace `managed-child-receipt-commit.json` binds the complete
+receipt digest and device/inode obtained from the same safe-reader FD. A
+missing commitment, deletion, replacement (including identical bytes), mode
+change, symlink, tamper, or noncanonical bytes fails closed on the next lookup.
+There is no `managed_child_execution_authority(dict)` factory. Manually
+constructed `ExecutionAuthority` objects cannot authorize managed children;
+that API remains only for CTX-07B host-worker provenance. No receipt dict,
+isolated digest, caller-selected receipt path, or cached provenance is proof.
+
+Publication commits a global no-replace receipt/result record before the
+per-task result HEAD. The record binds `receiptDigest -> taskExecutionKey ->
+semanticResultDigest -> authoritativeResultHead`; an exact retry is
+idempotent, while another semantic result, task, attempt, execution, invocation,
+or HEAD conflicts. Reuse and authoritative merge re-read the receipt, binding,
+result artifact, and HEAD and revalidate all CTX-07A authority. The semantic
+digest remains transport-neutral; `executionReceiptDigest` additionally commits
+the host-owned provenance and provider receipt digest.
+
+Codex, Claude, and OpenCode continue to report
+`managedChildExecutionAttestation: unknown`, and production contains no
+selectable managed-child adapter for them. The complete positive and negative
+transport is exercised only by a canonical test-only adapter and provider
+fixture. `prefer` therefore selects CTX-07B before production provider-child
+reach, and `require` fails closed. After test-only managed-child provider reach,
+transport or validation failure is terminal and never falls back to CTX-07B.
+No CTX-06 phase HEAD is changed and no provider-managed child is necessary for
+runtime correctness.

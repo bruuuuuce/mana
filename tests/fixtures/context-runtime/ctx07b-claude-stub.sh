@@ -22,6 +22,9 @@ esac
 mkdir -p "$state_dir"
 model=""
 effort=""
+agents=""
+child_controls=""
+strict_config=false
 previous=""
 prompt=""
 argv_tmp="$(mktemp "$state_dir/argv.pending.XXXXXX")"
@@ -30,7 +33,10 @@ for argument in "$@"; do
   case "$previous" in
     --model) model="$argument" ;;
     --effort) effort="$argument" ;;
+    --agents) agents="$argument" ;;
+    --managed-child-controls) child_controls="$argument" ;;
   esac
+  [ "$argument" != --strict-config-isolation ] || strict_config=true
   previous="$argument"
   prompt="$argument"
 done
@@ -39,6 +45,14 @@ task_id="$(jq -er .delegationTask.taskId <<<"$packet")"
 printf '%s' "$prompt" > "$state_dir/prompt.$task_id"
 printf '%s\n' "$model" > "$state_dir/model.$task_id"
 printf '%s\n' "$effort" > "$state_dir/effort.$task_id"
+if [ -n "$child_controls" ]; then
+  printf '%s\n' provider-child > "$state_dir/transport.$task_id"
+  printf '%s\n' "$agents" > "$state_dir/agents.$task_id"
+  printf '%s\n' "$child_controls" > "$state_dir/child-controls.$task_id"
+  printf '%s\n' "$strict_config" > "$state_dir/strict-config.$task_id"
+else
+  printf '%s\n' host > "$state_dir/transport.$task_id"
+fi
 printf '%s\n' "$$" > "$state_dir/pid.$task_id"
 printf '%s\n' "$task_id" >> "$state_dir/invocations.log"
 : > "$state_dir/provider-reached.$task_id"

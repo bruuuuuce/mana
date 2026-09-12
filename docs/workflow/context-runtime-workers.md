@@ -13,6 +13,13 @@ The execution must already be active in Context Runtime v2. Use the same
 used to initialize/prepare the authoritative CTX-04 manifest. Optional
 `--profile` and `--provider` assertions fail if the plan belongs elsewhere.
 
+The default transport is always the fresh CTX-07B worker. CTX-07C adds the
+optional `--provider-children prefer|require` policy. `prefer` falls back to
+CTX-07B before provider reach when any enabled-child property is unknown or
+unsupported; `require` fails closed. Provider-managed children are never
+needed for correctness. Codex, Claude, and OpenCode remain unverified for
+managed-child attestation and have no selectable production child adapter.
+
 The default parallelism is the authoritative CTX-04 `directWorkers` limit.
 `--max-parallel` may lower that value but cannot raise it. All task packets are
 read-only, independently owned, parallel-safe, and depth zero under CTX-07A;
@@ -86,5 +93,15 @@ The runner prints one canonical `delegation-merge-v1` object. It does not write
 the merge into the run or advance the state machine. If a worker provider or
 output validator fails, the runner prints an incomplete lossless merge,
 returns nonzero, and does not retry. Capability gaps fail before invocation as
-`needs_model_escalation`. Provider-managed child workers are not implemented in
-this command and remain CTX-07C scope.
+`needs_model_escalation`. The test-only CTX-07C-R2 adapter is still capsule-
+isolated, single-task, read-only, depth zero, non-recursive, host-model-routed,
+and natively schema-constrained. Its ordered provider events are verified
+before a private immutable receipt and its no-replace host commitment are
+published. CTX-07C-R3 binds provenance through a fresh completed-only receipt
+lookup; failed receipts remain audit/lifecycle records. Python caller-built
+authority objects, receipt dicts, paths, and isolated digests confer no child
+authority. Deletion, tamper, or replacement of a previously validated receipt
+fails closed at the next boundary. A no-replace receipt/result record is
+committed before result HEAD. Publication, reuse, and merge revalidate the
+receipt and binding. Child transport failure is terminal and is never silently
+replayed through CTX-07B.

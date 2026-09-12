@@ -180,6 +180,7 @@ mana_provider_capabilities_render_codex() {
       ephemeralSession:ev($ephemeralP;"help:ephemeral-declaration";$ephemeralN;"help:ephemeral-explicit-unsupported";"help:ephemeral-unverified"),
       explicitModelSelection:ev($modelP;"help:model-declaration";$modelN;"help:model-explicit-unsupported";"help:model-unverified"),
       explicitReasoningEffort:ev(false;"";false;"";"config:reasoning-effort-not-runtime-verified"),
+      managedChildExecutionAttestation:ev(false;"";false;"";"probe:provider-native-child-attestation-not-observable"),
       providerManagedSubagents:ev($subagentsP;"features:multi-agent-declaration";$subagentsN;"features:multi-agent-removed";"features:multi-agent-unverified"),
       _multiAgentV2:ev($multiV2P;"features:multi-agent-v2-declaration";$multiV2N;"features:multi-agent-v2-removed";"features:multi-agent-v2-unverified"),
       _featureDisableControl:ev($disableP;"help:feature-disable-declaration";false;"";"help:feature-disable-unverified"),

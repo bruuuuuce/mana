@@ -176,6 +176,35 @@ tier. Capability probing proves these mechanisms only. Concrete model
 admission belongs to Mana's versioned worker policy, and provider rejection
 remains an explicit transport failure.
 
+## CTX-07C provider-managed child gate
+
+Provider-managed children are disabled by default. The worker runner exposes
+an explicit host policy: `--provider-children prefer` uses the child adapter
+only when the current report proves the complete enabled-child contract;
+otherwise it warns and uses the fresh CTX-07B worker before invocation.
+`--provider-children require` fails closed on the same gap.
+
+The mandatory states are `freshInvocation`, `ephemeralSession`,
+`explicitModelSelection`, `providerManagedSubagents`,
+`childContextInheritanceControl`, `childModelRouting`,
+`recursiveDelegationPrevention`, `maximumChildConcurrency`,
+`maximumChildDepth`, `structuredOutputSchema`,
+`userConfigurationIsolation`, and `managedChildExecutionAttestation`. When the route has a reasoning effort,
+`explicitReasoningEffort` and `childReasoningEffortRouting` are mandatory too.
+Unlike CTX-07B's output transport, the child path has no host-only substitute
+for native structured output because that property is part of the enabled
+child contract. Mandatory host validation and CTX-07A binding still run.
+
+Codex, Claude, and OpenCode do not expose a verified provider-native ordered
+child receipt. Their `managedChildExecutionAttestation` state therefore remains
+`unknown`, and none has a selectable production child adapter. `prefer`
+selects CTX-07B before provider-child reach and `require` fails closed. The
+CTX-07C-R2 test-only adapter proves the generic protocol without changing any
+real-provider capability claim. Its ordered event stream proves root and child
+identity, execution/attempt/plan/task binding, child start before terminal, and
+one terminal event. Once that test-only child invocation starts, failure is
+not replayed through CTX-07B.
+
 ## Failures and privacy
 
 Missing binaries, version failures, command-level help/probe failures, malformed versions,

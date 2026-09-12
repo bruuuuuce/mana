@@ -50,6 +50,8 @@ mana_provider_capabilities_claude_option_semantics() {
       if (option == "effort" && block ~ /--effort <level> Effort level for the current session.*\(low, medium, high, xhigh, max\)/) found=1
       if (option == "agent" && block ~ /--agent <agent> Agent for the current session\. Overrides the .agent. setting\./) found=1
       if (option == "agents" && block ~ /--agents <json> JSON object defining custom agents/) found=1
+      if (option == "managed-child-controls" && block ~ /--managed-child-controls <json> Enforce isolated child context, per-child model and effort, maximum child concurrency and depth, recursive delegation prevention, and per-child JSON Schema output\./) found=1
+      if (option == "strict-config-isolation" && block ~ /--strict-config-isolation Ignore all user and project configuration for this invocation\./) found=1
       if (option == "safe-mode" && block ~ /--safe-mode Start with all customizations.*custom commands and agents.*disabled/) found=1
       if (option == "disallowed-tools" && block ~ /--disallowedTools, --disallowed-tools <tools\.\.\.> Comma or space-separated list of tool names to deny/) found=1
       if (option == "autocompact" && block ~ /--autocompact <auto\|tokens> Auto-compact window size \(auto, or 100k/) found=1
@@ -66,6 +68,8 @@ mana_provider_capabilities_claude_option_semantics() {
             (option == "effort" && $0 ~ /^[[:space:]]+--effort <level>[[:space:]]+/) ||
             (option == "agent" && $0 ~ /^[[:space:]]+--agent <agent>[[:space:]]+/) ||
             (option == "agents" && $0 ~ /^[[:space:]]+--agents <json>[[:space:]]+/) ||
+            (option == "managed-child-controls" && $0 ~ /^[[:space:]]+--managed-child-controls <json>[[:space:]]+/) ||
+            (option == "strict-config-isolation" && $0 ~ /^[[:space:]]+--strict-config-isolation[[:space:]]+/) ||
             (option == "safe-mode" && $0 ~ /^[[:space:]]+--safe-mode[[:space:]]+/) ||
             (option == "disallowed-tools" && $0 ~ /^[[:space:]]+--disallowedTools, --disallowed-tools <tools\.\.\.>[[:space:]]*$/) ||
             (option == "autocompact" && $0 ~ /^[[:space:]]+--autocompact <auto\|tokens>[[:space:]]+/)) {
@@ -111,7 +115,8 @@ mana_provider_capabilities_render_claude() {
   local fresh_p=false fresh_n=false ephemeral_p=false ephemeral_n=false model_p=false model_n=false effort_p=false effort_n=false
   local agent_p=false agent_n=false agents_p=false agents_n=false subagents_direct_n=false
   local compact_p=false compact_n=false safe_p=false safe_n=false deny_p=false deny_n=false
-  local hard_direct_n=false user_explicit_n=false
+  local hard_direct_n=false user_explicit_n=false strict_p=false strict_n=false child_controls_p=false child_controls_n=false
+  local child_context_n=false child_model_n=false child_effort_n=false recursion_n=false concurrency_n=false depth_n=false
   if mana_provider_capabilities_claude_help_valid "$help"; then
     mana_provider_capabilities_claude_option_proven "$help" stream && stream_p=true
     mana_provider_capabilities_claude_option_negated "$help" stream && stream_n=true
@@ -136,12 +141,22 @@ mana_provider_capabilities_render_claude() {
     mana_provider_capabilities_claude_option_negated "$help" agent && agent_n=true
     mana_provider_capabilities_claude_option_proven "$help" agents && agents_p=true
     mana_provider_capabilities_claude_option_negated "$help" agents && agents_n=true
+    mana_provider_capabilities_claude_option_proven "$help" managed-child-controls && child_controls_p=true
+    mana_provider_capabilities_claude_option_negated "$help" managed-child-controls && child_controls_n=true
+    mana_provider_capabilities_claude_explicitly_unsupported "$help" child-context-inheritance-control && child_context_n=true
+    mana_provider_capabilities_claude_explicitly_unsupported "$help" child-model-routing && child_model_n=true
+    mana_provider_capabilities_claude_explicitly_unsupported "$help" child-reasoning-effort-routing && child_effort_n=true
+    mana_provider_capabilities_claude_explicitly_unsupported "$help" recursive-delegation-prevention && recursion_n=true
+    mana_provider_capabilities_claude_explicitly_unsupported "$help" maximum-child-concurrency && concurrency_n=true
+    mana_provider_capabilities_claude_explicitly_unsupported "$help" maximum-child-depth && depth_n=true
     mana_provider_capabilities_claude_explicitly_unsupported "$help" provider-managed-subagents && subagents_direct_n=true
     mana_provider_capabilities_claude_option_proven "$help" safe-mode && safe_p=true
     mana_provider_capabilities_claude_option_negated "$help" safe-mode && safe_n=true
     mana_provider_capabilities_claude_option_proven "$help" disallowed-tools && deny_p=true
     mana_provider_capabilities_claude_option_negated "$help" disallowed-tools && deny_n=true
     mana_provider_capabilities_claude_explicitly_unsupported "$help" user-configuration-isolation && user_explicit_n=true
+    mana_provider_capabilities_claude_option_proven "$help" strict-config-isolation && strict_p=true
+    mana_provider_capabilities_claude_option_negated "$help" strict-config-isolation && strict_n=true
     mana_provider_capabilities_claude_option_proven "$help" autocompact && compact_p=true
     mana_provider_capabilities_claude_option_negated "$help" autocompact && compact_n=true
     mana_provider_capabilities_claude_explicitly_unsupported "$help" automatic-compaction-threshold && compact_n=true
@@ -161,6 +176,9 @@ mana_provider_capabilities_render_claude() {
     --argjson agentP "$agent_p" --argjson agentN "$agent_n" --argjson agentsP "$agents_p" --argjson agentsN "$agents_n" \
     --argjson compactP "$compact_p" --argjson compactN "$compact_n" \
     --argjson safeP "$safe_p" --argjson safeN "$safe_n" --argjson denyP "$deny_p" --argjson denyN "$deny_n" \
+    --argjson strictP "$strict_p" --argjson strictN "$strict_n" --argjson childControlsP "$child_controls_p" --argjson childControlsN "$child_controls_n" \
+    --argjson childContextN "$child_context_n" --argjson childModelN "$child_model_n" --argjson childEffortN "$child_effort_n" \
+    --argjson recursionN "$recursion_n" --argjson concurrencyN "$concurrency_n" --argjson depthN "$depth_n" \
     --argjson userExplicitN "$user_explicit_n" '
     def ev($p;$pe;$n;$ne;$ue): {
       positiveEvidence:(if $p then [$pe] else [] end),
@@ -175,24 +193,25 @@ mana_provider_capabilities_render_claude() {
       ephemeralSession:ev($ephemeralP;"help:no-session-persistence-declaration";$ephemeralN;"help:no-session-persistence-negative-evidence";"help:no-session-persistence-unverified"),
       explicitModelSelection:ev($modelP;"help:model-declaration";$modelN;"help:model-negative-evidence";"help:model-unverified"),
       explicitReasoningEffort:ev($effortP;"help:effort-declaration";$effortN;"help:effort-negative-evidence";"help:effort-unverified"),
+      managedChildExecutionAttestation:ev(false;"";false;"";"probe:provider-native-child-attestation-not-observable"),
       _agentSelection:ev($agentP;"help:agent-selection-declaration";$agentN;"help:agent-selection-negative-evidence";"help:agent-selection-unverified"),
       _agentDefinitions:ev($agentsP;"help:agent-definitions-declaration";$agentsN;"help:agent-definitions-negative-evidence";"help:agent-definitions-unverified"),
       _safeMode:ev($safeP;"help:safe-mode-declaration";$safeN;"help:safe-mode-negative-evidence";"help:safe-mode-unverified"),
       _agentToolDeny:ev($denyP;"help:agent-tool-deny-declaration";$denyN;"help:agent-tool-deny-negative-evidence";"help:agent-tool-deny-unverified"),
-      childContextInheritanceControl:ev(false;"";false;"";"probe:child-context-not-observable"),
-      childModelRouting:ev(false;"";false;"";"probe:child-model-not-runtime-verified"),
-      childReasoningEffortRouting:ev(false;"";false;"";"probe:child-effort-not-runtime-verified"),
-      recursiveDelegationPrevention:ev(false;"";false;"";"probe:enabled-child-recursion-not-runtime-verified"),
-      maximumChildConcurrency:ev(false;"";false;"";"config:child-concurrency-not-help-exposed"),
-      maximumChildDepth:ev(false;"";false;"";"config:child-depth-not-help-exposed"),
+      childContextInheritanceControl:ev($childControlsP;"help:managed-child-context-control";($childControlsN or $childContextN);"help:child-context-control-negative-evidence";"probe:child-context-not-observable"),
+      childModelRouting:ev($childControlsP;"help:managed-child-model-routing";($childControlsN or $childModelN);"help:child-model-routing-negative-evidence";"probe:child-model-not-runtime-verified"),
+      childReasoningEffortRouting:ev($childControlsP;"help:managed-child-effort-routing";($childControlsN or $childEffortN);"help:child-effort-routing-negative-evidence";"probe:child-effort-not-runtime-verified"),
+      recursiveDelegationPrevention:ev($childControlsP;"help:managed-child-recursion-control";($childControlsN or $recursionN);"help:child-recursion-control-negative-evidence";"probe:enabled-child-recursion-not-runtime-verified"),
+      maximumChildConcurrency:ev($childControlsP;"help:managed-child-concurrency-control";($childControlsN or $concurrencyN);"help:child-concurrency-control-negative-evidence";"config:child-concurrency-not-help-exposed"),
+      maximumChildDepth:ev($childControlsP;"help:managed-child-depth-control";($childControlsN or $depthN);"help:child-depth-control-negative-evidence";"config:child-depth-not-help-exposed"),
       toolOutputRetentionTokenLimit:ev(false;"";false;"";"config:tool-output-limit-not-help-exposed"),
       automaticCompactionThreshold:ev($compactP;"help:autocompact-declaration";$compactN;"help:autocompact-negative-evidence";"help:autocompact-unverified"),
       customCompactionPrompt:ev(false;"";false;"";"probe:custom-compaction-prompt-not-observable"),
       compactionScope:ev(false;"";false;"";"probe:compaction-scope-not-observable"),
       userConfigurationIsolation:{
-        positiveEvidence:[],
-        negativeEvidence:(if $userExplicitN then ["help:user-config-isolation-explicit-unsupported"] else [] end),
-        ambiguousEvidence:(if $safeP or $safeN then ["semantic:safe-mode-scope-insufficient"] else [] end),
+        positiveEvidence:(if $strictP then ["help:strict-config-isolation-declaration"] else [] end),
+        negativeEvidence:(if $strictN or $userExplicitN then ["help:user-config-isolation-negative-evidence"] else [] end),
+        ambiguousEvidence:(if ($safeP or $safeN) and (($strictP or $strictN) | not) then ["semantic:safe-mode-scope-insufficient"] else [] end),
         unknownEvidence:["help:user-config-isolation-unverified"]
       }
     }' | mana_provider_capabilities_resolve_evidence_map)" || return $?

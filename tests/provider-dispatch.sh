@@ -23,4 +23,14 @@ mana_provider_profile_args codex '/repo path' model 3 1 false; [ "$(join "${MANA
 mana_provider_profile_args claude '/repo path' model 3 1 false; [ "$(join "${MANA_PROVIDER_ARGS[@]}")" = '<-p><--model><model><--permission-mode><default><--safe-mode><--no-session-persistence><--disable-slash-commands><--disallowedTools><Agent>' ] || fail 'Claude hard-disable args changed'
 mana_provider_profile_args opencode '/repo path' model 3 1 false; [ "$(join "${MANA_PROVIDER_ARGS[@]}")" = '<run><--dir></repo path><--model><model><--agent><mana_ctx02_no_children><--pure>' ] || fail 'OpenCode hard-disable args changed'
 jq -e '.agent.mana_ctx02_no_children.permission.task == "deny"' <<<"$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" >/dev/null || fail 'OpenCode hard-disable config changed'
+child_schema="$root/contracts/context-runtime/delegation-result-draft-v1.schema.json"
+mana_provider_child_worker_args claude '/capsule path' child-model high "$child_schema" && fail 'unattestable production Claude child adapter was selected'
+mana_provider_child_worker_args codex '/capsule path' child-model high "$child_schema" && fail 'unimplemented Codex child adapter was selected'
+mana_provider_child_worker_args opencode '/capsule path' child-model high "$child_schema" && fail 'unimplemented OpenCode child adapter was selected'
+# shellcheck source=tests/fixtures/context-runtime/ctx07c-managed-child-adapter-test-only.sh
+. "$root/tests/fixtures/context-runtime/ctx07c-managed-child-adapter-test-only.sh"
+test_capsule="$(mktemp -d "${TMPDIR:-/tmp}/mana-provider-dispatch.XXXXXX")"
+mana_provider_child_worker_args claude "$test_capsule" child-model high "$child_schema" || fail 'test-only attested adapter rejected valid host inputs'
+printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- '--mana-ctx07c-test-attested-child' || fail 'test-only attested adapter marker missing'
+rmdir "$test_capsule"
 echo 'Provider dispatch tests passed'

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# CTX-07B fresh host-launched workers.  Plans/results remain CTX-07A data;
-# CTX-06B HEAD remains the sole runtime authority.
+# CTX-07B fresh host-launched workers plus the optional CTX-07C provider-child
+# adapter. Plans/results remain CTX-07A data; CTX-06B HEAD remains the sole
+# runtime authority and CTX-07B remains the correctness fallback.
 set -euo pipefail
 umask 077
 
@@ -17,16 +18,19 @@ root="$(cd "$(dirname "$script_path")/.." && pwd -P)"
 invoked_path="$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")"
 test_entrypoint="$root/tests/run-context-workers-test-only.sh"
 retain_test_entrypoint="$root/tests/run-context-workers-retain-test-only.sh"
+attested_child_test_entrypoint="$root/tests/run-context-provider-child-test-only.sh"
 test_only=false
 retain_test_only=false
+attested_child_test_only=false
 framework_root="$root"
-if [ "$invoked_path" = "$test_entrypoint" ] || [ "$invoked_path" = "$retain_test_entrypoint" ]; then
+if [ "$invoked_path" = "$test_entrypoint" ] || [ "$invoked_path" = "$retain_test_entrypoint" ] || [ "$invoked_path" = "$attested_child_test_entrypoint" ]; then
   # This branch is reachable only through the host-owned test harness at the
   # exact canonical repository path.  The production entry point never reads
   # a framework authority from CLI or environment.
   test_only=true
   framework_root="$root/tests/fixtures/context-runtime/ctx06a-framework"
   [ "$invoked_path" != "$retain_test_entrypoint" ] || retain_test_only=true
+  [ "$invoked_path" != "$attested_child_test_entrypoint" ] || attested_child_test_only=true
 fi
 # shellcheck source=scripts/lib/provider-dispatch.sh
 . "$root/scripts/lib/provider-dispatch.sh"
@@ -34,6 +38,12 @@ fi
 . "$root/scripts/lib/provider-execution.sh"
 # shellcheck source=scripts/lib/worker-isolation.sh
 . "$root/scripts/lib/worker-isolation.sh"
+# shellcheck source=scripts/lib/context-worker-transport.sh
+. "$root/scripts/lib/context-worker-transport.sh"
+if [ "$attested_child_test_only" = true ]; then
+  # shellcheck source=tests/fixtures/context-runtime/ctx07c-managed-child-adapter-test-only.sh
+  . "$root/tests/fixtures/context-runtime/ctx07c-managed-child-adapter-test-only.sh"
+fi
 
 execution_id=""
 project_root=""
@@ -41,6 +51,7 @@ plan_path=""
 expected_profile=""
 expected_provider=""
 max_parallel=""
+provider_children="disabled"
 activation_args=()
 
 usage() {
@@ -51,14 +62,15 @@ Options:
   --profile <id>                Require this profile identity.
   --provider <id>               Require this provider identity.
   --max-parallel <count>        Host concurrency cap (default: manifest directWorkers).
+  --provider-children <mode>    disabled (default), prefer, or require.
   --static-signal <id>          Original authoritative CTX-04 input.
   --request-skill <id>          Original authoritative CTX-04 input.
   --deep-load-skill <id>        Original authoritative CTX-04 input.
 
-Each task is one fresh, read-only provider process. Provider-managed children
-are always disabled. The command performs no retry and emits one CTX-07A
-delegation-merge-v1 object; provider/validation failures produce an incomplete
-merge and a non-zero exit.
+By default each task is one fresh, read-only CTX-07B provider process. `prefer`
+selects a CTX-07C managed child only when every required capability is proven,
+otherwise it falls back before invocation. `require` fails closed on any gap.
+The command performs no retry and emits one CTX-07A delegation-merge-v1 object.
 USAGE
 }
 
@@ -71,6 +83,7 @@ for override_name in \
   MANA_MODEL MANA_WORKER_MODEL MANA_WORKER_REASONING_EFFORT \
   MANA_RUNTIME_EXECUTION_ID MANA_RUNTIME_USAGE_RETAIN_RAW_TRACE \
   MANA_RETAIN_RAW_TRACE MANA_WORKER_RETAIN_RAW_TRACE \
+  MANA_PROVIDER_CHILDREN MANA_WORKER_PROVIDER_CHILDREN \
   MANA_WORKER_TIMEOUT_SECONDS MANA_WORKER_KILL_GRACE_SECONDS \
   MANA_CODEX_MODEL MANA_CODEX_FULL_MODEL MANA_CODEX_REASONING_EFFORT \
   MANA_CLAUDE_MODEL MANA_CLAUDE_FULL_MODEL MANA_CLAUDE_REASONING_EFFORT \
@@ -89,6 +102,10 @@ while [ "$#" -gt 0 ]; do
     --profile) expected_profile="${2:-}"; [ -n "$expected_profile" ] || fail '--profile requires an id'; shift 2 ;;
     --provider) expected_provider="${2:-}"; [ -n "$expected_provider" ] || fail '--provider requires an id'; shift 2 ;;
     --max-parallel) max_parallel="${2:-}"; shift 2 ;;
+    --provider-children)
+      provider_children="${2:-}"
+      case "$provider_children" in disabled|prefer|require) ;; *) fail '--provider-children must be disabled, prefer, or require' ;; esac
+      shift 2 ;;
     --static-signal|--request-skill|--deep-load-skill)
       [ -n "${2:-}" ] || fail "$1 requires an id"
       activation_args+=("$1" "$2")
@@ -155,31 +172,54 @@ if [ "$test_only" = true ]; then
   [ "$execution_id" = execution-ctx07b ] || fail 'test-only worker harness accepts only its fixed fixture execution'
   [ "$provider" = claude ] || fail 'test-only worker harness accepts only the zero-token Claude stub'
   [ ! -L "$provider_program" ] || fail 'test-only worker provider must not be a symlink'
-  cmp -s "$provider_program" "$root/tests/fixtures/context-runtime/ctx07b-claude-stub.sh" || \
+  expected_test_provider="$root/tests/fixtures/context-runtime/ctx07b-claude-stub.sh"
+  [ "$attested_child_test_only" = false ] || expected_test_provider="$root/tests/fixtures/context-runtime/ctx07c-managed-child-attestation-fixture.sh"
+  cmp -s "$provider_program" "$expected_test_provider" || \
     fail 'test-only worker harness refuses non-fixture provider binaries'
 fi
-if ! "$root/scripts/mana-provider-capabilities.sh" "$provider" --binary "$provider_program" > "$temporary/capabilities.json"; then
+if ! "$root/scripts/mana-provider-capabilities.sh" "$provider" --binary "$provider_program" > "$temporary/capabilities.probed.json"; then
   fail 'needs_model_escalation: provider capability probe failed'
+fi
+if [ "$attested_child_test_only" = true ]; then
+  mana_ctx07c_test_capability_snapshot "$temporary/capabilities.probed.json" > "$temporary/capabilities.json" || \
+    fail 'needs_model_escalation: test-only attested capability snapshot failed'
+else
+  mv "$temporary/capabilities.probed.json" "$temporary/capabilities.json"
 fi
 if ! "$phase_helper" validate-capabilities "$provider" "$temporary/capabilities.json" > "$temporary/capabilities.canonical.json"; then
   fail 'needs_model_escalation: provider capability report failed its CTX-02 contract'
 fi
 mv "$temporary/capabilities.canonical.json" "$temporary/capabilities.json"
-for capability in freshInvocation ephemeralSession explicitModelSelection hardSubagentDisable; do
-  capability_status="$(jq -er --arg capability "$capability" '.capabilities[$capability].status' "$temporary/capabilities.json")"
-  [ "$capability_status" = supported ] || fail "needs_model_escalation: provider capability $capability is $capability_status; CTX-07B will not weaken worker isolation"
-done
 effort_required="$(jq -r '[.workers[].contextPacket.modelSelection.reasoningEffort != null] | any' "$temporary/prepared.json")"
-if [ "$effort_required" = true ]; then
-  effort_status="$(jq -er '.capabilities.explicitReasoningEffort.status' "$temporary/capabilities.json")"
-  [ "$effort_status" = supported ] || fail "needs_model_escalation: provider capability explicitReasoningEffort is $effort_status but host worker policy requires it"
+if mana_context_select_worker_transport "$provider" "$provider_children" "$effort_required" "$temporary/capabilities.json"; then
+  worker_transport="$MANA_CONTEXT_WORKER_TRANSPORT"
+else
+  fail "needs_model_escalation: provider-managed child contract is not proven (${MANA_CONTEXT_CHILD_GAPS[*]})"
 fi
-schema_capability="$(jq -er '.capabilities.structuredOutputSchema.status' "$temporary/capabilities.json")"
+if [ "$provider_children" = prefer ] && [ "${#MANA_CONTEXT_CHILD_GAPS[@]}" -ne 0 ]; then
+  echo "WARNING: provider-managed child contract is not proven (${MANA_CONTEXT_CHILD_GAPS[*]}); using correctness-critical CTX-07B fresh host worker fallback." >&2
+fi
+
 native_schema=false
-if [ "$schema_capability" = supported ]; then
+if [ "$worker_transport" = provider-managed-child ]; then
+  # Native structured output is a mandatory CTX-07C capability, not a host-
+  # validation substitute. The unchanged host validator still runs afterward.
   native_schema=true
 else
-  echo "WARNING: provider structured output is $schema_capability; CTX-07B is using mandatory host validation." >&2
+  for capability in freshInvocation ephemeralSession explicitModelSelection hardSubagentDisable; do
+    capability_status="$(jq -er --arg capability "$capability" '.capabilities[$capability].status' "$temporary/capabilities.json")"
+    [ "$capability_status" = supported ] || fail "needs_model_escalation: provider capability $capability is $capability_status; CTX-07B will not weaken worker isolation"
+  done
+  if [ "$effort_required" = true ]; then
+    effort_status="$(jq -er '.capabilities.explicitReasoningEffort.status' "$temporary/capabilities.json")"
+    [ "$effort_status" = supported ] || fail "needs_model_escalation: provider capability explicitReasoningEffort is $effort_status but host worker policy requires it"
+  fi
+  schema_capability="$(jq -er '.capabilities.structuredOutputSchema.status' "$temporary/capabilities.json")"
+  if [ "$schema_capability" = supported ]; then
+    native_schema=true
+  else
+    echo "WARNING: provider structured output is $schema_capability; CTX-07B is using mandatory host validation." >&2
+  fi
 fi
 
 failures=0
@@ -212,7 +252,7 @@ test_crash_at() {
 }
 
 run_worker() {
-  local task_id="$1" worker_dir="$temporary/workers/$1" capsule="$temporary/capsules/$1" scratch="$temporary/scratch/$1" model effort provider_status capsule_schema claim action task_execution_key invocation_id timeout_seconds kill_grace_seconds terminal_status usage_summary raw_trace
+  local task_id="$1" worker_dir="$temporary/workers/$1" capsule="$temporary/capsules/$1" scratch="$temporary/scratch/$1" model effort provider_status capsule_schema claim action task_execution_key invocation_id timeout_seconds kill_grace_seconds terminal_status usage_summary raw_trace bind_command
   local -a usage_args=()
   mkdir "$worker_dir"
   mkdir -p "$temporary/capsules" "$temporary/scratch"
@@ -260,11 +300,17 @@ run_worker() {
     return 1
   fi
   capsule_schema="$capsule/output-schema.json"
-  "$worker_helper" render-prompt --packet "$worker_dir/packet.json" > "$worker_dir/prompt.txt" || {
+  prompt_command=render-prompt
+  [ "$worker_transport" != provider-managed-child ] || prompt_command=render-child-prompt
+  "$worker_helper" "$prompt_command" --packet "$worker_dir/packet.json" > "$worker_dir/prompt.txt" || {
     "$worker_helper" finalize-task --project-root "$project_root" --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" --status failed || true
     return 1
   }
-  mana_provider_worker_args "$provider" "$capsule" "$model" "$effort" "$capsule_schema" "$native_schema" || {
+  if [ "$worker_transport" = provider-managed-child ]; then
+    mana_provider_child_worker_args "$provider" "$capsule" "$model" "$effort" "$capsule_schema"
+  else
+    mana_provider_worker_args "$provider" "$capsule" "$model" "$effort" "$capsule_schema" "$native_schema"
+  fi || {
     echo "ERROR: provider worker adapter rejected $provider" >&2
     "$worker_helper" finalize-task --project-root "$project_root" --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" --status failed || true
     return 1
@@ -313,12 +359,37 @@ run_worker() {
     return "$provider_status"
   }
   test_crash_at after-provider
-  "$worker_helper" normalize-output "$provider" --output "$worker_dir/provider-output.json" --task "$worker_dir/task.json" > "$worker_dir/draft.json" || {
-    "$worker_helper" finalize-task --project-root "$project_root" --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" --status failed "${usage_args[@]}" || true
-    return 1
-  }
+  if [ "$worker_transport" = provider-managed-child ]; then
+    "$worker_helper" publish-managed-child-receipt --project-root "$project_root" \
+      --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" \
+      --provider "$provider" --output "$worker_dir/provider-output.json" \
+      --prepared "$temporary/prepared.json" --task "$worker_dir/task.json" \
+      > "$worker_dir/receipt-publication.json" || {
+      "$worker_helper" finalize-task --project-root "$project_root" --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" --status failed "${usage_args[@]}" || true
+      return 1
+    }
+    if [ "$(jq -er '.receiptObject.terminalStatus' "$worker_dir/receipt-publication.json")" != completed ]; then
+      "$worker_helper" finalize-task --project-root "$project_root" --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" --status failed "${usage_args[@]}" || true
+      return 1
+    fi
+    test_crash_at after-managed-receipt
+    "$worker_helper" normalize-output "$provider" --output "$worker_dir/provider-output.json" --task "$worker_dir/task.json" > "$worker_dir/draft.json" || {
+      "$worker_helper" finalize-task --project-root "$project_root" --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" --status failed "${usage_args[@]}" || true
+      return 1
+    }
+    bind_command=bind-managed-child-result
+  else
+    "$worker_helper" normalize-output "$provider" --output "$worker_dir/provider-output.json" --task "$worker_dir/task.json" > "$worker_dir/draft.json" || {
+      "$worker_helper" finalize-task --project-root "$project_root" --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" --status failed "${usage_args[@]}" || true
+      return 1
+    }
+    bind_command=bind-host-worker-result
+  fi
   test_crash_at before-bind
-  "$delegation" bind-result "${common_args[@]}" --plan "$temporary/plan.json" --draft "$worker_dir/draft.json" > "$worker_dir/result.pending.json" || {
+  "$worker_helper" "$bind_command" --project-root "$project_root" \
+    --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" \
+    --draft "$worker_dir/draft.json" --prepared "$temporary/prepared.json" \
+    --task "$worker_dir/task.json" > "$worker_dir/result.pending.json" || {
     "$worker_helper" finalize-task --project-root "$project_root" --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" --status failed "${usage_args[@]}" || true
     return 1
   }
@@ -367,11 +438,16 @@ if [ "${#active_pids[@]}" -gt 0 ]; then
   wait_batch
 fi
 
-merge_args=(merge-results "${common_args[@]}" --plan "$temporary/plan.json")
-while IFS= read -r result_path; do
-  merge_args+=(--result "$result_path")
-done < <(find "$temporary/workers" -type f -name result.json -print | sort)
-"$delegation" "${merge_args[@]}"
+if [ "$worker_transport" = provider-managed-child ]; then
+  "$worker_helper" merge-authoritative-results --project-root "$project_root" \
+    --prepared "$temporary/prepared.json"
+else
+  merge_args=(merge-results "${common_args[@]}" --plan "$temporary/plan.json")
+  while IFS= read -r result_path; do
+    merge_args+=(--result "$result_path")
+  done < <(find "$temporary/workers" -type f -name result.json -print | sort)
+  "$delegation" "${merge_args[@]}"
+fi
 if [ "$failures" -ne 0 ]; then
   echo "ERROR: $failures fresh worker invocation(s) failed; incomplete merge emitted" >&2
   exit "$overall_status"

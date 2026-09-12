@@ -129,6 +129,16 @@ mana_provider_worker_args() {
   esac
 }
 
+# CTX-07C optional provider-managed child.  Callers may select this adapter
+# only after the capability report proves every enabled-child control.  The
+# root invocation sees the same single-task packet as CTX-07B, may start one
+# isolated child, and must return that child's schema-conforming result.
+mana_provider_child_worker_args() {
+  MANA_PROVIDER_ARGS=()
+  MANA_PROVIDER_OPENCODE_CONFIG_CONTENT=""
+  return 1
+}
+
 mana_provider_repair_args() {
   local provider="$1" project="$2" model="$3"
   MANA_PROVIDER_ARGS=()

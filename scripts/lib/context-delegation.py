@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import os
 import re
 import sys
 import unicodedata
@@ -235,7 +236,10 @@ def _strip_result_digest(value: Any) -> Any:
         return {
             key: _strip_result_digest(child)
             for key, child in value.items()
-            if key not in {"resultDigest", "sourceResultDigest"}
+            if key not in {
+                "resultDigest", "semanticResultDigest", "executionReceiptDigest",
+                "executionProvenance", "sourceResultDigest",
+            }
         }
     if isinstance(value, list):
         return [_strip_result_digest(child) for child in value]
@@ -247,6 +251,319 @@ def result_digest(result: dict[str, Any]) -> str:
         "identityVersion": "mana.context-runtime.delegation-result-identity/v1",
         "result": _strip_result_digest(result),
     })
+
+
+def execution_receipt_digest(semantic_digest: str, provenance: dict[str, Any]) -> str:
+    """Bind semantic content to host-owned execution/receipt provenance."""
+    return digest({
+        "identityVersion": "mana.context-runtime.execution-receipt/v2",
+        "semanticResultDigest": semantic_digest,
+        "providerReceiptDigest": provenance["receiptDigest"],
+        "executionProvenance": provenance,
+    })
+
+
+class ExecutionAuthority:
+    """CTX-07B host-worker provenance only; never managed-child proof."""
+
+    __slots__ = ("provenance",)
+
+    def __init__(self, provenance: dict[str, Any]) -> None:
+        self.provenance = deepcopy(provenance)
+
+
+def _execution_provenance(
+    provider: str, *, transport: str, root_invocation_id: str,
+    child_invocation_id: str | None, attestation_kind: str,
+    receipt_id: str | None, receipt_digest: str | None,
+) -> dict[str, Any]:
+    if transport not in {"host-worker", "provider-managed-child"}:
+        fail("execution transport is invalid")
+    if provider not in {"codex", "claude", "opencode"}:
+        fail("execution provider is invalid")
+    if not re.fullmatch(r"[A-Za-z0-9._:-]{1,160}", root_invocation_id):
+        fail("root invocation ID is invalid")
+    if child_invocation_id is not None and not re.fullmatch(r"[A-Za-z0-9._:-]{1,160}", child_invocation_id):
+        fail("child invocation ID is invalid")
+    if transport == "host-worker":
+        if (
+            child_invocation_id is not None
+            or attestation_kind != "host-worker-process/v1"
+            or receipt_id is not None
+            or receipt_digest is not None
+        ):
+            fail("host-worker transport has invalid child attestation")
+    elif (
+        child_invocation_id is None or child_invocation_id == root_invocation_id
+        or attestation_kind != "provider-native-managed-child-event-receipt/v1"
+        or not isinstance(receipt_id, str)
+        or re.fullmatch(r"R-[a-f0-9]{64}", receipt_id) is None
+        or not isinstance(receipt_digest, str)
+        or re.fullmatch(r"sha256:[a-f0-9]{64}", receipt_digest) is None
+    ):
+        fail("provider-managed child transport has invalid attestation")
+    return {
+        "executionTransport": transport,
+        "provider": provider,
+        "rootInvocationId": root_invocation_id,
+        "childInvocationId": child_invocation_id,
+        "attestationKind": attestation_kind,
+        "receiptId": receipt_id,
+        "receiptDigest": receipt_digest,
+    }
+
+
+def host_worker_execution_authority(provider: str, invocation_id: str) -> ExecutionAuthority:
+    """Create provenance from a host-owned CTX-07B process identity."""
+    return ExecutionAuthority(_execution_provenance(
+        provider, transport="host-worker", root_invocation_id=invocation_id,
+        child_invocation_id=None, attestation_kind="host-worker-process/v1",
+        receipt_id=None, receipt_digest=None,
+    ))
+
+
+def _host_worker_authority_provenance(authority: ExecutionAuthority) -> dict[str, Any]:
+    if not isinstance(authority, ExecutionAuthority) or not isinstance(authority.provenance, dict):
+        fail("delegation result execution authority is not host-owned")
+    supplied = authority.provenance
+    if supplied.get("executionTransport") != "host-worker":
+        fail("caller-supplied managed-child authority is forbidden; committed receipt lookup required")
+    return _execution_provenance(
+        supplied["provider"], transport="host-worker",
+        root_invocation_id=supplied["rootInvocationId"],
+        child_invocation_id=supplied["childInvocationId"],
+        attestation_kind=supplied["attestationKind"],
+        receipt_id=supplied["receiptId"], receipt_digest=supplied["receiptDigest"],
+    )
+
+
+MANAGED_CHILD_RECEIPT_SCHEMA = "mana.context-runtime.managed-child-receipt/v1"
+MANAGED_CHILD_COMMIT_SCHEMA = "mana.context-runtime.managed-child-receipt-commit/v1"
+MANAGED_CHILD_BINDING_SCHEMA = "mana.context-runtime.managed-child-result-binding/v1"
+
+
+def managed_child_task_execution_key(packet: dict[str, Any], task: dict[str, Any]) -> str:
+    identity = {
+        **host_bindings(packet), "planId": task["planId"], "taskId": task["taskId"],
+        "taskDigest": "sha256:" + hashlib.sha256(runtime.canonical_bytes(task)).hexdigest(),
+    }
+    return derived_id("W-", identity)
+
+
+def managed_child_receipt_relative(key: str, invocation: str) -> str:
+    if not isinstance(key, str) or re.fullmatch(r"W-[a-f0-9]{64}", key) is None:
+        fail("invalid worker execution key")
+    if not isinstance(invocation, str) or re.fullmatch(r"I-[a-f0-9]{32}", invocation) is None:
+        fail("invalid worker invocation identity")
+    return f".mana/runtime/worker-executions/{key}/attempts/{invocation}/managed-child-receipt.json"
+
+
+def managed_child_receipt_digest(receipt: dict[str, Any]) -> str:
+    return digest({
+        "identityVersion": "mana.context-runtime.provider-native-receipt/v1",
+        "provider": receipt["provider"], "attestationKind": receipt["attestationKind"],
+        "orderedEventCount": receipt["orderedEventCount"],
+        "orderedEventDigest": receipt["orderedEventDigest"],
+    })
+
+
+def _managed_child_ordered_events(receipt: dict[str, Any]) -> list[dict[str, Any]]:
+    root = {"rootInvocationId": receipt["rootInvocationId"]}
+    child = {**root, "childInvocationId": receipt["childInvocationId"]}
+    bound = {**child, "taskId": receipt["taskId"], "taskDigest": receipt["taskDigest"]}
+    return [
+        {"sequence": 1, "eventType": "root.started", **root,
+         **{field: receipt[field] for field in (*BINDING_FIELDS, "planId")}},
+        {"sequence": 2, "eventType": "child.started", **child},
+        {"sequence": 3, "eventType": "child.task.bound", **bound},
+        {"sequence": 4, "eventType": "child." + receipt["terminalStatus"],
+         **bound, "status": receipt["terminalStatus"]},
+    ]
+
+
+def validate_managed_child_receipt_record(
+    receipt: dict[str, Any], key: str, invocation: str,
+    packet: dict[str, Any], task: dict[str, Any],
+) -> None:
+    """Audit/lifecycle record validity, including failed; grants no authority."""
+    required = {
+        "schemaVersion", "commitState", "receiptId", "receiptDigest", "provider",
+        "attestationKind", "hostInvocationId", "rootInvocationId", "childInvocationId",
+        *BINDING_FIELDS, "planId", "taskId", "taskDigest", "taskExecutionKey",
+        "terminalStatus", "orderedEventCount", "orderedEventDigest",
+    }
+    managed_child_receipt_relative(key, invocation)
+    if not isinstance(receipt, dict) or set(receipt) != required or receipt["schemaVersion"] != MANAGED_CHILD_RECEIPT_SCHEMA:
+        fail("managed-child receipt artifact is malformed")
+    if receipt["commitState"] != "committed":
+        fail("managed-child receipt artifact is not committed")
+    if receipt["hostInvocationId"] != invocation or receipt["taskExecutionKey"] != key:
+        fail("managed-child receipt belongs to another host invocation")
+    expected = {**host_bindings(packet), "provider": packet["provider"],
+                **{field: task[field] for field in ("planId", "taskId", "taskDigest")}}
+    if (key != managed_child_task_execution_key(packet, task)
+            or any(task[field] != expected[field] for field in BINDING_FIELDS)
+            or any(receipt[field] != value for field, value in expected.items())
+            or task["taskDigest"] != task_digest(task)):
+        fail("managed-child receipt is foreign or stale")
+    if (receipt["attestationKind"] != "provider-native-managed-child-event-receipt/v1"
+            or receipt["terminalStatus"] not in {"completed", "failed"}
+            or type(receipt["orderedEventCount"]) is not int or receipt["orderedEventCount"] != 4):
+        fail("managed-child receipt terminal or ordered-event identity is invalid")
+    for field in ("rootInvocationId", "childInvocationId"):
+        if not isinstance(receipt[field], str) or re.fullmatch(r"[A-Za-z0-9._:-]{1,160}", receipt[field]) is None:
+            fail("managed-child receipt invocation identity is invalid")
+    if receipt["rootInvocationId"] == receipt["childInvocationId"]:
+        fail("managed-child receipt does not identify a distinct child")
+    ordered_digest = "sha256:" + hashlib.sha256(runtime.canonical_bytes(_managed_child_ordered_events(receipt))).hexdigest()
+    if receipt["orderedEventDigest"] != ordered_digest:
+        fail("managed-child receipt ordered event digest is inconsistent")
+    expected_digest = managed_child_receipt_digest(receipt)
+    if receipt["receiptDigest"] != expected_digest or receipt["receiptId"] != "R-" + expected_digest[7:]:
+        fail("managed-child receipt ID or digest is inconsistent")
+
+
+def managed_child_receipt_commit_record(receipt: dict[str, Any], artifact_identity: tuple[int, int]) -> dict[str, Any]:
+    return {
+        "schemaVersion": MANAGED_CHILD_COMMIT_SCHEMA,
+        "taskExecutionKey": receipt["taskExecutionKey"], "hostInvocationId": receipt["hostInvocationId"],
+        "receiptId": receipt["receiptId"], "receiptDigest": receipt["receiptDigest"],
+        "artifactDigest": "sha256:" + hashlib.sha256(runtime.canonical_bytes(receipt)).hexdigest(),
+        "artifactIdentity": {"device": artifact_identity[0], "inode": artifact_identity[1]},
+    }
+
+
+def _read_private_object_and_identity(root: Path, relative: str, label: str) -> tuple[dict[str, Any], tuple[int, int]]:
+    payload, identity = runtime.safe_read_private_bytes(
+        Path(relative), project_root=root, max_bytes=LIMITS["resultBytes"],
+    )
+    try:
+        value = json.loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail(f"cannot decode {label}: {error}")
+    if not isinstance(value, dict) or payload != runtime.canonical_bytes(value) + b"\n":
+        fail(f"{label} artifact is not canonical")
+    return value, identity
+
+
+def _read_private_committed_object(root: Path, relative: str, label: str) -> dict[str, Any]:
+    return _read_private_object_and_identity(root, relative, label)[0]
+
+
+def read_committed_managed_child_receipt_record(
+    project_root: str | Path, invocation: str, packet: dict[str, Any], task: dict[str, Any],
+) -> dict[str, Any]:
+    """Read a committed terminal audit record at its host-derived location."""
+    root = Path(os.path.abspath(project_root))
+    runtime.validate_secure_root(root)
+    key = managed_child_task_execution_key(packet, task)
+    relative = managed_child_receipt_relative(key, invocation)
+    try:
+        receipt, identity = _read_private_object_and_identity(root, relative, "managed-child receipt")
+    except runtime.ContractError as error:
+        if "No such file" in str(error):
+            fail("provider-managed child result has no committed receipt artifact")
+        raise
+    validate_managed_child_receipt_record(receipt, key, invocation, packet, task)
+    try:
+        commit = _read_private_committed_object(root, relative.replace("receipt.json", "receipt-commit.json"), "managed-child receipt commit")
+    except runtime.ContractError as error:
+        if "No such file" in str(error):
+            fail("managed-child receipt artifact is not committed: missing host commitment")
+        raise
+    if commit != managed_child_receipt_commit_record(receipt, identity):
+        fail("managed-child receipt differs from its host commitment")
+    return receipt
+
+
+def load_committed_completed_managed_child_receipt(
+    project_root: str | Path, invocation: str, packet: dict[str, Any], task: dict[str, Any],
+) -> dict[str, Any]:
+    """The success authority boundary: lookup, fresh CTX-03 read, completed only."""
+    receipt = read_committed_managed_child_receipt_record(project_root, invocation, packet, task)
+    if receipt["terminalStatus"] != "completed":
+        fail("provider-managed child receipt is not successful: completed required")
+    root = Path(os.path.abspath(project_root))
+    key = managed_child_task_execution_key(packet, task)
+    execution_id = receipt["executionId"]
+    if not isinstance(execution_id, str) or re.fullmatch(r"[A-Za-z0-9._:-]{1,160}", execution_id) is None:
+        fail("managed-child receipt execution identity is invalid")
+    run = f".mana/runtime/runs/{execution_id}"
+    envelope = _read_private_committed_object(root, f"{run}/execution-envelope-v1.json", "execution envelope")
+    state = _read_private_committed_object(root, f"{run}/run-state-v1.json", "run HEAD")
+    runtime.validate_structure("execution-envelope", envelope)
+    runtime.validate_structure("run-state", state)
+    if (any(envelope[field] != receipt[field] for field in ("executionId", "executionVersion", "workspaceId", "profileId", "provider"))
+            or any(state[field] != receipt[field] for field in ("executionId", "executionVersion", "profileId"))
+            or state["currentPhaseId"] != receipt["phaseId"] or state["currentAttempt"] != receipt["attempt"]):
+        fail("managed-child receipt is foreign or stale for current run HEAD")
+    claim = _read_private_committed_object(root, f".mana/runtime/worker-executions/{key}/claim.json", "worker claim")
+    if (claim.get("taskExecutionKey") != key or claim.get("invocationId") != invocation
+            or claim.get("taskDigest") != task["taskDigest"]
+            or claim.get("status") not in {"active", "terminal"}
+            or (claim["status"] == "terminal" and claim.get("terminalStatus") != "complete")):
+        fail("managed-child receipt is not bound to the current task execution")
+    try:
+        head = _read_private_committed_object(
+            root, f".mana/runtime/worker-executions/{key}/task-result-head.json", "task-result HEAD"
+        )
+    except runtime.ContractError as error:
+        if "No such file" not in str(error):
+            raise
+    else:
+        if head.get("taskExecutionKey") != key or head.get("invocationId") != invocation:
+            fail("managed-child receipt and task-result HEAD belong to different invocations")
+    # Re-attest the receipt after the other host records have been read. The
+    # materialized provenance below comes from these freshly verified bytes.
+    if read_committed_managed_child_receipt_record(root, invocation, packet, task) != receipt:
+        fail("managed-child receipt changed during authority lookup")
+    return receipt
+
+
+def _lookup_managed_child_provenance(
+    project_root: str | Path, invocation: str, packet: dict[str, Any], task: dict[str, Any],
+) -> dict[str, Any]:
+    receipt = load_committed_completed_managed_child_receipt(project_root, invocation, packet, task)
+    return _execution_provenance(
+        receipt["provider"], transport="provider-managed-child",
+        root_invocation_id=receipt["rootInvocationId"], child_invocation_id=receipt["childInvocationId"],
+        attestation_kind=receipt["attestationKind"], receipt_id=receipt["receiptId"],
+        receipt_digest=receipt["receiptDigest"],
+    )
+
+
+def _lookup_managed_child_result_invocation(
+    project_root: str | Path, packet: dict[str, Any], task: dict[str, Any], result: dict[str, Any],
+) -> str:
+    """Merge selects the invocation from committed HEAD, never result provenance."""
+    root = Path(os.path.abspath(project_root))
+    key = managed_child_task_execution_key(packet, task)
+    base = f".mana/runtime/worker-executions/{key}"
+    head = _read_private_committed_object(root, f"{base}/task-result-head.json", "task-result HEAD")
+    invocation = head.get("invocationId")
+    managed_child_receipt_relative(key, invocation)
+    expected_head = {
+        "schemaVersion": "mana.context-runtime.worker-result-head/v1", "taskExecutionKey": key,
+        "invocationId": invocation, "artifact": f"attempts/{invocation}/result.json",
+        "resultDigest": result["resultDigest"],
+        "artifactDigest": "sha256:" + hashlib.sha256(runtime.canonical_bytes(result)).hexdigest(),
+    }
+    if head != expected_head:
+        fail("provider-managed child result differs from authoritative task-result HEAD")
+    committed_result = _read_private_committed_object(root, f"{base}/{expected_head['artifact']}", "task result")
+    if committed_result != result:
+        fail("provider-managed child result differs from committed artifact")
+    receipt = load_committed_completed_managed_child_receipt(root, invocation, packet, task)
+    binding = _read_private_committed_object(root, f".mana/runtime/managed-child-result-bindings/{receipt['receiptDigest'][7:]}.json", "managed-child result binding")
+    expected_binding = {
+        "schemaVersion": MANAGED_CHILD_BINDING_SCHEMA, "receiptId": receipt["receiptId"],
+        "receiptDigest": receipt["receiptDigest"], "taskExecutionKey": key, "hostInvocationId": invocation,
+        "semanticResultDigest": result["semanticResultDigest"], "executionReceiptDigest": result["executionReceiptDigest"],
+        "resultArtifactDigest": head["artifactDigest"], "authoritativeResultHead": head,
+    }
+    if binding != expected_binding:
+        fail("provider-managed child receipt/result binding is foreign or conflicting")
+    return invocation
 
 
 def validate_gap_shape(gap: dict[str, Any], label: str) -> None:
@@ -496,7 +813,9 @@ def _result_elements(result: dict[str, Any]) -> Iterable[tuple[str, dict[str, An
 
 def bind_result(
     draft: dict[str, Any], packet: dict[str, Any], plan: dict[str, Any], task: dict[str, Any],
-    evidence_manifest: dict[str, Any] | None,
+    evidence_manifest: dict[str, Any] | None, *, authority: ExecutionAuthority | None = None,
+    managed_child_project_root: str | Path | None = None,
+    managed_child_invocation_id: str | None = None,
 ) -> dict[str, Any]:
     _require_fields(draft, RESULT_DRAFT_FIELDS, "delegation result draft")
     if draft["schemaVersion"] != "mana.context-runtime.delegation-result-draft/v1":
@@ -531,16 +850,46 @@ def bind_result(
     }
     cited = {ref for _, item in _result_elements(result) for ref in item["evidenceRefs"]}
     result["evidenceRefs"] = sorted(cited)
-    result["resultDigest"] = result_digest(result)
+    # Managed-child callers supply lookup identity only. No DTO, dict, digest,
+    # or previously resolved provenance is sufficient proof at this boundary.
+    if authority is not None:
+        _host_worker_authority_provenance(authority)
+    if managed_child_project_root is not None or managed_child_invocation_id is not None:
+        if authority is not None or managed_child_project_root is None or managed_child_invocation_id is None:
+            fail("managed-child binding requires only complete host lookup identity")
+        provenance = _lookup_managed_child_provenance(
+            managed_child_project_root, managed_child_invocation_id, packet, task
+        )
+    else:
+        authority = authority or host_worker_execution_authority(
+            packet["provider"], f"host-bind-{task['taskId']}"
+        )
+        provenance = _host_worker_authority_provenance(authority)
+    if provenance["provider"] != packet["provider"]:
+        fail("delegation result execution authority uses another provider")
+    result["executionProvenance"] = provenance
+    result["semanticResultDigest"] = result_digest(result)
+    # resultDigest is retained as the CTX-07A compatibility alias.  It is
+    # deliberately semantic, never an execution receipt identity.
+    result["resultDigest"] = result["semanticResultDigest"]
+    result["executionReceiptDigest"] = execution_receipt_digest(
+        result["semanticResultDigest"], provenance
+    )
     for _, item in _result_elements(result):
         item["provenance"]["sourceResultDigest"] = result["resultDigest"]
-    validate_result(result, packet, plan, task, evidence_manifest)
+    validate_result(
+        result, packet, plan, task, evidence_manifest, authority=authority,
+        managed_child_project_root=managed_child_project_root,
+        managed_child_invocation_id=managed_child_invocation_id,
+    )
     return result
 
 
 def validate_result(
     result: dict[str, Any], packet: dict[str, Any], plan: dict[str, Any], task: dict[str, Any],
-    evidence_manifest: dict[str, Any] | None,
+    evidence_manifest: dict[str, Any] | None, *, authority: ExecutionAuthority | None = None,
+    managed_child_project_root: str | Path | None = None,
+    managed_child_invocation_id: str | None = None,
 ) -> None:
     """Validate one result bound to an already validated authoritative plan.
 
@@ -560,8 +909,37 @@ def validate_result(
         if result[field] != task[field]:
             fail(f"delegation result has an inconsistent {field}")
     expected_digest = result_digest(result)
-    if result["resultDigest"] != expected_digest:
+    if result["semanticResultDigest"] != expected_digest or result["resultDigest"] != expected_digest:
         fail("delegation result digest does not match its canonical content")
+    supplied = result["executionProvenance"]
+    if authority is not None:
+        _host_worker_authority_provenance(authority)
+    if supplied["executionTransport"] == "provider-managed-child":
+        if authority is not None:
+            fail("caller-supplied authority cannot authorize a managed-child result")
+        if managed_child_project_root is None or managed_child_invocation_id is None:
+            fail("provider-managed child result has no committed host receipt authority")
+        expected_provenance = _lookup_managed_child_provenance(
+            managed_child_project_root, managed_child_invocation_id, packet, task
+        )
+    elif managed_child_project_root is not None or managed_child_invocation_id is not None:
+        fail("host-worker result cannot use managed-child lookup identity")
+    elif authority is not None:
+        expected_provenance = _host_worker_authority_provenance(authority)
+    else:
+        expected_provenance = _execution_provenance(
+            supplied["provider"], transport=supplied["executionTransport"],
+            root_invocation_id=supplied["rootInvocationId"],
+            child_invocation_id=supplied["childInvocationId"],
+            attestation_kind=supplied["attestationKind"],
+            receipt_id=supplied["receiptId"], receipt_digest=supplied["receiptDigest"],
+        )
+    if expected_provenance["provider"] != packet["provider"]:
+        fail("delegation result execution provenance uses another provider")
+    if result["executionProvenance"] != expected_provenance:
+        fail("delegation result execution provenance is not host-valid")
+    if result["executionReceiptDigest"] != execution_receipt_digest(expected_digest, expected_provenance):
+        fail("delegation result execution receipt digest does not match host provenance")
     seen_ids: set[str] = set()
     cited: set[str] = set()
     for category, item in _result_elements(result):
@@ -646,6 +1024,8 @@ def _conflicts(aggregates: dict[str, list[dict[str, Any]]]) -> list[dict[str, An
 def merge(
     plan: dict[str, Any], results: list[dict[str, Any]], packet: dict[str, Any],
     evidence_manifest: dict[str, Any] | None,
+    *, authorities: dict[str, ExecutionAuthority] | None = None,
+    managed_child_project_root: str | Path | None = None,
 ) -> dict[str, Any]:
     validate_plan(plan, packet, evidence_manifest)
     tasks = {task["taskId"]: task for task in plan["tasks"]}
@@ -656,7 +1036,21 @@ def merge(
             fail("delegation merge contains a result for an undeclared task")
         if task_id in by_task:
             fail("delegation merge contains a duplicate task result")
-        validate_result(result, packet, plan, tasks[task_id], evidence_manifest)
+        invocation = None
+        if result.get("executionProvenance", {}).get("executionTransport") == "provider-managed-child":
+            if authorities is not None and task_id in authorities:
+                _host_worker_authority_provenance(authorities[task_id])
+                fail("caller-supplied authority cannot authorize a managed-child merge")
+            if managed_child_project_root is not None:
+                invocation = _lookup_managed_child_result_invocation(
+                    managed_child_project_root, packet, tasks[task_id], result
+                )
+        validate_result(
+            result, packet, plan, tasks[task_id], evidence_manifest,
+            authority=None if authorities is None else authorities.get(task_id),
+            managed_child_project_root=managed_child_project_root if invocation is not None else None,
+            managed_child_invocation_id=invocation,
+        )
         by_task[task_id] = result
     ordered_results = [deepcopy(by_task[task_id]) for task_id in sorted(by_task)]
     aggregates = {

@@ -1062,9 +1062,11 @@ def _anchored_components(path: Path, project_root: Path | None) -> tuple[Path, l
     return root, list(path.parts)
 
 
-def safe_read_bytes(
+def _safe_read_file(
     path: Path, *, project_root: Path | None = None, max_bytes: int | None = None,
-) -> bytes:
+    required_mode: int | None = None, required_parent_mode: int | None = None,
+    require_single_link: bool = False,
+) -> tuple[bytes, tuple[int, int]]:
     """Read a regular file through an FD-anchored no-follow boundary."""
     nofollow, directory = _require_secure_dir_fd_support()
     anchor, components = _anchored_components(path, project_root)
@@ -1075,8 +1077,14 @@ def safe_read_bytes(
         root_fd = _open_directory(anchor, dir_fd=None, nofollow=nofollow, directory=directory)
         parent_fd, parent_fds = _walk_existing_parent(root_fd, components[:-1], nofollow, directory)
         fd = os.open(components[-1], os.O_RDONLY | os.O_NONBLOCK | nofollow, dir_fd=parent_fd)
-        if not stat.S_ISREG(os.fstat(fd).st_mode):
+        initial = os.fstat(fd)
+        if not stat.S_ISREG(initial.st_mode):
             raise ContractError("input must be a regular, non-symlink file")
+        if ((required_mode is not None and stat.S_IMODE(initial.st_mode) != required_mode)
+                or (require_single_link and initial.st_nlink != 1)
+                or (required_parent_mode is not None
+                    and stat.S_IMODE(os.fstat(parent_fd).st_mode) != required_parent_mode)):
+            raise ContractError("input permissions or link count differ from required private artifact mode")
         _test_read_sync("after-final-open")
         if not _same_existing_directory_from_root(root_fd, components[:-1], parent_fd, nofollow, directory):
             raise ContractError("input parent binding changed during traversal")
@@ -1089,7 +1097,18 @@ def safe_read_bytes(
             if max_bytes is not None and total > max_bytes:
                 raise ContractError(f"input exceeds its {max_bytes} byte limit")
             chunks.append(chunk)
-        return b"".join(chunks)
+        if required_mode is not None or required_parent_mode is not None or require_single_link:
+            final = os.fstat(fd)
+            named = os.stat(components[-1], dir_fd=parent_fd, follow_symlinks=False)
+            stable_fields = ("st_dev", "st_ino", "st_mode", "st_nlink", "st_size", "st_mtime_ns", "st_ctime_ns")
+            if (any(getattr(initial, field) != getattr(final, field) for field in stable_fields)
+                    or _entry_identity(named) != _entry_identity(final)
+                    or not _same_existing_directory_from_root(
+                        root_fd, components[:-1], parent_fd, nofollow, directory)
+                    or (required_parent_mode is not None
+                        and stat.S_IMODE(os.fstat(parent_fd).st_mode) != required_parent_mode)):
+                raise ContractError("private input identity changed during read")
+        return b"".join(chunks), (initial.st_dev, initial.st_ino)
     except OSError as error:
         raise ContractError(f"cannot read input: {error}") from error
     finally:
@@ -1099,6 +1118,25 @@ def safe_read_bytes(
             os.close(opened_fd)
         if root_fd >= 0:
             os.close(root_fd)
+
+
+def safe_read_bytes(
+    path: Path, *, project_root: Path | None = None, max_bytes: int | None = None,
+) -> bytes:
+    """Read bytes through the CTX-03 FD-anchored no-follow boundary."""
+    return _safe_read_file(
+        path, project_root=project_root, max_bytes=max_bytes,
+    )[0]
+
+
+def safe_read_private_bytes(
+    path: Path, *, project_root: Path, max_bytes: int,
+) -> tuple[bytes, tuple[int, int]]:
+    """Read private immutable bytes and their identity from the same held FD."""
+    return _safe_read_file(
+        path, project_root=project_root, max_bytes=max_bytes,
+        required_mode=0o600, required_parent_mode=0o700, require_single_link=True,
+    )
 
 
 def safe_read_json(path: Path) -> dict[str, Any]:

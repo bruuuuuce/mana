@@ -50,6 +50,8 @@ POLICY_SCHEMA = "mana.context-runtime.worker-routing-policy/v1"
 POLICY_RELATIVE_PATH = Path("config/context-runtime/worker-routing-policy-v1.json")
 DEBUG_POLICY_SCHEMA = "mana.context-runtime.worker-debug-policy/v1"
 DEBUG_POLICY_RELATIVE_PATH = Path("config/context-runtime/worker-debug-policy-v1.json")
+MANAGED_CHILD_RECEIPT_SCHEMA = "mana.context-runtime.managed-child-receipt/v1"
+MANAGED_CHILD_BINDING_SCHEMA = "mana.context-runtime.managed-child-result-binding/v1"
 MAX_POLICY_BYTES = 64 * 1024
 MAX_PACKET_BYTES = 256 * 1024
 MAX_SKILL_BODY_BYTES = 64 * 1024
@@ -249,11 +251,28 @@ def _prepared_task(prepared: dict[str, Any], task: dict[str, Any]) -> tuple[dict
     return matches[0], workers[0]["contextPacket"]
 
 
-def _validate_authoritative_result(prepared: dict[str, Any], task: dict[str, Any], result: dict[str, Any]) -> None:
+def _validate_authoritative_result(
+    prepared: dict[str, Any], task: dict[str, Any], result: dict[str, Any],
+    *, root: Path | None = None, key: str | None = None,
+    invocation_id: str | None = None, require_managed_binding: bool = False,
+    head: dict[str, Any] | None = None,
+) -> None:
     authoritative_task, _worker_packet = _prepared_task(prepared, task)
+    provenance = result.get("executionProvenance")
+    managed = isinstance(provenance, dict) and provenance.get("executionTransport") == "provider-managed-child"
+    if managed:
+        if root is None or key is None or invocation_id is None:
+            fail("provider-managed child result requires persisted receipt authority")
+        receipt = load_committed_completed_managed_child_receipt(root, key, invocation_id, prepared, task)
+        if require_managed_binding:
+            if head is None:
+                fail("provider-managed child result binding requires authoritative HEAD")
+            _validate_managed_child_binding(root, key, invocation_id, receipt, result, head)
     delegation.validate_result(
         result, prepared["authorityPacket"], prepared["plan"], authoritative_task,
         prepared.get("evidenceManifest"),
+        managed_child_project_root=root if managed else None,
+        managed_child_invocation_id=invocation_id if managed else None,
     )
 
 
@@ -275,7 +294,10 @@ def _read_authoritative_head(root: Path, key: str, prepared: dict[str, Any], tas
         fail("worker task-result HEAD names an unsafe artifact")
     result_relative = _execution_relative(key, artifact)
     result, payload = _read_json_relative(root, result_relative, max_bytes=delegation.LIMITS["resultBytes"] + 1)
-    _validate_authoritative_result(prepared, task, result)
+    _validate_authoritative_result(
+        prepared, task, result, root=root, key=key,
+        invocation_id=head["invocationId"], require_managed_binding=True, head=head,
+    )
     canonical = runtime.canonical_bytes(result) + b"\n"
     if (payload != canonical or result["resultDigest"] != head["resultDigest"]
             or digest_bytes(runtime.canonical_bytes(result)) != head["artifactDigest"]):
@@ -371,7 +393,7 @@ def _recover_temporaries(root: Path, key: str, prepared, task) -> None:
                 if receipt is None or receipt["claim"] != value:
                     fail("ambiguous displaced worker claim")
         elif filename in {"receipt.json", "failure.json"}:
-            _validate_receipt(value, key, prepared, task)
+            _validate_receipt(value, key, prepared, task, root=root)
             invocation = value["claim"]["invocationId"]
             expected_path = (_receipt_relative(key, invocation) if filename == "receipt.json"
                              else _execution_relative(key, f"attempts/{invocation}/failure.json"))
@@ -386,7 +408,7 @@ def _recover_temporaries(root: Path, key: str, prepared, task) -> None:
             receipt = _optional_json(root, _receipt_relative(key, invocation))
             if receipt is None:
                 fail("worker stage has no durable receipt")
-            _validate_receipt(receipt, key, prepared, task)
+            _validate_receipt(receipt, key, prepared, task, root=root)
             if "/metrics/" in target:
                 receipt = _read_receipt(root, key, invocation, prepared, task)
             if filename == "result.json":
@@ -540,6 +562,101 @@ def _materialize_raw_trace(
     _validate_raw_trace_binding(root, key, metric)
 
 
+def _managed_child_receipt_relative(key: str, invocation: str) -> str:
+    _valid_invocation(invocation)
+    return _execution_relative(key, f"attempts/{invocation}/managed-child-receipt.json")
+
+
+def _managed_child_binding_relative(receipt_digest: str) -> str:
+    if not isinstance(receipt_digest, str) or re.fullmatch(r"sha256:[0-9a-f]{64}", receipt_digest) is None:
+        fail("invalid managed-child receipt digest")
+    return f".mana/runtime/managed-child-result-bindings/{receipt_digest[7:]}.json"
+
+
+def _managed_child_receipt_digest(receipt: dict[str, Any]) -> str:
+    return delegation.managed_child_receipt_digest(receipt)
+
+
+def _validate_managed_child_receipt_record(receipt, key, invocation, prepared, task) -> None:
+    delegation.validate_managed_child_receipt_record(
+        receipt, key, invocation, prepared["authorityPacket"], task
+    )
+
+
+def _read_managed_child_receipt_record(root, key, invocation, prepared, task):
+    if task_execution_key(prepared, task) != key:
+        fail("managed-child receipt task key differs from host derivation")
+    try:
+        return delegation.read_committed_managed_child_receipt_record(
+            root, invocation, prepared["authorityPacket"], task
+        )
+    except delegation.runtime.ContractError as error:
+        fail(str(error))
+
+
+def load_committed_completed_managed_child_receipt(root, key, invocation, prepared, task):
+    if task_execution_key(prepared, task) != key:
+        fail("managed-child receipt task key differs from host derivation")
+    try:
+        return delegation.load_committed_completed_managed_child_receipt(
+            root, invocation, prepared["authorityPacket"], task
+        )
+    except delegation.runtime.ContractError as error:
+        fail(str(error))
+
+
+def _managed_child_binding_record(
+    key: str, invocation: str, receipt: dict[str, Any],
+    result: dict[str, Any], head: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "schemaVersion": MANAGED_CHILD_BINDING_SCHEMA,
+        "receiptId": receipt["receiptId"],
+        "receiptDigest": receipt["receiptDigest"],
+        "taskExecutionKey": key,
+        "hostInvocationId": invocation,
+        "semanticResultDigest": result["semanticResultDigest"],
+        "executionReceiptDigest": result["executionReceiptDigest"],
+        "resultArtifactDigest": head["artifactDigest"],
+        "authoritativeResultHead": deepcopy(head),
+    }
+
+
+def _commit_managed_child_binding(
+    root: Path, key: str, invocation: str, receipt: dict[str, Any],
+    result: dict[str, Any], head: dict[str, Any],
+) -> None:
+    relative = _managed_child_binding_relative(receipt["receiptDigest"])
+    runtime.ensure_secure_directory(root, relative.rsplit("/", 1)[0])
+    candidate = _managed_child_binding_record(key, invocation, receipt, result, head)
+    existing = _optional_json(root, relative)
+    if existing is not None and existing != candidate:
+        fail("managed-child receipt replay conflicts with its authoritative result binding")
+    _publish_json(root, relative, candidate, immutable=True, expected_current=None)
+
+
+def _validate_managed_child_binding(
+    root: Path, key: str, invocation: str, receipt: dict[str, Any],
+    result: dict[str, Any], head: dict[str, Any],
+) -> None:
+    relative = _managed_child_binding_relative(receipt["receiptDigest"])
+    binding = _optional_json(root, relative)
+    if binding is None:
+        fail("provider-managed child result has no committed receipt/result binding")
+    expected = _managed_child_binding_record(key, invocation, receipt, result, head)
+    if binding != expected:
+        fail("provider-managed child receipt/result binding is foreign or conflicting")
+    info = (root / relative).lstat()
+    parent_info = (root / relative).parent.lstat()
+    if (
+        not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+        or stat.S_IMODE(info.st_mode) != 0o600
+        or not stat.S_ISDIR(parent_info.st_mode)
+        or stat.S_IMODE(parent_info.st_mode) != 0o700
+    ):
+        fail("managed-child receipt/result binding is not private and immutable")
+
+
 def _receipt_relative(key: str, invocation: str) -> str:
     _valid_invocation(invocation)
     return _execution_relative(key, f"attempts/{invocation}/receipt.json")
@@ -563,7 +680,9 @@ def _validate_metric(metric: dict[str, Any], key: str, invocation: str, status: 
         fail("unavailable worker usage contains measurements")
 
 
-def _validate_receipt(receipt: dict[str, Any], key: str, prepared=None, task=None) -> None:
+def _validate_receipt(
+    receipt: dict[str, Any], key: str, prepared=None, task=None, *, root: Path | None = None,
+) -> None:
     if set(receipt) != {"schemaVersion", "claim", "metric", "result"} or receipt["schemaVersion"] != "mana.context-runtime.worker-receipt/v1":
         fail("invalid worker receipt")
     claim = receipt["claim"]
@@ -575,7 +694,10 @@ def _validate_receipt(receipt: dict[str, Any], key: str, prepared=None, task=Non
     if status == "complete":
         if prepared is None or task is None:
             fail("completion recovery requires current authority")
-        _validate_authoritative_result(prepared, task, receipt["result"])
+        _validate_authoritative_result(
+            prepared, task, receipt["result"], root=root, key=key,
+            invocation_id=claim["invocationId"], require_managed_binding=False,
+        )
     elif receipt["result"] is not None:
         fail("failed worker receipt contains a result")
 
@@ -584,7 +706,7 @@ def _read_receipt(root: Path, key: str, invocation: str, prepared=None, task=Non
     _valid_invocation(invocation)
     failure = _optional_json(root, _execution_relative(key, f"attempts/{invocation}/failure.json"))
     if failure is not None:
-        _validate_receipt(failure, key, prepared, task)
+        _validate_receipt(failure, key, prepared, task, root=root)
         if failure["claim"]["invocationId"] != invocation or failure["result"] is not None:
             fail("invalid worker publication failure receipt")
         return failure
@@ -594,7 +716,7 @@ def _read_receipt(root: Path, key: str, invocation: str, prepared=None, task=Non
         if "No such file" in str(error):
             return None
         raise
-    _validate_receipt(receipt, key, prepared, task)
+    _validate_receipt(receipt, key, prepared, task, root=root)
     if receipt["claim"]["invocationId"] != invocation:
         fail("foreign worker receipt")
     _validate_raw_trace_binding(root, key, receipt["metric"])
@@ -611,7 +733,7 @@ def _head_for(key: str, receipt: dict[str, Any]) -> dict[str, Any]:
 
 
 def _finish_receipt(root: Path, key: str, receipt: dict[str, Any], prepared=None, task=None) -> None:
-    _validate_receipt(receipt, key, prepared, task)
+    _validate_receipt(receipt, key, prepared, task, root=root)
     _validate_raw_trace_binding(root, key, receipt["metric"])
     terminal = receipt["claim"]
     invocation = terminal["invocationId"]
@@ -624,10 +746,29 @@ def _finish_receipt(root: Path, key: str, receipt: dict[str, Any], prepared=None
     if current["status"] == "terminal" and current != terminal:
         fail("conflicting terminal worker receipt")
     if terminal["terminalStatus"] == "complete":
+        result = receipt["result"]
+        result_head = _head_for(key, receipt)
+        existing_head = _optional_json(
+            root, _execution_relative(key, "task-result-head.json")
+        )
         _publish_json(root, _execution_relative(key, f"attempts/{invocation}/result.json"),
-                      receipt["result"], immutable=True, expected_current=None)
+                      result, immutable=True, expected_current=None)
+        if result["executionProvenance"]["executionTransport"] == "provider-managed-child":
+            managed_receipt = load_committed_completed_managed_child_receipt(
+                root, key, invocation, prepared, task
+            )
+            if existing_head is None:
+                _commit_managed_child_binding(
+                    root, key, invocation, managed_receipt, result, result_head
+                )
+            else:
+                if existing_head != result_head:
+                    fail("provider-managed child receipt names another result HEAD")
+                _validate_managed_child_binding(
+                    root, key, invocation, managed_receipt, result, result_head
+                )
         _publish_json(root, _execution_relative(key, "task-result-head.json"),
-                      _head_for(key, receipt), immutable=True, expected_current=None)
+                      result_head, immutable=True, expected_current=None)
         _event(str(root), "worker.result.accepted", key, invocation, terminal["terminalAt"])
     runtime.ensure_secure_directory(root, _execution_relative(key, "metrics"))
     _publish_json(root, _execution_relative(key, f"metrics/{invocation}.json"),
@@ -684,7 +825,7 @@ def finalize_task(project_root: str, key: str, invocation_id: str, status: str,
         except runtime.ContractError:
             # Invalid usage must not prevent a known failure becoming terminal.
             receipt = existing or _make_receipt(claim, key, status, None, root=root)
-        _validate_receipt(receipt, key)
+        _validate_receipt(receipt, key, root=root)
         runtime.ensure_secure_directory(root, _execution_relative(key, f"attempts/{invocation_id}"))
         _publish_json(root, receipt_path, receipt, immutable=True, expected_current=None)
         _finish_receipt(root, key, receipt)
@@ -752,7 +893,10 @@ def publish_task(project_root: str, key: str, invocation_id: str, result_path: s
     if task_execution_key(prepared, task) != key:
         fail("worker publication task key differs from host derivation")
     result = delegation.read_object(result_path, label="validated worker result", max_bytes=delegation.LIMITS["resultBytes"])
-    _validate_authoritative_result(prepared, task, result)
+    _validate_authoritative_result(
+        prepared, task, result, root=root, key=key, invocation_id=invocation_id,
+        require_managed_binding=False,
+    )
     with _task_lock(root, key):
         _recover_temporaries(root, key, prepared, task)
         claim, _ = _read_json_relative(root, _execution_relative(key, "claim.json"))
@@ -1203,6 +1347,21 @@ def render_prompt(packet: dict[str, Any], policy: dict[str, Any]) -> str:
     ]) + "\n"
 
 
+def render_child_prompt(packet: dict[str, Any], policy: dict[str, Any]) -> str:
+    """Build the bounded CTX-07C root packet for exactly one managed child."""
+    validate_packet(packet, policy)
+    packet_json = runtime.canonical_bytes(packet).decode("utf-8")
+    return "\n".join([
+        "Mana Context Runtime CTX-07C provider-managed child adapter.",
+        "Invoke exactly one child named mana_ctx07c_child and give it the exact workerContextPacket below.",
+        "Do not answer the task in the root, start another child, retry, or add context.",
+        "Return the child's JSON object unchanged as the root structured final output.",
+        "The child may not delegate, broaden scope, grant authority, or use undeclared evidence.",
+        "The host will apply the unchanged CTX-07A schema, task, evidence, digest, and provenance binding.",
+        f"workerContextPacket={packet_json}",
+    ]) + "\n"
+
+
 def _decode_provider_output(provider: str, path: str) -> dict[str, Any]:
     if provider not in {"codex", "claude", "opencode"}:
         fail("unknown worker provider output adapter")
@@ -1225,12 +1384,7 @@ def _decode_provider_output(provider: str, path: str) -> dict[str, Any]:
     return candidate
 
 
-def normalize_output(provider: str, output_path: str, task_path: str) -> dict[str, Any]:
-    task = delegation.read_object(
-        task_path, label="delegation task", max_bytes=delegation.LIMITS["taskBytes"]
-    )
-    runtime.validate_model("delegation-task", task)
-    draft = _decode_provider_output(provider, output_path)
+def _validate_normalized_draft(draft: dict[str, Any], task: dict[str, Any]) -> dict[str, Any]:
     validate_with_schema(draft, "delegation-result-draft-v1.schema.json")
     runtime.reject_unsafe_content(draft)
     if set(draft) != RESULT_DRAFT_FIELDS:
@@ -1248,6 +1402,247 @@ def normalize_output(provider: str, output_path: str, task_path: str) -> dict[st
     }:
         fail("delegation result draft populated undeclared section uncertainty")
     return draft
+
+
+def normalize_output(provider: str, output_path: str, task_path: str) -> dict[str, Any]:
+    task = delegation.read_object(
+        task_path, label="delegation task", max_bytes=delegation.LIMITS["taskBytes"]
+    )
+    runtime.validate_model("delegation-task", task)
+    return _validate_normalized_draft(_decode_provider_output(provider, output_path), task)
+
+
+def verify_managed_child_attestation(
+    provider: str, output_path: str, prepared: dict[str, Any], task: dict[str, Any],
+) -> dict[str, Any]:
+    """Pure ordered verifier for the provider-native managed-child event stream."""
+    if provider != prepared["provider"] or provider not in {"codex", "claude", "opencode"}:
+        fail("provider managed-child receipt names another provider")
+    _prepared_task(prepared, task)
+    value = delegation.read_object(
+        output_path, label="provider managed-child output",
+        max_bytes=delegation.LIMITS["resultBytes"],
+    )
+    receipt = value.get("managedChildExecutionAttestation")
+    if not isinstance(receipt, dict) or set(receipt) != {"attestationKind", "events"}:
+        fail("provider managed-child output has no structured child receipt")
+    if receipt["attestationKind"] != "provider-native-managed-child-event-receipt/v1":
+        fail("provider managed-child receipt has an unsupported attestation kind")
+    events = receipt["events"]
+    if not isinstance(events, list) or len(events) != 4 or not all(isinstance(event, dict) for event in events):
+        fail("provider managed-child receipt must contain exactly four structured events")
+
+    state = "initial"
+    root_id: str | None = None
+    child_id: str | None = None
+    terminal_status: str | None = None
+    root_fields = {
+        "sequence", "eventType", "rootInvocationId", "executionId",
+        "executionVersion", "workspaceId", "profileId", "phaseId", "attempt", "planId",
+    }
+    child_fields = {"sequence", "eventType", "rootInvocationId", "childInvocationId"}
+    bound_fields = {
+        "sequence", "eventType", "rootInvocationId", "childInvocationId",
+        "taskId", "taskDigest",
+    }
+    terminal_fields = bound_fields | {"status"}
+    for index, event in enumerate(events, start=1):
+        if type(event.get("sequence")) is not int or event["sequence"] != index:
+            fail("provider managed-child receipt sequence is non-canonical")
+        event_type = event.get("eventType")
+        if state == "terminal":
+            fail("provider managed-child receipt has an event after its terminal event")
+        if state == "initial":
+            if event_type != "root.started" or set(event) != root_fields:
+                fail("provider managed-child receipt does not start with the root invocation")
+            root_id = event["rootInvocationId"]
+            expected_root = {
+                "executionId": prepared["executionId"],
+                "executionVersion": task["executionVersion"],
+                "workspaceId": prepared["workspaceId"],
+                "profileId": prepared["profileId"],
+                "phaseId": prepared["phaseId"],
+                "attempt": prepared["attempt"],
+                "planId": prepared["planId"],
+            }
+            if any(event[field] != expected for field, expected in expected_root.items()):
+                fail("provider managed-child receipt is foreign or stale")
+            if not isinstance(root_id, str) or re.fullmatch(r"[A-Za-z0-9._:-]{1,160}", root_id) is None:
+                fail("provider managed-child receipt has an invalid root invocation ID")
+            state = "root"
+        elif state == "root":
+            if event_type != "child.started" or set(event) != child_fields:
+                fail("provider managed-child receipt has no canonical child start")
+            child_id = event["childInvocationId"]
+            if (
+                event["rootInvocationId"] != root_id
+                or not isinstance(child_id, str)
+                or re.fullmatch(r"[A-Za-z0-9._:-]{1,160}", child_id) is None
+                or child_id == root_id
+            ):
+                fail("provider managed-child receipt does not prove a distinct child invocation")
+            state = "child-started"
+        elif state == "child-started":
+            if event_type != "child.task.bound" or set(event) != bound_fields:
+                fail("provider managed-child receipt has no canonical task binding after child start")
+            if (
+                event["rootInvocationId"] != root_id
+                or event["childInvocationId"] != child_id
+                or event["taskId"] != task["taskId"]
+                or event["taskDigest"] != task["taskDigest"]
+            ):
+                fail("provider managed-child receipt task binding is foreign or stale")
+            state = "task-bound"
+        elif state == "task-bound":
+            if event_type not in {"child.completed", "child.failed"} or set(event) != terminal_fields:
+                fail("provider managed-child receipt has no canonical terminal child event")
+            terminal_status = "completed" if event_type == "child.completed" else "failed"
+            if (
+                event["rootInvocationId"] != root_id
+                or event["childInvocationId"] != child_id
+                or event["taskId"] != task["taskId"]
+                or event["taskDigest"] != task["taskDigest"]
+                or event["status"] != terminal_status
+            ):
+                fail("provider managed-child receipt terminal event is foreign or inconsistent")
+            state = "terminal"
+    if state != "terminal" or root_id is None or child_id is None or terminal_status is None:
+        fail("provider managed-child receipt is incomplete")
+    return {
+        "provider": provider,
+        "attestationKind": receipt["attestationKind"],
+        "rootInvocationId": root_id,
+        "childInvocationId": child_id,
+        "terminalStatus": terminal_status,
+        "orderedEventCount": len(events),
+        "orderedEventDigest": digest_bytes(runtime.canonical_bytes(events)),
+    }
+
+
+def _load_publication_inputs(
+    prepared_path: str, task_path: str, key: str,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    prepared = delegation.read_object(
+        prepared_path, label="prepared worker plan", max_bytes=MAX_PACKET_BYTES * 8
+    )
+    task = delegation.read_object(
+        task_path, label="delegation task", max_bytes=delegation.LIMITS["taskBytes"]
+    )
+    if task_execution_key(prepared, task) != key:
+        fail("worker task key differs from host derivation")
+    _prepared_task(prepared, task)
+    return prepared, task
+
+
+def publish_managed_child_receipt(
+    project_root: str, key: str, invocation_id: str, provider: str,
+    output_path: str, prepared_path: str, task_path: str,
+) -> dict[str, Any]:
+    prepared, task = _load_publication_inputs(prepared_path, task_path, key)
+    verified = verify_managed_child_attestation(provider, output_path, prepared, task)
+    root = _ensure_execution_dir(project_root, key)
+    with _task_lock(root, key):
+        _recover_temporaries(root, key, prepared, task)
+        claim, _ = _read_json_relative(root, _execution_relative(key, "claim.json"))
+        _validate_claim(claim, key, task["taskDigest"])
+        if claim["invocationId"] != invocation_id or claim["status"] != "active":
+            fail("managed-child receipt does not belong to the active host invocation")
+        receipt = {
+            "schemaVersion": MANAGED_CHILD_RECEIPT_SCHEMA,
+            "commitState": "committed",
+            "receiptId": "",
+            "receiptDigest": "",
+            "provider": provider,
+            "attestationKind": verified["attestationKind"],
+            "hostInvocationId": invocation_id,
+            "rootInvocationId": verified["rootInvocationId"],
+            "childInvocationId": verified["childInvocationId"],
+            "executionId": prepared["executionId"],
+            "executionVersion": task["executionVersion"],
+            "workspaceId": prepared["workspaceId"],
+            "profileId": prepared["profileId"],
+            "phaseId": prepared["phaseId"],
+            "attempt": prepared["attempt"],
+            "planId": prepared["planId"],
+            "taskId": task["taskId"],
+            "taskDigest": task["taskDigest"],
+            "taskExecutionKey": key,
+            "terminalStatus": verified["terminalStatus"],
+            "orderedEventCount": verified["orderedEventCount"],
+            "orderedEventDigest": verified["orderedEventDigest"],
+        }
+        receipt["receiptDigest"] = _managed_child_receipt_digest(receipt)
+        receipt["receiptId"] = "R-" + receipt["receiptDigest"][7:]
+        _validate_managed_child_receipt_record(receipt, key, invocation_id, prepared, task)
+        relative = _managed_child_receipt_relative(key, invocation_id)
+        runtime.ensure_secure_directory(root, relative.rsplit("/", 1)[0])
+        _publish_json(root, relative, receipt, immutable=True, expected_current=None)
+        # The separate no-replace commitment binds the entire artifact, including
+        # identities and terminal status. A visible receipt alone is not a commit.
+        commit_relative = relative.replace("receipt.json", "receipt-commit.json")
+        committed_bytes, artifact_identity = runtime.safe_read_private_bytes(
+            Path(relative), project_root=root, max_bytes=MAX_PACKET_BYTES
+        )
+        if committed_bytes != runtime.canonical_bytes(receipt) + b"\n":
+            fail("managed-child receipt changed before host commitment")
+        _publish_json(root, commit_relative, delegation.managed_child_receipt_commit_record(receipt, artifact_identity),
+                      immutable=True, expected_current=None)
+        committed = _read_managed_child_receipt_record(root, key, invocation_id, prepared, task)
+        return {"receiptObject": committed}
+
+
+def bind_authoritative_result(
+    project_root: str, key: str, invocation_id: str, draft_path: str,
+    prepared_path: str, task_path: str, *, managed_child: bool,
+) -> dict[str, Any]:
+    prepared, task = _load_publication_inputs(prepared_path, task_path, key)
+    draft = delegation.read_object(
+        draft_path, label="delegation result draft", max_bytes=delegation.LIMITS["resultBytes"]
+    )
+    root = _ensure_execution_dir(project_root, key)
+    with _task_lock(root, key):
+        claim, _ = _read_json_relative(root, _execution_relative(key, "claim.json"))
+        _validate_claim(claim, key, task["taskDigest"])
+        if claim["invocationId"] != invocation_id or claim["status"] != "active":
+            fail("result binding does not belong to the active host invocation")
+        if managed_child:
+            load_committed_completed_managed_child_receipt(root, key, invocation_id, prepared, task)
+            authority = None
+        else:
+            authority = delegation.host_worker_execution_authority(
+                prepared["provider"], invocation_id
+            )
+        return delegation.bind_result(
+            draft, prepared["authorityPacket"], prepared["plan"], task,
+            prepared.get("evidenceManifest"), authority=authority,
+            managed_child_project_root=root if managed_child else None,
+            managed_child_invocation_id=invocation_id if managed_child else None,
+        )
+
+
+def merge_authoritative_results(project_root: str, prepared_path: str) -> dict[str, Any]:
+    prepared = delegation.read_object(
+        prepared_path, label="prepared worker plan", max_bytes=MAX_PACKET_BYTES * 8
+    )
+    results: list[dict[str, Any]] = []
+    for task in prepared["plan"]["tasks"]:
+        key = task_execution_key(prepared, task)
+        root = _project_root(project_root)
+        try:
+            with _task_lock(root, key):
+                authoritative = _read_authoritative_head(root, key, prepared, task)
+        except runtime.ContractError as error:
+            if "No such file" in str(error):
+                continue
+            raise
+        if authoritative is None:
+            continue
+        result, _ = authoritative
+        results.append(result)
+    return delegation.merge(
+        prepared["plan"], results, prepared["authorityPacket"],
+        prepared.get("evidenceManifest"), managed_child_project_root=project_root,
+    )
 
 
 def common(command: argparse.ArgumentParser) -> None:
@@ -1268,6 +1663,8 @@ def parser() -> argparse.ArgumentParser:
     prepare_command.add_argument("--plan", required=True)
     render_command = commands.add_parser("render-prompt")
     render_command.add_argument("--packet", required=True)
+    render_child_command = commands.add_parser("render-child-prompt")
+    render_child_command.add_argument("--packet", required=True)
     capsule_command = commands.add_parser("materialize-capsule")
     capsule_command.add_argument("--packet", required=True)
     capsule_command.add_argument("--project-root", required=True)
@@ -1276,6 +1673,36 @@ def parser() -> argparse.ArgumentParser:
     normalize_command.add_argument("provider")
     normalize_command.add_argument("--output", required=True)
     normalize_command.add_argument("--task", required=True)
+    attestation_command = commands.add_parser("verify-managed-child-attestation")
+    attestation_command.add_argument("--provider", required=True, choices=["codex", "claude", "opencode"])
+    attestation_command.add_argument("--output", required=True)
+    attestation_command.add_argument("--prepared", required=True)
+    attestation_command.add_argument("--task", required=True)
+    receipt_command = commands.add_parser("publish-managed-child-receipt")
+    receipt_command.add_argument("--project-root", required=True)
+    receipt_command.add_argument("--task-execution-key", required=True)
+    receipt_command.add_argument("--invocation-id", required=True)
+    receipt_command.add_argument("--provider", required=True, choices=["codex", "claude", "opencode"])
+    receipt_command.add_argument("--output", required=True)
+    receipt_command.add_argument("--prepared", required=True)
+    receipt_command.add_argument("--task", required=True)
+    bind_host_command = commands.add_parser("bind-host-worker-result")
+    bind_host_command.add_argument("--project-root", required=True)
+    bind_host_command.add_argument("--task-execution-key", required=True)
+    bind_host_command.add_argument("--invocation-id", required=True)
+    bind_host_command.add_argument("--draft", required=True)
+    bind_host_command.add_argument("--prepared", required=True)
+    bind_host_command.add_argument("--task", required=True)
+    bind_child_command = commands.add_parser("bind-managed-child-result")
+    bind_child_command.add_argument("--project-root", required=True)
+    bind_child_command.add_argument("--task-execution-key", required=True)
+    bind_child_command.add_argument("--invocation-id", required=True)
+    bind_child_command.add_argument("--draft", required=True)
+    bind_child_command.add_argument("--prepared", required=True)
+    bind_child_command.add_argument("--task", required=True)
+    merge_command = commands.add_parser("merge-authoritative-results")
+    merge_command.add_argument("--project-root", required=True)
+    merge_command.add_argument("--prepared", required=True)
     claim_command = commands.add_parser("claim-task")
     claim_command.add_argument("--project-root", required=True)
     claim_command.add_argument("--prepared", required=True)
@@ -1315,11 +1742,41 @@ def main(argv: list[str]) -> int:
                 args.packet, label="worker context packet", max_bytes=MAX_PACKET_BYTES
             )
             sys.stdout.write(render_prompt(packet, load_policy()))
+        elif args.command == "render-child-prompt":
+            packet = delegation.read_object(
+                args.packet, label="worker context packet", max_bytes=MAX_PACKET_BYTES
+            )
+            sys.stdout.write(render_child_prompt(packet, load_policy()))
         elif args.command == "materialize-capsule":
             value = materialize_capsule(args.packet, args.project_root, args.capsule, str(HOST_FRAMEWORK_ROOT))
             sys.stdout.buffer.write(runtime.canonical_bytes(value) + b"\n")
         elif args.command == "normalize-output":
             value = normalize_output(args.provider, args.output, args.task)
+            sys.stdout.buffer.write(runtime.canonical_bytes(value) + b"\n")
+        elif args.command == "verify-managed-child-attestation":
+            prepared = delegation.read_object(
+                args.prepared, label="prepared worker plan", max_bytes=MAX_PACKET_BYTES * 8
+            )
+            task = delegation.read_object(
+                args.task, label="delegation task", max_bytes=delegation.LIMITS["taskBytes"]
+            )
+            value = verify_managed_child_attestation(args.provider, args.output, prepared, task)
+            sys.stdout.buffer.write(runtime.canonical_bytes(value) + b"\n")
+        elif args.command == "publish-managed-child-receipt":
+            value = publish_managed_child_receipt(
+                args.project_root, args.task_execution_key, args.invocation_id,
+                args.provider, args.output, args.prepared, args.task,
+            )
+            sys.stdout.buffer.write(runtime.canonical_bytes(value) + b"\n")
+        elif args.command in {"bind-host-worker-result", "bind-managed-child-result"}:
+            value = bind_authoritative_result(
+                args.project_root, args.task_execution_key, args.invocation_id,
+                args.draft, args.prepared, args.task,
+                managed_child=args.command == "bind-managed-child-result",
+            )
+            sys.stdout.buffer.write(runtime.canonical_bytes(value) + b"\n")
+        elif args.command == "merge-authoritative-results":
+            value = merge_authoritative_results(args.project_root, args.prepared)
             sys.stdout.buffer.write(runtime.canonical_bytes(value) + b"\n")
         elif args.command == "claim-task":
             value = claim_task(args.project_root, args.prepared, args.task)

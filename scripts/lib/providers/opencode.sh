@@ -163,6 +163,7 @@ mana_provider_capabilities_render_opencode() {
       ephemeralSession:ev(false;"";false;"";"probe:session-persistence-not-observable"),
       explicitModelSelection:ev($modelP;"help:model-declaration";$modelN;"help:model-explicit-unsupported";"help:model-unverified"),
       explicitReasoningEffort:ev($effortP;"help:variant-reasoning-declaration";$effortN;"help:variant-explicit-unsupported";"help:variant-unverified"),
+      managedChildExecutionAttestation:ev(false;"";false;"";"probe:provider-native-child-attestation-not-observable"),
       providerManagedSubagents:ev($subagentsP;"config:agent-configuration-surface";$subagentsN;"config:agent-configuration-explicit-unsupported";"config:agent-probe-unavailable"),
       hardSubagentDisable:ev(false;"";false;"";"config:task-deny-does-not-prove-isolation"),
       childContextInheritanceControl:ev(false;"";false;"";"probe:child-context-not-observable"),

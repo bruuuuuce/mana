@@ -1,1 +1,72 @@
-{"schemaVersion":"mana.context-runtime.delegation-result/v1","executionId":"execution-fixture","executionVersion":1,"workspaceId":"W-0000000000000000000000000000000000000000000000000000000000000000","profileId":"fixture-profile","phaseId":"investigate","attempt":1,"planId":"P-1111111111111111111111111111111111111111111111111111111111111111","taskId":"T-001","taskDigest":"sha256:2222222222222222222222222222222222222222222222222222222222222222","owner":"source-worker","resultDigest":"sha256:6666666666666666666666666666666666666666666666666666666666666666","status":"complete","verifiedFacts":[{"id":"F-002","subject":{"domain":"evidence","kind":"reference-use","identifier":"E-record"},"predicate":"was-used","claimKey":"C-7777777777777777777777777777777777777777777777777777777777777777","stance":"affirmed","claim":"The worker used the evidence reference.","severity":null,"evidenceRefs":["E-5555555555555555555555555555555555555555555555555555555555555555"],"provenance":{"taskId":"T-001","planId":"P-1111111111111111111111111111111111111111111111111111111111111111","sourceResultDigest":"sha256:6666666666666666666666666666666666666666666666666666666666666666","evidenceRefs":["E-5555555555555555555555555555555555555555555555555555555555555555"]}}],"findings":[],"assumptions":[],"inferences":[],"openQuestions":[],"evidenceGaps":[],"evidenceRefs":["E-5555555555555555555555555555555555555555555555555555555555555555"],"artifactRefs":[],"uncertainty":{"level":"none","description":null,"evidenceRefs":[],"provenance":{"taskId":"T-001","planId":"P-1111111111111111111111111111111111111111111111111111111111111111","sourceResultDigest":"sha256:6666666666666666666666666666666666666666666666666666666666666666","evidenceRefs":[]}}}
+{
+  "schemaVersion": "mana.context-runtime.delegation-result/v1",
+  "executionId": "execution-fixture",
+  "executionVersion": 1,
+  "workspaceId": "W-0000000000000000000000000000000000000000000000000000000000000000",
+  "profileId": "fixture-profile",
+  "phaseId": "investigate",
+  "attempt": 1,
+  "planId": "P-1111111111111111111111111111111111111111111111111111111111111111",
+  "taskId": "T-001",
+  "taskDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "owner": "source-worker",
+  "resultDigest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+  "status": "complete",
+  "verifiedFacts": [
+    {
+      "id": "F-002",
+      "subject": {
+        "domain": "evidence",
+        "kind": "reference-use",
+        "identifier": "E-record"
+      },
+      "predicate": "was-used",
+      "claimKey": "C-7777777777777777777777777777777777777777777777777777777777777777",
+      "stance": "affirmed",
+      "claim": "The worker used the evidence reference.",
+      "severity": null,
+      "evidenceRefs": [
+        "E-5555555555555555555555555555555555555555555555555555555555555555"
+      ],
+      "provenance": {
+        "taskId": "T-001",
+        "planId": "P-1111111111111111111111111111111111111111111111111111111111111111",
+        "sourceResultDigest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "evidenceRefs": [
+          "E-5555555555555555555555555555555555555555555555555555555555555555"
+        ]
+      }
+    }
+  ],
+  "findings": [],
+  "assumptions": [],
+  "inferences": [],
+  "openQuestions": [],
+  "evidenceGaps": [],
+  "evidenceRefs": [
+    "E-5555555555555555555555555555555555555555555555555555555555555555"
+  ],
+  "artifactRefs": [],
+  "uncertainty": {
+    "level": "none",
+    "description": null,
+    "evidenceRefs": [],
+    "provenance": {
+      "taskId": "T-001",
+      "planId": "P-1111111111111111111111111111111111111111111111111111111111111111",
+      "sourceResultDigest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "evidenceRefs": []
+    }
+  },
+  "semanticResultDigest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+  "executionReceiptDigest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+  "executionProvenance": {
+    "executionTransport": "host-worker",
+    "provider": "claude",
+    "rootInvocationId": "I-fixture",
+    "childInvocationId": null,
+    "attestationKind": "host-worker-process/v1",
+    "receiptId": null,
+    "receiptDigest": null
+  }
+}

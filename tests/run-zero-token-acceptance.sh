@@ -28,6 +28,7 @@ tests=(
   context-runtime-phase-provider.sh
   context-runtime-delegation.sh
   context-runtime-workers.sh
+  context-runtime-provider-children.sh
   divination.sh
   epic-analysis-profile.sh
   explorer-retrieval.sh
