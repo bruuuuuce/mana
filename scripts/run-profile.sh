@@ -12,6 +12,7 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 . "$root/scripts/lib/execution-plan.sh"
 . "$root/scripts/lib/user-context.sh"
 profile=""
+original_profile_argv=("$@")
 project_root=""
 render_only=false
 runner=""
@@ -76,9 +77,13 @@ manifest_requested_skills=()
 manifest_deep_load_skills=()
 manifest_validation_args=()
 compiled_manifest=""
-context_runtime_version="${MANA_CONTEXT_RUNTIME_VERSION:-legacy}"
+context_runtime_version="legacy"
 runtime_execution_id=""
 budget_mode=""
+legacy_runtime_artifact=""
+v2_runtime_artifact=""
+comparison_target_key=""
+context_runtime_shadow=false
 
 usage() {
   cat <<'USAGE'
@@ -120,8 +125,11 @@ Options:
   --static-signal <id>          Declared host activation input used to compile the manifest.
   --request-skill <id>          Declared semantic activation request used to compile the manifest.
   --deep-load-skill <id>        Active skill selected for instruction-body loading.
-  --context-runtime <mode>      Select legacy (default) or the opt-in v2 phase runner.
-  --runtime-execution-id <id>   Existing CTX-06A run to execute in v2 mode.
+  --context-runtime <mode>      Select legacy (default), shadow, v2, or compare.
+  --runtime-execution-id <id>   Existing CTX-06A run (v2) or local CTX-09 mode-plan identity.
+  --legacy-runtime-artifact <p> Saved project-local legacy artifact for compare mode.
+  --v2-runtime-artifact <path>  Saved project-local v2 artifact for compare mode.
+  --comparison-target-key <sha> Expected host target identity for compare registration.
   --budget-mode <mode>          Human v2 budget request; compact, standard, or deep, preserving host minimum.
 
 Story Start Scope v2 opt-in:
@@ -375,12 +383,27 @@ while [ "$#" -gt 0 ]; do
       ;;
     --context-runtime)
       context_runtime_version="${2:-}"
-      [ -n "$context_runtime_version" ] || { echo "ERROR: --context-runtime requires legacy or v2" >&2; exit 2; }
+      [ -n "$context_runtime_version" ] || { echo "ERROR: --context-runtime requires legacy, shadow, v2, or compare" >&2; exit 2; }
       shift 2
       ;;
     --runtime-execution-id)
       runtime_execution_id="${2:-}"
       [ -n "$runtime_execution_id" ] || { echo "ERROR: --runtime-execution-id requires an id" >&2; exit 2; }
+      shift 2
+      ;;
+    --legacy-runtime-artifact)
+      legacy_runtime_artifact="${2:-}"
+      [ -n "$legacy_runtime_artifact" ] || { echo "ERROR: --legacy-runtime-artifact requires a path" >&2; exit 2; }
+      shift 2
+      ;;
+    --v2-runtime-artifact)
+      v2_runtime_artifact="${2:-}"
+      [ -n "$v2_runtime_artifact" ] || { echo "ERROR: --v2-runtime-artifact requires a path" >&2; exit 2; }
+      shift 2
+      ;;
+    --comparison-target-key)
+      comparison_target_key="${2:-}"
+      [ -n "$comparison_target_key" ] || { echo 'ERROR: --comparison-target-key requires a SHA-256 identity' >&2; exit 2; }
       shift 2
       ;;
     --budget-mode)
@@ -527,8 +550,16 @@ opencode_effective_max_threads="$opencode_max_threads"; opencode_effective_max_d
 : "${opencode_explorer_model:=$opencode_model}"
 : "${opencode_worker_model:=$opencode_model}"
 
+[ -z "${MANA_CONTEXT_RUNTIME_VERSION+x}" ] || {
+  echo 'ERROR: environment runtime mode authority is forbidden; use --context-runtime' >&2
+  exit 2
+}
+
+[ "$context_runtime_version" = compare ] || [ -z "$comparison_target_key" ] || { echo 'ERROR: comparison target requires compare mode' >&2; exit 2; }
 case "$context_runtime_version" in
-  legacy) ;;
+  legacy)
+    [ -z "$legacy_runtime_artifact$v2_runtime_artifact" ] || { echo 'ERROR: comparison artifacts require --context-runtime compare' >&2; exit 2; }
+    ;;
   v2)
     [ "$render_only" = false ] || { echo 'ERROR: --render-only is a legacy renderer; execute an initialized run for context runtime v2' >&2; exit 2; }
     [ -n "$runner" ] || { echo 'ERROR: context runtime v2 requires one provider runner flag' >&2; exit 2; }
@@ -549,7 +580,29 @@ case "$context_runtime_version" in
     for value in "${manifest_deep_load_skills[@]}"; do v2_args+=(--deep-load-skill "$value"); done
     exec "$root/scripts/run-profile-v2.sh" "${v2_args[@]}"
     ;;
-  *) echo 'ERROR: context runtime must be legacy or v2' >&2; exit 2 ;;
+  shadow)
+    [ "$render_only" = false ] || { echo "ERROR: context runtime $context_runtime_version does not render a provider prompt" >&2; exit 2; }
+    [ "$publish_high_risk_comments" = false ] || { echo "ERROR: context runtime $context_runtime_version cannot publish PR comments" >&2; exit 2; }
+    [ "$service_discovery_approved" = false ] || { echo "ERROR: context runtime $context_runtime_version cannot enable service discovery" >&2; exit 2; }
+    runtime_execution_id="${runtime_execution_id:-${MANA_RUNTIME_EXECUTION_ID:-${manifest_execution_id:-}}}"
+    [ -n "$runtime_execution_id" ] || { echo "ERROR: context runtime $context_runtime_version requires --runtime-execution-id or MANA_RUNTIME_EXECUTION_ID" >&2; exit 2; }
+    [ -z "$legacy_runtime_artifact$v2_runtime_artifact" ] || { echo 'ERROR: shadow does not accept comparison artifacts; CTX-09C owns live capture' >&2; exit 2; }
+    [ -n "$runner" ] || { echo 'ERROR: context runtime shadow requires one provider runner flag' >&2; exit 2; }
+    python3 "$root/scripts/context-runtime-mode.py" shadow-preflight --project-root "$project_root" --execution-id "$runtime_execution_id" || exit 2
+    context_runtime_shadow=true
+    ;;
+  compare)
+    [ "$render_only" = false ] || { echo "ERROR: context runtime $context_runtime_version does not render a provider prompt" >&2; exit 2; }
+    [ "$publish_high_risk_comments" = false ] || { echo "ERROR: context runtime $context_runtime_version cannot publish PR comments" >&2; exit 2; }
+    [ "$service_discovery_approved" = false ] || { echo "ERROR: context runtime $context_runtime_version cannot enable service discovery" >&2; exit 2; }
+    runtime_execution_id="${runtime_execution_id:-${MANA_RUNTIME_EXECUTION_ID:-${manifest_execution_id:-}}}"
+    [ -n "$runtime_execution_id" ] || { echo "ERROR: context runtime $context_runtime_version requires --runtime-execution-id or MANA_RUNTIME_EXECUTION_ID" >&2; exit 2; }
+    mode_args=(compare --project-root "$project_root" --execution-id "$runtime_execution_id" --profile-id "$profile" --target-key "$comparison_target_key")
+    [ -z "$legacy_runtime_artifact" ] || mode_args+=(--legacy-artifact "$legacy_runtime_artifact")
+    [ -z "$v2_runtime_artifact" ] || mode_args+=(--v2-artifact "$v2_runtime_artifact")
+    exec python3 "$root/scripts/context-runtime-mode.py" "${mode_args[@]}"
+    ;;
+  *) echo 'ERROR: context runtime must be legacy, shadow, v2, or compare' >&2; exit 2 ;;
 esac
 
 current_branch=""
@@ -591,7 +644,11 @@ if [ "$render_only" = true ] && [ -n "$runner" ]; then
   exit 2
 fi
 
-"$root/scripts/mana-update-check.sh" --root "$root" --profile "$profile" || exit 1
+# Shadow admission must not contact a remote before host isolation exists.
+# The sandboxed legacy invocation also receives update checks disabled.
+if [ "$context_runtime_shadow" = false ]; then
+  "$root/scripts/mana-update-check.sh" --root "$root" --profile "$profile" || exit 1
+fi
 
 for value in "${manifest_static_signals[@]}"; do manifest_validation_args+=(--static-signal "$value"); done
 for value in "${manifest_requested_skills[@]}"; do manifest_validation_args+=(--request-skill "$value"); done
@@ -622,6 +679,33 @@ fi
 # value emitted by the authoritative boundary. The candidate pathname is never
 # reopened, so post-validation replacement cannot change execution or prompt.
 mana_execution_plan_json "$root" "$compiled_manifest" || { echo "ERROR: $MANA_PLAN_ERROR" >&2; exit 1; }
+
+# CTX-09A shadow preserves the exact legacy runner/output as authoritative,
+# but it may not use legacy authority to create a second application effect.
+# CTX-03's immutable manifest projection is the only source for this gate.
+if [ "$context_runtime_shadow" = true ] && [ -n "$MANA_PLAN_WRITE_REASON" ]; then
+  echo "ERROR: context runtime shadow rejects mutating legacy work: $MANA_PLAN_WRITE_REASON" >&2
+  exit 2
+fi
+
+if [ "$context_runtime_shadow" = true ]; then
+  jq -e 'all(.activatedSkills[]; .executionMode == "read")' <<<"$compiled_manifest" >/dev/null || {
+    echo 'ERROR: context runtime shadow rejects undeclared legacy effect authority' >&2
+    exit 2
+  }
+  for shadow_agent in $MANA_PLAN_AGENTS; do
+    [ "$(awk '
+      /^---[[:space:]]*$/ { boundaries++; if (boundaries == 2) exit; next }
+      boundaries == 1 && /^execution_mode:/ { sub(/^execution_mode:[[:space:]]*/, ""); print }
+    ' "$root/agents/$shadow_agent/AGENT.md")" = read ] || {
+      echo 'ERROR: context runtime shadow rejects undeclared agent effect authority' >&2
+      exit 2
+    }
+  done
+  exec python3 "$root/scripts/context-runtime-mode.py" shadow-run \
+    --project-root "$project_root" --execution-id "$runtime_execution_id" -- \
+    "$root/scripts/run-profile.sh" "${original_profile_argv[@]}"
+fi
 
 profile_runner_classes="$MANA_PLAN_RUNNERS"
 activation_migration_warning="$(jq -r '.warnings[]?' <<<"$compiled_manifest")"
@@ -1484,3 +1568,5 @@ case "$runner" in
     exit 2
     ;;
 esac
+
+exit "$?"

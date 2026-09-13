@@ -3,6 +3,16 @@ set -u
 root="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 status=0
 required_dirs=(docs skills agents profiles mcp templates scripts hooks evals .codex .junie .claude templates/mana-workspace)
+for f in scripts/context-runtime-mode.py tests/context-runtime-modes.sh tests/context-runtime-modes.py tests/fixtures/context-runtime/ctx09a-provider-stub.py; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09A file $f" >&2; status=1; }
+done
+for f in scripts/mana-context-compare.sh scripts/lib/context-comparison.py contracts/context-runtime/semantic-comparison-input-v1.schema.json contracts/context-runtime/semantic-comparison-v1.schema.json tests/context-runtime-comparison.sh tests/context-runtime-comparison.py tests/fixtures/context-runtime/ctx09b-producer-harness.py tests/fixtures/context-runtime/comparison/baseline.json tests/fixtures/context-runtime/comparison/corpus.json; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09B file $f" >&2; status=1; }
+done
+for f in scripts/mana-context-compare.sh tests/context-runtime-comparison.sh; do
+  [ -x "$root/$f" ] || { echo "ERROR: CTX-09B entry is not executable: $f" >&2; status=1; }
+  bash -n "$root/$f" || status=1
+done
 for d in "${required_dirs[@]}"; do
   if [ ! -d "$root/$d" ]; then echo "ERROR: missing directory $d" >&2; status=1; fi
 done

@@ -455,11 +455,102 @@ status. Raw event streams remain deleted by default; explicit debug traces are
 kept per invocation with mode `0600` and never enter checkpoints or events.
 
 `scripts/run-profile.sh` selects this path only with
-`--context-runtime v2` (or `MANA_CONTEXT_RUNTIME_VERSION=v2`) plus an existing
+`--context-runtime v2` plus an existing
 execution ID. `legacy` remains the default and follows the existing renderer,
 agent installation, provider dispatch, output, and artifact behavior. A v2
 request with a missing run or capability gap never silently falls back to the
 legacy single-session runtime.
+
+## CTX-09A host mode plumbing
+
+The public modes are exactly `legacy`, `shadow`, `v2`, and `compare`.
+Only the host CLI `--context-runtime` selects a mode; an ambient
+`MANA_CONTEXT_RUNTIME_VERSION` is rejected, including when an explicit CLI
+mode is present. Model/task/checkpoint/provider data cannot select a mode.
+Default and explicit legacy share the same runner, output and allowed effects,
+including propagation of provider failure status; they create no mode hand-off.
+V2 dispatch is exclusive, explicitly selected, and has no legacy fallback.
+
+Shadow runs legacy once and forwards its stdout and exit status. Admission
+rejects publish/discovery flags, mutating plans and unspecified skill/agent
+effect authority. No remote update check runs before isolation. A fixed macOS
+host sandbox denies application writes and
+network for the whole legacy process tree; only private scratch and the
+existing legacy metrics namespace are writable. Its capability probe precedes
+legacy execution; unsupported hosts fail closed, without a prompt-only or
+caller-selected backend fallback. No live v2 invocation occurs. The host then
+registers a local, non-authoritative hand-off recording completed/failed legacy
+status and explicitly deferred CTX-09C v2 execution. A registration failure
+emits only bounded metadata on stderr and does not change legacy authority.
+
+Compare only registers two host-published project-relative regular single-link
+files with committed host producer receipts, verified runtime roles and both
+actual-byte SHA-256 and local file-instance identities. Registration binds the
+selected host profile and explicit `--comparison-target-key`; labels cannot
+make an artifact a legacy or v2 producer. It invokes neither runtime,
+does not modify either source, and produces no semantic result or authoritative
+output selection. Its registration command still produces no semantic result;
+the separate CTX-09B offline consumer is described below. CTX-09C live shadow
+remains unimplemented. See the [CTX-09A contract](../standards/context-runtime-contract.md#ctx-09a-host-mode-plan-and-local-hand-off).
+
+## CTX-09B deterministic semantic comparison
+
+`scripts/mana-context-compare.sh EXECUTION_ID --project-root PROJECT` consumes
+only the two existing local sources registered by a canonical CTX-09A compare
+mode-plan. It reopens the registration and both sources with the shared
+FD-relative/no-follow reader, hashes the exact captured bytes subsequently
+parsed, resolves the host-derived producer receipt/commit paths again, and
+rejects any runtime/receipt/content/object binding mismatch. There is no runtime,
+provider, worker, model, service discovery or publication invocation.
+
+The provider-neutral, closed semantic input contract records typed finding
+subjects/predicates, observations, coverage, uncertainty and evidence metadata.
+Display labels, JSON formatting/order, declared set order and provider-local
+finding/evidence IDs are not semantic meaning. Negation, severity, validation,
+status, requirement coverage, approval, risk/escalation, evidence identity,
+questions, artifact completeness, available human disposition and observed
+write policy are semantic data. No free-text claim/paraphrase inference occurs.
+Existing Markdown and phase artifacts without this explicit projection remain
+indeterminate; there is no exporter, migration or model-assisted fallback.
+
+CTX-09B-R1 indexes all structured stance-bearing claims globally by typed subject
+and predicate across presentation dimensions. Compatible repeated stances remain
+valid. Affirmed/denied contradictions and explicitly contradictory uncertainty
+retain all original dimensions, pointers and provenance in an ordered `conflicts`
+collection and force `indeterminate`, `complete: false`, reason
+`unresolved_internal_conflict`, including identical contradictory inputs.
+
+Fixed legacy/v2 host publication APIs atomically publish local bytes and then
+canonical immutable producer receipts and separate receipt-digest commitments.
+No comparator/registration producer flag or caller-selected receipt is accepted.
+Native artifact profile/target declarations are individually bound to their
+verified receipts; mismatches yield incomplete `indeterminate` diagnostics even
+when both artifacts agree on the same foreign identity.
+The file-instance commitment is obtained via fstat on the real publication FD
+and contains device, inode, type/mode, size and nanosecond mtime/ctime. It is
+verified before/after captured reads together with CTX-03 path re-attestation;
+replacement with a new inode and identical bytes fails closed. Content SHA-256
+still binds the bytes. Object identity is local to the filesystem/run, not a
+portable universal content address. The producer harness is explicitly test-only;
+this repair adds no live shadow harness or semantic exporter. See the
+[publication contract](../standards/context-runtime-contract.md#ctx-09b-r1-producer-publication-and-local-identity).
+
+Every observation retains its original JSON pointer and record/evidence IDs.
+An absent counterpart is only a one-sided observation; partial collections
+cannot prove a finding was missed. Missing/unknown data, unusable provenance,
+unresolved questions or required unavailable escalation prevent equivalence.
+Known mismatches can coexist with explicit incomplete dimensions. Equivalence
+is limited to declared structured semantics, not evidence truth, readiness or
+non-degradation approval. Human review is always required.
+
+Default output is canonical JSON on stdout with no filesystem writes.
+`--write-report` optionally creates only the derived private local
+`semantic-comparison-v1.json` beside the registration, atomically/no-replace;
+source artifacts and the mode-plan are unchanged. Neither diagnostic chooses
+an authoritative output or grants permission. No generated diagnostic timestamp/random ID, prose,
+raw evidence, diff, prompt/response/reasoning, credential or arbitrary environment
+is persisted. CTX-09C usage/live shadow, CTX-09G release audit and CTX-10+ remain
+outside this phase. See the [CTX-09B contract](../standards/context-runtime-contract.md#ctx-09b-deterministic-semantic-comparison).
 
 ## CTX-07A delegation contracts, ownership, and merge boundary
 

@@ -30,6 +30,8 @@ tests=(
   context-runtime-delegation.sh
   context-runtime-workers.sh
   context-runtime-provider-children.sh
+  context-runtime-modes.sh
+  context-runtime-comparison.sh
   divination.sh
   epic-analysis-profile.sh
   explorer-retrieval.sh

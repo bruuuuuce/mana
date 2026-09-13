@@ -1096,3 +1096,299 @@ changing model tier, truncating completion, or claiming a clean semantic
 verdict. Compaction remains only a capability-gated optimization. Initial
 thresholds remain `provisional-no-empirical-baseline`; future CTX-09/shadow and
 pilots will provide calibration evidence, but are not implemented by R1.
+
+## CTX-09A host mode-plan and local hand-off
+
+`scripts/run-profile.sh` exposes only `legacy` (default), `shadow`, `v2`, and
+`compare`, selected exclusively by an explicit host `--context-runtime` flag.
+Unknown modes and any ambient `MANA_CONTEXT_RUNTIME_VERSION` fail closed.
+Runtime mode is not a permission grant, model/provider preference, task field,
+checkpoint field, approval, or result-authority update. V2 execution uses only
+the CTX-06/07/08 entry point and never falls back to legacy.
+
+The host-local artifact is
+`.mana/runtime/comparisons/<execution-id>/mode-plan-v1.json`. Execution IDs
+match `[A-Za-z0-9][A-Za-z0-9._-]{0,127}`. Its closed construction persists only
+these fields: `schemaVersion` (`mana.context-runtime.mode-plan/v1`),
+`executionId`, `mode` (`shadow` or `compare`), `authority` (`legacy` or `none`),
+`externalActions` (`disabled`), `permissionGrant` (`none`), and `comparison`
+(`deferred-ctx-09b`). Shadow additionally records `publication: disabled`,
+`v2Execution: deferred-ctx-09c` and `legacyExecution` with `status`
+(`completed` iff exit status is zero, otherwise `failed`) and `exitStatus`
+(0–255). After CTX-09B-R1, compare records `artifacts.legacy` and `artifacts.v2`,
+each containing a safe project-relative `path`, actual-byte lowercase SHA-256
+`sha256`, `fileInstance`, verified `producerRuntime`, `producerReceiptDigest`,
+`executionVersion`, `profileId` and `targetKey`. No semantic verdict, equivalence, missed-finding assertion,
+prompt, response, reasoning, credential, environment, raw trace, source body,
+full diff or raw evidence is included. Serialization is sorted-key compact
+UTF-8 JSON plus one newline, without generated diagnostic timestamps or random
+persisted IDs; filesystem mtime/ctime are committed local metadata.
+
+Root traversal starts at an absolute anchor and retains no-follow directory
+FDs for every ancestor. The project root and relative directory components
+must be host-owned; root/parent bindings are re-attested. Absolute/traversing,
+symlink (including root ancestors), special-file and multi-link source paths
+are rejected. Source reads use the same FD as their hash, are bounded to
+16 MiB per artifact, and compare identity, link count, mode, size, nanosecond
+mtime/ctime and parent bindings before/after reading. The source is never
+written. Shared `.mana/runtime` legacy permissions are preserved; the
+comparison namespace and every new artifact directory require `0700`, and
+artifact files require `0600`. Insecure existing private directories fail
+without chmod or overwrite.
+
+An exclusive namespace FD lock serializes cooperating host registrations;
+collision checks precede shadow execution and atomic publication uses the
+existing host no-replace rename primitive. A private staged directory holds
+the fully written/fsynced file, whose identity, permissions and exact bytes
+are checked before publication and commit. The final directory is never
+visible partially written. Parent rebinding or handled I/O/signal failure
+rolls publication back and cleans identity-matching owned staging using held
+FDs, even when a parent moves. Empty directories created by a failed operation
+are removed; preexisting state and collisions are preserved. There is no
+unsafe publication fallback on hosts missing required primitives.
+
+Shadow requires explicitly read-only activated skills and agents and rejects
+mutating tool capabilities; remote update checks are disabled before isolation.
+A fixed `/usr/bin/sandbox-exec` host backend on
+macOS blocks application/external writes and network before effects, including
+HEAD, run-state, approval, and result authority. Only private host scratch and
+legacy metrics writes are permitted. Caller backend/launcher overrides are
+not isolation authority; unsupported or failed probes abort before legacy.
+Legacy stdout and provider exit status remain authoritative. Failure to
+register after execution is metadata-only stderr with `handOff: failed`, a
+bounded exception category and the preserved legacy status. Helper operations
+`shadow-preflight`/`shadow-run` are internal host operations, not additional
+runtime modes; direct `shadow` registration requires an explicit host-observed
+`--legacy-exit-status` and executes nothing.
+
+This contract relies on host ownership of the private namespace and existing
+host atomic rename semantics, not protection against an unrestricted hostile
+process running as the host UID. SIGKILL/power loss and hostile replacement
+of rollback identities require host recovery; they are not silently reported
+as successful registration. CTX-09A itself introduces no CTX-09B comparator,
+CTX-09C live v2 harness, CTX-09G, CTX-10+, PRC or MIG work.
+
+## CTX-09B deterministic semantic comparison
+
+### CTX-09B-R1 producer publication and local identity
+
+The only producer flow is runtime host publication → committed producer receipt
+→ CTX-09A registration → CTX-09B comparison. `context-runtime-mode.py` supplies
+fixed host publication entry points `publish_legacy_artifact` and
+`publish_v2_artifact`; the latter requires the host execution version (integer
+≥ 1), while legacy has no execution version and records null. These functions
+publish bytes, not attest an existing caller-selected file. There is no producer
+CLI, `--producer`, receipt dict or caller-selected receipt path. The runtime
+role is fixed in host code, outside model output. The import-only producer
+harness under tests is explicitly test-only and is not installed or dispatched
+by either comparison command. This is publication plumbing, not a semantic
+exporter or a live shadow harness; unsupported existing outputs remain unsupported.
+
+Publication traverses and re-attests the anchored CTX-03 ancestry, writes a
+0600 staged regular single-link file below 0700 directories, fsyncs and checks
+its bytes through its actual FD, and uses the kernel FD-relative no-replace
+rename. It retains that FD through receipt commitment; collisions are never
+overwritten. Both bytes and local object identity are checked before commit.
+
+For an artifact path P in execution X, the host derives K = SHA-256(UTF-8(P))
+and uses only `.mana/runtime/producers/X/K/producer-receipt-v1.json` and
+`.mana/runtime/producers/X/K.commit/producer-commit-v1.json`. All producer
+namespace descendants require host ownership and 0700; records require 0600,
+regular/single-link type, closed canonical sorted-key UTF-8 JSON and a newline.
+Receipt schema version is `mana.context-runtime.producer-receipt/v1`. Its
+fields are `receiptId`, `producerRuntime` (legacy/v2), `executionId`,
+`executionVersion`, `profileId`, `targetKey`, `artifact` (path, sha256,
+fileInstance), and `producerContractVersion`
+(`mana.context-runtime.artifact-publication/v1`). `receiptId` is SHA-256 of
+canonical receipt bytes with that field omitted. The separate immutable
+`mana.context-runtime.producer-commit/v1` record commits receiptId, the full
+receiptDigest, executionId and artifactPath. Each record is privately staged
+and atomically published with no replacement. A receipt without its commit
+is an orphan, never producer authority; partial failed publications require
+host recovery and cannot be relabeled or reused.
+
+`fileInstance` contains integer device, inode, mode (including file type), size,
+mtime_ns and ctime_ns from fstat on the real publication FD. The content SHA-256
+and file-instance commitment serve distinct purposes: bytes and the local
+filesystem object. This identity is local to the filesystem/run, not a universal
+content address and not portable by copying files to another host/filesystem.
+Unchanged files/receipts yield byte-identical diagnostics across repeated reads;
+independent publications carry distinct local commitments even with identical bytes.
+
+Compare registration requires expected host profile and target identity
+(`--profile-id` and `--target-key` on the internal helper; the public profile
+command binds its selected profile and requires `--comparison-target-key`).
+It resolves both receipts autonomously, checks the role against producerRuntime,
+execution/profile/target, receiptId and the independent committed receipt digest,
+and verifies both artifact digest and fileInstance. The registered roles are
+requirements to verify, never producer identity by themselves. Old path/digest-only
+registrations, missing/uncommitted/foreign/stale/tampered receipts, role swaps,
+digest mismatches and altered local objects fail closed with exit 2 and no report.
+
+The comparator re-resolves each receipt/commit and checks every registered binding,
+including execution version and receipt digest. All bindings are re-attested
+before registration/comparison. Each supported native artifact's declared
+`profileId` and `targetKey` must also match its own verified producer receipt.
+A mismatch yields `indeterminate`, `complete: false`, with `profile-mismatch`
+and/or `target-mismatch`, even when both artifacts declare identical foreign
+headers or contain a known semantic difference. Unsupported formats remain
+indeterminate without inferring identity from free text. Artifact reading checks the
+expected fileInstance using fstat before and after the same FD read/hash/parse
+capture, named-file metadata and root/parent path bindings. Receipt and commit
+are read again after artifact reading to reject receipt mutation during the read.
+A new inode with identical bytes, mutation of bytes/metadata on the same inode,
+path rebinding, symlink/hardlink/special file or altered commitment is rejected.
+No evidence payloads, model prompt/response/reasoning or raw provider payload
+occur in receipts, commits, registration or reports. This retains the existing
+local host-UID/kernel/power-loss threat boundary; it is not cryptographic proof
+against an unrestricted hostile process capable of rewriting all host state.
+
+### Boundary and invocation
+
+`scripts/mana-context-compare.sh EXECUTION_ID --project-root PROJECT`
+is a separate offline consumer, not a fifth mode and not an automatic action
+of `run-profile.sh --context-runtime compare`. CTX-09A registration gains only
+the producer/object bindings above; legacy/default execution and shadow/v2 dispatch remain unchanged.
+
+The command accepts only an existing execution ID and a host-owned project
+root. It derives the private CTX-09A mode-plan path, requires its exact closed
+canonical compare/v1 shape, and reads only its two registered sources. It
+rejects shadow hand-offs, arbitrary source/output paths, unknown fields,
+duplicate JSON keys, non-finite values and forged or stale registered digests.
+Fixed installed JSON Schemas are the only additional local reads; their
+references cannot select arbitrary files or fetch a schema from the network.
+No HEAD, run-state, provider output stream, environment override, approval
+authority or checkpoint is read or mutated.
+
+Exit 0 means a diagnostic was generated, including `different` and
+`indeterminate`. Exit 2 means a safety/contract/IO rejection and emits no report
+body. Neither exit status is a release gate or approval.
+
+### Provider-neutral semantic projection
+
+`contracts/context-runtime/semantic-comparison-input-v1.schema.json` defines
+`mana.context-runtime.semantic-comparison-input/v1`: a bounded (256 KiB), closed
+local projection containing `profileId`, an opaque SHA-256 `targetKey`, and
+explicit semantic dimensions. This phase supplies curated local projections,
+not a model call, Markdown extractor, runtime exporter or migration. Existing
+artifacts that do not carry this contract produce an indeterminate diagnostic,
+even when their bytes are identical. Malformed declared native input fails
+closed. The same profile and target are required before semantic matching.
+
+The dimensions are status, blockers, warnings, evidence references, requirement
+coverage, approval gates, activated risk domains, high-risk escalation,
+unresolved questions, final artifact completeness, human usefulness disposition
+where explicitly available, and observed external-write policy. Each dimension
+has explicit `complete`, `partial` or `unavailable` coverage, bounded records
+and typed uncertainty/gap codes. Omission is unknown, never an empty collection.
+Only human disposition can explicitly be `not-applicable`, with no records or
+gaps; it is not inferred from absent data. Complete singleton observations
+require their canonical key. An empty artifact-completeness collection cannot
+establish equivalence. The projection's complete collection declarations are
+input assertions, not independent proof that a review found every real issue.
+
+Findings and questions match by typed subject (domain/kind/identifier) and
+predicate, not free-text similarity or provider-local finding ID. Evidence
+matches by stable `sourceKey`; requirement, gate, domain and artifact IDs are
+stable semantic identities. Duplicate local IDs or canonical semantic atoms
+are rejected rather than overwritten, merged or silently deduplicated.
+Predicate/subject changes cannot be interpreted as paraphrases.
+
+CTX-09B-R1 also builds a global semantic claim index across all structured
+assertions, independent of presentation dimension. The current contract carries
+stance-bearing findings in blockers and warnings; its key is canonical typed
+subject plus predicate, with no label/local ID/dimension/severity in the key.
+All occurrences are retained, including their original dimension, JSON pointer,
+stance, uncertainty and provenance. Identical compatible stances may coexist in
+different dimensions. Affirmed and denied for the same key conflict; no dimension
+precedence or last-write-wins is applied. `contradictory-evidence` uncertainty
+explicitly declares an unresolved conflict, without interpreting free text.
+The report's `conflicts` collection is sorted by side and semantic key and
+preserves every conflicting observation. Any internal unresolved conflict forces
+aggregate status `indeterminate`, `complete: false`, and reason
+`unresolved_internal_conflict`, even if both sides contain identical contradictions
+or a known difference exists elsewhere. Input uncertainty is never a resolution.
+
+Typed stance (including negation), severity, validation, status, gate state and
+requirement, coverage, risk tier/domain, escalation, question disposition,
+artifact schema/state, evidence metadata and observed write policy are
+semantic values. JSON property/array presentation order, explicitly declared
+sets, inert single-line `label` annotations and local finding/evidence aliases
+are representation only. A label is not a normative claim: all meaning must
+be encoded in the typed value. No arbitrary prose normalization or semantic
+inference from a label occurs.
+
+### Outcomes, uncertainty and provenance
+
+`contracts/context-runtime/semantic-comparison-v1.schema.json` defines the
+bounded (1 MiB), closed diagnostic report. Dimension and record order is stable,
+reasons and set fields are sorted, and canonical sorted-key UTF-8 JSON has one
+trailing newline. Identical registration/source bytes produce identical report
+bytes across repeats with the same committed local files. File-instance identity
+is local, so independent copied publications have different bindings. No diagnostic timestamps or random IDs
+occur in the report. Presentation changes legitimately change source digests
+and original JSON pointers, but not the semantic outcome.
+
+Records preserve only actual observations: original IDs, JSON pointers, typed
+values, uncertainty and evidence references/metadata. A missing counterpart
+is `null` plus `one-sided-observation`, never an invented finding or an inferred
+missed-finding verdict. A one-sided observation is different only when both
+collections are complete and the available observation is sufficiently known.
+Partial/unavailable collections cannot prove absence.
+
+Equivalent findings require usable declared provenance: referenced evidence
+must exist inside the registered projection, have complete collection coverage,
+no uncertainty/gaps and non-null revision/SHA-256. Evidence references with
+different usable metadata are surfaced, not erased. Evidence bodies, URLs or
+files named by evidence records are never followed/read. Evidence SHA-256 here
+is declared metadata; registration, committed producer receipt and source-artifact SHA-256 are verified
+against actual bytes. The report explicitly scopes provenance accordingly.
+
+Unknown values, uncertainty, declared gaps, open questions, missing/invalid final
+artifacts, absent provenance and unavailable/unspecified required escalation
+prevent equivalence. Known value differences may remain `different` while
+other dimensions are incomplete; `complete: false` preserves that limitation.
+If no known difference exists and any necessary data is unavailable, the
+aggregate is `indeterminate`. Byte identity is reported separately and never
+short-circuits semantic validation. `representationOnly` is true only for an
+equivalent structured result with differing source bytes.
+
+Every report fixes `authority: none`, `permissionGrant: none`,
+`externalActions: disabled`, `executedRuntimes: []`,
+`humanReviewRequired: true`, `nonDegradation: not-established` and equivalence
+scope `declared-structured-semantics-v1`. Approval and write-policy values are
+observations, not capabilities. Equivalence does not establish evidence truth,
+artifact-schema compatibility, human readiness or overall non-degradation.
+The comparator neither chooses nor publishes an authoritative output.
+
+### Filesystem, privacy and tests
+
+The shared CTX-09A reader captures and hashes the same bytes, checks regular
+single-link/host-owned files, size/identity/mtime/ctime before and after reading,
+named bindings and the complete anchored root/parent ancestry. Root, parent,
+intermediate and final symlinks, traversal and special files fail closed.
+Mode-plans require 0600, and the comparison namespace/registration directories
+require 0700. Shared existing `.mana/runtime` permissions are never changed.
+
+Default output is stdout only. Optional `--write-report` derives only
+`.mana/runtime/comparisons/EXECUTION_ID/semantic-comparison-v1.json`, beside the
+unchanged mode-plan. A private 0600 staged regular file is fsynced and attested
+before host atomic no-replace publication. Parent/root and exact bytes are
+re-attested after publication and before commit. Collisions of every type are
+rejected, never overwritten. Handled failures/signals roll back and clean the
+operation's identity-matching staging file with held descriptors, including
+parent rebinding; no directory creation or outside-path writes occur. The
+CTX-09A SIGKILL/power-loss/hostile same-UID host-recovery limitations still apply.
+
+Reports persist only typed diagnostic/provenance metadata and registered
+relative paths/digests, never labels, prompt, response, reasoning, credentials,
+arbitrary environment, raw trace, source body, full diff or raw evidence.
+Failures use a fixed diagnostic without echoing input/error payloads.
+
+`bash tests/context-runtime-comparison.sh` exercises the curated semantic corpus,
+representation-only changes, known blocker/gate/risk regressions, partial and
+missing inputs, unsupported formats, uncertainty/provenance, deterministic bytes,
+schema parity and adversarial IO/publication. It is registered in the complete
+zero-token suite and uses only local fixtures. CTX-09C usage comparison/live
+shadow, CTX-09G false-equivalence release audit, CTX-10+, PRC-* and MIG-* are not
+implemented. Independent phase gating remains separate from implementation tests.
