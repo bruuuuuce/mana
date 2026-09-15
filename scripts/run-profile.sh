@@ -862,8 +862,13 @@ install_claude_agent_file() {
 }
 
 ensure_claude_agents() {
+  ensure_claude_agents_at "$project_root"
+}
+
+ensure_claude_agents_at() {
+  local target_root="$1"
   [ "$claude_subagents" = true ] || return 0
-  agents_dir="$project_root/.claude/agents"
+  agents_dir="$target_root/.claude/agents"
   if ! mkdir -p "$agents_dir" 2>/dev/null; then
     claude_agent_install_warnings="${claude_agent_install_warnings}${claude_agent_install_warnings:+
 }WARNING: could not create $agents_dir; Claude Code delegation must fall back if agents are unavailable"
@@ -945,8 +950,13 @@ install_opencode_agent_file() {
 }
 
 ensure_opencode_agents() {
+  ensure_opencode_agents_at "$project_root"
+}
+
+ensure_opencode_agents_at() {
+  local target_root="$1"
   [ "$opencode_subagents" = true ] || return 0
-  agents_dir="$project_root/.opencode/agents"
+  agents_dir="$target_root/.opencode/agents"
   if ! mkdir -p "$agents_dir" 2>/dev/null; then
     opencode_agent_install_warnings="${opencode_agent_install_warnings}${opencode_agent_install_warnings:+
 }WARNING: could not create $agents_dir; OpenCode delegation must fall back if agents are unavailable"
@@ -997,8 +1007,13 @@ ensure_opencode_agents() {
 }
 
 ensure_codex_agents() {
+  ensure_codex_agents_at "$project_root"
+}
+
+ensure_codex_agents_at() {
+  local target_root="$1"
   [ "$codex_subagents" = true ] || return 0
-  agents_dir="$project_root/.codex/agents"
+  agents_dir="$target_root/.codex/agents"
   if ! mkdir -p "$agents_dir" 2>/dev/null; then
     codex_agent_install_warnings="${codex_agent_install_warnings}${codex_agent_install_warnings:+
 }WARNING: could not create $agents_dir; Codex subagent delegation must fall back if agents are unavailable"
@@ -1486,22 +1501,94 @@ For Jira, use read-only access when issue keys are available; report an access g
 PROMPT
 )"
 
-shadow_execute() {
+shadow_execute() (
   local economy="$1" full="$2"
   shift 2
-  local shadow_target_json
+  local shadow_target_json provider_config_root provider_config_parent expected_config
+  shadow_setup_unavailable() {
+    printf 'ERROR: shadow unavailable: private provider configuration %s\n' "$1" >&2
+    return 2
+  }
+  if [ "$(uname -s)" = Darwin ]; then provider_config_parent=/private/tmp; else provider_config_parent=/tmp; fi
+  provider_config_root="$(mktemp -d "$provider_config_parent/mana-shadow-provider-config.XXXXXX")" || {
+    shadow_setup_unavailable 'could not be created'
+    return 2
+  }
+  trap 'rm -rf "$provider_config_root"' EXIT
+  trap 'exit 129' HUP
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+  chmod 700 "$provider_config_root" || {
+    shadow_setup_unavailable 'could not be secured'
+    return 2
+  }
+  # Shadow provider definitions belong to this invocation-owned root. They
+  # are never installed below the project root before sandbox admission.
+  expected_config=''
+  case "$runner" in
+    codex)
+      if [ "$codex_subagents" = true ]; then
+        ensure_codex_agents_at "$provider_config_root"
+        expected_config='.codex/agents/mana-explorer.toml .codex/agents/mana-full-specialist.toml .codex/agents/mana-worker.toml'
+      fi
+      ;;
+    claude)
+      if [ "$claude_subagents" = true ]; then
+        ensure_claude_agents_at "$provider_config_root"
+        expected_config='.claude/agents/mana-orchestrator.md .claude/agents/mana-explorer.md .claude/agents/mana-full-specialist.md .claude/agents/mana-worker.md'
+      fi
+      ;;
+    opencode)
+      if [ "$opencode_subagents" = true ]; then
+        ensure_opencode_agents_at "$provider_config_root"
+        expected_config='.opencode/agents/mana_orchestrator.md .opencode/agents/mana_explorer.md .opencode/agents/mana_full_specialist.md .opencode/agents/mana_worker.md'
+      fi
+      ;;
+    *)
+      shadow_setup_unavailable 'is unsupported for the selected provider'
+      return 2
+      ;;
+  esac
+  # Tighten every private provider entry after materialization. The legacy
+  # installer modes remain untouched; only this invocation-owned tree is
+  # subject to the shadow contract.
+  find "$provider_config_root" -type d -exec chmod 700 {} + || {
+    shadow_setup_unavailable 'directory permissions could not be secured'
+    return 2
+  }
+  find "$provider_config_root" -type f -exec chmod 600 {} + || {
+    shadow_setup_unavailable 'file permissions could not be secured'
+    return 2
+  }
+  for private_relative in $expected_config; do
+    private_entry="$provider_config_root/$private_relative"
+    if ! { [ -f "$private_entry" ] && [ ! -L "$private_entry" ]; }; then
+      shadow_setup_unavailable 'is incomplete or aliased'
+      return 2
+    fi
+    if [ "$(stat -f '%Lp:%l' "$private_entry")" != '600:1' ]; then
+      shadow_setup_unavailable 'contains an unsafe file instance'
+      return 2
+    fi
+  done
+  if find "$provider_config_root" -type l -print -quit | grep -q .; then
+    shadow_setup_unavailable 'contains an unsafe alias'
+    return 2
+  fi
   shadow_target_json="$(jq -cn --arg repository "$project_root" --arg base "$current_branch" --arg pr "$pr_number" --arg jira "$jira_keys" '{repository:$repository,base:$base,prNumber:(if $pr=="" then null else ($pr|tonumber) end),workItem:$jira}')"
-  printf '%s' "$prompt" | python3 "$root/scripts/lib/context-shadow-input.py" create \
+  printf '%s' "$prompt" | MANA_SHADOW_PROVIDER_CONFIG_ROOT="$provider_config_root" python3 "$root/scripts/lib/context-shadow-input.py" create \
     "$runtime_execution_id" "$profile" "$runner" "$project_root" "$shadow_workspace_relative" \
     "$shadow_target_json" "$compiled_manifest" "$budget_mode" \
-    "$economy" "$full" "$@" | python3 "$root/scripts/context-runtime-live-shadow.py" --project-root "$project_root" --packet-stdin
+    "$economy" "$full" "$@" | MANA_SHADOW_PROVIDER_CONFIG_ROOT="$provider_config_root" python3 "$root/scripts/context-runtime-live-shadow.py" --project-root "$project_root" --packet-stdin
   local shadow_pipeline_status=("${PIPESTATUS[@]}")
   [ "${shadow_pipeline_status[1]}" -eq 0 ] || return 2
   return "${shadow_pipeline_status[2]}"
-}
+)
 
 run_codex() {
-  ensure_codex_agents
+  if [ "$context_runtime_shadow" = false ]; then
+    ensure_codex_agents
+  fi
   if [ -n "$codex_agent_install_warnings" ]; then
     printf '%s\n' "$codex_agent_install_warnings" >&2
   fi
@@ -1529,7 +1616,9 @@ run_codex() {
 }
 
 run_claude() {
-  ensure_claude_agents
+  if [ "$context_runtime_shadow" = false ]; then
+    ensure_claude_agents
+  fi
   if [ -n "$claude_agent_install_warnings" ]; then
     printf '%s\n' "$claude_agent_install_warnings" >&2
   fi
@@ -1545,7 +1634,9 @@ run_claude() {
 }
 
 run_opencode() {
-  ensure_opencode_agents
+  if [ "$context_runtime_shadow" = false ]; then
+    ensure_opencode_agents
+  fi
   if [ -n "$opencode_agent_install_warnings" ]; then
     printf '%s\n' "$opencode_agent_install_warnings" >&2
   fi

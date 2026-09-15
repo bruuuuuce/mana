@@ -1420,6 +1420,26 @@ R3B changes neither CTX-09B verdict semantics nor CTX-08 budget status or
 calibration. Legacy remains the sole delivery authority; shadow and comparison
 remain local, diagnostic and side-effect-disabled.
 
+## CTX-09G-R1 shadow provider setup and acceptance hygiene
+
+Runtime mode selection is a host decision completed before provider setup.
+Legacy provider setup remains project-owned and unchanged. Shadow setup must
+not create, replace, chmod, link, or remove project/user provider config. Any
+required agent definitions are fresh regular single-link files in a private
+external provider-config root with `0700` directories and `0600` files. The
+selected provider must observe that root through its invocation-local config
+mechanism; merely copying unused files is non-conforming. Missing isolation,
+unsafe aliases, incomplete materialization, or setup failure makes shadow
+unavailable before invocation and cannot disable an enabled feature silently.
+
+The zero-token acceptance harness owns all evaluation and Python-cache output
+outside the checkout and removes only those known roots. A canonical
+before/after filesystem record covers every worktree path other than `.git`,
+including ignored/untracked files and file-instance metadata. Any added,
+removed, replaced, relinked, chmodded, or content-modified path fails the
+suite. CTX-09A/B/C authority, comparison, recovery, usage, and publication
+semantics are unchanged.
+
 ## CTX-09B deterministic semantic comparison
 
 ### CTX-09B-R1 producer publication and local identity

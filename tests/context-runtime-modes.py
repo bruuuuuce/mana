@@ -64,8 +64,10 @@ class Modes(unittest.TestCase):
                         '--profile-id', 'jira-state-audit', '--target-key', 'a' * 64]
         return subprocess.run(command + list(extra), env=self.env, capture_output=True, text=True, check=check)
 
-    def profile(self, selected=None, profile='jira-state-audit', extra=(), project=None):
-        command = [str(ENTRY), profile, '--project-root', str(project or self.project), '--codex', '--no-codex-subagents']
+    def profile(self, selected=None, profile='jira-state-audit', extra=(), project=None, disable_subagents=True):
+        command = [str(ENTRY), profile, '--project-root', str(project or self.project), '--codex']
+        if disable_subagents:
+            command.append('--no-codex-subagents')
         if selected is not None:
             runtime_id = self.env['MANA_RUNTIME_EXECUTION_ID'] if selected == 'shadow' else 'test'
             command += ['--context-runtime', selected, '--runtime-execution-id', runtime_id]
@@ -372,6 +374,141 @@ class Modes(unittest.TestCase):
         self.assertEqual([result.returncode for result in results], [0, 0, 0], ''.join(result.stderr for result in results))
         self.assertEqual(results[0].stdout, results[1].stdout)
         self.assertEqual(results[1].stdout, results[2].stdout)
+
+    @unittest.skipUnless(sys.platform == 'darwin', 'positive isolation requires fixed macOS host backend')
+    def test_shadow_default_subagents_never_materialize_project_codex_agents(self):
+        agents = self.project / '.codex/agents'
+        config_capture = self.base / 'provider-config-observed.json'
+        self.env['CTX09_CONFIG_CAPTURE'] = str(config_capture)
+        self.assertFalse(agents.exists())
+        result = self.profile('shadow', disable_subagents=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('legacy-answer', result.stdout)
+        self.assertFalse(agents.exists())
+        observed = json.loads(config_capture.read_text())
+        private_root = Path(observed['codexHome']).parent
+        self.assertNotEqual(private_root, self.project)
+        self.assertTrue(str(private_root).startswith('/private/tmp/'))
+        expected = {'agents/mana-explorer.toml', 'agents/mana-full-specialist.toml', 'agents/mana-worker.toml'}
+        self.assertEqual({item['path'] for item in observed['entries'] if item['path'].startswith('agents/')}, expected)
+        self.assertTrue(all(item['mode'] == (0o700 if item['type'] == 'directory' else 0o600)
+                            and (item['type'] == 'directory' or item['links'] == 1)
+                            and not item['symlink'] for item in observed['entries']))
+        self.assertFalse(private_root.exists())
+
+        agents.mkdir(parents=True)
+        user_owned = agents / 'user-owned.toml'
+        user_owned.write_bytes(b'user-owned\n')
+        managed = agents / 'mana-worker.toml'
+        managed.write_bytes(b'# Mana-managed Codex custom agent\npreexisting\n')
+        before = {path.name: (path.lstat().st_mode, path.lstat().st_ino,
+                              hashlib.sha256(path.read_bytes()).hexdigest())
+                  for path in agents.iterdir()}
+        self.env['MANA_RUNTIME_EXECUTION_ID'] = 'execution-ctx09-default-config-existing'
+        result = self.profile('shadow', disable_subagents=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        after = {path.name: (path.lstat().st_mode, path.lstat().st_ino,
+                             hashlib.sha256(path.read_bytes()).hexdigest())
+                 for path in agents.iterdir()}
+        self.assertEqual(before, after)
+
+    @unittest.skipUnless(sys.platform == 'darwin', 'positive isolation requires fixed macOS host backend')
+    def test_shadow_provider_config_failures_signals_and_crash_clean_up(self):
+        capture = self.base / 'provider-config-lifecycle.json'
+        project_agents = self.project / '.codex/agents'
+        # Exact legacy outcomes remain caller-visible while every private
+        # provider-config root is reclaimed. Actual process-tree timeout
+        # supervision is exercised by context-runtime-live-shadow.py.
+        for ordinal, (action, expected) in enumerate((('sleep', 2), ('fail', 23), ('sigint', 0),
+                                                      ('sigterm', 143), ('crash', 137))):
+            with self.subTest(action=action):
+                capture.unlink(missing_ok=True)
+                env = dict(self.env, CTX09_ACTION=action, CTX09_CONFIG_CAPTURE=str(capture),
+                           MANA_CTX09C_LEGACY_TIMEOUT_SECONDS='1',
+                           MANA_CTX09C_SHADOW_TIMEOUT_SECONDS='1',
+                           MANA_CTX09C_KILL_GRACE_SECONDS='1',
+                           MANA_RUNTIME_EXECUTION_ID=f'execution-ctx09-config-lifecycle-{ordinal}')
+                command = [str(ENTRY), 'jira-state-audit', '--project-root', str(self.project),
+                           '--codex', '--context-runtime', 'shadow', '--runtime-execution-id',
+                           env['MANA_RUNTIME_EXECUTION_ID']]
+                result = subprocess.run(command, env=env, capture_output=True, text=True, timeout=20)
+                self.assertEqual(result.returncode, expected, result.stderr)
+                private_root = Path(json.loads(capture.read_text())['codexHome']).parent
+                self.assertFalse(private_root.exists())
+                self.assertFalse(project_agents.exists())
+
+        mktemp = self.bin / 'mktemp'
+        mktemp.write_text('#!/bin/sh\ncase "$*" in *mana-shadow-provider-config*) exit 73;; esac\nexec /usr/bin/mktemp "$@"\n')
+        mktemp.chmod(0o700)
+        capture.unlink(missing_ok=True)
+        env = dict(self.env, CTX09_CONFIG_CAPTURE=str(capture),
+                   MANA_RUNTIME_EXECUTION_ID='execution-ctx09-config-setup-failure')
+        result = subprocess.run([str(ENTRY), 'jira-state-audit', '--project-root', str(self.project),
+            '--codex', '--context-runtime', 'shadow', '--runtime-execution-id',
+            env['MANA_RUNTIME_EXECUTION_ID']], env=env, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertIn('shadow unavailable: private provider configuration could not be created', result.stderr)
+        self.assertFalse(capture.exists())
+        self.assertFalse(project_agents.exists())
+
+    @unittest.skipUnless(sys.platform == 'darwin', 'positive isolation requires fixed macOS host backend')
+    def test_shadow_ignores_project_provider_config_symlink_and_outside_sentinel(self):
+        outside = self.base / 'outside-provider-config'
+        outside.mkdir()
+        sentinel = outside / 'sentinel'
+        sentinel.write_bytes(b'outside-sentinel\n')
+        project_config = self.project / '.codex'
+        project_config.symlink_to(outside, target_is_directory=True)
+        before = (project_config.lstat().st_mode, project_config.lstat().st_ino,
+                  os.readlink(project_config), sentinel.lstat().st_mode,
+                  sentinel.lstat().st_ino, hashlib.sha256(sentinel.read_bytes()).hexdigest())
+        result = self.profile('shadow', disable_subagents=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        after = (project_config.lstat().st_mode, project_config.lstat().st_ino,
+                 os.readlink(project_config), sentinel.lstat().st_mode,
+                 sentinel.lstat().st_ino, hashlib.sha256(sentinel.read_bytes()).hexdigest())
+        self.assertEqual(before, after)
+        self.assertFalse((outside / 'agents').exists())
+
+    @unittest.skipUnless(sys.platform == 'darwin', 'positive isolation requires fixed macOS host backend')
+    def test_shadow_claude_and_opencode_leave_project_config_unchanged(self):
+        cases = (('claude', '.claude/agents', '--claude', 'CLAUDE_CONFIG_DIR'),
+                 ('opencode', '.opencode/agents', '--opencode', 'OPENCODE_CONFIG_DIR'))
+        for provider, relative, flag, env_name in cases:
+            with self.subTest(provider=provider):
+                executable = self.bin / provider
+                executable.symlink_to(REPO / 'tests/fixtures/context-runtime/ctx09a-provider-stub.py')
+                config = self.project / relative
+                config.mkdir(parents=True, exist_ok=True)
+                owned = config / 'user-owned.md'
+                owned.write_bytes((provider + '-user-owned\n').encode())
+                before = (owned.lstat().st_mode, owned.lstat().st_ino,
+                          hashlib.sha256(owned.read_bytes()).hexdigest())
+                capture = self.base / f'{provider}-config-observed.json'
+                env = dict(self.env, MANA_RUNTIME_EXECUTION_ID=f'execution-ctx09-{provider}-private-config',
+                           CTX09_CONFIG_CAPTURE=str(capture))
+                result = subprocess.run([str(ENTRY), 'jira-state-audit', '--project-root', str(self.project),
+                    flag, '--context-runtime', 'shadow', '--runtime-execution-id',
+                    env['MANA_RUNTIME_EXECUTION_ID']], env=env, capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                observed = json.loads(capture.read_text())
+                private_config = Path(observed['configDirs'][env_name])
+                self.assertNotEqual(private_config, self.project / relative.split('/')[0])
+                self.assertTrue(str(private_config).startswith('/private/tmp/'))
+                expected = ({'agents/mana-orchestrator.md', 'agents/mana-explorer.md',
+                             'agents/mana-full-specialist.md', 'agents/mana-worker.md'}
+                            if provider == 'claude' else
+                            {'agents/mana_orchestrator.md', 'agents/mana_explorer.md',
+                             'agents/mana_full_specialist.md', 'agents/mana_worker.md'})
+                entries = observed['configTrees'][env_name]
+                self.assertEqual({item['path'] for item in entries if item['type'] == 'file'}, expected)
+                self.assertTrue(all(item['mode'] == (0o700 if item['type'] == 'directory' else 0o600)
+                                    and (item['type'] == 'directory' or item['links'] == 1)
+                                    and not item['symlink'] for item in entries))
+                self.assertFalse(private_config.parent.exists())
+                after = (owned.lstat().st_mode, owned.lstat().st_ino,
+                         hashlib.sha256(owned.read_bytes()).hexdigest())
+                self.assertEqual(before, after)
 
     def test_mode_environment_has_no_authority_and_v2_no_fallback(self):
         for selected in ('legacy', 'v2', 'shadow', 'compare', 'UNKNOWN', ''):

@@ -26,7 +26,7 @@ PROVIDER_ENVIRONMENT_NAMES = ("PATH", "LANG", "LC_ALL", "TZ")
 FIXTURE_ENVIRONMENT_NAMES = (
     "CTX09_ACTION", "CTX09_ARGV_CAPTURE", "CTX06C_FIXTURE_ROOT", "CTX06C_STATE_DIR",
     "CTX09C_R2B_STDOUT", "CTX09C_R2B_STDERR", "CTX09C_R2B_EXIT", "CTX09C_R2B_COUNT",
-    "CTX09C_R2C_OUTPUT", "CTX09C_R2C_EXIT",
+    "CTX09C_R2C_OUTPUT", "CTX09C_R2C_EXIT", "CTX09_CONFIG_CAPTURE",
 )
 HOST_ENVIRONMENT_VALUES = {
     "MANA_RUNTIME_USAGE_RETAIN_RAW_TRACE": "false",
@@ -53,6 +53,14 @@ def host_environment(source=None, *, shadow=False):
                 if isinstance(source.get(name), str) and source[name]})
     env.update(HOST_ENVIRONMENT_VALUES)
     env["TMPDIR"] = "/private/tmp" if sys.platform == "darwin" else "/tmp"
+    config_root = source.get("MANA_SHADOW_PROVIDER_CONFIG_ROOT")
+    if isinstance(config_root, str) and config_root.startswith(("/private/tmp/", "/tmp/")):
+        env["MANA_SHADOW_PROVIDER_CONFIG_ROOT"] = config_root
+        env["CODEX_HOME"] = str(Path(config_root) / ".codex")
+        env["CLAUDE_CONFIG_DIR"] = str(Path(config_root) / ".claude")
+        env["OPENCODE_CONFIG_DIR"] = str(Path(config_root) / ".opencode")
+    if isinstance(source.get("OPENCODE_CONFIG_CONTENT"), str):
+        env["OPENCODE_CONFIG_CONTENT"] = source["OPENCODE_CONFIG_CONTENT"]
     if shadow:
         env["MANA_CTX09_SHADOW"] = "true"
     return env
@@ -288,7 +296,12 @@ def admit(run_root, metrics_root, *, scratch_path=None):
               or scratch.stat().st_uid != os.getuid()):
             yield Admission("unavailable", "unsafe-backend-scratch")
             return
-        fixed_policy = policy(scratch, run_root, metrics_root)
+        provider_config = os.environ.get("MANA_SHADOW_PROVIDER_CONFIG_ROOT")
+        extra_reads = (Path(provider_config),) if provider_config else ()
+        if extra_reads and not safe_tree(extra_reads[0]):
+            yield Admission("unavailable", "unsafe-provider-config-root")
+            return
+        fixed_policy = policy(scratch, run_root, metrics_root, extra_reads=extra_reads)
         with tempfile.TemporaryDirectory(prefix="mana-ctx09c-proof-", dir="/private/tmp") as outside:
             outside = Path(outside).resolve()
             probe_input = scratch / "input-proof"
@@ -309,7 +322,7 @@ def admit(run_root, metrics_root, *, scratch_path=None):
             denied, publish = outside / "external-write", outside / "local-publish"
             paths = {"publish": str(publish), "externalWrite": str(denied),
                      "reads": read_canaries, "allowedInput": str(probe_input)}
-            probe_policy = policy(scratch, run_root, metrics_root)
+            probe_policy = policy(scratch, run_root, metrics_root, extra_reads=extra_reads)
             try:
                 completed = subprocess.run([str(NATIVE), "-p", probe_policy, "--", sys.executable,
                     str(Path(__file__).resolve().parent / "context-shadow-boundary-probe.py")],

@@ -602,6 +602,27 @@ corresponding held-FD tree or stage. Unknown pattern matches are not cleanup
 authority. The comparison lock plus the existing single HEAD CAS yields one
 winning recovery while all callers replay the same exact legacy outcome.
 
+## CTX-09G-R1 shadow provider setup isolation
+
+The host resolves `legacy`, `shadow`, `v2`, or `compare` before any provider
+setup that can materialize project files. Legacy retains its existing managed
+agent installation and provider argv. Shadow never runs those project-owned
+installers: when enabled provider agents are required, it creates one
+invocation-owned provider-config root outside the worktree, restricts every
+directory to `0700` and regular file to `0600`, rejects aliases and linked
+files, and passes that root through the provider's invocation-local config
+surface (`CODEX_HOME`, `CLAUDE_CONFIG_DIR`, or `OPENCODE_CONFIG_DIR`). A setup
+or isolation gap fails closed before provider invocation. The supervising
+shell owns cleanup on normal exit, provider failure, timeout, and handled
+signals; the live-shadow recovery contract remains otherwise unchanged.
+
+The canonical zero-token harness owns an external evaluation project and
+Python cache root. It sets `PYTHONDONTWRITEBYTECODE=1`, redirects explicit
+compilation through an external `PYTHONPYCACHEPREFIX`, and compares a complete
+before/after worktree inventory excluding only `.git`. The inventory includes
+ignored and untracked paths, type, mode, size, regular-file SHA-256, symlink
+target, device and inode. No production artifact path becomes caller-selected.
+
 ## CTX-09B deterministic semantic comparison
 
 `scripts/mana-context-compare.sh EXECUTION_ID --project-root PROJECT` consumes
