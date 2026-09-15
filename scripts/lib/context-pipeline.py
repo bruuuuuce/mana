@@ -542,6 +542,10 @@ def _nested_evidence_refs(checkpoint: dict[str, Any]) -> list[tuple[str, str]]:
     def visit(value: Any, path: str) -> None:
         if isinstance(value, dict):
             for key, child in value.items():
+                # CTX-09B refs are local projection aliases, not CTX-05 handles.
+                # The closed projection schema validates this separate namespace.
+                if key == "comparisonProjection" and path == "$":
+                    continue
                 child_path = f"{path}.{key}"
                 if key == "evidenceRefs" and path != "$":
                     refs.extend((f"{child_path}[{index}]", ref)

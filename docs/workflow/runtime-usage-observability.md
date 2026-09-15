@@ -106,3 +106,35 @@ status describes the current invocation unless either scope is invalid. An
 earlier missing or partial invocation cannot hide a later reported threshold
 exceedance; aggregate dimensions with incomplete coverage remain null. Reused
 immutable advisories are not rewritten.
+
+## CTX-09C-R1A live-shadow metric namespaces
+
+Live-shadow shares a comparison identity, with distinct host-derived producer
+and invocation identities. Legacy keeps CTX-01 metrics under
+`.mana/runtime/metrics/LEGACY_PRODUCER/`; shadow uses its private run view:
+`.mana/runtime/shadows/COMPARISON/runs/SHADOW_PRODUCER/.mana/runtime/metrics/SHADOW_PRODUCER/`.
+The shadow never replaces the legacy aggregate. Per-phase archiving reuses the
+unchanged CTX-06 metric writer; policy resolution consumes the common packet
+snapshot and remains provisional. Missing shadow usage stays missing/null.
+Backend or capability gaps produce unavailable without a shadow invocation,
+while exact legacy stdout, stderr and exit status remain authoritative.
+
+Private bounded consumption records bind each producer to the same canonical
+packet/input/policy digests. The ephemeral packet and raw input, evidence and
+prompt are not retained as observability payloads. R2B retains exact legacy
+streams only in a sensitive local recovery/delivery artifact, separate from
+the admitted canonical comparison projection. Shadow streams are ephemeral.
+Outcome bytes, locators, byte digests and file-instance commitments never enter
+usage, lifecycle or public result/receipt payloads. Each side summary
+preserves its invocation ID, operational status, parse-error count and all
+five totals.  Usage deltas are emitted only for two measured, numeric sides;
+partial, unavailable and invalid data carry null deltas with a reason.  This
+observability stays `provisional-no-empirical-baseline` and cannot tune policy
+or budgets.
+
+CTX-09C-R3A captures usage for every reaped shadow invocation, including
+`failed`, `timed_out` and `interrupted` (SIGINT/SIGTERM). Execution status does
+not determine measurement availability: valid emitted totals remain measured
+or partial. Absent data stays unavailable and incoherent data invalid. A
+nonzero terminal status cannot replace emitted usage with missing/null totals.
+The existing two-measured-sides rule for numeric deltas remains unchanged.

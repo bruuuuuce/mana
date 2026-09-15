@@ -547,7 +547,7 @@ def publish(root, parent, execution_id, value, *, namespace=NAMESPACE, filename=
 
 def shadow_policy(scratch, metrics):
     quote = lambda path: json.dumps(str(path))
-    return ('(version 1)(allow default)(deny file-write*)(deny network*)'
+    return ('(version 1)(allow default)(deny file-write*)(deny network*)(deny mach-lookup)(allow mach-lookup (global-name "com.apple.dyld"))'
             '(allow file-write* (literal "/dev/null") (subpath ' + quote(scratch) + ')'
             ' (subpath ' + quote(metrics) + '))')
 
@@ -566,11 +566,21 @@ def shadow_legacy(root, command):
             policy = shadow_policy(scratch, root.path / ".mana/runtime/metrics")
             with tempfile.TemporaryDirectory(prefix="mana-shadow-probe-", dir="/private/tmp") as outside:
                 os.chmod(outside, 0o700)
-                probe = subprocess.run([str(backend), "-p", policy, "--", sys.executable, "-c",
-                    "import os,sys;\ntry: os.open(sys.argv[1],os.O_WRONLY|os.O_CREAT,0o600)\n"
-                    "except PermissionError: sys.exit(0)\nelse: sys.exit(1)",
-                    str(Path(outside).resolve() / "denied")], capture_output=True)
-                if probe.returncode != 0:
+                # A native sandbox can transiently reject a fresh nested
+                # process while the previous zero-token fixture is reaped.
+                # Retrying this side-effect-free *probe* keeps the production
+                # backend fail-closed: no legacy command runs until one native
+                # proof has observed the denial.
+                probe = None
+                for _ in range(3):
+                    probe = subprocess.run([str(backend), "-p", policy, "--", sys.executable, "-c",
+                        "import os,sys;\ntry: os.open(sys.argv[1],os.O_WRONLY|os.O_CREAT,0o600)\n"
+                        "except PermissionError: sys.exit(0)\nelse: sys.exit(1)",
+                        str(Path(outside).resolve() / "denied")], capture_output=True)
+                    if probe.returncode == 0:
+                        break
+                native_available = probe is not None and probe.returncode == 0
+                if not native_available:
                     raise runtime.ContractError("shadow host isolation probe failed")
             environment = os.environ.copy()
             for key in list(environment):

@@ -478,10 +478,77 @@ host sandbox denies application writes and
 network for the whole legacy process tree; only private scratch and the
 existing legacy metrics namespace are writable. Its capability probe precedes
 legacy execution; unsupported hosts fail closed, without a prompt-only or
-caller-selected backend fallback. No live v2 invocation occurs. The host then
-registers a local, non-authoritative hand-off recording completed/failed legacy
-status and explicitly deferred CTX-09C v2 execution. A registration failure
-emits only bounded metadata on stderr and does not change legacy authority.
+caller-selected backend fallback.
+
+## CTX-09C-R1A canonical shared input and isolated shadow namespaces
+
+The host captures the compiled manifest, exact legacy prompt and provider argv,
+target/work item, authorized evidence snapshot, and materialized CTX-08 policy
+and mode decision in one versioned canonical packet. A private temporary capsule
+uses 0700 directories and 0600 files; held read-only descriptors and actual-byte
+digests attest every consumption. Both fixed consumers receive the same canonical
+stdin bytes. Legacy executes the captured prompt/argv without recompiling;
+v2 derives fresh phase packets and uses the unchanged CTX-06 pure reducer.
+Source replacement after capture cannot change their materialized input.
+
+The shared comparison identity has separate legacy/shadow producer, invocation,
+lock, run and metric identities. Shadow state is ephemeral, and its metrics
+live beneath its separate private run view below `.mana/runtime/shadows/`.
+Shadow never reads/resumes the legacy run, HEAD or aggregate. Shared existing
+`.mana/runtime` permissions are preserved. Native sandbox-exec admits only proven
+containment: writes are limited to shadow scratch/run/metrics, and network is
+denied for the whole shadow tree. Backend absence, unknown proof, nested denial
+or provider/pipeline capability gaps produce `shadowStatus: unavailable` with
+no shadow invocation or weaker fallback. Legacy always runs independently and
+its stdout and exit status remain authoritative, including on shadow failure.
+
+Only identity, actual-byte digests and bounded metadata survive. Packets, prompts,
+raw input/evidence and provider outputs are not delivery artifacts and are not
+persisted. Numeric usage comparisons retain null/missing dimensions and the
+provisional CTX-08 calibration. R1C replaces the metadata-only projection with
+an admission boundary: stdout must be a bounded, privacy-safe, schema-valid and
+semantically valid CTX-09B input before producer publication. Invalid candidates
+retain only a host category/status and safe bounded count, never raw bytes or a
+secret correlation digest. Both valid receipts, identities and file-instance
+commitments are required before the offline comparator can run; otherwise its
+outcome is unavailable/indeterminate, never equivalent. The test-only backend
+remains outside production selection and supplements, rather than masks, the
+native containment probe. Profile pipeline migration remains out of scope.
+The local fixture framework is reachable only through a separate test entrypoint,
+never a production framework/backend selector.
+
+## CTX-09C-R1B legacy authority and recovery journal
+
+The live-shadow host now has an authority barrier: legacy is executed and
+committed before shadow admission. Its immutable receipt binds exit status,
+the separate sensitive local exact stdout/stderr outcome and bounded metadata; the corresponding
+single live-shadow HEAD is the only current state. Thus a later shadow,
+usage, receipt or comparison error cannot influence caller output/status.
+Nonzero legacy is the explicit R1B policy boundary and suppresses shadow.
+
+Each comparison namespace has immutable transition bundles and one CAS-replaced
+HEAD. Recovery accepts only receipts whose artifact bytes/digests validate,
+then advances the missing HEAD or continues from shadow/compare. An incomplete
+intent is ambiguous and becomes manual recovery rather than replaying legacy.
+R2B re-attests an exact outcome independently of the comparison projection;
+concurrent callers serialize on the comparison lock and replay both original
+streams and exit status. The post-HEAD authority barrier covers RuntimeError
+and host context cleanup as well as shadow/comparison failures. Missing or
+tampered exact authority requires manual recovery without side-effect replay.
+See the [R2B contract](../standards/context-runtime-contract.md#ctx-09c-r2b-exact-legacy-outcome-authority-and-caller-convergence)
+for private receipt commitments, permissions and retention/cleanup.
+R2C walks and re-attests the complete reachable bundle chain and every producer,
+receipt, file-instance and outcome commitment before HEAD reuse or CAS. One
+immutable comparison attempt reserves the sole offline invocation; a valid
+pre-HEAD attempt is adopted after a crash, while an ambiguous attempt is
+terminal and never re-executed. The comparison HEAD is a stage of this same
+single CAS journal. A fixed private packet locator is committed before input
+publication; the next lock holder reconciles it and all handled exits remove
+the packet. See the [R2C contract](../standards/context-runtime-contract.md#ctx-09c-r2c-full-re-attestation-exactly-once-comparison-and-crash-reconciliation)
+for the real fault matrix, caller convergence and deterministic cleanup.
+The shadow provider runs in a new session with a host-owned deadline and full
+TERM/grace/KILL/reap group cleanup. The CTX-09B comparator remains unchanged
+and remains diagnostic-only.
 
 Compare only registers two host-published project-relative regular single-link
 files with committed host producer receipts, verified runtime roles and both
@@ -490,8 +557,50 @@ selected host profile and explicit `--comparison-target-key`; labels cannot
 make an artifact a legacy or v2 producer. It invokes neither runtime,
 does not modify either source, and produces no semantic result or authoritative
 output selection. Its registration command still produces no semantic result;
-the separate CTX-09B offline consumer is described below. CTX-09C live shadow
-remains unimplemented. See the [CTX-09A contract](../standards/context-runtime-contract.md#ctx-09a-host-mode-plan-and-local-hand-off).
+the separate CTX-09B offline consumer is described below. See the [CTX-09A contract](../standards/context-runtime-contract.md#ctx-09a-host-mode-plan-and-local-hand-off).
+
+## CTX-09C-R3A admission boundaries
+
+The live host compares any preexisting semantic artifact against the current
+derived candidate, using a private binding of side execution/runtime/workspace,
+comparison/profile/target, shared packet, projection and producer receipt. The
+legacy binding includes the current exact outcome; shadow is reprojected from
+its current completed CTX-06 chain. A missing or different binding rejects reuse.
+The exact legacy outcome is published and attested before semantic projection
+and producer receipt publication; only the subsequent legacy HEAD barrier
+permits shadow invocation.
+
+The shadow consumer uses the shared semantic privacy guard before each CTX-06
+checkpoint commit. Rejected data cannot reach a completed HEAD or an eligible
+producer artifact. Sensitive exact legacy streams remain a separate local
+delivery surface. The production mode helper has no permissive backend selector;
+offline registration fixtures live under tests. Shadow usage is captured even
+after failure, timeout or interruption, independently of execution status.
+Caller workspace binding and further HEAD/bundle re-attestation/crash recovery
+remain outside R3A; the general reducers and offline comparator are unchanged.
+
+## CTX-09C-R3B bound recovery graph
+
+The shared packet now anchors the comparison to one host-derived Mana workspace
+and to its CTX-04/05 identities before either producer boundary. The isolated
+shadow view recreates that exact workspace identity and the CTX-06 envelope,
+run record, evidence manifest and context manifest all agree on execution,
+version, workspace and profile.
+
+The recovery graph has three independently sealed surfaces: exact legacy
+delivery, the completed CTX-06 shadow chain, and the CTX-09B comparison attempt.
+Per-revision HEAD commits bind both HEAD and tip bundle instances; descendant
+bundles bind predecessors and state binds every outcome, producer, projection
+and comparison instance. Recovery can therefore adopt a complete publication
+without blessing a same-byte replacement. A complete shadow chain can regenerate
+only its missing semantic projection and receipt; it cannot cause another
+provider invocation.
+
+Exact-outcome stages and backend scratch carry explicit comparison/invocation
+owner records. Reconciliation validates those records and removes only the
+corresponding held-FD tree or stage. Unknown pattern matches are not cleanup
+authority. The comparison lock plus the existing single HEAD CAS yields one
+winning recovery while all callers replay the same exact legacy outcome.
 
 ## CTX-09B deterministic semantic comparison
 
@@ -549,8 +658,7 @@ Default output is canonical JSON on stdout with no filesystem writes.
 source artifacts and the mode-plan are unchanged. Neither diagnostic chooses
 an authoritative output or grants permission. No generated diagnostic timestamp/random ID, prose,
 raw evidence, diff, prompt/response/reasoning, credential or arbitrary environment
-is persisted. CTX-09C usage/live shadow, CTX-09G release audit and CTX-10+ remain
-outside this phase. See the [CTX-09B contract](../standards/context-runtime-contract.md#ctx-09b-deterministic-semantic-comparison).
+is persisted. CTX-09G release audit and CTX-10+ remain outside this phase. See the [CTX-09B contract](../standards/context-runtime-contract.md#ctx-09b-deterministic-semantic-comparison).
 
 ## CTX-07A delegation contracts, ownership, and merge boundary
 
@@ -887,3 +995,19 @@ usage is reported explicitly rather than interpreted as below threshold.
 The legacy path creates none of these CTX-08 artifacts. See the CTX-08-R1
 contract and `tests/context-runtime-budgets.sh` for the permanent regression
 matrix. R1 introduces no shadow execution or later roadmap phase.
+
+## CTX-09C-R2A real projection and native read boundary
+
+Shadow phases now commit their real CTX-06 checkpoint chain. The exporter replays
+only authoritative HEAD ancestry and emits CTX-09B typed observations with
+uncertainty, unavailable dimensions and committed-object provenance. Optional
+`comparisonProjection` observations are checkpoint-digest-bound; prose is never
+converted into semantic predicates. The result remains non-authoritative.
+
+The fixed production sandbox permits file data reads only from shadow roots,
+materialized input and explicit installed host/runtime code. Legacy and other
+CTX-09C namespaces are denied for reads as well as writes. Native admission runs
+operational read/escape/write/network/service canaries. Fixed import-only test
+fixtures use this same enforced kernel boundary and real process supervision;
+nested native denial cannot select a weaker launcher. See the
+[R2A contract](../standards/context-runtime-contract.md#ctx-09c-r2a-committed-comparison-projection-and-read-isolation).

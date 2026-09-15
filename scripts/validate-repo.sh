@@ -2,9 +2,29 @@
 set -u
 root="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 status=0
+for f in tests/context-runtime-r2c.py tests/fixtures/context-runtime/ctx09c-r2c-producer.py; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09C-R2C file $f" >&2; status=1; }
+done
+for f in tests/context-runtime-r2b.py tests/fixtures/context-runtime/ctx09c-r2b-provider.py; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09C-R2B file $f" >&2; status=1; }
+done
+if [ ! -f "$root/tests/context-runtime-r2d.py" ]; then
+  echo "ERROR: missing CTX-09C-R2D regression suite" >&2
+  status=1
+fi
 required_dirs=(docs skills agents profiles mcp templates scripts hooks evals .codex .junie .claude templates/mana-workspace)
+for f in scripts/lib/context-shadow-privacy.py tests/context-runtime-r3a.py tests/context-runtime-r3a.sh tests/context-runtime-mode-test-only.py tests/context-shadow-backend-test-harness.py tests/fixtures/context-runtime/ctx09c-r3a-usage.py; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09C-R3A file $f" >&2; status=1; }
+done
+if [ ! -f "$root/tests/context-runtime-r3b.py" ]; then
+  echo "ERROR: missing CTX-09C-R3B regression suite" >&2
+  status=1
+fi
 for f in scripts/context-runtime-mode.py tests/context-runtime-modes.sh tests/context-runtime-modes.py tests/fixtures/context-runtime/ctx09a-provider-stub.py; do
   [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09A file $f" >&2; status=1; }
+done
+for f in scripts/context-runtime-live-shadow.py scripts/lib/context-shadow-input.py scripts/lib/context-shadow-backend.py scripts/lib/context-shadow-consumer.py scripts/lib/context-shadow-provider.sh scripts/lib/context-shadow-phase-provider.sh tests/context-runtime-live-shadow.sh tests/context-runtime-live-shadow.py tests/context-runtime-shadow-input.py tests/context-shadow-consumer-test-only.py scripts/lib/context-shadow-boundary-probe.py tests/context-runtime-r2a.py tests/context-shadow-backend-test-only.py; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09C-R1A file $f" >&2; status=1; }
 done
 for f in scripts/mana-context-compare.sh scripts/lib/context-comparison.py contracts/context-runtime/semantic-comparison-input-v1.schema.json contracts/context-runtime/semantic-comparison-v1.schema.json tests/context-runtime-comparison.sh tests/context-runtime-comparison.py tests/fixtures/context-runtime/ctx09b-producer-harness.py tests/fixtures/context-runtime/comparison/baseline.json tests/fixtures/context-runtime/comparison/corpus.json; do
   [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09B file $f" >&2; status=1; }

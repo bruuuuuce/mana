@@ -35,6 +35,7 @@ printf '%s\n' "$count" > "$count_file"
 final_message=""
 model=""
 schema=""
+project_root=""
 previous=""
 prompt=""
 : > "$state_dir/argv.$count"
@@ -44,6 +45,7 @@ for argument in "$@"; do
     --output-last-message) final_message="$argument" ;;
     --model) model="$argument" ;;
     --output-schema) schema="$argument" ;;
+    --cd) project_root="$argument" ;;
   esac
   previous="$argument"
   prompt="$argument"
@@ -90,3 +92,34 @@ jq -cn \
     candidateFindings:[],approvalRequests:[],activatedSkills:[],evidenceRefs:[],
     nextActionRequest:{kind:$kind,targetId:(if $target=="null" then null else $target end),reason:"fixture transition"}}' \
   > "$final_message"
+
+if [ "$scenario" = privacy-canary ]; then
+  jq '.nextActionRequest.reason = "CTX09C_ENVIRONMENT_CANARY"' "$final_message" > "$state_dir/privacy-checkpoint"
+  mv "$state_dir/privacy-checkpoint" "$final_message"
+fi
+
+# Optional typed observations are fixture input, committed by the real consumer.
+if [ "$phase_id" = synthesize ] && [ -n "${CTX09C_R2A_PROJECTION_PATH:-}" ]; then
+  jq --slurpfile projection "$CTX09C_R2A_PROJECTION_PATH" '. + {comparisonProjection:$projection[0]}' \
+    "$final_message" > "$state_dir/projected-checkpoint"
+  mv "$state_dir/projected-checkpoint" "$final_message"
+fi
+
+if [ "$phase_id" = classify ] && [ -n "${CTX09C_R2A_EARLY_PROJECTION_PATH:-}" ]; then
+  jq --slurpfile projection "$CTX09C_R2A_EARLY_PROJECTION_PATH" '. + {comparisonProjection:$projection[0]}' \
+    "$final_message" > "$state_dir/early-projected-checkpoint"
+  mv "$state_dir/early-projected-checkpoint" "$final_message"
+fi
+
+if [ "$phase_id" = synthesize ] && [ -n "${CTX09C_R2A_MERGE_PATH:-}" ]; then
+  run="$project_root/.mana/runtime/runs/$execution_id"
+  merge_ref="phases/002-synthesize/delegation-merge-v1.json"
+  mkdir -p "$run/phases/002-synthesize"
+  chmod 700 "$run/phases/002-synthesize"
+  cp "$CTX09C_R2A_MERGE_PATH" "$run/$merge_ref"
+  chmod 600 "$run/$merge_ref"
+  merge_digest="$(shasum -a 256 "$run/$merge_ref" | cut -d ' ' -f 1)"
+  jq --arg ref "$merge_ref" --arg digest "$merge_digest" \
+    '. + {comparisonMergeRef:{ref:$ref,sha256:$digest}}' "$final_message" > "$state_dir/merge-checkpoint"
+  mv "$state_dir/merge-checkpoint" "$final_message"
+fi

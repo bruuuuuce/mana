@@ -12,7 +12,6 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 . "$root/scripts/lib/execution-plan.sh"
 . "$root/scripts/lib/user-context.sh"
 profile=""
-original_profile_argv=("$@")
 project_root=""
 render_only=false
 runner=""
@@ -77,6 +76,7 @@ manifest_requested_skills=()
 manifest_deep_load_skills=()
 manifest_validation_args=()
 compiled_manifest=""
+shadow_workspace_relative=""
 context_runtime_version="legacy"
 runtime_execution_id=""
 budget_mode=""
@@ -586,8 +586,18 @@ case "$context_runtime_version" in
     [ "$service_discovery_approved" = false ] || { echo "ERROR: context runtime $context_runtime_version cannot enable service discovery" >&2; exit 2; }
     runtime_execution_id="${runtime_execution_id:-${MANA_RUNTIME_EXECUTION_ID:-${manifest_execution_id:-}}}"
     [ -n "$runtime_execution_id" ] || { echo "ERROR: context runtime $context_runtime_version requires --runtime-execution-id or MANA_RUNTIME_EXECUTION_ID" >&2; exit 2; }
+    manifest_execution_id="$runtime_execution_id"
     [ -z "$legacy_runtime_artifact$v2_runtime_artifact" ] || { echo 'ERROR: shadow does not accept comparison artifacts; CTX-09C owns live capture' >&2; exit 2; }
     [ -n "$runner" ] || { echo 'ERROR: context runtime shadow requires one provider runner flag' >&2; exit 2; }
+    if [ ! -f "$project_root/.mana/active-workspace" ] || [ -L "$project_root/.mana/active-workspace" ]; then
+      echo 'ERROR: context runtime shadow requires one host-owned active Mana workspace' >&2
+      exit 2
+    fi
+    shadow_workspace_relative="$(sed -n '1p' "$project_root/.mana/active-workspace")"
+    case "$shadow_workspace_relative" in
+      .mana/features/*|.mana/sessions/*) ;;
+      *) echo 'ERROR: context runtime shadow active workspace is not canonical' >&2; exit 2 ;;
+    esac
     python3 "$root/scripts/context-runtime-mode.py" shadow-preflight --project-root "$project_root" --execution-id "$runtime_execution_id" || exit 2
     context_runtime_shadow=true
     ;;
@@ -702,9 +712,6 @@ if [ "$context_runtime_shadow" = true ]; then
       exit 2
     }
   done
-  exec python3 "$root/scripts/context-runtime-mode.py" shadow-run \
-    --project-root "$project_root" --execution-id "$runtime_execution_id" -- \
-    "$root/scripts/run-profile.sh" "${original_profile_argv[@]}"
 fi
 
 profile_runner_classes="$MANA_PLAN_RUNNERS"
@@ -1479,6 +1486,20 @@ For Jira, use read-only access when issue keys are available; report an access g
 PROMPT
 )"
 
+shadow_execute() {
+  local economy="$1" full="$2"
+  shift 2
+  local shadow_target_json
+  shadow_target_json="$(jq -cn --arg repository "$project_root" --arg base "$current_branch" --arg pr "$pr_number" --arg jira "$jira_keys" '{repository:$repository,base:$base,prNumber:(if $pr=="" then null else ($pr|tonumber) end),workItem:$jira}')"
+  printf '%s' "$prompt" | python3 "$root/scripts/lib/context-shadow-input.py" create \
+    "$runtime_execution_id" "$profile" "$runner" "$project_root" "$shadow_workspace_relative" \
+    "$shadow_target_json" "$compiled_manifest" "$budget_mode" \
+    "$economy" "$full" "$@" | python3 "$root/scripts/context-runtime-live-shadow.py" --project-root "$project_root" --packet-stdin
+  local shadow_pipeline_status=("${PIPESTATUS[@]}")
+  [ "${shadow_pipeline_status[1]}" -eq 0 ] || return 2
+  return "${shadow_pipeline_status[2]}"
+}
+
 run_codex() {
   ensure_codex_agents
   if [ -n "$codex_agent_install_warnings" ]; then
@@ -1500,7 +1521,11 @@ run_codex() {
     )
   fi
 
-  MANA_PROFILE_RUNNING=1 mana_provider_execute codex "$project_root" "$profile" "$prompt" codex "${codex_args[@]}"
+  if [ "$context_runtime_shadow" = true ]; then
+    shadow_execute "$codex_model" "$codex_full_model" "${codex_args[@]}"
+  else
+    MANA_PROFILE_RUNNING=1 mana_provider_execute codex "$project_root" "$profile" "$prompt" codex "${codex_args[@]}"
+  fi
 }
 
 run_claude() {
@@ -1512,7 +1537,11 @@ run_claude() {
   mana_provider_profile_args claude "$project_root" "$claude_model" "$claude_max_threads" 1 "$claude_subagents"
   claude_args=("${MANA_PROVIDER_ARGS[@]}")
 
-  MANA_PROFILE_RUNNING=1 mana_provider_execute claude "$project_root" "$profile" "$prompt" claude "${claude_args[@]}"
+  if [ "$context_runtime_shadow" = true ]; then
+    shadow_execute "$claude_model" "$claude_full_model" "${claude_args[@]}"
+  else
+    MANA_PROFILE_RUNNING=1 mana_provider_execute claude "$project_root" "$profile" "$prompt" claude "${claude_args[@]}"
+  fi
 }
 
 run_opencode() {
@@ -1524,7 +1553,9 @@ run_opencode() {
   mana_provider_profile_args opencode "$project_root" "$opencode_model" "$opencode_max_threads" 1 "$opencode_subagents"
   opencode_args=("${MANA_PROVIDER_ARGS[@]}")
 
-  if [ -n "$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" ]; then
+  if [ "$context_runtime_shadow" = true ]; then
+    OPENCODE_CONFIG_CONTENT="$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" shadow_execute "$opencode_model" "$opencode_full_model" "${opencode_args[@]}"
+  elif [ -n "$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" ]; then
     OPENCODE_CONFIG_CONTENT="$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" MANA_PROFILE_RUNNING=1 mana_provider_execute opencode "$project_root" "$profile" "$prompt" opencode "${opencode_args[@]}"
   else
     MANA_PROFILE_RUNNING=1 mana_provider_execute opencode "$project_root" "$profile" "$prompt" opencode "${opencode_args[@]}"

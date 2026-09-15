@@ -11,6 +11,16 @@
     "activatedSkills", "evidenceRefs", "nextActionRequest"
   ],
   "properties": {
+    "comparisonMergeRef": {
+      "type": "object", "additionalProperties": false, "required": ["ref", "sha256"],
+      "properties": {
+        "ref": {"type": "string", "pattern": "^phases/[0-9]{3}-[A-Za-z0-9_-]+/delegation-merge-v1.json$"},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "comparisonProjection": {
+      "$ref": "semantic-comparison-input-v1.schema.json"
+    },
     "schemaVersion": {"const": "mana.context-runtime.phase-checkpoint/v1"},
     "checkpointId": {"type": "string", "pattern": "^C-[A-Za-z0-9._-]{1,120}$"},
     "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},

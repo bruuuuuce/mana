@@ -5,6 +5,65 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "profileId", "targetKey", "dimensions"],
   "properties": {
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority",
+        "executionId",
+        "executionVersion",
+        "headDigest",
+        "artifacts",
+        "unprojected"
+      ],
+      "properties": {
+        "authority": {
+          "const": "none"
+        },
+        "executionId": {
+          "type": "string",
+          "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"
+        },
+        "executionVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "headDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "artifacts": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ref",
+              "sha256"
+            ],
+            "properties": {
+              "ref": {
+                "type": "string",
+                "maxLength": 512,
+                "pattern": "^[A-Za-z0-9._/-]+$"
+              },
+              "sha256": {
+                "$ref": "#/$defs/digest"
+              }
+            }
+          }
+        },
+        "unprojected": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "string",
+            "maxLength": 512,
+            "pattern": "^[A-Za-z0-9._/-]+$"
+          }
+        }
+      }
+    },
     "schemaVersion": {"const": "mana.context-runtime.semantic-comparison-input/v1"},
     "profileId": {"$ref": "#/$defs/id"},
     "targetKey": {"$ref": "#/$defs/digest"},

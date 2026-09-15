@@ -38,6 +38,11 @@ class Modes(unittest.TestCase):
         self.v2.write_bytes(b'local v2 fixture\n')
         harness.publish_pair(mode, self.project, 'test', self.legacy.read_bytes(), self.v2.read_bytes(),
                              profile_id='jira-state-audit')
+        workspace = self.project / '.mana/sessions/ctx09c-mode-workspace'
+        workspace.mkdir(mode=0o700, parents=True)
+        (workspace / 'manifest.yaml').write_text(
+            'workspace_type: "session"\nworkspace_id: "ctx09c-mode-workspace"\n')
+        (self.project / '.mana/active-workspace').write_text('.mana/sessions/ctx09c-mode-workspace\n')
         self.bin = self.base / 'bin'
         self.bin.mkdir()
         (self.bin / 'codex').symlink_to(REPO / 'tests/fixtures/context-runtime/ctx09a-provider-stub.py')
@@ -62,10 +67,18 @@ class Modes(unittest.TestCase):
     def profile(self, selected=None, profile='jira-state-audit', extra=(), project=None):
         command = [str(ENTRY), profile, '--project-root', str(project or self.project), '--codex', '--no-codex-subagents']
         if selected is not None:
-            command += ['--context-runtime', selected, '--runtime-execution-id', 'test']
+            runtime_id = self.env['MANA_RUNTIME_EXECUTION_ID'] if selected == 'shadow' else 'test'
+            command += ['--context-runtime', selected, '--runtime-execution-id', runtime_id]
         if selected == 'compare':
             command += ['--comparison-target-key', 'a' * 64]
         return subprocess.run(command + list(extra), env=self.env, capture_output=True, text=True)
+
+    def shadow_registration(self):
+        # CTX-09A's registration/containment contract remains independently
+        # covered. Public live-shadow now consumes the CTX-09C canonical packet.
+        return subprocess.run([sys.executable, str(REPO / 'tests/context-runtime-mode-test-only.py'), 'shadow-run', '--project-root', str(self.project),
+            '--execution-id', 'test', '--', str(ENTRY), 'jira-state-audit', '--project-root', str(self.project),
+            '--codex', '--no-codex-subagents'], env=self.env, capture_output=True, text=True)
 
     def no_staging(self, directory=None):
         for path in (directory or self.base).rglob('*'):
@@ -322,8 +335,8 @@ class Modes(unittest.TestCase):
 
     @unittest.skipUnless(sys.platform == 'darwin', 'positive isolation requires fixed macOS host backend')
     def test_shadow_concurrency_runs_legacy_once(self):
-        argv = [str(ENTRY), 'jira-state-audit', '--project-root', str(self.project), '--codex', '--no-codex-subagents',
-                '--context-runtime', 'shadow', '--runtime-execution-id', 'test']
+        argv = [sys.executable, str(REPO / 'tests/context-runtime-mode-test-only.py'), 'shadow-run', '--project-root', str(self.project), '--execution-id', 'test',
+                '--', str(ENTRY), 'jira-state-audit', '--project-root', str(self.project), '--codex', '--no-codex-subagents']
         children = [subprocess.Popen(argv, env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE) for _ in range(2)]
         output = [child.communicate(timeout=30)[0] for child in children]
         self.assertEqual(sorted(child.returncode for child in children), [0, 2])
@@ -385,20 +398,20 @@ class Modes(unittest.TestCase):
     def test_shadow_authoritative_output_failure_and_collision(self):
         legacy = self.profile('legacy')
         self.env['MANA_UPDATE_CHECK'] = 'INVALID-DO-NOT-CONTACT-REMOTE'
-        shadow = self.profile('shadow')
+        shadow = self.shadow_registration()
         self.assertEqual(shadow.returncode, 0, shadow.stderr)
         self.assertEqual(shadow.stdout, legacy.stdout)
         value = json.loads(self.plan.read_bytes())
         self.assertEqual(value['legacyExecution'], {'status': 'completed', 'exitStatus': 0})
         self.assertEqual(value['v2Execution'], 'deferred-ctx-09c')
         self.assertFalse((self.project / '.mana/runtime/runs').exists())
-        collision = self.profile('shadow')
+        collision = self.shadow_registration()
         self.assertEqual(collision.returncode, 2)
         self.assertNotIn('Starting Codex', collision.stdout)
         self.plan.unlink()
         self.plan.parent.rmdir()
         self.env['CTX09_ACTION'] = 'fail'
-        failed = self.profile('shadow')
+        failed = self.shadow_registration()
         self.assertEqual(failed.returncode, 23, failed.stderr)
         self.assertEqual(json.loads(self.plan.read_bytes())['legacyExecution'], {'status': 'failed', 'exitStatus': 23})
         self.no_staging()
@@ -415,7 +428,7 @@ class Modes(unittest.TestCase):
         metrics_alias.symlink_to(protected[1])
         protected.append(metrics_alias)
         self.env.update(CTX09_ACTION='attack', CTX09_DENIED_PATHS=json.dumps([str(path) for path in protected]))
-        result = self.profile('shadow')
+        result = self.shadow_registration()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(json.dumps({'blocked': [True] * 8}), result.stdout)
         for path in protected: self.assertEqual(path.read_bytes(), b'UNCHANGED', str(path))
@@ -425,7 +438,7 @@ class Modes(unittest.TestCase):
     @unittest.skipUnless(sys.platform == 'darwin', 'positive isolation requires fixed macOS host backend')
     def test_provider_output_cannot_change_shadow_authority(self):
         self.env['CTX09_ACTION'] = 'mode-output'
-        result = self.profile('shadow')
+        result = self.shadow_registration()
         self.assertEqual(result.returncode, 0, result.stderr)
         value = json.loads(self.plan.read_bytes())
         self.assertEqual((value['mode'], value['authority']), ('shadow', 'legacy'))
