@@ -26,7 +26,7 @@ BASELINE = json.loads((FIXTURES / "comparison/baseline.json").read_bytes())
 
 class R2A(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(dir="/private/tmp")
+        self.temp = tempfile.TemporaryDirectory(dir="/private/tmp" if sys.platform == "darwin" else "/tmp")
         self.base = Path(self.temp.name).resolve()
         self.project = self.base / "project"
         self.project.mkdir(mode=0o700)

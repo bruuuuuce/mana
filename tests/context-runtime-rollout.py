@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import importlib.util
+import shlex
 import shutil
 import subprocess
 import sys
@@ -649,6 +650,19 @@ def main() -> int:
         # Each provider's permanent state matrix is independently asserted;
         # status never calls an absent provider or treats absence as missing.
         matrix = Path(temporary) / "provider-matrix"; matrix.mkdir()
+        provider_bin = Path(temporary) / "provider-presence-bin"; provider_bin.mkdir()
+        provider_stub_marker = Path(temporary) / "provider-presence-stub-executed"
+        for provider in ("codex", "claude", "opencode"):
+            stub = provider_bin / provider
+            stub.write_text(
+                "#!/bin/sh\n"
+                f"printf '%s\\n' provider-presence-stub-executed > {shlex.quote(str(provider_stub_marker))}\n"
+                "echo 'provider presence stub must not be executed' >&2\n"
+                "exit 97\n"
+            )
+            stub.chmod(0o755)
+        provider_env = os.environ.copy()
+        provider_env["PATH"] = str(provider_bin) + os.pathsep + provider_env["PATH"]
         marker_digest = hashlib.sha256(b"payload\n").hexdigest()
         provider_specs = (("codex", ".codex/config.toml", "# ", "codex-runtime-v2"), ("claude", "CLAUDE.md", "# ", "claude-runtime-v2"), ("opencode", "opencode.jsonc", "// ", "opencode-runtime-v2"))
         for name, relative, prefix, block_id in provider_specs:
@@ -656,13 +670,18 @@ def main() -> int:
             def write_version(version: str, payload: bytes = b"payload\n") -> None:
                 target_provider.write_bytes((prefix + f"mana:context-runtime:begin version={version} id={block_id} digest={marker_digest}\n").encode() + payload + (prefix + f"mana:context-runtime:end id={block_id}\n").encode())
             write_version("2")
-            assert json.loads(run("status", root=matrix).stdout)["providers"][name]["managedBlock"] == "current"
+            current = json.loads(run("status", root=matrix, env=provider_env).stdout)["providers"][name]
+            assert current["installed"] is True and current["managedBlock"] == "current"
             write_version("1")
-            assert json.loads(run("status", root=matrix).stdout)["providers"][name]["managedBlock"] == "stale"
+            stale = json.loads(run("status", root=matrix, env=provider_env).stdout)["providers"][name]
+            assert stale["installed"] is True and stale["managedBlock"] == "stale"
             write_version("99")
-            assert json.loads(run("status", root=matrix).stdout)["providers"][name]["managedBlock"] == "future"
+            future = json.loads(run("status", root=matrix, env=provider_env).stdout)["providers"][name]
+            assert future["installed"] is True and future["managedBlock"] == "future"
             write_version("2", b"tampered\n")
-            assert json.loads(run("status", root=matrix).stdout)["providers"][name]["managedBlock"] == "invalid"
+            invalid = json.loads(run("status", root=matrix, env=provider_env).stdout)["providers"][name]
+            assert invalid["installed"] is True and invalid["managedBlock"] == "invalid"
+        assert not provider_stub_marker.exists()
         # Stable warning matrix and per-profile effective selection are pure
         # diagnostics.  This executes all migration warning classes without
         # materializing policy, provider config or capability evidence.

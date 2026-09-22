@@ -90,11 +90,19 @@ python3 "$root/tests/lib/json_schema_subset.py" \
 [ ! -e "$run/phases/002-synthesize" ] || fail 'CTX-06A prefilled a future phase input'
 for artifact in "$run/execution-envelope-v1.json" "$run/context-manifest-v1.json" \
                 "$run/run-directory-v1.json" "$run/run-state-v1.json" "$initial"; do
-  mode="$(stat -f '%Lp' "$artifact" 2>/dev/null || stat -c '%a' "$artifact")"
+  case "$(uname -s)" in
+    Darwin) mode="$(stat -f '%Lp' "$artifact")" ;;
+    Linux) mode="$(stat -c '%a' "$artifact")" ;;
+    *) fail 'unsupported platform for file mode assertion' ;;
+  esac
   [ "$mode" = 600 ] || fail "run artifact is not mode 0600: $artifact"
 done
 for directory in "$run" "$run/phases" "$run/phases/001-classify"; do
-  mode="$(stat -f '%Lp' "$directory" 2>/dev/null || stat -c '%a' "$directory")"
+  case "$(uname -s)" in
+    Darwin) mode="$(stat -f '%Lp' "$directory")" ;;
+    Linux) mode="$(stat -c '%a' "$directory")" ;;
+    *) fail 'unsupported platform for file mode assertion' ;;
+  esac
   [ "$mode" = 700 ] || fail "published run directory is not mode 0700: $directory"
 done
 

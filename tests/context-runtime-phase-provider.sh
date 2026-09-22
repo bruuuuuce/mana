@@ -13,6 +13,16 @@ export PYTHONDONTWRITEBYTECODE=1
 export PYTHONPYCACHEPREFIX="$tmp/pycache"
 trap 'rm -rf "$tmp"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
+
+ctx06c_file_mode() {
+  local path="$1"
+  case "$(uname -s)" in
+    Darwin) stat -f '%Lp' "$path" ;;
+    Linux) stat -c '%a' "$path" ;;
+    *) return 1 ;;
+  esac
+}
+
 # The R2.2 dispatch cases must not leave even ignored local artifacts behind.
 # Preserve pre-existing user work as the baseline rather than assuming a clean
 # Mana checkout.
@@ -194,7 +204,7 @@ jq -e '.status=="complete" and .rawTraceRetained==true and
   "$debug_metrics" >/dev/null || fail 'debug trace retention was not aggregated by phase'
 [ "$(find "$debug_project/.mana/runtime/metrics/$debug_execution/phases" -name '*-raw-provider-events.jsonl' -type f | wc -l | tr -d ' ')" = 2 ] || fail 'debug phase traces were not archived exactly once'
 while IFS= read -r trace; do
-  [ "$(stat -f '%Lp' "$trace")" = 600 ] || fail 'debug phase trace permissions are not restrictive'
+  [ "$(ctx06c_file_mode "$trace")" = 600 ] || fail 'debug phase trace permissions are not restrictive'
 done < <(find "$debug_project/.mana/runtime/metrics/$debug_execution/phases" -name '*-raw-provider-events.jsonl' -type f)
 [ ! -e "$debug_project/.mana/runtime/metrics/$debug_execution/raw-provider-events.jsonl" ] || fail 'mutable root provider trace survived archival'
 
@@ -257,7 +267,7 @@ wait "$second_pid" || { cat "$tmp/concurrent-two.err" >&2; fail 'second concurre
 jq -s -e '([.[].status]|all(.=="completed")) and ([.[].providerInvocations]|sort)==[0,2]' \
   "$tmp/concurrent-one.json" "$tmp/concurrent-two.json" >/dev/null || fail 'concurrent runner results did not converge'
 jq -e '.revision==2 and .status=="completed"' "$concurrent_project/.mana/runtime/runs/$concurrent_execution/run-state-v1.json" >/dev/null || fail 'concurrent runner changed authoritative completion'
-[ "$(stat -f '%Lp' "$concurrent_project/.mana/runtime/runs/$concurrent_execution/.provider-phase.lock")" = 600 ] || fail 'provider phase lock permissions are not restrictive'
+[ "$(ctx06c_file_mode "$concurrent_project/.mana/runtime/runs/$concurrent_execution/.provider-phase.lock")" = 600 ] || fail 'provider phase lock permissions are not restrictive'
 
 # CTX-02 unknown/unsupported isolation cannot silently select a weaker path.
 limited_execution='execution-ctx06c-capability-gap'

@@ -388,7 +388,11 @@ expected="$project/.mana/runtime/runs/execution-written/context-manifest-v1.json
 [ "$written" = "$expected" ] || fail "compiler returned unexpected manifest path: $written"
 [ -f "$expected" ] || fail 'compiled manifest was not written under the explicit run directory'
 "$validator" validate-model context-manifest "$expected" || fail 'published manifest failed validation'
-mode="$(stat -f '%Lp' "$expected" 2>/dev/null || stat -c '%a' "$expected")"
+case "$(uname -s)" in
+  Darwin) mode="$(stat -f '%Lp' "$expected")" ;;
+  Linux) mode="$(stat -c '%a' "$expected")" ;;
+  *) fail 'unsupported platform for file mode assertion' ;;
+esac
 [ "$mode" = 600 ] || fail 'published manifest permissions are not restrictive'
 rejects "$compiler" requested-pr-review --execution-id execution-unsafe --project-root "$project" --run-directory '../outside'
 

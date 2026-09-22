@@ -41,15 +41,31 @@ snapshot() {
     -path './evals/fixtures/*/node_modules' -prune -o \
     -path './.ruff_cache' -prune -o -path './.codegraph' -prune -o \
     -print0) |
-    while IFS= read -r -d '' path; do
-      if [ -L "$root/$path" ]; then
-        printf 'L|%s|%s\n' "$path" "$(readlink "$root/$path")"
-      elif [ -f "$root/$path" ]; then
-        printf 'F|%s|%s|%s|%s\n' "$path" "$(stat -f '%p:%z:%d:%i' "$root/$path")" "$(shasum -a 256 "$root/$path" | awk '{print $1}')" "$(stat -f '%l' "$root/$path")"
-      elif [ -d "$root/$path" ]; then
-        printf 'D|%s|%s\n' "$path" "$(stat -f '%p:%d:%i' "$root/$path")"
-      fi
-    done | LC_ALL=C sort > "$out"
+    SNAPSHOT_ROOT="$root" python3 -c '
+import hashlib
+import os
+import stat
+import sys
+
+root = os.environ["SNAPSHOT_ROOT"]
+for raw_path in sys.stdin.buffer.read().split(b"\0"):
+    if not raw_path:
+        continue
+    relative_path = os.fsdecode(raw_path)
+    path = os.path.join(root, relative_path)
+    metadata = os.lstat(path)
+    if stat.S_ISLNK(metadata.st_mode):
+        print(f"L|{relative_path}|{os.readlink(path)}")
+    elif stat.S_ISREG(metadata.st_mode):
+        digest = hashlib.sha256()
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+        with os.fdopen(fd, "rb") as source:
+            for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(chunk)
+        print(f"F|{relative_path}|{stat.S_IMODE(metadata.st_mode):04o}:{metadata.st_size}:{metadata.st_dev}:{metadata.st_ino}|{digest.hexdigest()}|{metadata.st_nlink}")
+    elif stat.S_ISDIR(metadata.st_mode):
+        print(f"D|{relative_path}|{stat.S_IMODE(metadata.st_mode):04o}:{metadata.st_dev}:{metadata.st_ino}")
+' | LC_ALL=C sort > "$out"
 }
 snapshot "$before"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$tmp/pycache" \
@@ -58,7 +74,10 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$tmp/pycache" \
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$tmp/pycache" \
   python3 -m py_compile "$root/scripts/lib/context-shadow-backend.py" || fail 'external py_compile failed'
 snapshot "$after"
-cmp -s "$before" "$after" || fail 'complete worktree snapshot changed during acceptance harness'
+if ! cmp -s "$before" "$after"; then
+  diff -u "$before" "$after" | head -n 20 >&2 || true
+  fail 'complete worktree snapshot changed during acceptance harness'
+fi
 [ -d "$evaluation_project/.mana/evaluations/results" ] || fail 'test-owned evaluation root was not used'
 [ -d "$tmp/pycache" ] || fail 'test-owned Python cache root was not used'
 echo 'CTX-09G-R1 shadow setup and zero-mutation hygiene passed'

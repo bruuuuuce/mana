@@ -52,17 +52,26 @@ real_python="$(command -v python3)"
 cat > "$bootstrap_tmp/bin/python3" <<EOF
 #!/usr/bin/env bash
 if [ "\${1:-}" = "$root/scripts/context-runtime-rollout.py" ] && [ "\${2:-}" = execution-identity ]; then
-  printf '%s\\n' '{"executionId":"execution-ctx10-fixture","executionVersion":1,"workspaceId":"W-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","profileId":"mana-help"}'
-  exit 0
+  if [ "\${CTX10_TRUSTED_IDENTITY_STUB:-}" = true ]; then
+    printf '%s\\n' '{"executionId":"execution-ctx10-fixture","executionVersion":1,"workspaceId":"W-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","profileId":"mana-help"}'
+    exit 0
+  fi
 fi
 exec "$real_python" "\$@"
 EOF
 chmod 700 "$bootstrap_tmp/bin/python3"
+provider_marker="$bootstrap_tmp/provider-reached"
+cat > "$bootstrap_tmp/bin/codex" <<EOF
+#!/usr/bin/env bash
+: > "$provider_marker"
+exit 99
+EOF
+chmod 700 "$bootstrap_tmp/bin/codex"
 run_v2_identity_fixture() {
   local expected="$1"
   shift
   local output
-  output="$( (cd "$bootstrap_tmp/no-links" && PATH="$bootstrap_tmp/bin:$PATH" ./mana profile mana-help "$@") 2>&1 || true)"
+  output="$( (cd "$bootstrap_tmp/no-links" && CTX10_TRUSTED_IDENTITY_STUB=true PATH="$bootstrap_tmp/bin:$PATH" ./mana profile mana-help "$@") 2>&1 || true)"
   printf '%s\n' "$output" | grep -Fq -- "$expected" || {
     echo "expected CTX-10 v2 fixture result $expected, got: $output" >&2
     exit 1
@@ -72,12 +81,30 @@ run_v2_identity_fixture() {
 # same stable category and argument order cannot change it.
 run_v2_identity_fixture 'CTX10_PROVIDER_RUNNER_SELECTION_REQUIRED' --runtime-execution-id execution-ctx10-fixture --context-runtime v2
 run_v2_identity_fixture 'CTX10_PROVIDER_RUNNER_SELECTION_REQUIRED' --claude --runtime-execution-id execution-ctx10-fixture --codex --context-runtime v2
-# F: with both dispatch prerequisites present, control reaches the v2 runner;
-# it does not silently fall back to legacy or produce a precondition category.
-v2_valid_output="$( (cd "$bootstrap_tmp/no-links" && PATH="$bootstrap_tmp/bin:$PATH" ./mana profile mana-help --codex --context-runtime v2 --runtime-execution-id execution-ctx10-fixture) 2>&1 || true)"
-printf '%s\n' "$v2_valid_output" | grep -Fq 'authoritative transition reconciliation failed before provider execution'
-if printf '%s\n' "$v2_valid_output" | grep -Fq 'CTX10_'; then
-  echo "valid CTX-10 v2 dispatch stopped at a precondition: $v2_valid_output" >&2
+# E: a syntactically valid identity plus one runner still needs an initialized
+# CTX-06 run. The real reader rejects this bootstrap-only fixture before it can
+# create a run, phase lock, or provider invocation. The nominal F path
+# (initialized identity, intent, SELECTION, and runner) is covered by the
+# fresh execution in tests/context-runtime-phase-provider.sh.
+bootstrap_before="$bootstrap_tmp/bootstrap-before.jsonl"
+bootstrap_after="$bootstrap_tmp/bootstrap-after.jsonl"
+python3 "$root/tests/worktree-snapshot-test-only.py" "$bootstrap_tmp/no-links" > "$bootstrap_before"
+if (cd "$bootstrap_tmp/no-links" && PATH="$bootstrap_tmp/bin:$PATH" \
+    ./mana profile mana-help --codex --context-runtime v2 \
+      --runtime-execution-id execution-ctx10-fixture \
+      > "$bootstrap_tmp/missing-initialized.out" 2> "$bootstrap_tmp/missing-initialized.err"); then
+  echo 'expected non-initialized v2 execution to fail' >&2
   exit 1
+else
+  missing_initialized_status=$?
 fi
+[ "$missing_initialized_status" = 2 ] || { echo "unexpected non-initialized v2 status: $missing_initialized_status" >&2; exit 1; }
+grep -Fq 'ERROR: CTX10_EXECUTION_NOT_INITIALIZED:' "$bootstrap_tmp/missing-initialized.err"
+[ ! -s "$bootstrap_tmp/missing-initialized.out" ] || { echo 'non-initialized v2 execution wrote stdout' >&2; exit 1; }
+! grep -Fq 'Profile: mana-help' "$bootstrap_tmp/missing-initialized.err" || { echo 'non-initialized v2 execution fell back to legacy' >&2; exit 1; }
+[ ! -e "$bootstrap_tmp/no-links/.mana/runtime/runs/execution-ctx10-fixture" ] || { echo 'non-initialized v2 execution created a run directory' >&2; exit 1; }
+! find "$bootstrap_tmp/no-links" -name '.provider-phase.lock' -print -quit | grep -q . || { echo 'non-initialized v2 execution created a provider phase lock' >&2; exit 1; }
+[ ! -e "$provider_marker" ] || { echo 'non-initialized v2 execution reached a provider' >&2; exit 1; }
+python3 "$root/tests/worktree-snapshot-test-only.py" "$bootstrap_tmp/no-links" > "$bootstrap_after"
+cmp -s "$bootstrap_before" "$bootstrap_after" || { echo 'non-initialized v2 execution mutated the bootstrap fixture' >&2; exit 1; }
 echo "Context Runtime CTX-10 linked/no-links bootstrap regression passed"

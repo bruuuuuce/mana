@@ -52,6 +52,21 @@ EOF
   return "$status"
 }
 
+mana_worker_isolation_link_count() {
+  local path="$1"
+  case "$(uname -s)" in
+    Darwin)
+      stat -f '%l' "$path"
+      ;;
+    Linux)
+      stat -c '%h' "$path"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 mana_worker_isolation_capsule_valid() {
   local capsule="$1"
   [ -d "$capsule" ] && [ ! -L "$capsule" ] || return 1
@@ -60,7 +75,7 @@ mana_worker_isolation_capsule_valid() {
   while IFS= read -r -d '' item; do
     [ ! -L "$item" ] || return 1
     [ -f "$item" ] || continue
-    links="$(stat -f '%l' "$item" 2>/dev/null || true)"
+    links="$(mana_worker_isolation_link_count "$item")" || return 1
     [ "$links" = 1 ] || return 1
   done < <(find "$capsule" -xdev -print0)
 }

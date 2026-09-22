@@ -262,7 +262,14 @@ class LiveShadow(unittest.TestCase):
             (self.bin / "codex").symlink_to(FIXTURES / "ctx06c-provider-stub.sh")
             with test_backend.admit_test_only(self.project) as admission:
                 if admission.status != "available":
-                    self.assertEqual(admission.reason, "native-backend-unavailable")
+                    if sys.platform == "darwin":
+                        self.assertIn(admission.reason, ("native-backend-absent", "native-backend-unavailable"))
+                    else:
+                        self.assertEqual(admission.reason, "native-backend-absent")
+                    with self.assertRaisesRegex(RuntimeError, "unavailable"):
+                        admission.invoke([sys.executable, str(REPO / "tests/context-shadow-consumer-test-only.py"),
+                            str(self.project)], input_bytes=canonical_bytes, environment=os.environ.copy(), cwd=self.project)
+                    self.assertFalse((state / "count").exists())
                     return
                 state = admission.scratch / "fixture-state"
                 environment = {**os.environ, "CTX06C_STATE_DIR": str(state)}

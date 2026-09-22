@@ -160,27 +160,54 @@ class SharedInput(unittest.TestCase):
             invocation.assert_not_called()
 
     def test_nested_denial_and_unknown_proof_have_no_provider_invocation(self):
-        for result in (subprocess.CompletedProcess([], 1), subprocess.CompletedProcess([], 0),
-                       subprocess.TimeoutExpired("native-probe", 10), PermissionError()):
-            native = mock.MagicMock(spec=Path)
-            native.is_file.return_value = True
-            native.is_symlink.return_value = False
-            native.__str__.return_value = "/usr/bin/sandbox-exec"
-            with self.subTest(result=type(result).__name__), \
-                    mock.patch.object(backend.sys, "platform", "darwin"), \
-                    mock.patch.object(backend, "NATIVE", native), \
-                    mock.patch.object(backend, "safe_tree", return_value=True), \
-                    mock.patch.object(backend.subprocess, "run") as invocation:
-                if isinstance(result, BaseException):
-                    invocation.side_effect = result
-                else:
-                    invocation.return_value = result
-                with backend.admit(Path("/unused-run"), Path("/unused-metrics")) as admission:
-                    self.assertEqual(admission.status, "unavailable")
-                    with self.assertRaises(RuntimeError):
-                        admission.invoke(["provider-stub"], input_bytes=b"", environment={}, cwd="/tmp")
-                self.assertEqual(invocation.call_count, 1)  # native proof only
-                self.assertNotIn("provider-stub", invocation.call_args.args[0])
+        real_temporary_directory = tempfile.TemporaryDirectory
+        with real_temporary_directory(prefix="ctx09c-darwin-emulation-") as emulated_private_tmp:
+            fixture_root = Path(emulated_private_tmp).resolve()
+            self.assertFalse(fixture_root.is_relative_to(REPO))
+            created_directories = []
+
+            def temporary_directory(*args, **kwargs):
+                call_kwargs = dict(kwargs)
+                if call_kwargs.get("dir") == "/private/tmp":
+                    call_kwargs["dir"] = fixture_root
+                context = real_temporary_directory(*args, **call_kwargs)
+                created_directories.append(Path(context.name).resolve())
+                return context
+
+            with mock.patch.object(backend.tempfile, "TemporaryDirectory",
+                                   side_effect=temporary_directory):
+                for result in (subprocess.CompletedProcess([], 1), subprocess.CompletedProcess([], 0),
+                               subprocess.TimeoutExpired("native-probe", 10), PermissionError()):
+                    native = mock.MagicMock(spec=Path)
+                    native.is_file.return_value = True
+                    native.is_symlink.return_value = False
+                    native.__str__.return_value = "/usr/bin/sandbox-exec"
+                    case_start = len(created_directories)
+                    with self.subTest(result=type(result).__name__), \
+                            mock.patch.object(backend.sys, "platform", "darwin"), \
+                            mock.patch.object(backend, "NATIVE", native), \
+                            mock.patch.object(backend, "safe_tree", return_value=True), \
+                            mock.patch.object(backend.subprocess, "run") as invocation:
+                        if isinstance(result, BaseException):
+                            invocation.side_effect = result
+                        else:
+                            invocation.return_value = result
+                        with backend.admit(Path("/unused-run"), Path("/unused-metrics")) as admission:
+                            self.assertEqual(admission.status, "unavailable")
+                            with self.assertRaises(RuntimeError):
+                                admission.invoke(["provider-stub"], input_bytes=b"", environment={}, cwd="/tmp")
+                        self.assertEqual(invocation.call_count, 1)  # native proof only
+                        self.assertNotIn("provider-stub", invocation.call_args.args[0])
+                    case_directories = created_directories[case_start:]
+                    self.assertEqual(len(case_directories), 2)  # scratch and native proof
+                    for directory in case_directories:
+                        self.assertTrue(directory.is_relative_to(fixture_root))
+                        self.assertFalse(directory.exists())
+
+            self.assertTrue(all(directory.is_relative_to(fixture_root)
+                                for directory in created_directories))
+            self.assertTrue(all(not directory.exists() for directory in created_directories))
+        self.assertFalse(fixture_root.exists())
 
     def test_native_containment_when_backend_is_available(self):
         with tempfile.TemporaryDirectory(dir="/private/tmp" if sys.platform == "darwin" else "/tmp") as temporary:
@@ -188,22 +215,34 @@ class SharedInput(unittest.TestCase):
             runs, metrics = base / "shadow-runs", base / "shadow-metrics"
             runs.mkdir(mode=0o700)
             metrics.mkdir(mode=0o700)
-            protected = base / "legacy-HEAD"
+            outside_read = base / "outside-read"
+            outside_read.write_bytes(b"outside installed code")
+            protected = base / "project/.mana/runtime/runs/legacy-HEAD"
+            protected.parent.mkdir(parents=True)
             protected.write_bytes(b"legacy authority")
+            external_write = base / "external-write"
             with backend.admit(runs, metrics) as admission:
                 if admission.status != "available":
                     self.skipTest("native containment unavailable in this sandbox")
                 code = ("import pathlib,sys\n"
                         "assert sys.stdin.buffer.read()==b'canonical packet bytes'\n"
-                        "pathlib.Path(sys.argv[1]).write_bytes(b'shadow metric')\n"
-                        "try: pathlib.Path(sys.argv[2]).write_bytes(b'forbidden')\n"
-                        "except PermissionError: pass\n"
-                        "else: sys.exit(1)\n")
+                        "for path in sys.argv[2:4]:\n"
+                        "    try: pathlib.Path(path).read_bytes()\n"
+                        "    except PermissionError: pass\n"
+                        "    else: sys.exit(1)\n"
+                        "for path in sys.argv[3:5]:\n"
+                        "    try: pathlib.Path(path).write_bytes(b'forbidden')\n"
+                        "    except PermissionError: pass\n"
+                        "    else: sys.exit(2)\n"
+                        "pathlib.Path(sys.argv[1]).write_bytes(b'shadow metric')\n")
                 completed = admission.invoke([sys.executable, "-c", code, str(metrics / "numeric.json"),
-                                              str(protected)], input_bytes=b"canonical packet bytes",
+                                              str(outside_read), str(protected), str(external_write)],
+                                             input_bytes=b"canonical packet bytes",
                                              environment=os.environ, cwd=base)
                 self.assertEqual(completed.returncode, 0)
+                self.assertEqual(outside_read.read_bytes(), b"outside installed code")
                 self.assertEqual(protected.read_bytes(), b"legacy authority")
+                self.assertFalse(external_write.exists())
                 self.assertEqual((metrics / "numeric.json").read_bytes(), b"shadow metric")
 
 

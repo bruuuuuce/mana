@@ -146,7 +146,11 @@ rejects "$validator" validate-model phase-checkpoint "$tmp/read-root/normal/nest
 output="$("$validator" write-model phase-checkpoint "$checkpoint" "$tmp/project" '.mana/runtime/checkpoint.json')"
 expected_output="$(realpath "$tmp/project/.mana/runtime/checkpoint.json")"
 [ "$output" = "$expected_output" ] || fail 'writer returned unexpected path'
-mode="$(stat -f '%Lp' "$output" 2>/dev/null || stat -c '%a' "$output")"
+case "$(uname -s)" in
+  Darwin) mode="$(stat -f '%Lp' "$output")" ;;
+  Linux) mode="$(stat -c '%a' "$output")" ;;
+  *) fail 'unsupported platform for file mode assertion' ;;
+esac
 [ "$mode" = 600 ] || fail 'writer did not set mode 0600'
 [ "$(tail -c 1 "$output" | od -An -tuC | tr -d ' ')" = 10 ] || fail 'writer output lacks final newline'
 

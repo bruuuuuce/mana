@@ -77,6 +77,9 @@ def environment_provenance(*, shadow=False):
 def read_roots():
     framework = Path(__file__).resolve().parents[2]
     # Executables, loader and installed host code; never the project or HOME.
+    installed_code = [Path(path) for path in (
+        "/opt/homebrew/Cellar", "/opt/homebrew/opt", "/usr/local/Cellar", "/usr/local/opt")
+        if Path(path).is_dir()]
     host_tools = [Path(path) for path in ("/opt/homebrew/Cellar/bash", "/opt/homebrew/Cellar/jq",
         "/opt/homebrew/Cellar/oniguruma", "/usr/local/Cellar/bash", "/usr/local/Cellar/jq",
         "/usr/local/Cellar/oniguruma") if Path(path).is_dir()]
@@ -85,7 +88,7 @@ def read_roots():
         "/usr/local/bin/bash", "/usr/local/bin/jq", "/usr/local/bin/python3", "/usr/local/opt/oniguruma") if Path(path).exists()]
     python_packages = [parent for parent in Path(sys.base_prefix).resolve().parents
                        if parent.parent.name == "Cellar" and parent.name.startswith("python")]
-    return python_packages + bindings + host_tools + [Path(path) for path in ("/System/Library", "/System/Cryptexes/OS", "/System/Volumes/Preboot", "/usr/bin", "/usr/sbin", "/usr/lib", "/usr/share", "/bin", "/sbin", "/dev/null", "/dev/random", "/dev/urandom", "/dev/fd", "/dev/stdin", "/dev/stdout", "/dev/stderr", "/private/preboot", "/private/var/db/dyld", "/Library/Caches/com.apple.dyld")] + [
+    return python_packages + bindings + installed_code + host_tools + [Path(path) for path in ("/System/Library", "/System/Cryptexes/OS", "/System/Volumes/Preboot", "/usr/bin", "/usr/sbin", "/usr/lib", "/usr/share", "/bin", "/sbin", "/dev/null", "/dev/random", "/dev/urandom", "/dev/fd", "/dev/stdin", "/dev/stdout", "/dev/stderr", "/private/preboot", "/private/var/db/dyld", "/Library/Caches/com.apple.dyld")] + [
         Path(sys.base_prefix).resolve(), *[framework / name for name in
         ("scripts", "contracts", "profiles", "skills", "agents", "config")]]
 

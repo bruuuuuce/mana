@@ -335,6 +335,29 @@ class Suite:
         shutil.rmtree(capsule)
         self.cases += 1
 
+    def isolation_capsule_validator_rejects_links_and_symlinks(self) -> None:
+        capsule = self.tmp / "isolation-capsule"
+        capsule.mkdir()
+        regular = capsule / "regular"
+        regular.write_text("private capsule content\n", encoding="utf-8")
+
+        validator = [
+            "bash", "-c",
+            'source "$1"; mana_worker_isolation_capsule_valid "$2"',
+            "bash", str(ROOT / "scripts/lib/worker-isolation.sh"), str(capsule),
+        ]
+        self.command(validator)
+
+        hardlink = capsule / "hardlink"
+        os.link(regular, hardlink)
+        self.command(validator, ok=False)
+        hardlink.unlink()
+
+        symlink = capsule / "symlink"
+        symlink.symlink_to(regular)
+        self.command(validator, ok=False)
+        self.cases += 1
+
     def high_risk_scope_routes_full(self) -> None:
         plan = self.bind_plan({
             "schemaVersion": "mana.context-runtime.delegation-plan-draft/v1",
@@ -897,6 +920,7 @@ class Suite:
         self.concurrent_runners_converge_per_task()
         self.distinct_tasks_overlap()
         self.capsule_materialization_is_bounded_and_link_safe()
+        self.isolation_capsule_validator_rejects_links_and_symlinks()
         self.high_risk_scope_routes_full()
         self.capability_gap_fails_before_invocation()
         self.caller_overrides_are_rejected()

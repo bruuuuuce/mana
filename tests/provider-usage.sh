@@ -9,6 +9,18 @@ tmp="$(mktemp -d "${TMPDIR:-/tmp}/mana-provider-usage.XXXXXX")"
 trap 'rm -rf "$tmp"' EXIT
 project="$tmp/project with spaces"; temporary="$tmp/temporary files with spaces"; mkdir -p "$project" "$temporary" "$tmp/bin"
 fail() { echo "FAIL: $*" >&2; exit 1; }
+file_mode() {
+  python3 - "$1" <<'PY'
+import os
+import stat
+import sys
+
+mode = os.lstat(sys.argv[1]).st_mode
+if stat.S_ISLNK(mode):
+    sys.exit(1)
+print(format(stat.S_IMODE(mode), "o"))
+PY
+}
 assert_no_temporary_trace() {
   ! find "$temporary" \( -name 'mana-provider-events.*' -o -name 'mana-provider-stderr.*' -o -name 'mana-provider-final.*' \) -print | grep -q . || fail "$1 left a temporary provider file"
 }
@@ -36,9 +48,9 @@ python3 "$root/tests/lib/json_schema_subset.py" "$root/contracts/context-runtime
 jq -e '.usageStatus == "measured" and .status == "complete" and .totals == {input:120,cachedInput:30,uncachedInput:90,output:25,reasoning:7} and .turns == 1 and .toolCalls == 1 and .rawTraceRetained == false' "$complete" >/dev/null || fail 'complete usage was not parsed'
 grep -Fxq 'human final message' "$tmp/complete.out" || fail 'final message was not relayed'
 assert_no_temporary_trace complete
-[ "$(stat -f '%Lp' "$project/.mana/runtime/metrics/execution-complete")" = 700 ] || fail 'metrics directory permissions are not restrictive'
-[ "$(stat -f '%Lp' "$complete")" = 600 ] || fail 'JSON summary permissions are not restrictive'
-[ "$(stat -f '%Lp' "${complete%.json}.md")" = 600 ] || fail 'Markdown summary permissions are not restrictive'
+[ "$(file_mode "$project/.mana/runtime/metrics/execution-complete")" = 700 ] || fail 'metrics directory permissions are not restrictive'
+[ "$(file_mode "$complete")" = 600 ] || fail 'JSON summary permissions are not restrictive'
+[ "$(file_mode "${complete%.json}.md")" = 600 ] || fail 'Markdown summary permissions are not restrictive'
 ! grep -R -Fq 'PAYLOAD-MUST-NOT-LEAK' "$project/.mana/runtime/metrics" || fail 'tool payload leaked into metrics'
 ! grep -R -Eqi 'fixture prompt|human final message|partial final message' "$project/.mana/runtime/metrics" || fail 'prompt or response leaked into metrics'
 
@@ -75,7 +87,7 @@ run_case retained complete true || fail 'debug retention fixture failed'
 retained_dir="$project/.mana/runtime/metrics/execution-retained"
 jq -e '.rawTraceRetained == true' "$retained_dir/usage-summary-v1.json" >/dev/null || fail 'debug retention was not recorded'
 [ -f "$retained_dir/raw-provider-events.jsonl" ] || fail 'debug raw trace missing'
-[ "$(stat -f '%Lp' "$retained_dir/raw-provider-events.jsonl")" = 600 ] || fail 'debug raw trace permissions are not restrictive'
+[ "$(file_mode "$retained_dir/raw-provider-events.jsonl")" = 600 ] || fail 'debug raw trace permissions are not restrictive'
 assert_no_temporary_trace debug-retention
 [ "$(find "$project/.mana/runtime/metrics" -name raw-provider-events.jsonl -print | wc -l | tr -d ' ')" = 1 ] || fail 'raw trace survived outside explicit debug retention'
 grep -Fq 'raw provider event retention is enabled locally' "$tmp/retained.err" || fail 'debug retention warning missing'
@@ -128,11 +140,11 @@ run_interruption_case() {
   while [ ! -f "$ready" ] && [ "$SECONDS" -lt "$deadline" ]; do sleep 0.05; done
   [ -f "$ready" ] || fail "$signal_name provider stub did not become ready"
   trace="$(find "$temporary" -name 'mana-provider-events.*' -print)"
-  if [ -z "$trace" ] || [ "$(stat -f '%Lp' "$trace")" != 600 ]; then
+  if [ -z "$trace" ] || [ "$(file_mode "$trace")" != 600 ]; then
     fail "$signal_name temporary raw trace permissions are not restrictive"
   fi
   provider_stderr="$(find "$temporary" -name 'mana-provider-stderr.*' -print)"
-  if [ -z "$provider_stderr" ] || [ "$(stat -f '%Lp' "$provider_stderr")" != 600 ]; then
+  if [ -z "$provider_stderr" ] || [ "$(file_mode "$provider_stderr")" != 600 ]; then
     fail "$signal_name temporary provider stderr permissions are not restrictive"
   fi
   kill -"$signal_name" "$pid"
