@@ -7,7 +7,7 @@
   "required": ["schemaVersion", "governanceEnvelope", "delegationTask", "contextManifestProjection", "activeSkills", "evidenceRefs", "outputContract", "modelSelection"],
   "properties": {
     "schemaVersion": {"const": "mana.context-runtime.worker-context-packet/v1"},
-    "governanceEnvelope": {"$ref": "execution-envelope-v1.schema.json"},
+    "governanceEnvelope": {"oneOf": [{"$ref": "execution-envelope-v1.schema.json"}, {"$ref": "execution-envelope-v2.schema.json"}]},
     "delegationTask": {"$ref": "delegation-task-v1.schema.json"},
     "contextManifestProjection": {"$ref": "#/$defs/manifestProjection"},
     "activeSkills": {

@@ -25,6 +25,48 @@ runtime = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = runtime
 SPEC.loader.exec_module(runtime)
 
+_ROLLOUT = None
+
+
+def _rollout_module():
+    """Load the host-owned execution-intent boundary only when CTX-10 is active."""
+    global _ROLLOUT
+    if _ROLLOUT is None:
+        source = HERE.parent / "context-runtime-rollout.py"
+        spec = importlib.util.spec_from_file_location("mana_ctx10_intent", source)
+        if spec is None or spec.loader is None:
+            fail("execution-intent authority is unavailable")
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        _ROLLOUT = module
+    return _ROLLOUT
+
+
+def _validate_envelope_intent(project_root: Path, envelope: dict[str, Any]) -> None:
+    rollout = _rollout_module()
+    try:
+        identity = rollout._decision_identity(
+            envelope["executionId"], envelope["executionVersion"],
+            envelope["workspaceId"], envelope["profileId"], project_root,
+        )
+        intent, raw, instance, commit_raw, commit_instance = rollout._load_intent(
+            project_root, identity, envelope["profileId"])
+        intent_path, commit_path = rollout._intent_paths(identity)
+        expected = {
+            "intentId": intent["intentId"],
+            "intentPath": intent_path,
+            "intentDigest": rollout._sha256(raw),
+            "intentFile": instance,
+            "intentCommitPath": commit_path,
+            "intentCommitDigest": rollout._sha256(commit_raw),
+            "intentCommitFile": commit_instance,
+        }
+        if envelope["executionIntent"] != expected or intent["target"] != envelope["target"]:
+            fail("execution envelope intent binding was rejected")
+    except (OSError, ValueError, RuntimeError, KeyError, TypeError) as error:
+        fail("execution envelope intent authority was rejected")
+
 RUN_SCHEMA = "mana.context-runtime.phase-run-directory/v1"
 STATE_SCHEMA = "mana.context-runtime.run-state/v1"
 TRANSITION_SCHEMA = "mana.context-runtime.transition-bundle/v1"
@@ -662,7 +704,9 @@ def reduce_checkpoint_transition(
 ) -> CheckpointTransition:
     """Validate one checkpoint and derive the sole permissible next run state."""
     runtime.validate_model("phase-checkpoint", checkpoint)
-    runtime.validate_structure("execution-envelope", envelope)
+    envelope_kind = ("execution-envelope-v2" if envelope.get("schemaVersion") ==
+                     "mana.context-runtime.execution-envelope/v2" else "execution-envelope")
+    runtime.validate_structure(envelope_kind, envelope)
     runtime.validate_model("context-manifest", context_manifest)
     execution_id = envelope["executionId"]
     profile_id = envelope["profileId"]
@@ -858,7 +902,9 @@ def _load_run_context(args: argparse.Namespace) -> RunContext:
         project_root, f"{run_relative}/execution-envelope-v1.json",
         "execution envelope", max_bytes=runtime.MAX_BYTES["execution-envelope"] or 0,
     )
-    runtime.validate_structure("execution-envelope", envelope)
+    envelope_kind = ("execution-envelope-v2" if envelope.get("schemaVersion") ==
+                     "mana.context-runtime.execution-envelope/v2" else "execution-envelope")
+    runtime.validate_structure(envelope_kind, envelope)
     workspace_id = runtime.derive_workspace_id(project_root, run_directory["workspace"])
     if (
         run_directory["workspaceId"] != workspace_id
@@ -866,6 +912,8 @@ def _load_run_context(args: argparse.Namespace) -> RunContext:
         or envelope["workspaceId"] != workspace_id
     ):
         fail("execution envelope and run record workspace bindings differ")
+    if envelope_kind == "execution-envelope-v2":
+        _validate_envelope_intent(project_root, envelope)
     context_manifest, _ = _read_run_object(
         project_root, f"{run_relative}/context-manifest-v1.json",
         "context manifest", max_bytes=runtime.MAX_BYTES["context-manifest"] or 0,
@@ -1668,7 +1716,9 @@ def _materialize(staging: Any,
             fail(f"staged materialization changed canonical bytes: {relative}")
         actual = json.loads(payload)
         if kind == "execution-envelope":
-            runtime.validate_structure(kind, actual)
+            runtime.validate_structure(
+                "execution-envelope-v2" if actual.get("schemaVersion") ==
+                "mana.context-runtime.execution-envelope/v2" else kind, actual)
         elif kind in {"context-manifest", "phase-input"}:
             runtime.validate_model(kind, actual)
         elif kind == "run-directory":
@@ -1709,7 +1759,30 @@ def initialize(args: argparse.Namespace) -> dict[str, Any]:
         "humanGates": list(declaration.human_gates), "provider": args.provider,
         "runtimeMode": "context-v2",
     }
-    runtime.validate_structure("execution-envelope", envelope)
+    rollout = _rollout_module()
+    try:
+        policy_present = rollout._safe_read(project_root, rollout.POLICY_RELATIVE) is not None
+        if policy_present:
+            identity = rollout._decision_identity(
+                args.execution_id, 1, workspace_id, args.profile, project_root)
+            with runtime.stable_file_lock(project_root, rollout.LOCK_RELATIVE):
+                intent, raw, instance, commit_raw, commit_instance = rollout._ensure_intent(
+                    project_root, identity, args.profile, target)
+            intent_path, commit_path = rollout._intent_paths(identity)
+            envelope["schemaVersion"] = "mana.context-runtime.execution-envelope/v2"
+            envelope["executionIntent"] = {
+                "intentId": intent["intentId"],
+                "intentPath": intent_path,
+                "intentDigest": rollout._sha256(raw),
+                "intentFile": instance,
+                "intentCommitPath": commit_path,
+                "intentCommitDigest": rollout._sha256(commit_raw),
+                "intentCommitFile": commit_instance,
+            }
+    except (OSError, ValueError, RuntimeError, KeyError, TypeError):
+        fail("execution intent could not be committed")
+    runtime.validate_structure(
+        "execution-envelope-v2" if policy_present else "execution-envelope", envelope)
     run_directory = {
         "schemaVersion": RUN_SCHEMA, "executionId": args.execution_id,
         "profileId": args.profile, "provider": args.provider,

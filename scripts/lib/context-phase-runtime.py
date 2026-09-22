@@ -76,7 +76,7 @@ def validate_packet(packet: dict[str, Any]) -> None:
     manifest = packet.get("contextManifest")
     if not isinstance(envelope, dict) or not isinstance(manifest, dict):
         fail("phase execution packet omits its host records")
-    runtime.validate_structure("execution-envelope", envelope)
+    runtime.validate_execution_envelope(envelope)
     runtime.validate_model("context-manifest", manifest)
     if (
         envelope["executionId"] != packet.get("executionId")

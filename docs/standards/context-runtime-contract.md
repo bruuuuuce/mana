@@ -1855,3 +1855,138 @@ comparator, terminal legacy failure, foreign stages/chains and tampering of
 each reachable authority artifact are covered separately. Native containment
 is verified by the separate R2A/live-shadow canaries; the process fixture
 does not claim a native containment pass. R2D and CTX-09G+ remain outside scope.
+
+## CTX-10 rollout policy and managed blocks
+
+`runtime-selection-v1.json` is the only host-owned profile rollout policy. It
+validates an exact v1 schema, fixes `defaultMode` to `legacy`, and accepts only
+`inherited`, `legacy`, `shadow`, `v2`, and `compare`. Unknown or incoherent
+policy fails closed; a selected fail-closed v2 profile never silently falls
+back to legacy. A block is identified by matching
+`mana:context-runtime:begin version=2 id=… digest=…` and end markers. Only the
+identified block can be replaced; future, incomplete, nested, duplicate,
+linked, hard-linked, special, swapped, or outside-root targets are rejected.
+CTX-10 calls the shared CTX-03 byte writer directly; it has no second managed
+file replacement implementation. Publication therefore uses the CTX-03
+FD/no-follow traversal, identity re-attestation, kernel no-replace/exchange,
+post-publication sync point, typed rollback recovery, and FD-relative cleanup.
+All rollout writes serialize on one host-fixed project-relative lock opened
+FD-relative with no-follow and flocked on the verified regular mode-`0600`
+inode. The empty lock file persists after unlock; release is unlock plus close,
+never unlink, so queued and newly arriving processes cannot select different
+lock inodes. A crash releases the flock through descriptor teardown.
+
+An explicit `{ "mode": "legacy" }` (and `exempted: false`) is a valid
+**pinned** legacy selection with warning `profile-pinned-legacy`. Only explicit
+`{ "mode": "legacy", "exempted": true }` is exempted, with warning
+`profile-exempted`; omitted `exempted` is false. Exemption is invalid for
+inherited, shadow, v2 and compare. Doctor also distinguishes an explicit
+inherited selection (`inherited-legacy`) from no profile selection
+(`global-default-legacy`).
+
+Materialized decisions are immutable per execution, never a profile-global
+cache. Their host-derived identity retains execution ID/version, workspace ID,
+profile ID and local project-root binding; decision bytes retain policy
+ID/version/digest, configured/effective mode, source and reason. New executions
+read the current policy, allowing profile-by-profile v2/legacy rollback without
+changing an in-flight run. A legacy invocation without CTX-06 state receives a
+bounded host-generated invocation ID; caller environment, time, prompt, model
+output and chosen path are never decision identity authority.
+
+R2.5 uses design B, the host-owned execution intent outside `.mana/context-runtime`.
+The trust root is the committed immutable
+`.mana/runtime/execution-intents/<host-derived-key>/execution-intent-v1.json`
+and `intent-commit-v1.json`. The intent fixes execution/version, workspace,
+profile, project-root binding, target, policy bytes/digest, configured/effective
+mode and a bounded committed lifecycle state. The intent commit binds its bytes
+and file instance. A CTX-06 envelope v2 refers to both records by exact digest
+and file instance; the CTX-06 reader re-attests the reference. The v1 envelope
+remains readable for prior CTX-06 work, but cannot authorize a new CTX-10
+selection after rollout policy is present.
+
+The authority graph is external intent → external `SELECTION` directory with
+`rollout-decision-commitment-v1.json` → CTX-10 HEAD/commit → bundle manifest →
+snapshot, decision and receipt. All IDs and paths are host-derived. The
+external commitment binds schema/version, commitment ID/type,
+execution/workspace/profile/project/target, policy ID/version/snapshot digest,
+configured/effective mode, bundle ID/path/manifest digest and file instance,
+HEAD and HEAD-commit bytes/file instances, committed state and a null previous
+authority reference. No caller path, digest, file instance, bundle ID or
+commitment ID is accepted as resolution authority. The CTX-10 receipt,
+manifest, HEAD and seal are all children; their internal digest chain alone
+does not select a runtime.
+
+The host reads policy once when it commits the intent, constructs and validates
+the CTX-10 bundle in private staging, publishes it no-replace, re-attests it,
+publishes and re-attests CTX-10 HEAD, then publishes `SELECTION` no-replace
+under the stable lock. **The external `SELECTION` publication is the runtime
+selection commit point.** A crash before it leaves no authoritative mode and
+reconciliation uses the frozen intent policy, never the current source policy.
+An unreferenced published bundle is not authority. A crash after it reuses the
+same commitment and completes cleanup. Two writers for one execution converge
+on one commit through the stable lock and no-replace CAS; ambiguity and
+conflicting candidates fail closed. Different executions have separate intent
+and bundle namespaces and may select different modes.
+
+The production `resolve` entry point requires execution identity. It first
+loads and validates the external intent and `SELECTION`, then follows only the
+referenced host-derived CTX-10 paths. It validates canonical schemas,
+execution/project/workspace/profile/target bindings, content digests and
+file-instance commitments, replays the bundle and children, recomputes the
+expected decision from the frozen policy snapshot, and compares it with the
+committed decision. Missing, stale, foreign, linked, special, partial,
+same-bytes/new-inode or coherently rewritten child records fail as
+`CTX10_DECISION_AUTHORITY_REJECTED` before dispatch. The read-only `candidate`
+preview only orders input preconditions; it is not runtime authority.
+
+New executions read current policy. Retry/resume of the same execution use
+the exact committed selection even after a source policy edit. Pre-R2.5
+CTX-10-only decisions are not migrated or grandfathered as rollout authority:
+new resolution fails closed and requires a new execution, including for
+completed, active and interrupted runs. A prior CTX-06 record can still be used
+for its own CTX-06 operations. The trusted boundary is the Mana host process,
+the committed intent/selection authority, and accepted CTX-03/CTX-06
+primitives. Model/provider output, task/checkpoint data, caller overrides,
+and every CTX-10 artifact are untrusted. Coherent CTX-10 rewrites, local
+digest recalculation, inode replacement, cross-execution/workspace/profile/
+project replay, crash and CAS races are in scope. Arbitrary coherent rewriting
+of the external trust root by a hostile same-UID process, or complete host/OS
+compromise, is outside this local threat model. No cryptographic integrity or
+same-UID tamper resistance is claimed.
+
+The configured/effective invariant is shared by first resolution,
+materialization and reuse: `inherited` resolves to `legacy`; explicit `legacy`
+resolves to `legacy` whether `exempted` is absent, false or true; `v2`, `shadow`
+and `compare` resolve to themselves. No materializer-only exception exists.
+
+For a resolved `v2` request, dispatch validation has a fixed public precedence:
+an initialized, authoritative CTX-06 execution identity is required first
+(`CTX10_EXECUTION_IDENTITY_REQUIRED`), followed by exactly one provider runner
+selection (`CTX10_PROVIDER_RUNNER_SELECTION_REQUIRED`). The categories are
+bounded, privacy-safe stderr prefixes, not JSON output changes. They apply
+equally when both prerequisites are absent and do not depend on provider flag
+order.
+
+R2.3 extends that precedence without changing R2.2 cases A-D:
+
+- absent identity plus a valid runner, or both absent:
+  `CTX10_EXECUTION_IDENTITY_REQUIRED`;
+- existing authoritative identity plus no runner or multiple runners:
+  `CTX10_PROVIDER_RUNNER_SELECTION_REQUIRED`;
+- syntactically valid supplied identity whose CTX-06 run is absent:
+  `CTX10_EXECUTION_NOT_INITIALIZED`;
+- existing authoritative identity plus exactly one runner: nominal dispatch.
+
+The authorized project root is resolved before this lookup. A caller cwd,
+including one with a homonymous `.mana` tree, is never a fallback authority.
+Missing-run lookup is side-effect-free and precedes run-directory creation,
+`.provider-phase.lock`, metrics, artifacts, provider invocation and legacy
+fallback. Its public contract is exit 2, empty stdout and exactly one bounded
+stderr error with no traceback, absolute path or provider output. Known
+foreign, invalid, version/identity and project/workspace mismatches are
+normalized as `CTX10_EXECUTION_AUTHORITY_REJECTED`, not misreported as missing.
+
+PRC-06 remains required before rollout activation. CTX-10 PASS establishes
+only dormant infrastructure: rollout remains disabled by default and does not
+authorize a pilot, default flip or migration. MIG gates remain mandatory for
+later profile-by-profile migration, and CTX-10 does not claim PRC-06 complete.

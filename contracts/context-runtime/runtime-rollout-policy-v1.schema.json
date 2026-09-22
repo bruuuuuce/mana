@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/runtime-rollout-policy-v1.schema.json",
+  "title": "Mana context-runtime rollout policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "defaultMode", "profiles"],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.rollout-policy/v1"},
+    "defaultMode": {"const": "legacy"},
+    "profiles": {
+      "type": "object",
+      "propertyNames": {"pattern": "^[A-Za-z0-9._-]{1,120}$"},
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["mode"],
+        "properties": {
+          "mode": {"enum": ["inherited", "legacy", "shadow", "v2", "compare"]},
+          "failClosed": {"type": "boolean"},
+          "exempted": {"type": "boolean"},
+          "reason": {"type": "string", "minLength": 1, "maxLength": 256}
+        },
+        "allOf": [
+          {"if": {"properties": {"exempted": {"const": true}}, "required": ["exempted"]}, "then": {"properties": {"mode": {"const": "legacy"}}}},
+          {"if": {"properties": {"failClosed": {"const": true}}, "required": ["failClosed"]}, "then": {"properties": {"mode": {"enum": ["shadow", "v2", "compare"]}}}}
+        ]
+      }
+    }
+  }
+}

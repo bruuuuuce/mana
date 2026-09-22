@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ctypes
 import errno
+import fcntl
 import hashlib
 import json
 import os
@@ -11,10 +12,11 @@ import re
 import secrets
 import stat
 import sys
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Iterator
 
 ROOT = Path(__file__).resolve().parents[2]
 CONTRACTS = ROOT / "contracts" / "context-runtime"
@@ -30,6 +32,7 @@ MODEL_KINDS = {
 }
 STRUCTURAL_ONLY_KINDS = {
     "execution-envelope": "execution-envelope-v1.schema.json",
+    "execution-envelope-v2": "execution-envelope-v2.schema.json",
     "context-manifest": "context-manifest-v1.schema.json",
     "provider-capabilities": "provider-capabilities-v1.schema.json",
     "run-state": "run-state-v1.schema.json",
@@ -43,6 +46,7 @@ HOST_AUTHORITY_SCHEMA = "host-authority-context-v1.schema.json"
 # no new host cap because its historical schema did not define one.
 MAX_BYTES: dict[str, int | None] = {
     "execution-envelope": 16 * 1024,
+    "execution-envelope-v2": 16 * 1024,
     "host-authority-context": 32 * 1024,
     "context-manifest": 64 * 1024,
     "evidence-manifest": 256 * 1024,
@@ -903,6 +907,13 @@ def validate_structure(kind: str, value: dict[str, Any]) -> None:
     reject_unsafe_content(value)
 
 
+def validate_execution_envelope(value: dict[str, Any]) -> None:
+    """Validate the exact versioned CTX-06 host envelope shape."""
+    kind = ("execution-envelope-v2" if value.get("schemaVersion") ==
+            "mana.context-runtime.execution-envelope/v2" else "execution-envelope")
+    validate_structure(kind, value)
+
+
 def _parse_timestamp(value: str, field: str) -> datetime:
     """Parse the RFC3339 timezone-aware subset declared by the host schema."""
     try:
@@ -1068,9 +1079,106 @@ def _inspect_destination(parent_fd: int, name: str) -> tuple[int, int, int] | No
     return _entry_identity(metadata)
 
 
+@contextmanager
+def stable_file_lock(project_root: Path, relative: str) -> Iterator[tuple[int, int, int]]:
+    """Hold one persistent, inode-stable, FD-anchored project lock.
+
+    The host chooses ``relative``; callers must not derive it from untrusted
+    input.  The lock entry is intentionally retained after release so every
+    contender flocks the same inode.  A stale lock held by a crashed process is
+    released by the kernel when its descriptor closes.
+    """
+    if not is_safe_relative_path(relative):
+        raise ContractError("lock path must be a safe project-relative path")
+    nofollow, directory = _require_secure_dir_fd_support()
+    components = relative.split("/")
+    parent_components, lock_name = components[:-1], components[-1]
+    root_fd, parent_fds, lock_fd = -1, [], -1
+    locked = False
+    try:
+        root_fd = _open_directory(
+            project_root, dir_fd=None, nofollow=nofollow, directory=directory
+        )
+        parent_fd, parent_fds = _walk_parent(
+            root_fd, parent_components, nofollow, directory
+        )
+        if not _same_directory_from_root(
+            root_fd, parent_components, parent_fd, nofollow, directory
+        ):
+            raise ContractError("lock parent binding changed during traversal")
+        try:
+            lock_fd = os.open(
+                lock_name,
+                os.O_RDWR | os.O_CREAT | os.O_EXCL | os.O_NONBLOCK | nofollow,
+                0o600,
+                dir_fd=parent_fd,
+            )
+            os.fchmod(lock_fd, 0o600)
+        except FileExistsError:
+            lock_fd = os.open(
+                lock_name,
+                os.O_RDWR | os.O_NONBLOCK | nofollow,
+                dir_fd=parent_fd,
+            )
+        metadata = os.fstat(lock_fd)
+        identity = _entry_identity(metadata)
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_nlink != 1
+            or stat.S_IMODE(metadata.st_mode) != 0o600
+            or metadata.st_size != 0
+            or not _verify_identity(parent_fd, lock_name, identity)
+        ):
+            raise ContractError("stable lock entry is unsafe")
+        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+        locked = True
+        _test_lock_sync("after-lock-acquired")
+        metadata = os.fstat(lock_fd)
+        if (
+            _entry_identity(metadata) != identity
+            or not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_nlink != 1
+            or stat.S_IMODE(metadata.st_mode) != 0o600
+            or metadata.st_size != 0
+            or not _verify_identity(parent_fd, lock_name, identity)
+            or not _same_directory_from_root(
+                root_fd, parent_components, parent_fd, nofollow, directory
+            )
+        ):
+            raise ContractError("stable lock binding changed before critical section")
+        yield identity
+        _test_lock_sync("before-lock-release")
+        metadata = os.fstat(lock_fd)
+        if (
+            _entry_identity(metadata) != identity
+            or not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_nlink != 1
+            or stat.S_IMODE(metadata.st_mode) != 0o600
+            or metadata.st_size != 0
+            or not _verify_identity(parent_fd, lock_name, identity)
+            or not _same_directory_from_root(
+                root_fd, parent_components, parent_fd, nofollow, directory
+            )
+        ):
+            raise ContractError("stable lock binding changed during critical section")
+    finally:
+        if lock_fd >= 0:
+            try:
+                if locked:
+                    fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                    _test_lock_sync("after-lock-release-before-close")
+            finally:
+                os.close(lock_fd)
+        for fd in reversed(parent_fds):
+            os.close(fd)
+        if root_fd >= 0:
+            os.close(root_fd)
+
+
 # Importing tests may set this callback. No production CLI/env surface exposes it.
 _TEST_SYNC_HOOK: Callable[[str], None] | None = None
 _TEST_READ_SYNC_HOOK: Callable[[str], None] | None = None
+_TEST_LOCK_SYNC_HOOK: Callable[[str], None] | None = None
 
 
 def _test_sync(point: str) -> None:
@@ -1081,6 +1189,11 @@ def _test_sync(point: str) -> None:
 def _test_read_sync(point: str) -> None:
     if _TEST_READ_SYNC_HOOK is not None:
         _TEST_READ_SYNC_HOOK(point)
+
+
+def _test_lock_sync(point: str) -> None:
+    if _TEST_LOCK_SYNC_HOOK is not None:
+        _TEST_LOCK_SYNC_HOOK(point)
 
 
 def _anchored_components(path: Path, project_root: Path | None) -> tuple[Path, list[str]]:
@@ -1829,6 +1942,7 @@ _EXPECTED_CURRENT_UNSET = object()
 def atomic_write_bytes(
     project_root: Path, relative: str, payload: bytes, *, immutable: bool = False,
     expected_current: bytes | None | object = _EXPECTED_CURRENT_UNSET,
+    preserve_mode: bool = False, require_single_link: bool = False,
 ) -> Path:
     """Publish bytes with CTX-03 no-replace/exchange and anchored cleanup."""
     if not is_safe_relative_path(relative):
@@ -1847,6 +1961,16 @@ def atomic_write_bytes(
         parent_fd, parent_fds = _walk_parent(root_fd, parent_components, nofollow, directory)
         _test_sync("after-parent-open")
         original_identity = _inspect_destination(parent_fd, target_name)
+        original_mode: int | None = None
+        if original_identity is not None:
+            original_metadata = os.stat(
+                target_name, dir_fd=parent_fd, follow_symlinks=False
+            )
+            if _entry_identity(original_metadata) != original_identity:
+                raise ContractError("destination identity changed during inspection")
+            if require_single_link and original_metadata.st_nlink != 1:
+                raise ContractError("output target must be a single-link regular file")
+            original_mode = stat.S_IMODE(original_metadata.st_mode)
         _test_sync("after-destination-inspection")
         must_read_existing = original_identity is not None and (
             immutable or expected_current is not _EXPECTED_CURRENT_UNSET
@@ -1898,6 +2022,8 @@ def atomic_write_bytes(
             raise ContractError("could not allocate a unique temporary file")
         if not stat.S_ISREG(os.fstat(temporary_fd).st_mode):
             raise ContractError("temporary output is not a regular file")
+        if preserve_mode and original_mode is not None:
+            os.fchmod(temporary_fd, original_mode)
         temporary_identity = _entry_identity(os.fstat(temporary_fd))
         offset = 0
         while offset < len(payload):
@@ -1918,7 +2044,13 @@ def atomic_write_bytes(
                 primitives.noreplace(parent_fd, temporary_name, parent_fd, target_name)
             except FileExistsError as error:
                 raise ContractError("destination appeared before exclusive publication") from error
-            if not _same_directory_from_root(root_fd, parent_components, parent_fd, nofollow, directory):
+            try:
+                _test_sync("after-publication-before-commit")
+                if not _same_directory_from_root(
+                    root_fd, parent_components, parent_fd, nofollow, directory
+                ):
+                    raise ContractError("output parent binding changed during publication")
+            except BaseException:
                 try:
                     _rollback_absent(
                         primitives, parent_fd, target_name, temporary_name, published_identity,
@@ -1929,11 +2061,34 @@ def atomic_write_bytes(
                     temporary_name = None
                     raise
                 temporary_name = None
-                raise ContractError("output parent binding changed during publication")
+                raise
             os.fsync(parent_fd)
             temporary_name = None
         else:
             primitives.exchange(parent_fd, temporary_name, parent_fd, target_name)
+            try:
+                _test_sync("after-publication-before-commit")
+            except BaseException:
+                # Exchange has already changed the private name from the new
+                # staging inode to the displaced original. Record that fact
+                # before rollback or exception cleanup can inspect the name.
+                temporary_identity = original_identity
+                temporary_expected_payload = (
+                    expected_current if isinstance(expected_current, bytes) else None
+                )
+                try:
+                    _rollback_exchange(
+                        primitives, parent_fd, target_name, temporary_name,
+                        original_identity, published_identity, destination=relative,
+                        original_identity=original_identity,
+                        temporary_artifact=temporary_artifact,
+                        stage="post-publication-sync", nofollow=nofollow,
+                    )
+                except RollbackFailure:
+                    temporary_name = None
+                    raise
+                temporary_name = None
+                raise
             # The exchange changes which inode the private name denotes. From
             # this point onward it is the displaced original, not the staged
             # payload. Track and verify that identity before any cleanup. This

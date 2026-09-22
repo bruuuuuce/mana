@@ -491,7 +491,7 @@ def load_committed_completed_managed_child_receipt(
     run = f".mana/runtime/runs/{execution_id}"
     envelope = _read_private_committed_object(root, f"{run}/execution-envelope-v1.json", "execution envelope")
     state = _read_private_committed_object(root, f"{run}/run-state-v1.json", "run HEAD")
-    runtime.validate_structure("execution-envelope", envelope)
+    runtime.validate_execution_envelope(envelope)
     runtime.validate_structure("run-state", state)
     if (any(envelope[field] != receipt[field] for field in ("executionId", "executionVersion", "workspaceId", "profileId", "provider"))
             or any(state[field] != receipt[field] for field in ("executionId", "executionVersion", "profileId"))

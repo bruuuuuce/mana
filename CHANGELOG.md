@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Added CTX-10 dormant Runtime v2 rollout infrastructure: schema-bound profile
+  policy with legacy default, atomic managed provider blocks, no-links-safe
+  bootstrap refresh, local doctor/inspect visibility, and zero-token adversarial
+  regressions. No profile migration, default flip, PRC release gate, or legacy
+  cleanup is included. PRC-06 remains required before rollout activation;
+  CTX-10 PASS alone authorizes neither a pilot/default flip nor migration, and
+  later profile-by-profile migration still requires the MIG gates.
+
 - Added Analysis Trajectory Guard as an opt-in shadow pilot with host-owned
   Mission/Ledger state, deterministic drift policy, bounded re-anchor
   checkpoints, fail-closed enforcement experiments, a 40-case zero-token

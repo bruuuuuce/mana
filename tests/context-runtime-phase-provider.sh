@@ -9,8 +9,14 @@ framework="$root/tests/fixtures/context-runtime/ctx06a-framework"
 fixture_root="$root/tests/fixtures/context-runtime"
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/mana-context-06c.XXXXXX")"
 tmp="$(cd "$tmp" && pwd -P)"
+export PYTHONDONTWRITEBYTECODE=1
+export PYTHONPYCACHEPREFIX="$tmp/pycache"
 trap 'rm -rf "$tmp"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
+# The R2.2 dispatch cases must not leave even ignored local artifacts behind.
+# Preserve pre-existing user work as the baseline rather than assuming a clean
+# Mana checkout.
+git -C "$root" status --porcelain=v1 --ignored > "$tmp/repository-before.status"
 
 mkdir -p "$tmp/bin"
 cp "$fixture_root/ctx06c-provider-stub.sh" "$tmp/bin/codex"
@@ -23,6 +29,36 @@ make_project() {
   printf '%s\n' 'workspace_type: "session"' 'workspace_id: "ctx06c-fixture"' \
     > "$project/.mana/sessions/ctx06c-fixture/manifest.yaml"
   (cd "$project" && pwd -P)
+}
+
+make_dispatch_project() {
+  local name="$1" project policy
+  project="$tmp/$name/project with spaces"
+  mkdir -p "$project"
+  "$root/scripts/bootstrap-project.sh" --project-root "$project" --mana-root "$root" \
+    --no-links --no-jira-env --no-gitignore >/dev/null
+  policy="$project/.mana/context-runtime/runtime-selection-v1.json"
+  jq -c '.profiles={"mana-help":{"mode":"v2","failClosed":true}}' "$policy" > "$tmp/$name-policy.json"
+  mv "$tmp/$name-policy.json" "$policy"
+  (cd "$project" && pwd -P)
+}
+
+snapshot_project() {
+  local project="$1" destination="$2"
+  python3 "$root/tests/worktree-snapshot-test-only.py" "$project" > "$destination"
+}
+
+run_dispatch() {
+  local project="$1"
+  shift
+  MANA_UPDATE_CHECK=off "$root/scripts/run-profile.sh" mana-help --project-root "$project" "$@"
+}
+
+assert_dispatch_category() {
+  local stderr_path="$1" category="$2"
+  grep -Fq "ERROR: $category:" "$stderr_path" || fail "dispatch did not report $category"
+  [ "$(grep -Ec '^ERROR:' "$stderr_path")" = 1 ] || fail 'dispatch emitted more than one public error'
+  [ "$(wc -l < "$stderr_path" | tr -d ' ')" = 1 ] || fail 'dispatch exposed output beyond its one public error'
 }
 
 initialize() {
@@ -88,7 +124,14 @@ jq -e '.agent.mana_ctx06_phase.permission == {task:"deny",edit:"deny",bash:"deny
 execution='execution-ctx06c-complete'
 project="$(make_project complete)"
 state="$tmp/complete/provider-state"
+mkdir -p "$project/.mana/context-runtime"
+printf '%s\n' '{"schemaVersion":"mana.context-runtime.rollout-policy/v1","defaultMode":"legacy","profiles":{"ctx06c-fixture":{"mode":"v2","failClosed":true}}}' \
+  > "$project/.mana/context-runtime/runtime-selection-v1.json"
 initialize "$project" "$execution"
+workspace_id="$(jq -r .workspaceId "$project/.mana/runtime/runs/$execution/execution-envelope-v1.json")"
+python3 "$root/scripts/context-runtime-rollout.py" materialize-decision \
+  --project-root "$project" --profile ctx06c-fixture --execution-id "$execution" \
+  --execution-version 1 --workspace-id "$workspace_id" >/dev/null || fail 'external rollout selection did not commit'
 run_fixture "$project" "$execution" "$state" complete > "$tmp/complete-result.json" || fail 'complete phase run failed'
 jq -e '.status=="completed" and .providerInvocations==2 and .revision==2 and (.transitionId|test("^T-[a-f0-9]{64}$"))' \
   "$tmp/complete-result.json" >/dev/null || fail 'complete phase result is incorrect'
@@ -236,9 +279,167 @@ jq -e '.revision==0 and .status=="active"' "$limited_project/.mana/runtime/runs/
 legacy_project="$(make_project legacy)"
 MANA_UPDATE_CHECK=off "$root/scripts/run-profile.sh" mana-help --project-root "$legacy_project" --render-only > "$tmp/legacy-default.out" 2> "$tmp/legacy-default.err" || fail 'default legacy renderer failed'
 grep -Fq 'Profile: mana-help' "$tmp/legacy-default.out" || fail 'default no longer uses the legacy renderer'
-if MANA_UPDATE_CHECK=off "$root/scripts/run-profile.sh" mana-help --project-root "$legacy_project" --codex --context-runtime v2 > "$tmp/v2-no-run.out" 2> "$tmp/v2-no-run.err"; then
-  fail 'v2 selection without an initialized execution fell back to legacy'
+
+# CTX-10-R2.2: A is the actual missing-run boundary. The rollout policy is
+# valid and v2-opted-in, and exactly one valid provider runner is selected;
+# only the initialized CTX-06 identity is absent. Check the stable category
+# before the bounded human context, and prove no provider or runtime artifact
+# can be created before this host-owned rejection.
+missing_run_project="$(make_dispatch_project missing-run)"
+snapshot_project "$missing_run_project" "$tmp/missing-run-before"
+if PATH="$tmp/bin:$PATH" CTX06C_FIXTURE_ROOT="$fixture_root" CTX06C_STATE_DIR="$tmp/missing-run-provider-state" \
+  CTX06C_SCENARIO=complete run_dispatch "$missing_run_project" --codex --context-runtime v2 \
+  > "$tmp/missing-run.out" 2> "$tmp/missing-run.err"; then
+  fail 'v2 missing run with a valid runner succeeded'
+else
+  missing_run_status=$?
 fi
-grep -Fq 'context runtime v2 requires --runtime-execution-id' "$tmp/v2-no-run.err" || fail 'v2 missing-run error is not explicit'
+[ "$missing_run_status" = 2 ] || fail "v2 missing run returned $missing_run_status instead of 2"
+assert_dispatch_category "$tmp/missing-run.err" CTX10_EXECUTION_IDENTITY_REQUIRED
+grep -Fq 'initialized CTX-06 execution identity' "$tmp/missing-run.err" || fail 'v2 missing run omitted bounded human context'
+[ ! -s "$tmp/missing-run.out" ] || fail 'v2 missing run wrote a success or provider result to stdout'
+[ ! -e "$tmp/missing-run-provider-state/count" ] || fail 'v2 missing run reached the provider stub'
+! grep -Fq 'Profile: mana-help' "$tmp/missing-run.out" "$tmp/missing-run.err" || fail 'v2 missing run fell back to legacy'
+! grep -Fq "$missing_run_project" "$tmp/missing-run.err" || fail 'v2 missing run exposed a project path'
+! find "$missing_run_project/.mana" -path '*/runtime/*' -print -quit | grep -q . || fail 'v2 missing run created a runtime artifact'
+snapshot_project "$missing_run_project" "$tmp/missing-run-after"
+cmp -s "$tmp/missing-run-before" "$tmp/missing-run-after" || fail 'v2 missing run mutated its project fixture'
+
+# B/C exercise the same public dispatch seam after its authoritative reader
+# has admitted a canonical CTX-06 identity. The real CTX-06 lifecycle remains
+# covered by the fresh phase cases above; this narrow reader fixture prevents a
+# provider binary from becoming a second missing precondition.
+reader_bin="$tmp/ctx10-reader-bin"
+mkdir -p "$reader_bin"
+cp "$fixture_root/ctx10-execution-identity-python-stub.sh" "$reader_bin/python3"
+chmod 700 "$reader_bin/python3"
+real_python="$(command -v python3)"
+
+# B: an admitted run with no selected runner is categorically distinct from A.
+runner_missing_project="$(make_dispatch_project runner-missing)"
+if PATH="$reader_bin:/usr/bin:/bin" CTX10_EXECUTION_IDENTITY_TOOL="$root/scripts/context-runtime-rollout.py" \
+  CTX10_REAL_PYTHON="$real_python" run_dispatch "$runner_missing_project" \
+  --runtime-execution-id execution-ctx10-fixture --context-runtime v2 \
+  > "$tmp/runner-missing.out" 2> "$tmp/runner-missing.err"; then
+  fail 'v2 admitted run without a provider runner succeeded'
+else
+  runner_missing_status=$?
+fi
+[ "$runner_missing_status" = 2 ] || fail "v2 missing runner returned $runner_missing_status instead of 2"
+assert_dispatch_category "$tmp/runner-missing.err" CTX10_PROVIDER_RUNNER_SELECTION_REQUIRED
+[ ! -s "$tmp/runner-missing.out" ] || fail 'v2 missing runner wrote stdout'
+
+# C: more than one runner is rejected at the same stable selection boundary.
+runner_multiple_project="$(make_dispatch_project runner-multiple)"
+if PATH="$reader_bin:/usr/bin:/bin" CTX10_EXECUTION_IDENTITY_TOOL="$root/scripts/context-runtime-rollout.py" \
+  CTX10_REAL_PYTHON="$real_python" run_dispatch "$runner_multiple_project" --claude \
+  --runtime-execution-id execution-ctx10-fixture --codex --context-runtime v2 \
+  > "$tmp/runner-multiple.out" 2> "$tmp/runner-multiple.err"; then
+  fail 'v2 admitted run with multiple provider runners succeeded'
+else
+  runner_multiple_status=$?
+fi
+[ "$runner_multiple_status" = 2 ] || fail "v2 multiple runners returned $runner_multiple_status instead of 2"
+assert_dispatch_category "$tmp/runner-multiple.err" CTX10_PROVIDER_RUNNER_SELECTION_REQUIRED
+[ ! -s "$tmp/runner-multiple.out" ] || fail 'v2 multiple runners wrote stdout'
+
+# D is intentionally separate from A: when both values are absent, R2.1's
+# contract says the missing CTX-06 identity wins deterministically.
+both_missing_project="$(make_dispatch_project both-missing)"
+if run_dispatch "$both_missing_project" --context-runtime v2 \
+  > "$tmp/both-missing.out" 2> "$tmp/both-missing.err"; then
+  fail 'v2 missing run and runner succeeded'
+else
+  both_missing_status=$?
+fi
+[ "$both_missing_status" = 2 ] || fail "v2 missing run and runner returned $both_missing_status instead of 2"
+assert_dispatch_category "$tmp/both-missing.err" CTX10_EXECUTION_IDENTITY_REQUIRED
+[ ! -s "$tmp/both-missing.out" ] || fail 'v2 missing run and runner wrote stdout'
+
+# E: a syntactically valid, explicitly supplied identity that has no CTX-06
+# run is categorically distinct from an omitted identity.  Invoke from an
+# unrelated cwd that already contains a homonymous .mana tree and prove the
+# authorized project root is the only lookup target and neither tree changes.
+missing_initialized_project="$(make_dispatch_project missing-initialized)"
+missing_initialized_execution='execution-valid-looking-but-absent'
+outside_cwd="$tmp/external cwd"
+mkdir -p "$outside_cwd/.mana/runtime/runs/$missing_initialized_execution"
+printf '%s\n' 'outside-sentinel' > "$outside_cwd/.mana/runtime/runs/$missing_initialized_execution/sentinel.txt"
+snapshot_project "$missing_initialized_project" "$tmp/missing-initialized-before"
+snapshot_project "$outside_cwd" "$tmp/outside-cwd-before"
+if (cd "$outside_cwd" && PATH="$tmp/bin:$PATH" \
+    CTX06C_FIXTURE_ROOT="$fixture_root" CTX06C_STATE_DIR="$tmp/missing-initialized-provider-state" \
+    CTX06C_SCENARIO=complete run_dispatch "$missing_initialized_project" \
+      --runtime-execution-id "$missing_initialized_execution" --codex --context-runtime v2 \
+      > "$tmp/missing-initialized.out" 2> "$tmp/missing-initialized.err"); then
+  fail 'v2 valid-looking nonexistent run succeeded'
+else
+  missing_initialized_status=$?
+fi
+[ "$missing_initialized_status" = 2 ] || fail "v2 nonexistent run returned $missing_initialized_status instead of 2"
+assert_dispatch_category "$tmp/missing-initialized.err" CTX10_EXECUTION_NOT_INITIALIZED
+grep -Fq 'initialized CTX-06 execution identity' "$tmp/missing-initialized.err" || fail 'nonexistent run omitted bounded human context'
+[ ! -s "$tmp/missing-initialized.out" ] || fail 'nonexistent run wrote stdout'
+! grep -Eq 'Traceback|FileNotFoundError|scripts/|\.py", line|/' "$tmp/missing-initialized.err" || fail 'nonexistent run leaked a stack or absolute path'
+[ ! -e "$tmp/missing-initialized-provider-state/count" ] || fail 'nonexistent run reached the provider'
+[ ! -e "$missing_initialized_project/.mana/runtime/runs/$missing_initialized_execution" ] || fail 'nonexistent run created its run directory'
+! find "$missing_initialized_project" -name '.provider-phase.lock' -print -quit | grep -q . || fail 'nonexistent run created a provider-phase lock'
+! grep -Fq 'Profile: mana-help' "$tmp/missing-initialized.out" "$tmp/missing-initialized.err" || fail 'nonexistent run fell back to legacy'
+snapshot_project "$missing_initialized_project" "$tmp/missing-initialized-after"
+snapshot_project "$outside_cwd" "$tmp/outside-cwd-after"
+cmp -s "$tmp/missing-initialized-before" "$tmp/missing-initialized-after" || fail 'nonexistent run mutated the authorized project fixture'
+cmp -s "$tmp/outside-cwd-before" "$tmp/outside-cwd-after" || fail 'nonexistent run mutated the external cwd'
+
+# The direct v2 entry point enforces the same read-only gate before its
+# with-run-lock bootstrap, so bypassing run-profile.sh cannot create the lock.
+direct_missing_project="$(make_project direct-missing-initialized)"
+snapshot_project "$direct_missing_project" "$tmp/direct-missing-before"
+if (cd "$outside_cwd" && run_fixture "$direct_missing_project" \
+    "$missing_initialized_execution" "$tmp/direct-missing-provider-state" complete \
+    > "$tmp/direct-missing.out" 2> "$tmp/direct-missing.err"); then
+  fail 'direct v2 runner accepted a nonexistent run'
+else
+  direct_missing_status=$?
+fi
+[ "$direct_missing_status" = 2 ] || fail "direct nonexistent run returned $direct_missing_status instead of 2"
+assert_dispatch_category "$tmp/direct-missing.err" CTX10_EXECUTION_NOT_INITIALIZED
+[ ! -s "$tmp/direct-missing.out" ] || fail 'direct nonexistent run wrote stdout'
+[ ! -e "$direct_missing_project/.mana/runtime/runs/$missing_initialized_execution" ] || fail 'direct nonexistent run created its run directory'
+! find "$direct_missing_project" -name '.provider-phase.lock' -print -quit | grep -q . || fail 'direct nonexistent run created a provider-phase lock'
+[ ! -e "$tmp/direct-missing-provider-state/count" ] || fail 'direct nonexistent run reached the provider'
+snapshot_project "$direct_missing_project" "$tmp/direct-missing-after"
+cmp -s "$tmp/direct-missing-before" "$tmp/direct-missing-after" || fail 'direct nonexistent run mutated its project fixture'
+
+# A coherent v2 -> shadow rewrite of the decision JSON must not authenticate
+# itself.  The external bundle-manifest plus parent HEAD commitment rejects it
+# before shadow or any provider is selected, and the public category stays stable.
+tamper_project="$(make_dispatch_project decision-tamper)"
+tamper_execution='execution-ctx10-fixture'
+tamper_workspace="W-$(printf 'a%.0s' {1..64})"
+python3 "$root/scripts/context-runtime-rollout.py" materialize-decision \
+  --project-root "$tamper_project" --profile mana-help \
+  --execution-id "$tamper_execution" --execution-version 1 \
+  --workspace-id "$tamper_workspace" >/dev/null
+tamper_decision="$(find "$tamper_project/.mana/context-runtime/decisions" -name decision-v1.json -type f -print -quit)"
+jq -cS '.configuredMode="shadow" | .effectiveMode="shadow"' "$tamper_decision" > "$tmp/tampered-decision.json"
+mv "$tmp/tampered-decision.json" "$tamper_decision"
+if PATH="$reader_bin:/usr/bin:/bin" CTX10_EXECUTION_IDENTITY_TOOL="$root/scripts/context-runtime-rollout.py" \
+  CTX10_REAL_PYTHON="$real_python" CTX06C_STATE_DIR="$tmp/tamper-provider-state" \
+  run_dispatch "$tamper_project" --runtime-execution-id "$tamper_execution" \
+    --codex --context-runtime v2 > "$tmp/tamper.out" 2> "$tmp/tamper.err"; then
+  fail 'coherently tampered v2-to-shadow decision succeeded'
+else
+  tamper_status=$?
+fi
+[ "$tamper_status" = 2 ] || fail "tampered decision returned $tamper_status instead of 2"
+assert_dispatch_category "$tmp/tamper.err" CTX10_DECISION_AUTHORITY_REJECTED
+[ ! -s "$tmp/tamper.out" ] || fail 'tampered decision wrote stdout'
+[ ! -e "$tmp/tamper-provider-state/count" ] || fail 'tampered decision reached a provider'
+! grep -Fq 'shadow' "$tmp/tamper.out" || fail 'tampered decision selected shadow'
+
+# The complete fresh run above is the nominal valid-run plus valid-runner
+# control: it still executes two provider phases through run-profile-v2.sh.
+git -C "$root" status --porcelain=v1 --ignored > "$tmp/repository-after.status"
+cmp -s "$tmp/repository-before.status" "$tmp/repository-after.status" || fail 'CTX-10-R2.2 dispatch cases mutated the Mana repository'
 
 echo 'Context Runtime CTX-06C provider phase integration tests passed (fresh, capability-gated, privacy-preserving, zero-token)'

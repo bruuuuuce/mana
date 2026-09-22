@@ -461,6 +461,18 @@ agent installation, provider dispatch, output, and artifact behavior. A v2
 request with a missing run or capability gap never silently falls back to the
 legacy single-session runtime.
 
+### CTX-10-R2.1 v2 dispatch validation precedence
+
+Before provider dispatch, a resolved `v2` selection validates its public
+preconditions in this fixed order: (1) an initialized, authoritative CTX-06
+execution identity, then (2) exactly one provider runner flag. Missing identity
+emits the bounded `CTX10_EXECUTION_IDENTITY_REQUIRED` category; otherwise a
+missing or conflicting runner selection emits
+`CTX10_PROVIDER_RUNNER_SELECTION_REQUIRED`. This ordering is host-owned and
+independent of provider argument order. It exposes no path, provider
+configuration, or payload data. Other v2 admission checks retain their
+existing order after these two prerequisites.
+
 ## CTX-09A host mode plumbing
 
 The public modes are exactly `legacy`, `shadow`, `v2`, and `compare`.
@@ -1032,3 +1044,110 @@ operational read/escape/write/network/service canaries. Fixed import-only test
 fixtures use this same enforced kernel boundary and real process supervision;
 nested native denial cannot select a weaker launcher. See the
 [R2A contract](../standards/context-runtime-contract.md#ctx-09c-r2a-committed-comparison-projection-and-read-isolation).
+
+## CTX-10 dormant rollout infrastructure
+
+CTX-10 provides local host-owned rollout plumbing, not a runtime promotion.
+`.mana/context-runtime/runtime-selection-v1.json` is schema-bound and fixes the
+global default to `legacy`. A profile may explicitly select `legacy`, `shadow`,
+`v2`, or `compare`; `inherited` resolves to legacy. Environment, prompts,
+tasks, checkpoints, and provider output cannot change the materialized choice.
+Bootstrap installs versioned managed sections only. Their publication reuses
+the CTX-03 writer and one persistent, inode-stable host lock; the lock entry is
+not unlinked after release. CTX-10 does not migrate a profile, make v2
+release-ready, or remove the legacy compatibility path.
+
+CTX-10-R2.5 selects **B: a pre-runtime execution intent**. Its trust root is a
+host-owned immutable record below `.mana/runtime/execution-intents`, outside
+the CTX-10 closure. It commits execution/version, workspace, profile, local
+project-root binding, target, and the policy bytes read before authoritative
+runtime selection. A versioned CTX-06 envelope refers to the exact intent
+bytes and file instance and re-attests them on every run read. An existing
+CTX-06 run with only the v1 envelope does not prove an old rollout choice.
+
+The authority graph is: committed execution intent → external no-replace
+rollout-decision commitment (`SELECTION`) → exact CTX-10 HEAD and commit →
+bundle manifest → policy snapshot, decision and receipt. The external
+commitment fixes identity, policy and mode, bundle ID/path/digest, HEAD and
+manifest bytes and file instances, target and previous-reference state. CTX-10
+HEAD, its seal, and all of its children remain subordinate. Publication of a
+complete CTX-10 bundle or HEAD alone never selects a runtime. The commit point
+is the no-replace publication of `SELECTION`; only then may dispatch use the
+effective mode. The stable lock serializes materializers. A loser re-reads the
+winner; conflicting or ambiguous candidates fail closed. Before the external
+commit, recovery uses frozen intent policy and may adopt only a fully validated
+single candidate; after it, retry returns the same decision. Owned staging is
+removed during reconciliation.
+
+The production resolver requires execution identity and starts at the
+host-derived intent path. It validates the intent and external commitment
+before reading the referenced CTX-10 HEAD, bundle and children. It checks
+schema, canonical bytes, identity/path/digest/file-instance bindings, then
+recomputes the decision from the committed snapshot and frozen intent policy.
+Any mismatch is `CTX10_DECISION_AUTHORITY_REJECTED`. `candidate` is a read-only
+policy preview for precondition ordering; it is not dispatch authority. A
+source-policy edit cannot change a committed execution; a new execution reads
+the new policy and may choose a different mode. Old CTX-10-only decisions are
+never silently promoted; the new resolver rejects them and requires a new
+execution, whether the old run was completed, active or interrupted. Existing
+CTX-06 records remain valid for their own CTX-06 operations.
+
+The local threat model trusts the Mana host process, this external committed
+intent/selection authority, and accepted CTX-03/CTX-06 primitives. It treats
+model/provider output, task/checkpoint data, caller overrides, and every
+CTX-10 snapshot, decision, receipt, manifest, HEAD, seal, stale or copied file
+as untrusted. In scope are coherent rewrites with recalculated local digests,
+same-byte replacement on a new inode, foreign replay, crashes, races, CAS and
+reconciliation. An adversarial same-UID process able to rewrite the external
+trust root coherently, or a compromised host/OS, is outside this local model.
+No cryptographic integrity or same-UID tamper resistance is claimed.
+
+The CTX-06 existence and authority lookup is read-only and precedes provider
+phase lock creation. An omitted identity reports
+`CTX10_EXECUTION_IDENTITY_REQUIRED`; a syntactically valid supplied identity
+without an initialized run reports `CTX10_EXECUTION_NOT_INITIALIZED`. Both use
+exit 2, empty stdout and one bounded stderr error. Invalid, foreign or mismatched
+run authority is normalized separately as `CTX10_EXECUTION_AUTHORITY_REJECTED`.
+Only after an existing run is admitted does v2 require exactly one runner under
+`CTX10_PROVIDER_RUNNER_SELECTION_REQUIRED`.
+
+### Compatibility window and diagnostic boundary
+
+CTX-10 does **not** flip the global default. If a later, separately approved
+default flip occurs, legacy will remain supported for at least one compatibility
+release. Explicit `legacy` selection and profile-by-profile rollback will remain
+available throughout that window. Removing legacy requires a later explicit
+gate; it is not implied by a capability report, a managed block, a v2 profile,
+or the future default flip.
+
+PRC-06 remains required before rollout activation. CTX-10 provides only dormant
+infrastructure and its PASS does not authorize a pilot, rollout, default flip,
+or migration. Rollout remains disabled by default, and the MIG gates remain
+required for each profile-by-profile migration after PRC-06 passes.
+
+`mana doctor` is an observer: it does not initialize `.mana`, create a feature
+directory, repair bootstrap, update provider configuration, materialize runtime
+state, or generate an evidence index. A missing artifact is reported as
+missing/unavailable rather than prepared. Doctor reports the configured,
+inherited and effective runtime independently for each considered profile,
+including bounded capability gaps, bootstrap state and deterministic migration
+warnings. Those warnings do not alter a profile or declare a migration done.
+
+`mana inspect runtime` validates a supplied run state through the available
+authoritative CTX-03/06/07/08/09 readers before calling it `current`: exact
+schema, execution/profile identity, declared phase/state consistency, envelope
+and workspace bindings, canonical immutable bytes, transition digest/commitment
+chain, and parent re-attestation are checked. A parsed but incomplete state is
+`partial`; wrong identity is `foreign`; failed chain/policy freshness is
+`stale`; malformed data is `invalid`; absent optional artifacts are
+`unavailable`. The view exposes only bounded metadata for phase/checkpoint,
+usage/budget, delegation, receipt and comparison surfaces. It never emits raw
+evidence, exact outcomes, traces, stderr, prompts, responses, credentials or
+raw provider configuration. If the authoritative reader or its inputs are not
+available, inspect reports a non-current diagnostic rather than reconstructing
+authority.
+
+CTX-10-R2 resolves producer receipts and comparison reports only through the
+canonical CTX-09 namespaces (`.mana/runtime/producers` and
+`.mana/runtime/comparisons`) and their authoritative readers. A receipt missing
+its commit, artifact, digest, file-instance or path binding is never current.

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -u
+# Doctor is an observer.  Child Python processes must not create bytecode in a
+# diagnosed project even when a host Python has its normal cache policy.
+export PYTHONDONTWRITEBYTECODE=1
+export PYTHONPYCACHEPREFIX="${TMPDIR:-/tmp}/mana-doctor-pycache"
 
 usage() {
   cat <<'USAGE'
@@ -22,13 +26,10 @@ Checks:
   - Required profiles, including jessica-fletcher and mana-help.
   - Shared agent/skill output standard, story trace standard, and developer choice log standard.
   - No legacy naming references in writable Mana files.
-  - Workspace initialization in a temporary project.
-  - Linked project wrapper when --project is provided.
-  - Jira MCP Docker wrapper dry-run.
-  - Sonar scanner wrapper and local config initialization.
+  - Linked-project artifact availability when --project is provided.
   - Mana update-check script and no-fetch execution.
   - Optional User Context configuration, source health, and materialization freshness.
-  - Disposable-workspace bounded-repair containment and host import readiness.
+  - Read-only CTX-10 policy, bootstrap, provider and capability diagnostics.
 USAGE
 }
 
@@ -157,16 +158,7 @@ check_external_tools() {
     else
       warn "sonar-scanner is installed but did not run; check Java version and scanner installation"
     fi
-    sonar_project="${project:-$root}"
-    if has_sonar_credentials_in_env; then
-      if "$root/scripts/run-sonar-scanner.sh" --project-root "$sonar_project" --check >/dev/null 2>&1; then
-        pass "Sonar scanner configuration and server authentication check passed"
-      else
-        warn "Sonar env is present but scanner/config/server authentication check failed"
-      fi
-    else
-      warn "Sonar env not configured; set SONAR_HOST_URL and SONAR_TOKEN to enable Sonar evidence checks"
-    fi
+    warn "Sonar server/authentication probe skipped: mana doctor is local-only"
   fi
 
   if check_optional_tool docker "Jira MCP container runner"; then
@@ -178,11 +170,7 @@ check_external_tools() {
   fi
 
   if check_optional_tool gh "GitHub PR discovery and requested-review workflows"; then
-    if gh auth status >/dev/null 2>&1; then
-      pass "gh authenticated"
-    else
-      warn "gh installed but not authenticated; requested-pr-review cannot read GitHub PRs through gh"
-    fi
+    pass "gh command available (authentication is not probed by local-only doctor)"
   fi
 
   if check_optional_tool codex "Codex profile runner"; then
@@ -202,17 +190,9 @@ check_external_tools() {
   fi
 
   if has_jira_credentials_in_env; then
-    if "$root/scripts/run-jira-mcp-docker.sh" --check-access >/dev/null 2>&1; then
-      pass "Jira credentials from environment authenticated"
-    else
-      warn "Jira credentials are present in environment but access check failed"
-    fi
+    pass "Jira credential presence detected (authentication is not probed by local-only doctor)"
   elif [ -n "$project" ] && [ -f "$project/.mana/jira-mcp.env" ]; then
-    if "$root/scripts/run-jira-mcp-docker.sh" --env-file "$project/.mana/jira-mcp.env" --check-access >/dev/null 2>&1; then
-      pass "project Jira credentials authenticated"
-    else
-      warn "project Jira credentials are present but access check failed"
-    fi
+    pass "project Jira env file detected (contents and authentication are not inspected)"
   else
     warn "Jira credentials not configured; Jira story access will be unavailable until JIRA_URL and credentials are set"
   fi
@@ -225,22 +205,13 @@ if [ -n "$project" ]; then echo "Project: $project"; fi
 check_external_tools
 
 echo "Repair containment"
-echo "backend: disposable-workspace"
-echo "capability: faulty-contained"
-echo "live-repo provider mutation: prevented by staging/import"
-echo "live repository provider access: no (normal bounded-repair path)"
-echo "host patch import: available"
+echo "backend: unavailable (doctor does not materialize a repair workspace)"
+echo "capability: unavailable"
+echo "host patch import: unavailable"
 echo "process isolation: unavailable"
 echo "host filesystem isolation: unavailable"
 echo "network isolation: unavailable"
 echo "adversarial containment: unavailable"
-containment_tmp="$(mktemp -d "${TMPDIR:-/tmp}/mana-doctor-repair-containment.XXXXXX" 2>/dev/null || true)"
-if [ -n "$containment_tmp" ] && printf 'baseline\n' > "$containment_tmp/live" && cp "$containment_tmp/live" "$containment_tmp/candidate" && printf 'candidate\n' > "$containment_tmp/candidate" && cp "$containment_tmp/candidate" "$containment_tmp/import" && mv -f "$containment_tmp/import" "$containment_tmp/live" && [ "$(cat "$containment_tmp/live")" = candidate ]; then
-  pass "repair containment staging and host atomic import available"
-else
-  error "repair containment staging or host atomic import unavailable"
-fi
-if [ -n "$containment_tmp" ]; then rm -f "$containment_tmp/live" "$containment_tmp/candidate" "$containment_tmp/import"; rmdir "$containment_tmp" 2>/dev/null || true; fi
 
 user_context_project="${project:-$root}"
 mana_user_context_status "$user_context_project"
@@ -258,6 +229,24 @@ elif [ "$MANA_UC_FRESHNESS" != current ]; then
   warn "User Context materialization is $MANA_UC_FRESHNESS; run: ./mana context refresh"
 else
   pass "User Context is configured, usable, and current (${MANA_UC_FILE_COUNT} files)"
+fi
+
+echo "Context runtime rollout (CTX-10 local-only):"
+rollout_project="${project:-$root}"
+if rollout_status="$(python3 "$root/scripts/context-runtime-rollout.py" status --project-root "$rollout_project" 2>/dev/null)"; then
+  rollout_summary="$(printf '%s' "$rollout_status" | jq -r '
+    "legacy=" + (.legacyAvailable|tostring) + " v2=" + (.v2Available|tostring) + " policy=" + .policy + " no-links=" + (.noLinks|tostring) + " budgets=" + .budget,
+    (.providers|to_entries|sort_by(.key)[]|"provider " + .key + " installed=" + (.value.installed|tostring) + " block=" + .value.managedBlock),
+    (.profileDiagnostics[]|"profile " + .profileId + " configured=" + .configuredSelection + " inherited=" + (.inheritedDefault|tostring) + " effective=" + .effectiveRuntime + " readiness=" + .readiness + " bootstrap=" + .bootstrapState + " gaps=" + (if (.blockingCapabilityGaps|length)==0 then "none" else (.blockingCapabilityGaps|join(",")) end), (.migrationWarnings[]|"warning " + .code + " severity=" + .severity + " profile=" + .profileId + " runtime=" + .currentRuntime + " reason=" + .reason + " action=" + .recommendedNextAction))
+  ')" || rollout_summary=""
+  [ -n "$rollout_summary" ] && printf '%s\n' "$rollout_summary"
+  if printf '%s' "$rollout_status" | python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin)["policy"] == "current" else 1)'; then
+    pass "CTX-10 host-owned runtime policy is available"
+  else
+    warn "CTX-10 host-owned runtime policy is unavailable or invalid; legacy remains the safe default"
+  fi
+else
+  warn "CTX-10 local diagnostics unavailable; no provider or network probe was attempted"
 fi
 
 for dir in docs skills agents profiles mcp templates scripts hooks templates/mana-workspace .codex .junie .claude; do
@@ -325,51 +314,12 @@ else
   pass "no legacy naming references"
 fi
 
-tmp="${TMPDIR:-/tmp}/mana-doctor-$$"
-rm -rf "$tmp"
-mkdir -p "$tmp"
-if "$root/scripts/mana-workspace.sh" init --root "$tmp" --feature MANA-DOCTOR >/dev/null; then
-  if [ -f "$tmp/.mana/active-workspace" ] && [ -f "$tmp/.mana/features/MANA-DOCTOR/manifest.yaml" ] && [ -f "$tmp/.mana/features/MANA-DOCTOR/agent-memory/story-trace.md" ] && [ -f "$tmp/.mana/features/MANA-DOCTOR/decisions/developer-choice-log.md" ] && [ -f "$tmp/.mana/global/hooks-config.yaml" ]; then
-    pass "temporary Mana workspace initialization"
-  else
-    error "temporary Mana workspace missing expected files"
-  fi
-else
-  error "temporary Mana workspace initialization failed"
-fi
-rm -rf "$tmp"
-
-if "$root/scripts/run-jira-mcp-docker.sh" --env-file "$root/mcp/env/jira-mcp.env.example" --dry-run >/dev/null; then
-  pass "Jira MCP wrapper dry-run"
-else
-  error "Jira MCP wrapper dry-run failed"
-fi
-
-sonar_tmp="${TMPDIR:-/tmp}/mana-doctor-sonar-$$"
-rm -rf "$sonar_tmp"
-mkdir -p "$sonar_tmp"
-if "$root/scripts/run-sonar-scanner.sh" --project-root "$sonar_tmp" --init-config >/dev/null 2>&1; then
-  if [ -f "$sonar_tmp/.mana/global/sonar-project.properties" ]; then
-    pass "Sonar config initialization"
-  else
-    error "Sonar config initialization missing expected file"
-  fi
-else
-  error "Sonar config initialization failed"
-fi
-rm -rf "$sonar_tmp"
-
-evidence_tmp="${TMPDIR:-/tmp}/mana-doctor-evidence-$$"
-rm -rf "$evidence_tmp"
-mkdir -p "$evidence_tmp/src"
-if "$root/scripts/mana-workspace.sh" init --root "$evidence_tmp" --feature MANA-EVIDENCE >/dev/null &&
-  "$root/scripts/run-dependency-evidence.sh" --project-root "$evidence_tmp" --collect >/dev/null &&
-  "$root/scripts/run-evidence-index.sh" --project-root "$evidence_tmp" >/dev/null; then
-  pass "dependency evidence and evidence index initialization"
-else
-  error "dependency evidence or evidence index initialization failed"
-fi
-rm -rf "$evidence_tmp"
+echo "Publication-sensitive diagnostics"
+echo "workspace initialization: unavailable (doctor is read-only)"
+echo "Sonar config initialization: unavailable (doctor is read-only)"
+echo "Jira wrapper execution: unavailable (doctor does not start containers)"
+echo "dependency evidence collection: unavailable (doctor does not collect evidence)"
+echo "evidence-index production: unavailable (doctor does not publish an index)"
 
 if [ -n "$project" ]; then
   if [ -x "$project/mana" ]; then pass "project wrapper exists: mana"; else warn "project wrapper missing: mana"; fi
@@ -402,15 +352,10 @@ if [ -n "$project" ]; then
   else
     warn "project branch could not be resolved"
   fi
-  if [ -x "$project/mana" ] && "$project/mana" dependency-evidence --check >/dev/null 2>&1; then
-    pass "project dependency evidence candidates found"
-  elif [ -x "$project/mana" ]; then
-    warn "project dependency evidence candidates not found"
-  fi
-  if [ -x "$project/mana" ] && "$project/mana" evidence-index >/dev/null 2>&1; then
-    pass "project evidence index can be generated"
-  elif [ -x "$project/mana" ]; then
-    warn "project evidence index generation failed"
+  if [ -f "$project/.mana/evidence/index.md" ] && [ ! -L "$project/.mana/evidence/index.md" ]; then
+    pass "project evidence index is already materialized (contents not inspected)"
+  else
+    warn "project evidence index is unavailable/not-materialized; doctor will not generate it"
   fi
   if [ -x "$project/mana" ] && "$project/mana" profile mana-help >/dev/null; then
     pass "project wrapper can load mana-help"

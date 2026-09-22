@@ -2,15 +2,17 @@
 # Deterministic, local, read-only Mana inspect v1.
 set -u
 invalid=2 unsupported=3 malformed=4 internal=5
-root="$(pwd)"; command=""; target=""; json=false
+mana_root="$(cd "$(dirname "$0")/.." && pwd -P)"
+root="$(pwd)"; command=""; target=""; json=false; runtime_profile="default"; runtime_execution=""
 usage() { cat <<'USAGE'
-Usage: mana inspect <project|artifacts> --json
+Usage: mana inspect <project|artifacts|runtime> --json
        mana inspect artifact <artifact-id-or-.mana/path> --json
        mana inspect source <project-relative-source-path> --json
        mana inspect work-items --json
        mana inspect work-item <feature:<workspace-id>|session:<workspace-id>> --json
        mana inspect project-context --json
        mana inspect activity --json
+       mana inspect runtime [--profile <profile>] [--execution <execution-id>] --json
 Exit codes: 0 success; 2 invalid input; 3 unsupported contract; 4 malformed workspace; 5 internal failure.
 USAGE
 }
@@ -22,7 +24,9 @@ while [ "$#" -gt 0 ]; do
     --project-root) root="${2:-}"; [ -n "$root" ] || fail "--project-root requires a path"; shift 2 ;;
     --json) json=true; shift ;;
     --help|-h|help) usage; exit 0 ;;
-    project|artifacts|work-items|project-context|activity) [ -z "$command" ] || fail "only one operation is allowed"; command="$1"; shift ;;
+    project|artifacts|work-items|project-context|activity|runtime) [ -z "$command" ] || fail "only one operation is allowed"; command="$1"; shift ;;
+    --profile) runtime_profile="${2:-}"; [ -n "$runtime_profile" ] || fail "--profile requires a profile"; shift 2 ;;
+    --execution) runtime_execution="${2:-}"; [ -n "$runtime_execution" ] || fail "--execution requires an execution identity"; shift 2 ;;
     artifact|source|work-item) [ -z "$command" ] || fail "only one operation is allowed"; command="$1"; target="${2:-}"; [ -n "$target" ] || fail "$command requires a target"; shift 2 ;;
     *) fail "unknown inspect argument: $1" ;;
   esac
@@ -434,6 +438,10 @@ elif [ "$command" = project-context ]; then
   context_response
 elif [ "$command" = activity ]; then
   activity_response
+elif [ "$command" = runtime ]; then
+  runtime_args=(inspect --project-root "$root" --profile "$runtime_profile")
+  [ -z "$runtime_execution" ] || runtime_args+=(--execution "$runtime_execution")
+  python3 "$mana_root/scripts/context-runtime-rollout.py" "${runtime_args[@]}" || exit "$malformed"
 else
   source_detail
 fi

@@ -248,3 +248,10 @@ captures real stub invocation argv for Claude supported/unknown/unsupported
 and verifies conservative Codex/OpenCode plans. Custom prompt, scope and tool
 retention controls remain omitted when unknown, unsupported or lacking an
 exact host adapter. Fresh invocation remains the correctness boundary.
+
+## CTX-10 rollout boundary
+
+Capability reports remain CTX-02 evidence, not rollout authority. CTX-10 may
+report local availability to doctor but never promotes a profile from a report
+and never treats `unknown` as supported. Selected v2 profiles still pass the
+unchanged CTX-06/07 fail-closed gates before invocation.

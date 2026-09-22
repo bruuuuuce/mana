@@ -116,6 +116,31 @@ done
 
 pipeline="$root/scripts/mana-context-pipeline.sh"
 phase_helper="$root/scripts/lib/context-phase-runtime.py"
+# CTX-10-R2.3 requires the authoritative CTX-06 lookup to complete before the
+# provider-phase mutex is created or acquired.  This lookup is read-only and
+# emits one normalized public error for missing/foreign/invalid run authority.
+execution_identity_args=(
+  execution-identity --project-root "$project_root" --execution-id "$execution_id"
+  --framework-root "$framework_root"
+)
+[ -z "$expected_profile" ] || execution_identity_args+=(--profile "$expected_profile")
+if ! python3 "$root/scripts/context-runtime-rollout.py" \
+    "${execution_identity_args[@]}" >/dev/null; then
+  exit 2
+fi
+if [ -e "$project_root/.mana/context-runtime/runtime-selection-v1.json" ] ||
+   [ -L "$project_root/.mana/context-runtime/runtime-selection-v1.json" ]; then
+  rollout_identity="$(python3 "$root/scripts/context-runtime-rollout.py" "${execution_identity_args[@]}")" || exit 2
+  identity_version="$(printf '%s' "$rollout_identity" | python3 -c 'import json,sys; print(json.load(sys.stdin)["executionVersion"])')" || exit 2
+  identity_workspace="$(printf '%s' "$rollout_identity" | python3 -c 'import json,sys; print(json.load(sys.stdin)["workspaceId"])')" || exit 2
+  profile_for_rollout="$(printf '%s' "$rollout_identity" | python3 -c 'import json,sys; print(json.load(sys.stdin)["profileId"])')" || exit 2
+  selection="$(python3 "$root/scripts/context-runtime-rollout.py" resolve \
+    --project-root "$project_root" --profile "$profile_for_rollout" \
+    --execution-id "$execution_id" --execution-version "$identity_version" \
+    --workspace-id "$identity_workspace")" || exit 2
+  selected_mode="$(printf '%s' "$selection" | python3 -c 'import json,sys; print(json.load(sys.stdin)["mode"])')" || exit 2
+  [ "$selected_mode" = v2 ] || { echo 'ERROR: CTX10_DECISION_AUTHORITY_REJECTED: v2 is not the committed runtime mode' >&2; exit 2; }
+fi
 if [ "${MANA_CONTEXT_PHASE_LOCK_HELD:-}" != "$execution_id" ]; then
   exec "$phase_helper" with-run-lock "$project_root" "$execution_id" \
     "$phase_entrypoint" "${original_argv[@]}"
@@ -125,7 +150,7 @@ temporary="$(cd "$temporary" && pwd -P)"
 cleanup() { rm -rf "$temporary"; }
 trap cleanup EXIT
 
-pipeline_args=(--project-root "$project_root" --framework-root "$framework_root" "${activation_args[@]}")
+pipeline_args=(--project-root "$project_root" --framework-root "$framework_root" "${activation_args[@]+"${activation_args[@]}"}")
 if ! "$pipeline" reconcile "$execution_id" "${pipeline_args[@]}" > "$temporary/reconcile.json"; then
   fail 'authoritative transition reconciliation failed before provider execution'
 fi
@@ -221,7 +246,7 @@ fi
 # output. Fresh CTX-06 phase boundaries remain the correctness mechanism.
 budget_request_args=()
 [ -z "$budget_mode" ] || budget_request_args=(--requested-mode "$budget_mode")
-"$budget_helper" decision "$execution_id" --project-root "$project_root" "${activation_args[@]}" "${budget_request_args[@]}" > "$temporary/budget-resolution.json" || fail 'CTX-08 provider budget decision is invalid'
+"$budget_helper" decision "$execution_id" --project-root "$project_root" "${activation_args[@]+"${activation_args[@]}"}" "${budget_request_args[@]+"${budget_request_args[@]}"}" > "$temporary/budget-resolution.json" || fail 'CTX-08 provider budget decision is invalid'
 "$budget_helper" capability-plan "$temporary/budget-resolution.json" "$temporary/capabilities.json" > "$temporary/budget-plan.json" || fail 'CTX-08 capability-gated budget plan is invalid'
 while IFS= read -r budget_gap; do
   echo "WARNING: CTX-08 provider control is $budget_gap; it was not guessed or applied." >&2

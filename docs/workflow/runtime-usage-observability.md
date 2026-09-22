@@ -138,3 +138,11 @@ not determine measurement availability: valid emitted totals remain measured
 or partial. Absent data stays unavailable and incoherent data invalid. A
 nonzero terminal status cannot replace emitted usage with missing/null totals.
 The existing two-measured-sides rule for numeric deltas remains unchanged.
+
+## CTX-10 visibility
+
+`mana inspect runtime --json` exposes only selected mode, bounded
+run/phase/checkpoint references, artifact state and usage availability. It does
+not return raw provider traces, prompts, responses, outcomes, credentials, or
+evidence. CTX-08 remains `provisional-no-empirical-baseline`; CTX-10 does not
+calibrate it.

@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+import subprocess
 import sys
 import tempfile
 import threading
@@ -203,6 +204,21 @@ with tempfile.TemporaryDirectory(prefix="mana-r1b-") as temporary:
     assert manifest["nextStateDigest"] == pipeline._digest_value(state)
     assert manifest["previousTransitionId"] is None
     assert first["phaseInput"].endswith("/phase-input-v1.json")
+
+    # CTX-10-R1C accepts a real, fully re-attested run only after every CTX-06
+    # reader and the immutable transition chain agree.  The rollout policy is
+    # deliberately explicit; this test never infers v2 from the run itself.
+    policy_path = project / ".mana/context-runtime/runtime-selection-v1.json"
+    policy_path.parent.mkdir(parents=True, exist_ok=True)
+    policy_path.write_text(json.dumps({"schemaVersion": "mana.context-runtime.rollout-policy/v1", "defaultMode": "legacy", "profiles": {PROFILE: {"mode": "v2", "failClosed": True}}}) + "\n", encoding="utf-8")
+    inspected = subprocess.run([
+        sys.executable, str(ROOT / "scripts/context-runtime-rollout.py"), "inspect",
+        "--project-root", str(project), "--framework-root", str(FRAMEWORK),
+        "--profile", PROFILE, "--execution", execution,
+    ], text=True, capture_output=True, check=True)
+    runtime_view = json.loads(inspected.stdout)
+    assert runtime_view["runState"]["artifactStatus"] == "current"
+    assert runtime_view["phase"]["current"] == "synthesize"
 
     # Exact retry is idempotent; same checkpoint ID with changed bytes conflicts.
     duplicate = accept(project, execution, advance_path)

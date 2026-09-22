@@ -1147,7 +1147,7 @@ def validate_packet(packet: dict[str, Any], policy: dict[str, Any]) -> None:
         fail("worker context packet has an unsupported version")
     envelope = packet["governanceEnvelope"]
     task = packet["delegationTask"]
-    runtime.validate_structure("execution-envelope", envelope)
+    runtime.validate_execution_envelope(envelope)
     runtime.validate_model("delegation-task", task)
     permissions = envelope["permissions"]
     if (

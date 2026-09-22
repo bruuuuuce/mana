@@ -456,6 +456,12 @@ install_codex_agents
 install_claude_agents
 install_opencode_agents
 
+# CTX-10 deliberately records only dormant, host-owned rollout metadata.  It
+# never promotes a profile: its versioned provider blocks preserve all bytes
+# outside the Mana-owned sections and work identically with --no-links.
+python3 "$framework_root/scripts/context-runtime-rollout.py" bootstrap \
+  --project-root "$project_root" >/dev/null || fail "CTX-10 rollout bootstrap failed"
+
 if [ "$create_jira_env" = true ]; then
   jira_example="$framework_root/mcp/env/jira-mcp.env.example"
   jira_target="$project_root/.mana/jira-mcp.env"

@@ -30,6 +30,7 @@ tests=(
   context-runtime-budgets.sh
   context-runtime-authority.py
   context-runtime-race.py
+  context-runtime-rollout.sh
   context-runtime-schemas.sh
   context-runtime-profile-compiler.sh
   context-runtime-evidence-store.sh

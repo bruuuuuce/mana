@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/execution-envelope-v2.schema.json",
+  "title": "Mana Context Runtime execution envelope v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "executionId", "executionVersion", "profileId", "projectRoot", "workspace", "workspaceId", "target", "permissions", "humanGates", "provider", "runtimeMode", "executionIntent"],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.execution-envelope/v2"},
+    "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},
+    "executionVersion": {"type": "integer", "minimum": 1},
+    "profileId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
+    "projectRoot": {"const": "."},
+    "workspace": {"$ref": "#/$defs/path"},
+    "workspaceId": {"type": "string", "pattern": "^W-[a-f0-9]{64}$"},
+    "target": {"$ref": "#/$defs/target"},
+    "permissions": {"$ref": "#/$defs/permissions"},
+    "humanGates": {"type": "array", "maxItems": 32, "uniqueItems": true, "items": {"type": "string", "pattern": "^GATE-[A-Za-z0-9._-]{1,120}$"}},
+    "provider": {"type": "string", "enum": ["codex", "claude", "opencode"]},
+    "runtimeMode": {"const": "context-v2"},
+    "executionIntent": {"type": "object", "additionalProperties": false, "required": ["intentId", "intentPath", "intentDigest", "intentFile", "intentCommitPath", "intentCommitDigest", "intentCommitFile"], "properties": {
+      "intentId": {"type": "string", "pattern": "^I-[a-f0-9]{64}$"},
+      "intentPath": {"$ref": "#/$defs/path"},
+      "intentDigest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+      "intentFile": {"$ref": "#/$defs/fileInstance"},
+      "intentCommitPath": {"$ref": "#/$defs/path"},
+      "intentCommitDigest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+      "intentCommitFile": {"$ref": "#/$defs/fileInstance"}
+    }}
+  },
+  "$defs": {
+    "path": {"type": "string", "minLength": 1, "maxLength": 512, "pattern": "^(?!/)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)[^\\\\]+$"},
+    "target": {"type": "object", "additionalProperties": false, "required": ["repository", "base", "prNumber"], "properties": {"repository": {"type": ["string", "null"], "maxLength": 256}, "base": {"type": ["string", "null"], "maxLength": 256}, "prNumber": {"type": ["integer", "null"], "minimum": 1}}},
+    "permissions": {"type": "object", "additionalProperties": false, "required": ["repositoryWrite", "externalWrite", "approvedExternalActions"], "properties": {"repositoryWrite": {"type": "boolean"}, "externalWrite": {"type": "boolean"}, "approvedExternalActions": {"type": "array", "maxItems": 32, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 128}}}},
+    "fileInstance": {"type": "object", "additionalProperties": false, "required": ["device", "inode", "mode", "size", "mtime_ns", "ctime_ns"], "properties": {"device": {"type": "integer", "minimum": 0}, "inode": {"type": "integer", "minimum": 0}, "mode": {"type": "integer", "minimum": 0}, "size": {"type": "integer", "minimum": 0}, "mtime_ns": {"type": "integer", "minimum": 0}, "ctime_ns": {"type": "integer", "minimum": 0}}}
+  }
+}
