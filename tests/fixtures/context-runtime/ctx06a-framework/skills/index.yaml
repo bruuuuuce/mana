@@ -1,0 +1,19 @@
+skills:
+  - id: ctx06a-fixture-skill
+    path: skills/ctx06a-fixture-skill/SKILL.md
+    risk_level: low
+    model_tier: economy
+    execution_mode: read
+    delegation_group: unspecified
+  - id: ctx07b-full-skill
+    path: skills/ctx07b-full-skill/SKILL.md
+    risk_level: high
+    model_tier: full
+    execution_mode: read
+    delegation_group: source
+  - id: ctx07b-inactive-skill
+    path: skills/ctx07b-inactive-skill/SKILL.md
+    risk_level: low
+    model_tier: economy
+    execution_mode: read
+    delegation_group: source

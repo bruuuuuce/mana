@@ -3,6 +3,15 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
+acceptance_tmp="$(mktemp -d "${TMPDIR:-/tmp}/mana-zero-token-acceptance.XXXXXX")"
+trap 'rm -rf "$acceptance_tmp"' EXIT
+# Canonical acceptance is read-only with respect to this checkout. Evaluation
+# output and any Python cache are explicitly owned by this external harness.
+export PYTHONDONTWRITEBYTECODE=1
+export PYTHONPYCACHEPREFIX="$acceptance_tmp/pycache"
+before_snapshot="$acceptance_tmp/worktree-before.jsonl"
+after_snapshot="$acceptance_tmp/worktree-after.jsonl"
+python3 "$root/tests/worktree-snapshot-test-only.py" "$root" > "$before_snapshot"
 tests=(
   analysis-trajectory-guard-tg00-fixtures.sh
   analysis-trajectory-guard-tg02-telemetry.sh
@@ -17,6 +26,24 @@ tests=(
   bug-hunter-agent.sh
   cast.sh
   codex-subagent-regression.sh
+  context-runtime-baseline.sh
+  context-runtime-budgets.sh
+  context-runtime-authority.py
+  context-runtime-race.py
+  context-runtime-rollout.sh
+  context-runtime-schemas.sh
+  context-runtime-profile-compiler.sh
+  context-runtime-evidence-store.sh
+  context-runtime-phase-runner.sh
+  context-runtime-phase-resume.sh
+  context-runtime-phase-provider.sh
+  context-runtime-delegation.sh
+  context-runtime-workers.sh
+  context-runtime-provider-children.sh
+  context-runtime-modes.sh
+  context-runtime-comparison.sh
+  context-runtime-live-shadow.sh
+  context-runtime-09g-r1-hygiene.sh
   divination.sh
   epic-analysis-profile.sh
   explorer-retrieval.sh
@@ -35,7 +62,9 @@ tests=(
   mana-scout-cycles.sh
   mana-scout.sh
   profile-skill-activation.sh
+  provider-capabilities.sh
   provider-dispatch.sh
+  provider-usage.sh
   repair-containment.sh
   runtime-events.sh
   service-knowledge-bootstrap.sh
@@ -65,5 +94,13 @@ for test_file in "${tests[@]}"; do
   echo "==> tests/$test_file"
   "$root/tests/$test_file"
 done
+
+python3 "$root/tests/worktree-snapshot-test-only.py" "$root" > "$after_snapshot"
+if ! cmp -s "$before_snapshot" "$after_snapshot"; then
+  echo 'ERROR: canonical suite changed the worktree filesystem' >&2
+  diff -u "$before_snapshot" "$after_snapshot" | head -200 >&2 || true
+  exit 1
+fi
+echo 'Complete worktree filesystem snapshot unchanged'
 
 echo 'Complete zero-token acceptance suite passed'

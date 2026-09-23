@@ -2,6 +2,7 @@
 # Repository-local, privacy-preserving runtime event publisher.  Callers pass
 # only operational metadata; this module deliberately has no prompt or tool
 # payload API.
+# shellcheck disable=SC2034
 
 MANA_RUNTIME_SCHEMA_VERSION="1"
 MANA_RUNTIME_ROOT=""
@@ -15,14 +16,19 @@ MANA_RUNTIME_STARTED_AT=""
 runtime_json_escape() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\r/\\r/g; s/\n/\\n/g'; }
 
 runtime_init() {
-  # $1 project root, $2 profile id. The caller chooses when an execution has
+  # $1 project root, $2 profile id, optional $3 host-selected execution id.
+  # The caller chooses when an execution has
   # crossed the execution boundary; dry runs must never call this function.
   local project_root="$1" profile_id="$2" stamp
   stamp="$(date -u +%Y%m%dT%H%M%SZ)"
   MANA_RUNTIME_ROOT="$project_root/.mana/runtime"
   MANA_RUNTIME_PROFILE_ID="$profile_id"
   MANA_RUNTIME_SESSION_ID="session-${stamp}-$$"
-  MANA_RUNTIME_EXECUTION_ID="execution-${stamp}-$$"
+  MANA_RUNTIME_EXECUTION_ID="${3:-execution-${stamp}-$$}"
+  case "$MANA_RUNTIME_EXECUTION_ID" in execution-?*) ;;
+    *) MANA_RUNTIME_WARNING="invalid host-selected runtime execution id"; return 1 ;;
+  esac
+  case "$MANA_RUNTIME_EXECUTION_ID" in *[!A-Za-z0-9._-]*) MANA_RUNTIME_WARNING="invalid host-selected runtime execution id"; return 1 ;; esac
   MANA_RUNTIME_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   MANA_RUNTIME_SEQUENCE=0
   if ! mkdir -p "$MANA_RUNTIME_ROOT/sessions" "$MANA_RUNTIME_ROOT/events" "$MANA_RUNTIME_ROOT/snapshots" "$MANA_RUNTIME_ROOT/metrics"; then
@@ -90,6 +96,11 @@ runtime_finish() {
   # $1 completed|failed. Snapshot rewrite is atomic enough for local readers.
   local status="$1" tmp="$MANA_RUNTIME_ROOT/sessions/.${MANA_RUNTIME_SESSION_ID}.tmp"
   [ -n "$MANA_RUNTIME_ROOT" ] || return 0
-  printf '{"schemaVersion":"%s","sessionId":"%s","executionId":"%s","profileId":"%s","startedAt":"%s","finishedAt":"%s","status":"%s"}\n' \
-    "$MANA_RUNTIME_SCHEMA_VERSION" "$MANA_RUNTIME_SESSION_ID" "$MANA_RUNTIME_EXECUTION_ID" "$(runtime_json_escape "$MANA_RUNTIME_PROFILE_ID")" "$MANA_RUNTIME_STARTED_AT" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$status" > "$tmp" && mv "$tmp" "$MANA_RUNTIME_ROOT/sessions/$MANA_RUNTIME_SESSION_ID.json" || MANA_RUNTIME_WARNING="runtime session snapshot update failed"
+  if ! printf '{"schemaVersion":"%s","sessionId":"%s","executionId":"%s","profileId":"%s","startedAt":"%s","finishedAt":"%s","status":"%s"}\n' \
+    "$MANA_RUNTIME_SCHEMA_VERSION" "$MANA_RUNTIME_SESSION_ID" "$MANA_RUNTIME_EXECUTION_ID" "$(runtime_json_escape "$MANA_RUNTIME_PROFILE_ID")" "$MANA_RUNTIME_STARTED_AT" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$status" > "$tmp" || \
+    ! mv "$tmp" "$MANA_RUNTIME_ROOT/sessions/$MANA_RUNTIME_SESSION_ID.json"; then
+      # Public diagnostic consumed by callers after this library returns.
+      # shellcheck disable=SC2034
+      MANA_RUNTIME_WARNING="runtime session snapshot update failed"
+  fi
 }

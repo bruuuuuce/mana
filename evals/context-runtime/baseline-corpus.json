@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "mana.context-runtime.baseline-corpus/v1",
+  "purpose": "Zero-token fixture manifest for CTX-00 baseline and later runtime comparison work.",
+  "liveModelCalls": false,
+  "cases": [
+    {"id": "help-deterministic", "profile": "mana-help", "expectedClassification": "deterministic-only"},
+    {"id": "branch-analysis", "profile": "branch-ready", "expectedClassification": "read-only-analysis"},
+    {"id": "story-planning", "profile": "story-start", "expectedClassification": "planning-synthesis"},
+    {"id": "local-validation", "profile": "testbook-validation", "expectedClassification": "write-capable"},
+    {"id": "approved-pr-publication", "profile": "requested-pr-review", "expectedClassification": "external-write-capable"}
+  ]
+}

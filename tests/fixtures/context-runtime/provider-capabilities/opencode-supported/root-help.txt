@@ -1,0 +1,6 @@
+Commands:
+  opencode run [message..]  run opencode with a message
+Options:
+  --pure          run without external plugins                                         [boolean]
+  -m, --model     model to use in the format of provider/model                          [string]
+      --agent     agent to use                                                          [string]

@@ -113,6 +113,7 @@ cd /path/to/project
 ./mana cast story-start --dry-run
 ./mana runtime sessions
 ./mana dependency-evidence --collect
+./mana evidence list --execution execution-example
 ./mana evidence-index
 ./mana inspect project --json
 ./mana inspect artifacts --json
@@ -218,6 +219,7 @@ explicitly allows a narrow action and the human enables it.
 | Story evidence / readiness | Check feasibility, scope, testability, dependencies, approvals, and estimate | `./mana profile story-start --codex` or `./mana profile story-ready-for-dev --codex` | Story context, readiness findings, base effort estimate, calibration status, open questions, risk register | Start, clarify, split, size, or block the story | Invent requirements, read delivery history without explicit consent, or mark owner approval as complete |
 | Epic story pack | Cache epic and sibling story evidence as Markdown | `./mana jira-mcp --fetch-epic-story-pack PROJ-1234` | `.mana/features/<EPIC-ID>/evidence/jira/epic-story-pack.md` | Whether stories are partitioned, overlapping, missing slices, or ready for planning | Edit Jira, store credentials, or treat cached evidence as permanent truth |
 | Local evidence index | Build a compact map of available evidence before deep analysis | `./mana evidence-index` after Jira, Sonar, dependency, test, validation, or PR evidence exists | `.mana/<workspace>/evidence/index.md` | Which evidence to inspect first and which gaps remain | Treat missing evidence as proof of safety |
+| Context Runtime evidence | Collect once and retrieve redacted, bounded source evidence by stable reference | `./mana evidence collect ...`, then `./mana evidence read E-... --lines A:B` | Local-only `.mana/runtime-evidence/` payloads and execution manifests | Whether a cited source is available and which bounded extract to inspect | Store credentials, authorization headers, or unbounded transcript content |
 | GUI test validation | Build and run approved Playwright scenarios against an isolated test target | `./mana profile gui-test-validation --codex` | Redacted context inventory, approved testbook, traces, screenshots, video, JUnit, run report, learning proposal | Whether a GUI flow passed and which reusable test improvement to accept | Browse production, expose secrets, use real payment data, or run unapproved scenarios |
 | API test validation | Run approved Newman collections against an isolated test target | `./mana profile api-test-validation --codex` | Approved API testbook, JSON/JUnit evidence, run report, learning proposal | Whether an API scenario passed and which improvement to accept | Supply URLs, payloads, tokens, or run unapproved requests |
 | Database read verification | Verify persisted test state with approved PostgreSQL read queries | `./mana profile database-read-verification --codex` | Approved query catalog, access-controlled log, run report, learning proposal | Whether expected test data is persisted | Access production, mutate data, expose connection strings, or run arbitrary SQL |

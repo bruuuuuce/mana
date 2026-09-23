@@ -1,0 +1,8 @@
+Codex CLI
+Usage: codex [OPTIONS] <COMMAND> [ARGS]
+Commands:
+  exec  Run Codex non-interactively
+Options:
+  --disable <FEATURE>
+    Disable a feature (repeatable). Equivalent to `-c features.<name>=false`
+  --model <MODEL>

@@ -7,11 +7,12 @@ usage() { cat <<'USAGE'
 Usage: mana runtime sessions [--json]
        mana runtime show <execution-id> [--json]
        mana runtime events <execution-id> [--json]
+       mana runtime metrics <execution-id> [--json]
        mana runtime prune --dry-run [--retain-days <days>] [--json]
 USAGE
 }
 while [ "$#" -gt 0 ]; do case "$1" in --project-root) project_root="${2:-}"; shift 2;; --json) json=true; shift;; --retain-days) retain_days="${2:-}"; shift 2;; --dry-run) dry_run=true; shift;; --help|-h) usage; exit 0;; *) if [ -z "$command" ]; then command="$1"; elif [ -z "$argument" ]; then argument="$1"; else echo "ERROR: unexpected argument: $1" >&2; exit 2; fi; shift;; esac; done
-case "$command" in sessions|show|events|prune) ;; *) usage; exit 2;; esac
+case "$command" in sessions|show|events|metrics|prune) ;; *) usage; exit 2;; esac
 case "$retain_days" in *[!0-9]*|'') echo 'ERROR: --retain-days must be a non-negative integer' >&2; exit 2;; esac
 runtime="$project_root/.mana/runtime"; events="$runtime/events"; sessions="$runtime/sessions"
 json_escape() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
@@ -24,6 +25,11 @@ EOF
 $list
 EOF
   fi
+elif [ "$command" = metrics ]; then
+  [ -n "${argument:-}" ] || { echo 'ERROR: metrics requires an execution id' >&2; exit 2; }
+  case "$argument" in *[!A-Za-z0-9._-]*|'') echo 'ERROR: invalid execution id' >&2; exit 2;; esac
+  file="$runtime/metrics/$argument/usage-summary-v1.json"; [ -f "$file" ] || { echo "ERROR: runtime usage metrics not found: $argument" >&2; exit 1; }
+  if [ "$json" = true ]; then cat "$file"; else summary="$runtime/metrics/$argument/usage-summary-v1.md"; [ -f "$summary" ] && cat "$summary" || cat "$file"; fi
 elif [ "$command" = events ] || [ "$command" = show ]; then
   [ -n "${argument:-}" ] || { echo "ERROR: $command requires an execution id" >&2; exit 2; }
   case "$argument" in *[!A-Za-z0-9._-]*|'') echo 'ERROR: invalid execution id' >&2; exit 2;; esac

@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/delegation-result-v1.schema.json",
+  "title": "Mana Context Runtime delegation result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "executionId", "executionVersion", "workspaceId", "profileId",
+    "phaseId", "attempt", "planId", "taskId", "taskDigest", "owner", "resultDigest",
+    "semanticResultDigest", "executionReceiptDigest", "executionProvenance",
+    "status", "verifiedFacts", "findings", "assumptions", "inferences",
+    "openQuestions", "evidenceGaps", "evidenceRefs", "artifactRefs", "uncertainty"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.delegation-result/v1"},
+    "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},
+    "executionVersion": {"type": "integer", "minimum": 1},
+    "workspaceId": {"type": "string", "pattern": "^W-[a-f0-9]{64}$"},
+    "profileId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
+    "phaseId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"},
+    "attempt": {"type": "integer", "minimum": 1, "maximum": 17},
+    "planId": {"type": "string", "pattern": "^P-[a-f0-9]{64}$"},
+    "taskId": {"type": "string", "pattern": "^T-[A-Za-z0-9._-]{1,120}$"},
+    "taskDigest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "owner": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
+    "resultDigest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "semanticResultDigest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "executionReceiptDigest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "executionProvenance": {"$ref": "#/$defs/executionProvenance"},
+    "status": {"type": "string", "enum": ["complete", "partial", "blocked", "failed"]},
+    "verifiedFacts": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/claim"}},
+    "findings": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/claim"}},
+    "assumptions": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/claim"}},
+    "inferences": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/claim"}},
+    "openQuestions": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/question"}},
+    "evidenceGaps": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/gap"}},
+    "evidenceRefs": {
+      "type": "array", "maxItems": 64, "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^E-[a-f0-9]{64}$"}
+    },
+    "artifactRefs": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/artifact"}},
+    "uncertainty": {"$ref": "#/$defs/uncertainty"}
+  },
+  "$defs": {
+    "executionProvenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["executionTransport", "provider", "rootInvocationId", "childInvocationId", "attestationKind", "receiptId", "receiptDigest"],
+      "properties": {
+        "executionTransport": {"enum": ["host-worker", "provider-managed-child"]},
+        "provider": {"enum": ["codex", "claude", "opencode"]},
+        "rootInvocationId": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{1,160}$"},
+        "childInvocationId": {"type": ["string", "null"], "pattern": "^[A-Za-z0-9._:-]{1,160}$"},
+        "attestationKind": {"type": "string", "enum": ["host-worker-process/v1", "provider-native-managed-child-event-receipt/v1"]},
+        "receiptId": {"type": ["string", "null"], "pattern": "^R-[a-f0-9]{64}$"},
+        "receiptDigest": {"type": ["string", "null"], "pattern": "^sha256:[a-f0-9]{64}$"}
+      }
+    },
+    "subject": {
+      "type": "object", "additionalProperties": false,
+      "required": ["domain", "kind", "identifier"],
+      "properties": {
+        "domain": {
+          "type": "string",
+          "enum": ["application", "evidence", "external-observation", "repository", "requirement", "runtime-observation", "test"]
+        },
+        "kind": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"},
+        "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"}
+      }
+    },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["taskId", "planId", "sourceResultDigest", "evidenceRefs"],
+      "properties": {
+        "taskId": {"type": "string", "pattern": "^T-[A-Za-z0-9._-]{1,120}$"},
+        "planId": {"type": "string", "pattern": "^P-[a-f0-9]{64}$"},
+        "sourceResultDigest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+        "evidenceRefs": {
+          "type": "array", "maxItems": 16, "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^E-[a-f0-9]{64}$"}
+        }
+      }
+    },
+    "claim": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "subject", "predicate", "claimKey", "stance", "claim", "severity", "evidenceRefs", "provenance"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Z]-[A-Za-z0-9._-]{1,120}$"},
+        "subject": {"$ref": "#/$defs/subject"},
+        "predicate": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"},
+        "claimKey": {"type": "string", "pattern": "^C-[a-f0-9]{64}$"},
+        "stance": {"type": "string", "enum": ["affirmed", "denied", "uncertain"]},
+        "claim": {"type": "string", "minLength": 1, "maxLength": 512},
+        "severity": {"type": ["string", "null"], "enum": [null, "info", "warning", "high", "blocker"]},
+        "evidenceRefs": {
+          "type": "array", "maxItems": 16, "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^E-[a-f0-9]{64}$"}
+        },
+        "provenance": {"$ref": "#/$defs/provenance"}
+      }
+    },
+    "question": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "subject", "questionKey", "question", "evidenceRefs", "provenance"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^Q-[A-Za-z0-9._-]{1,120}$"},
+        "subject": {"$ref": "#/$defs/subject"},
+        "questionKey": {"type": "string", "pattern": "^Q-[a-f0-9]{64}$"},
+        "question": {"type": "string", "minLength": 1, "maxLength": 512},
+        "evidenceRefs": {
+          "type": "array", "maxItems": 16, "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^E-[a-f0-9]{64}$"}
+        },
+        "provenance": {"$ref": "#/$defs/provenance"}
+      }
+    },
+    "gap": {
+      "type": "object", "additionalProperties": false,
+      "required": ["gapKey", "description", "kind", "impact", "evidenceRefs", "provenance"],
+      "properties": {
+        "gapKey": {"type": "string", "pattern": "^G-[a-f0-9]{64}$"},
+        "description": {"type": "string", "minLength": 1, "maxLength": 256},
+        "kind": {"type": "string", "enum": ["missing-source", "missing-test", "unavailable-record", "insufficient-coverage", "unknown"]},
+        "impact": {"type": "string", "enum": ["blocks-fact", "blocks-completion", "reduces-confidence"]},
+        "evidenceRefs": {
+          "type": "array", "maxItems": 16, "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^E-[a-f0-9]{64}$"}
+        },
+        "provenance": {"$ref": "#/$defs/provenance"}
+      }
+    },
+    "artifact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["artifactId", "kind", "evidenceRefs", "provenance"],
+      "properties": {
+        "artifactId": {"type": "string", "pattern": "^A-[A-Za-z0-9._-]{1,120}$"},
+        "kind": {"type": "string", "enum": ["checkpoint", "manifest", "report", "test-output", "other"]},
+        "evidenceRefs": {
+          "type": "array", "maxItems": 16, "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^E-[a-f0-9]{64}$"}
+        },
+        "provenance": {"$ref": "#/$defs/provenance"}
+      }
+    },
+    "uncertainty": {
+      "type": "object", "additionalProperties": false,
+      "required": ["level", "description", "evidenceRefs", "provenance"],
+      "properties": {
+        "level": {"type": "string", "enum": ["none", "low", "medium", "high"]},
+        "description": {"type": ["string", "null"], "minLength": 1, "maxLength": 512},
+        "evidenceRefs": {
+          "type": "array", "maxItems": 16, "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^E-[a-f0-9]{64}$"}
+        },
+        "provenance": {"$ref": "#/$defs/provenance"}
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "mana.context-runtime.semantic-comparison-input/v1",
+  "profileId": "fixture-review",
+  "targetKey": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "dimensions": {
+    "status": {"coverage": "complete", "gaps": [], "records": [{"key": "status", "value": "blocked", "evidenceRefs": ["E1"], "uncertainty": []}]},
+    "blockers": {"coverage": "complete", "gaps": [], "records": [
+      {"key": "legacy-blocker-1", "value": {"subject": {"domain": "application", "kind": "component", "identifier": "payments"}, "predicate": "approval-required", "stance": "affirmed", "severity": "blocker", "validation": "confirmed"}, "evidenceRefs": ["E1"], "uncertainty": [], "label": "Approval must be retained"}
+    ]},
+    "warnings": {"coverage": "complete", "gaps": [], "records": [
+      {"key": "legacy-warning-1", "value": {"subject": {"domain": "test", "kind": "suite", "identifier": "payments"}, "predicate": "coverage-incomplete", "stance": "affirmed", "severity": "medium", "validation": "confirmed"}, "evidenceRefs": ["E1"], "uncertainty": [], "label": "Additional tests are advisable"}
+    ]},
+    "evidenceReferences": {"coverage": "complete", "gaps": [], "records": [
+      {"key": "E1", "value": {"sourceKey": "source-payments", "revision": "fixture-revision-1", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "collectionStatus": "complete"}, "evidenceRefs": [], "uncertainty": []}
+    ]},
+    "requirementCoverage": {"coverage": "complete", "gaps": [], "records": [{"key": "REQ-1", "value": "covered", "evidenceRefs": ["E1"], "uncertainty": []}]},
+    "approvalGates": {"coverage": "complete", "gaps": [], "records": [{"key": "owner-approval", "value": {"requirement": "mandatory", "state": "pending"}, "evidenceRefs": ["E1"], "uncertainty": []}]},
+    "activatedRiskDomains": {"coverage": "complete", "gaps": [], "records": [{"key": "external-write", "value": {"state": "active", "riskLevel": "high", "modelTier": "full"}, "evidenceRefs": ["E1"], "uncertainty": []}]},
+    "highRiskEscalation": {"coverage": "complete", "gaps": [], "records": [{"key": "external-write", "value": {"required": true, "modelTier": "full", "status": "performed"}, "evidenceRefs": ["E1"], "uncertainty": []}]},
+    "unresolvedQuestions": {"coverage": "complete", "gaps": [], "records": []},
+    "artifactCompleteness": {"coverage": "complete", "gaps": [], "records": [{"key": "review-result", "value": {"state": "present", "schemaVersion": "mana.fixture-review/v1", "mediaType": "json"}, "evidenceRefs": [], "uncertainty": []}]},
+    "humanUsefulnessDisposition": {"coverage": "not-applicable", "gaps": [], "records": []},
+    "externalWritePolicy": {"coverage": "complete", "gaps": [], "records": [{"key": "externalWritePolicy", "value": {"repositoryWrite": false, "externalWrite": false, "approvedActionKeys": []}, "evidenceRefs": [], "uncertainty": []}]}
+  }
+}

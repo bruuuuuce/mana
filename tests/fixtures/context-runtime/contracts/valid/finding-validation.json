@@ -1,0 +1,1 @@
+{"schemaVersion":"mana.context-runtime.finding-validation/v1","findingId":"F-003","executionId":"execution-fixture","subject":{"domain":"repository","kind":"fixture","identifier":"finding-validation"},"status":"validated","claim":"The fixture finding is evidence-backed.","evidenceRefs":["E-001"],"openQuestions":[]}

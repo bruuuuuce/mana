@@ -4,7 +4,7 @@
 set -eu
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-# shellcheck source=lib/profile-metadata.sh
+# shellcheck source=scripts/lib/profile-metadata.sh
 . "$root/scripts/lib/profile-metadata.sh"
 . "$root/scripts/lib/json.sh"
 . "$root/scripts/lib/execution-plan.sh"
@@ -35,6 +35,8 @@ while [ "$#" -gt 0 ]; do
 done
 project_root="$(cd "$project_root" 2>/dev/null && pwd)" || fail "project root not found: $project_root"
 
+# Backticks are literal Markdown delimiters in this sed expression.
+# shellcheck disable=SC2016
 profile_from_scenario() { sed -n 's/^\*\*Profile:\*\* `\([^`]*\)`.*/\1/p' "$1" | head -n1; }
 scenario_version() { [ -f "$1/eval.yaml" ] && sed -n 's/^version:[[:space:]]*//p' "$1/eval.yaml" | head -n1 || printf '1'; }
 # Read compact YAML assertions. Only the constrained schema below is accepted:
@@ -76,11 +78,25 @@ EOF
 }
 contains() { printf '%s\n' "$1" | grep -Fqx "$2"; }
 run_scenario() {
-  local dir="$1" id version profile assertions skills tools artifacts result_lines='' assertion_count=0 failed=0 line type value pass reason class reason_code
+  local dir="$1" id version profile assertions skills tools artifacts result_lines='' assertion_count=0 failed=0 type value pass reason class reason_code manifest skill
+  local -a compiler_args
   id="$(basename "$dir")"; version="$(scenario_version "$dir")"; profile="$(profile_from_scenario "$dir/scenario.md")"
   [ -n "$profile" ] || { printf 'skipped|%s|scenario.md is not a profile behavioural scenario\n' "$id"; return; }
   [ -f "$root/profiles/$profile.yaml" ] || { printf 'invalid|%s|unknown profile %s\n' "$id" "$profile"; return; }
-  mana_execution_plan "$root" "$root/profiles/$profile.yaml" || { printf 'invalid|%s|%s\n' "$id" "$MANA_PLAN_ERROR"; return; }
+  compiler_args=("$profile" --execution-id "execution-eval-$profile")
+  # Behavioural evals historically exercise the complete declared skill set.
+  # Preserve that explicit test scope through governed semantic requests rather
+  # than teaching execution-plan to treat inactive candidates as selected.
+  if [ "$(mana_profile_skill_activation_state "$root/profiles/$profile.yaml")" = present ]; then
+    while IFS='|' read -r _ skill; do
+      [ -n "$skill" ] && compiler_args+=(--request-skill "$skill")
+    done < <(mana_profile_conditional_activations "$root/profiles/$profile.yaml")
+  fi
+  if ! manifest="$("$root/scripts/mana-compile-profile.sh" "${compiler_args[@]}")"; then
+    printf 'invalid|%s|context manifest compilation failed\n' "$id"
+    return
+  fi
+  mana_execution_plan_json "$root" "$manifest" || { printf 'invalid|%s|%s\n' "$id" "$MANA_PLAN_ERROR"; return; }
   skills="$MANA_PLAN_SKILLS"; tools="$MANA_PLAN_TOOLS"; artifacts="$MANA_PLAN_ARTIFACTS"
   if [ -f "$dir/eval.yaml" ]; then assertions="$(manifest_assertions "$dir")"; else assertions="$(legacy_assertions "$dir")"; fi
   [ -n "$assertions" ] || { printf 'invalid|%s|no assertions: add eval.yaml assertions or expected-findings.md\n' "$id"; return; }

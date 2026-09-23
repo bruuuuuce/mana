@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.context-runtime.semantic-comparison-input/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "profileId", "targetKey", "dimensions"],
+  "properties": {
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority",
+        "executionId",
+        "executionVersion",
+        "headDigest",
+        "artifacts",
+        "unprojected"
+      ],
+      "properties": {
+        "authority": {
+          "const": "none"
+        },
+        "executionId": {
+          "type": "string",
+          "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"
+        },
+        "executionVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "headDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "artifacts": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ref",
+              "sha256"
+            ],
+            "properties": {
+              "ref": {
+                "type": "string",
+                "maxLength": 512,
+                "pattern": "^[A-Za-z0-9._/-]+$"
+              },
+              "sha256": {
+                "$ref": "#/$defs/digest"
+              }
+            }
+          }
+        },
+        "unprojected": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "string",
+            "maxLength": 512,
+            "pattern": "^[A-Za-z0-9._/-]+$"
+          }
+        }
+      }
+    },
+    "schemaVersion": {"const": "mana.context-runtime.semantic-comparison-input/v1"},
+    "profileId": {"$ref": "#/$defs/id"},
+    "targetKey": {"$ref": "#/$defs/digest"},
+    "dimensions": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "status": {"allOf": [{"$ref": "#/$defs/section"}, {"properties": {"records": {"items": {"properties": {"value": {"$ref": "#/$defs/status"}}}}}}]},
+        "blockers": {"allOf": [{"$ref": "#/$defs/section"}, {"properties": {"records": {"items": {"properties": {"value": {"$ref": "#/$defs/finding"}}}}}}]},
+        "warnings": {"allOf": [{"$ref": "#/$defs/section"}, {"properties": {"records": {"items": {"properties": {"value": {"$ref": "#/$defs/finding"}}}}}}]},
+        "evidenceReferences": {"allOf": [{"$ref": "#/$defs/section"}, {"properties": {"records": {"items": {"properties": {"value": {"$ref": "#/$defs/evidence"}}}}}}]},
+        "requirementCoverage": {"allOf": [{"$ref": "#/$defs/section"}, {"properties": {"records": {"items": {"properties": {"value": {"enum": ["covered", "partial", "uncovered", "unknown"]}}}}}}]},
+        "approvalGates": {"allOf": [{"$ref": "#/$defs/section"}, {"properties": {"records": {"items": {"properties": {"value": {"$ref": "#/$defs/approval"}}}}}}]},
+        "activatedRiskDomains": {"allOf": [{"$ref": "#/$defs/section"}, {"properties": {"records": {"items": {"properties": {"value": {"$ref": "#/$defs/risk"}}}}}}]},
+        "highRiskEscalation": {"allOf": [{"$ref": "#/$defs/section"}, {"properties": {"records": {"items": {"properties": {"value": {"$ref": "#/$defs/escalation"}}}}}}]},
+        "unresolvedQuestions": {"allOf": [{"$ref": "#/$defs/section"}, {"properties": {"records": {"items": {"properties": {"value": {"$ref": "#/$defs/question"}}}}}}]},
+        "artifactCompleteness": {"allOf": [{"$ref": "#/$defs/section"}, {"properties": {"records": {"items": {"properties": {"value": {"$ref": "#/$defs/artifact"}}}}}}]},
+        "humanUsefulnessDisposition": {"allOf": [{"$ref": "#/$defs/section"}, {"properties": {"coverage": {"enum": ["complete", "partial", "unavailable", "not-applicable"]}, "records": {"items": {"properties": {"value": {"enum": ["useful", "not-useful", "undecided", "unknown"]}}}}}}]},
+        "externalWritePolicy": {"allOf": [{"$ref": "#/$defs/section"}, {"properties": {"records": {"items": {"properties": {"value": {"$ref": "#/$defs/writePolicy"}}}}}}]}
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$", "minLength": 64, "maxLength": 64},
+    "ids": {"type": "array", "maxItems": 8, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "uncertainty": {"type": "array", "maxItems": 8, "uniqueItems": true, "items": {"enum": ["missing-evidence", "contradictory-evidence", "scope-incomplete", "unverified", "model-escalation-unavailable", "source-stale"]}},
+    "record": {
+      "type": "object", "additionalProperties": false,
+      "required": ["key", "value", "evidenceRefs", "uncertainty"],
+      "properties": {
+        "key": {"$ref": "#/$defs/id"}, "value": true,
+        "evidenceRefs": {"$ref": "#/$defs/ids"}, "uncertainty": {"$ref": "#/$defs/uncertainty"},
+        "label": {"type": "string", "maxLength": 120, "pattern": "^[^\\x00-\\x1f\\x7f]*$"}
+      }
+    },
+    "section": {
+      "type": "object", "additionalProperties": false, "required": ["coverage", "records", "gaps"],
+      "properties": {
+        "coverage": {"enum": ["complete", "partial", "unavailable", "not-applicable"]},
+        "records": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/record"}},
+        "gaps": {"$ref": "#/$defs/uncertainty"}
+      }
+    },
+    "subject": {
+      "type": "object", "additionalProperties": false, "required": ["domain", "kind", "identifier"],
+      "properties": {"domain": {"enum": ["repository", "evidence", "requirement", "test", "runtime-observation", "external-observation", "application"]}, "kind": {"$ref": "#/$defs/id"}, "identifier": {"$ref": "#/$defs/id"}}
+    },
+    "status": {"enum": ["pass", "fail", "blocked", "partial", "needs-more-evidence", "needs-model-escalation", "unknown"]},
+    "finding": {
+      "type": "object", "additionalProperties": false, "required": ["subject", "predicate", "stance", "severity", "validation"],
+      "properties": {"subject": {"$ref": "#/$defs/subject"}, "predicate": {"$ref": "#/$defs/id"}, "stance": {"enum": ["affirmed", "denied", "uncertain"]}, "severity": {"enum": ["blocker", "high", "medium", "low", "info"]}, "validation": {"enum": ["confirmed", "rejected", "uncertain"]}}
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false, "required": ["sourceKey", "revision", "sha256", "collectionStatus"],
+      "properties": {"sourceKey": {"$ref": "#/$defs/id"}, "revision": {"anyOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]}, "sha256": {"anyOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]}, "collectionStatus": {"enum": ["complete", "partial", "unavailable", "unknown"]}}
+    },
+    "approval": {
+      "type": "object", "additionalProperties": false, "required": ["requirement", "state"],
+      "properties": {"requirement": {"enum": ["mandatory", "optional"]}, "state": {"enum": ["required", "pending", "completed", "blocked", "unknown"]}}
+    },
+    "risk": {
+      "type": "object", "additionalProperties": false, "required": ["state", "riskLevel", "modelTier"],
+      "properties": {"state": {"enum": ["active", "inactive", "unknown"]}, "riskLevel": {"enum": ["low", "medium", "high", "unknown"]}, "modelTier": {"enum": ["economy", "full", "unspecified"]}}
+    },
+    "escalation": {
+      "type": "object", "additionalProperties": false, "required": ["required", "modelTier", "status"],
+      "properties": {"required": {"type": "boolean"}, "modelTier": {"enum": ["economy", "full", "unspecified"]}, "status": {"enum": ["performed", "unavailable", "not-required", "unknown"]}}
+    },
+    "question": {
+      "type": "object", "additionalProperties": false, "required": ["subject", "predicate", "state", "requiredEvidence"],
+      "properties": {"subject": {"$ref": "#/$defs/subject"}, "predicate": {"$ref": "#/$defs/id"}, "state": {"enum": ["open", "resolved", "unknown"]}, "requiredEvidence": {"$ref": "#/$defs/ids"}}
+    },
+    "artifact": {
+      "type": "object", "additionalProperties": false, "required": ["state", "schemaVersion", "mediaType"],
+      "properties": {"state": {"enum": ["present", "missing", "invalid", "unknown"]}, "schemaVersion": {"type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"}, "mediaType": {"enum": ["json", "markdown"]}}
+    },
+    "writePolicy": {
+      "type": "object", "additionalProperties": false, "required": ["repositoryWrite", "externalWrite", "approvedActionKeys"],
+      "properties": {"repositoryWrite": {"type": "boolean"}, "externalWrite": {"type": "boolean"}, "approvedActionKeys": {"$ref": "#/$defs/ids"}}
+    }
+  }
+}

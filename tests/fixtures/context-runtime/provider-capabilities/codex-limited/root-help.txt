@@ -1,0 +1,5 @@
+Codex CLI
+Usage: codex [OPTIONS] <COMMAND> [ARGS]
+Commands:
+  exec  Run Codex non-interactively
+Options:

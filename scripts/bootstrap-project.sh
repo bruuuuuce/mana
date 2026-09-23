@@ -278,6 +278,7 @@ Usage:
   ./mana jira-mcp [args...]             Run Jira MCP Docker wrapper.
   ./mana sonar [args...]                Configure/check/run local sonar-scanner.
   ./mana dependency-evidence [args...]  Collect local dependency evidence inventory.
+  ./mana evidence <cmd> [args...]       Collect and retrieve bounded local evidence.
   ./mana evidence-index [args...]       Build active workspace evidence index.
   ./mana validate-mana                  Validate the linked Mana repository.
   ./mana path                           Print linked Mana path.
@@ -325,6 +326,7 @@ Examples:
   ./mana sonar --init-config
   ./mana sonar --check
   ./mana dependency-evidence --collect
+  ./mana evidence list --execution execution-example
   ./mana evidence-index
 USAGE
     ;;
@@ -409,6 +411,9 @@ USAGE
   dependency-evidence)
     exec "$MANA_HOME/scripts/run-dependency-evidence.sh" --project-root "$project_root" "$@"
     ;;
+  evidence)
+    exec "$MANA_HOME/scripts/mana-evidence.sh" --project-root "$project_root" "$@"
+    ;;
   evidence-index)
     exec "$MANA_HOME/scripts/run-evidence-index.sh" --project-root "$project_root" "$@"
     ;;
@@ -450,6 +455,12 @@ fi
 install_codex_agents
 install_claude_agents
 install_opencode_agents
+
+# CTX-10 deliberately records only dormant, host-owned rollout metadata.  It
+# never promotes a profile: its versioned provider blocks preserve all bytes
+# outside the Mana-owned sections and work identically with --no-links.
+python3 "$framework_root/scripts/context-runtime-rollout.py" bootstrap \
+  --project-root "$project_root" >/dev/null || fail "CTX-10 rollout bootstrap failed"
 
 if [ "$create_jira_env" = true ]; then
   jira_example="$framework_root/mcp/env/jira-mcp.env.example"

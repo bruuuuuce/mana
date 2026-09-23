@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/run-state-v1.schema.json",
+  "title": "Mana host-owned Context Runtime run state v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "executionId", "executionVersion", "profileId", "revision", "status",
+    "currentPhaseId", "currentPhaseOrdinal", "currentAttempt", "latestCheckpointRef",
+    "transitionId", "previousStateDigest", "attempts"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.run-state/v1"},
+    "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},
+    "executionVersion": {"type": "integer", "minimum": 1},
+    "profileId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
+    "revision": {"type": "integer", "minimum": 0},
+    "status": {"type": "string", "enum": ["active", "blocked", "completed", "interrupted"]},
+    "currentPhaseId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"},
+    "currentPhaseOrdinal": {"type": "integer", "minimum": 1, "maximum": 128},
+    "currentAttempt": {"type": "integer", "minimum": 1, "maximum": 17},
+    "latestCheckpointRef": {
+      "type": ["string", "null"],
+      "pattern": "^C-[A-Za-z0-9._-]{1,120}$"
+    },
+    "transitionId": {
+      "type": ["string", "null"],
+      "pattern": "^T-[a-f0-9]{64}$"
+    },
+    "previousStateDigest": {
+      "type": ["string", "null"],
+      "pattern": "^sha256-[a-f0-9]{64}$"
+    },
+    "attempts": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 128,
+      "propertyNames": {"pattern": "^[A-Za-z0-9_-]{1,80}$"},
+      "additionalProperties": {"type": "integer", "minimum": 0, "maximum": 17}
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "mana.context-runtime.provider-budget-policy/v1",
+  "policyId": "mana-default-provider-budget-v1",
+  "calibration": {
+    "status": "provisional-no-empirical-baseline",
+    "requiredEvidence": "At least one real CTX-01 measured profile execution, with separately reported cached and uncached input, is required before changing these values."
+  },
+  "compactionPrompt": {
+    "version": "mana-context-compact/v1",
+    "text": "Preserve:\n- current human goal;\n- immutable governance constraints and approvals;\n- current profile, phase, target, base, workspace, and execution identifiers;\n- activated skills and activation reasons;\n- verified facts with evidence references;\n- open questions and required evidence;\n- accepted decisions;\n- rejected hypotheses with closing evidence;\n- next bounded actions and artifact paths.\n\nDiscard or aggressively summarize:\n- raw tool transcripts;\n- complete diffs and file bodies;\n- repeated evidence;\n- resolved exploration;\n- superseded plans;\n- inactive skill instructions;\n- examples and explanatory text from already-applied Mana documents;\n- full Jira, GitHub, test, and log payloads.\n\nNever turn an assumption or inference into a verified fact.\nNever remove an unresolved blocker, approval gate, safety constraint, or provenance."
+  },
+  "profiles": {
+    "default": {
+      "minimumMode": "standard",
+      "modes": {
+        "compact": {"automaticCompactionThresholdTokens":100000,"activeContextWarningTokens":80000,"cumulativeInputWarningTokens":160000,"cachedInputWarningTokens":120000,"uncachedInputWarningTokens":80000,"toolOutputRetentionTokens":4096,"maximumChildConcurrency":1,"childExecution":"disabled","compactionScope":"current-provider-context"},
+        "standard": {"automaticCompactionThresholdTokens":100000,"activeContextWarningTokens":90000,"cumulativeInputWarningTokens":240000,"cachedInputWarningTokens":180000,"uncachedInputWarningTokens":120000,"toolOutputRetentionTokens":8192,"maximumChildConcurrency":2,"childExecution":"disabled","compactionScope":"current-provider-context"},
+        "deep": {"automaticCompactionThresholdTokens":200000,"activeContextWarningTokens":180000,"cumulativeInputWarningTokens":480000,"cachedInputWarningTokens":360000,"uncachedInputWarningTokens":240000,"toolOutputRetentionTokens":16384,"maximumChildConcurrency":3,"childExecution":"disabled","compactionScope":"current-provider-context"}
+      }
+    }
+  }
+}

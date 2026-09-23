@@ -1,0 +1,4 @@
+first line
+Authorization: Bearer fixture-credential-must-not-persist
+third line
+fourth line

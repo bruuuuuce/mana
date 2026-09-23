@@ -1,0 +1,44 @@
+{
+  "negativeTokens": {
+    "version": "codex-cli 0.148.0\n",
+    "rootHelp": "Codex CLI\nUsage: codex [OPTIONS] <COMMAND> [ARGS]\nCommands:\n  exec  Run Codex non-interactively\nOptions:\n  --disable is unsupported in this build\n",
+    "runHelp": "Run Codex non-interactively\nUsage: codex exec [OPTIONS] [PROMPT]\nOptions:\n  --json is unsupported in this build\n  --ephemeral unavailable\n  --ignore-user-config is not provided\n  --output-schema is unsupported\n  --output-last-message unavailable\n  --model is ignored\n",
+    "features": "multi_agent is not supported\nmulti_agent_v2 unavailable\n"
+  },
+  "partial": {
+    "version": "codex-cli 0.148.0\n",
+    "rootHelp": "Codex CLI\nUsage: codex [OPTIONS] <COMMAND> [ARGS]\nCommands:\n  exec  Run Codex non-interactively\nOptions:\n",
+    "runHelp": "Run Codex non-interactively\nUsage: codex exec [OPTIONS] [PROMPT]\nOptions:\n  -m, --model <MODEL>\n    Model the agent should use\n",
+    "features": ""
+  },
+  "unexpected": {
+    "version": "codex-cli 0.148.0\n",
+    "rootHelp": "diagnostic payload mentioning --disable\n",
+    "runHelp": "unexpected payload: --json --ephemeral --model --output-schema --output-last-message\n",
+    "features": "unexpected feature payload multi_agent stable true\n"
+  },
+  "explicitNegative": {
+    "version": "codex-cli 0.90.0\n",
+    "rootHelp": "Codex CLI\nUsage: codex [OPTIONS] <COMMAND> [ARGS]\nCommands:\n  exec  Run Codex non-interactively\nOptions:\n",
+    "runHelp": "Run Codex non-interactively\nUsage: codex exec [OPTIONS] [PROMPT]\nOptions:\nCodex capability status:\n  structured-output-schema unsupported\n",
+    "features": "multi_agent removed false\n"
+  },
+  "positiveNegative": {
+    "version": "codex-cli 0.148.0\n",
+    "rootHelp": "Codex CLI\nUsage: codex [OPTIONS] <COMMAND> [ARGS]\nCommands:\n  exec  Run Codex non-interactively\nOptions:\n",
+    "runHelp": "Run Codex non-interactively\nUsage: codex exec [OPTIONS] [PROMPT]\nOptions:\n  --output-schema <FILE>\n    Path to a JSON Schema file describing the model's final response shape\nCodex capability status:\n  structured-output-schema unsupported\n",
+    "features": "multi_agent removed false\nmulti_agent stable true\n"
+  },
+  "absence": {
+    "version": "codex-cli 0.148.0\n",
+    "rootHelp": "Codex CLI\nUsage: codex [OPTIONS] <COMMAND> [ARGS]\nCommands:\n  exec  Run Codex non-interactively\nOptions:\n",
+    "runHelp": "Run Codex non-interactively\nUsage: codex exec [OPTIONS] [PROMPT]\nOptions:\n",
+    "features": ""
+  },
+  "unknownVersion": {
+    "version": "codex-cli 99.99.99\n",
+    "rootHelp": "Codex CLI\nUsage: codex [OPTIONS] <COMMAND> [ARGS]\nCommands:\n  exec  Run Codex non-interactively\nOptions:\n",
+    "runHelp": "Run Codex non-interactively\nUsage: codex exec [OPTIONS] [PROMPT]\nOptions:\n  -m, --model <MODEL>\n    Model the agent should use\n",
+    "features": ""
+  }
+}

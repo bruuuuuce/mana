@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/worker-debug-policy-v1.schema.json",
+  "title": "Mana Context Runtime host worker debug policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "policyId", "rawTraceRetention"],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.worker-debug-policy/v1"},
+    "policyId": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$"},
+    "rawTraceRetention": {"type": "string", "enum": ["discard", "retain"]}
+  }
+}

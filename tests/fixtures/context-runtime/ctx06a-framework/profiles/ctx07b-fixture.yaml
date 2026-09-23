@@ -1,0 +1,28 @@
+name: ctx07b-fixture
+trigger: test_fixture
+runner: codex
+agents:
+  - ctx06a-fixture-agent
+skills:
+  - ctx07b-full-skill
+  - ctx07b-inactive-skill
+skill_activation:
+  baseline:
+    - ctx07b-full-skill
+  conditional:
+    inactive_fixture_signal: ctx07b-inactive-skill
+context_runtime:
+  version: 2
+  workspace_kind: session
+  target_kind: none
+  human_gates: []
+  pipeline:
+    - id: investigate
+      ordinal: 1
+      model_tier: economy
+      output_schema: phase-checkpoint-v1
+      subagents: optional
+      evidence_kinds: [source]
+      evidence_statuses: [complete]
+      retry_limit: 0
+human_approval_requirement: false

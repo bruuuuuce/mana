@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "mana.context-runtime.worker-debug-policy/v1",
+  "policyId": "mana-default-worker-debug-v1",
+  "rawTraceRetention": "discard"
+}

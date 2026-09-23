@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/delegation-merge-v1.schema.json",
+  "title": "Mana Context Runtime delegation merge v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "executionId", "executionVersion", "workspaceId", "profileId",
+    "phaseId", "attempt", "planId", "mergeStatus", "taskResults", "verifiedFacts",
+    "findings", "assumptions", "inferences", "openQuestions", "evidenceGaps",
+    "evidenceRefs", "artifactRefs", "uncertainty", "missingTaskIds", "conflicts"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.delegation-merge/v1"},
+    "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},
+    "executionVersion": {"type": "integer", "minimum": 1},
+    "workspaceId": {"type": "string", "pattern": "^W-[a-f0-9]{64}$"},
+    "profileId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
+    "phaseId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"},
+    "attempt": {"type": "integer", "minimum": 1, "maximum": 17},
+    "planId": {"type": "string", "pattern": "^P-[a-f0-9]{64}$"},
+    "mergeStatus": {"type": "string", "enum": ["complete", "incomplete", "conflicted"]},
+    "taskResults": {"type": "array", "maxItems": 32, "items": {"$ref": "delegation-result-v1.schema.json"}},
+    "verifiedFacts": {"type": "array", "maxItems": 1024, "items": {"$ref": "delegation-result-v1.schema.json#/$defs/claim"}},
+    "findings": {"type": "array", "maxItems": 1024, "items": {"$ref": "delegation-result-v1.schema.json#/$defs/claim"}},
+    "assumptions": {"type": "array", "maxItems": 1024, "items": {"$ref": "delegation-result-v1.schema.json#/$defs/claim"}},
+    "inferences": {"type": "array", "maxItems": 1024, "items": {"$ref": "delegation-result-v1.schema.json#/$defs/claim"}},
+    "openQuestions": {"type": "array", "maxItems": 1024, "items": {"$ref": "delegation-result-v1.schema.json#/$defs/question"}},
+    "evidenceGaps": {"type": "array", "maxItems": 1024, "items": {"$ref": "delegation-result-v1.schema.json#/$defs/gap"}},
+    "evidenceRefs": {
+      "type": "array", "maxItems": 2048, "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^E-[a-f0-9]{64}$"}
+    },
+    "artifactRefs": {"type": "array", "maxItems": 1024, "items": {"$ref": "delegation-result-v1.schema.json#/$defs/artifact"}},
+    "uncertainty": {"type": "array", "maxItems": 32, "items": {"$ref": "delegation-result-v1.schema.json#/$defs/uncertainty"}},
+    "missingTaskIds": {
+      "type": "array", "maxItems": 32, "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^T-[A-Za-z0-9._-]{1,120}$"}
+    },
+    "conflicts": {
+      "type": "array", "maxItems": 1024,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["claimKey", "stances", "claims"],
+        "properties": {
+          "claimKey": {"type": "string", "pattern": "^C-[a-f0-9]{64}$"},
+          "stances": {
+            "type": "array", "minItems": 2, "maxItems": 2, "uniqueItems": true,
+            "items": {"type": "string", "enum": ["affirmed", "denied"]}
+          },
+          "claims": {
+            "type": "array", "minItems": 2, "maxItems": 1024,
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["category", "id", "stance", "provenance"],
+              "properties": {
+                "category": {"type": "string", "enum": ["verifiedFacts", "findings", "assumptions", "inferences"]},
+                "id": {"type": "string", "pattern": "^[A-Z]-[A-Za-z0-9._-]{1,120}$"},
+                "stance": {"type": "string", "enum": ["affirmed", "denied"]},
+                "provenance": {"$ref": "delegation-result-v1.schema.json#/$defs/provenance"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

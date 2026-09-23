@@ -1,0 +1,5 @@
+Run Codex non-interactively
+Usage: codex exec [OPTIONS] [PROMPT]
+Options:
+  -m, --model <MODEL>
+    Model the agent should use

@@ -173,3 +173,19 @@ Configure its external read-only source in the XDG user config described in
 - Real Jira credentials should stay in `.mana/jira-mcp.env`, another ignored
   env file, or shell environment variables. They must not be committed.
 - Re-run with `--force` to refresh generated wrapper files and managed symlinks.
+
+## CTX-10 runtime rollout metadata
+
+Bootstrap creates the dormant host-owned policy at
+`.mana/context-runtime/runtime-selection-v1.json` and bounded managed blocks
+for Codex, Claude, and OpenCode. Refresh changes only its marker-delimited
+section and preserves surrounding user content, comments, line endings and
+mode; a future block is never downgraded. The default remains `legacy`.
+Profile-by-profile v2 opt-in occurs only after its release gates. `--no-links`
+needs no hidden link: blocks, `./mana inspect runtime --json`, and doctor work
+from local copied/configured paths.
+
+PRC-06 remains required before rollout activation. CTX-10 only installs dormant
+infrastructure: rollout stays disabled by default, CTX-10 PASS does not permit a
+pilot or default flip, and later profile-by-profile migration remains subject
+to the MIG gates.

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/transition-bundle-v1.schema.json",
+  "title": "Mana immutable Context Runtime transition bundle v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "transitionId", "operation", "operationDigest",
+    "executionId", "executionVersion", "profileId", "previousRevision", "previousTransitionId",
+    "previousStateDigest", "checkpointId", "checkpointDigest", "authorityDigest",
+    "nextStateDigest", "checkpointRef", "runStateRef", "phaseInputRef",
+    "authorityRef", "effectiveAuthority"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.transition-bundle/v1"},
+    "transitionId": {"type": "string", "pattern": "^T-[a-f0-9]{64}$"},
+    "operation": {"type": "string", "enum": ["accept-checkpoint", "resume"]},
+    "operationDigest": {"$ref": "#/$defs/digest"},
+    "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"},
+    "executionVersion": {"type": "integer", "minimum": 1},
+    "profileId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,120}$"},
+    "previousRevision": {"type": "integer", "minimum": 0},
+    "previousTransitionId": {
+      "type": ["string", "null"],
+      "pattern": "^T-[a-f0-9]{64}$"
+    },
+    "previousStateDigest": {"$ref": "#/$defs/digest"},
+    "checkpointId": {"type": "string", "pattern": "^C-[A-Za-z0-9._-]{1,120}$"},
+    "checkpointDigest": {"$ref": "#/$defs/digest"},
+    "authorityDigest": {"anyOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]},
+    "nextStateDigest": {"$ref": "#/$defs/digest"},
+    "checkpointRef": {"const": "checkpoint-v1.json"},
+    "runStateRef": {"const": "run-state-v1.json"},
+    "phaseInputRef": {"enum": ["phase-input-v1.json", null]},
+    "authorityRef": {"enum": ["authority-v1.json", null]},
+    "effectiveAuthority": {"type": "object"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^sha256-[a-f0-9]{64}$"}
+  }
+}

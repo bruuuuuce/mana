@@ -1,0 +1,15 @@
+Run Codex non-interactively
+Usage: codex exec [OPTIONS] [PROMPT]
+Options:
+  -m, --model <MODEL>
+    Model the agent should use
+  --ephemeral
+    Run without persisting session files to disk
+  --ignore-user-config
+    Do not load `$CODEX_HOME/config.toml`; auth still uses `CODEX_HOME`
+  --output-schema <FILE>
+    Path to a JSON Schema file describing the model's final response shape
+  --json
+    Print events to stdout as JSONL
+  -o, --output-last-message <FILE>
+    Specifies file where the last message from the agent should be written

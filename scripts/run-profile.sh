@@ -2,17 +2,20 @@
 set -u
 root="$(cd "$(dirname "$0")/.." && pwd)"
 . "$root/scripts/lib/provider-dispatch.sh"
+. "$root/scripts/lib/provider-execution.sh"
 . "$root/scripts/lib/story-start-stage-routing.sh"
 . "$root/scripts/lib/analysis-trajectory-telemetry.sh"
 . "$root/scripts/lib/analysis-trajectory-integration.sh"
 . "$root/scripts/lib/story-start-scope-v2.sh"
-# shellcheck source=lib/profile-metadata.sh
+# shellcheck source=scripts/lib/profile-metadata.sh
 . "$root/scripts/lib/profile-metadata.sh"
+. "$root/scripts/lib/execution-plan.sh"
 . "$root/scripts/lib/user-context.sh"
 profile=""
 project_root=""
 render_only=false
 runner=""
+runner_flag_count=0
 pr_number=""
 publish_high_risk_comments=false
 service_discovery_approved=false
@@ -67,6 +70,22 @@ story_start_triage_model=""; story_start_triage_effort=""
 story_start_planner_model=""; story_start_planner_effort=""
 story_start_correction_model=""; story_start_correction_effort=""
 story_start_trajectory_checkpoint_model=""; story_start_trajectory_checkpoint_effort=""
+context_manifest=""
+manifest_execution_id=""
+manifest_static_signals=()
+manifest_requested_skills=()
+manifest_deep_load_skills=()
+manifest_validation_args=()
+compiled_manifest=""
+shadow_workspace_relative=""
+context_runtime_version="legacy"
+context_runtime_explicit=false
+runtime_execution_id=""
+budget_mode=""
+legacy_runtime_artifact=""
+v2_runtime_artifact=""
+comparison_target_key=""
+context_runtime_shadow=false
 
 usage() {
   cat <<'USAGE'
@@ -103,6 +122,17 @@ Options:
   --jira-key-regex <regex>       Override branch issue-key discovery.
   --allow-service-discovery       Allow epic-analysis to inspect named services read-only.
   --publish-high-risk-comments   Allow requested-pr-review to publish one high-risk PR comment.
+  --context-manifest <path>     Consume this canonical manifest after authoritative validation.
+  --manifest-execution-id <id>  Host-selected execution identity for supplied manifest validation.
+  --static-signal <id>          Declared host activation input used to compile the manifest.
+  --request-skill <id>          Declared semantic activation request used to compile the manifest.
+  --deep-load-skill <id>        Active skill selected for instruction-body loading.
+  --context-runtime <mode>      Select legacy (default), shadow, v2, or compare.
+  --runtime-execution-id <id>   Existing CTX-06A run (v2) or local CTX-09 mode-plan identity.
+  --legacy-runtime-artifact <p> Saved project-local legacy artifact for compare mode.
+  --v2-runtime-artifact <path>  Saved project-local v2 artifact for compare mode.
+  --comparison-target-key <sha> Expected host target identity for compare registration.
+  --budget-mode <mode>          Human v2 budget request; compact, standard, or deep, preserving host minimum.
 
 Story Start Scope v2 opt-in:
   MANA_STORY_START_SCOPE_VERSION=v2
@@ -133,18 +163,18 @@ while [ "$#" -gt 0 ]; do
       shift
       ;;
     --codex)
-      [ -z "$runner" ] || { echo "ERROR: choose only one runner flag" >&2; exit 2; }
-      runner="codex"
+      runner_flag_count=$((runner_flag_count + 1))
+      [ -n "$runner" ] || runner="codex"
       shift
       ;;
     --claude)
-      [ -z "$runner" ] || { echo "ERROR: choose only one runner flag" >&2; exit 2; }
-      runner="claude"
+      runner_flag_count=$((runner_flag_count + 1))
+      [ -n "$runner" ] || runner="claude"
       shift
       ;;
     --opencode)
-      [ -z "$runner" ] || { echo "ERROR: choose only one runner flag" >&2; exit 2; }
-      runner="opencode"
+      runner_flag_count=$((runner_flag_count + 1))
+      [ -n "$runner" ] || runner="opencode"
       shift
       ;;
     --codex-model)
@@ -328,6 +358,62 @@ while [ "$#" -gt 0 ]; do
       [ -n "$jira_key_regex" ] || { echo "ERROR: --jira-key-regex requires a regex" >&2; exit 2; }
       shift 2
       ;;
+    --context-manifest)
+      context_manifest="${2:-}"
+      [ -n "$context_manifest" ] || { echo "ERROR: --context-manifest requires a path" >&2; exit 2; }
+      shift 2
+      ;;
+    --manifest-execution-id)
+      manifest_execution_id="${2:-}"
+      [ -n "$manifest_execution_id" ] || { echo "ERROR: --manifest-execution-id requires an id" >&2; exit 2; }
+      shift 2
+      ;;
+    --static-signal)
+      [ -n "${2:-}" ] || { echo "ERROR: --static-signal requires an id" >&2; exit 2; }
+      manifest_static_signals+=("$2")
+      shift 2
+      ;;
+    --request-skill)
+      [ -n "${2:-}" ] || { echo "ERROR: --request-skill requires an id" >&2; exit 2; }
+      manifest_requested_skills+=("$2")
+      shift 2
+      ;;
+    --deep-load-skill)
+      [ -n "${2:-}" ] || { echo "ERROR: --deep-load-skill requires an id" >&2; exit 2; }
+      manifest_deep_load_skills+=("$2")
+      shift 2
+      ;;
+    --context-runtime)
+      context_runtime_version="${2:-}"
+      context_runtime_explicit=true
+      [ -n "$context_runtime_version" ] || { echo "ERROR: --context-runtime requires legacy, shadow, v2, or compare" >&2; exit 2; }
+      shift 2
+      ;;
+    --runtime-execution-id)
+      runtime_execution_id="${2:-}"
+      [ -n "$runtime_execution_id" ] || { echo "ERROR: --runtime-execution-id requires an id" >&2; exit 2; }
+      shift 2
+      ;;
+    --legacy-runtime-artifact)
+      legacy_runtime_artifact="${2:-}"
+      [ -n "$legacy_runtime_artifact" ] || { echo "ERROR: --legacy-runtime-artifact requires a path" >&2; exit 2; }
+      shift 2
+      ;;
+    --v2-runtime-artifact)
+      v2_runtime_artifact="${2:-}"
+      [ -n "$v2_runtime_artifact" ] || { echo "ERROR: --v2-runtime-artifact requires a path" >&2; exit 2; }
+      shift 2
+      ;;
+    --comparison-target-key)
+      comparison_target_key="${2:-}"
+      [ -n "$comparison_target_key" ] || { echo 'ERROR: --comparison-target-key requires a SHA-256 identity' >&2; exit 2; }
+      shift 2
+      ;;
+    --budget-mode)
+      budget_mode="${2:-}"
+      case "$budget_mode" in compact|standard|deep) ;; *) echo 'ERROR: --budget-mode must be compact, standard, or deep' >&2; exit 2 ;; esac
+      shift 2
+      ;;
     --*)
       echo "ERROR: unknown option: $1" >&2
       exit 2
@@ -453,9 +539,138 @@ if ! printf '%s\n' "$opencode_max_threads" | grep -Eq '^[0-9]+$' || [ "$opencode
   exit 2
 fi
 
+# Configured limits preserve the existing public inputs. Effective limits are
+# the provider-neutral policy seen by the prompt and become zero when a hard
+# child-execution deny is selected.
+codex_effective_max_threads="$codex_max_threads"; codex_effective_max_depth="$codex_max_depth"
+claude_effective_max_threads="$claude_max_threads"; claude_effective_max_depth=1
+opencode_effective_max_threads="$opencode_max_threads"; opencode_effective_max_depth=1
+[ "$codex_subagents" = true ] || { codex_effective_max_threads=0; codex_effective_max_depth=0; }
+[ "$claude_subagents" = true ] || { claude_effective_max_threads=0; claude_effective_max_depth=0; }
+[ "$opencode_subagents" = true ] || { opencode_effective_max_threads=0; opencode_effective_max_depth=0; }
+
 : "${opencode_full_model:=$opencode_model}"
 : "${opencode_explorer_model:=$opencode_model}"
 : "${opencode_worker_model:=$opencode_model}"
+
+[ -z "${MANA_CONTEXT_RUNTIME_VERSION+x}" ] || {
+  echo 'ERROR: environment runtime mode authority is forbidden; use --context-runtime' >&2
+  exit 2
+}
+
+# A bootstrapped selection is frozen against an identity read from CTX-06, or
+# (for legacy only) generated by the host for this bounded invocation.  It is
+# never keyed by profile alone and never sourced from an ambient environment.
+runtime_execution_id="${runtime_execution_id:-${manifest_execution_id:-}}"
+rollout_args=(candidate --project-root "$project_root" --profile "$profile")
+[ "$context_runtime_explicit" = false ] || rollout_args+=(--requested-mode "$context_runtime_version")
+if [ -e "$project_root/.mana/context-runtime/runtime-selection-v1.json" ] ||
+   [ -L "$project_root/.mana/context-runtime/runtime-selection-v1.json" ]; then
+  [ -z "$runtime_execution_id" ] || rollout_args+=(--execution-id "$runtime_execution_id")
+fi
+rollout_candidate="$(python3 "$root/scripts/context-runtime-rollout.py" "${rollout_args[@]}")" || exit 2
+candidate_mode="$(printf '%s' "$rollout_candidate" | python3 -c 'import json,sys; print(json.load(sys.stdin)["mode"])')" || exit 2
+# CTX-10-R2.1 validation precedence is part of the public v2 dispatch
+# contract, rather than an incidental consequence of where checks happen.
+# A v2 execution identity is host authority and therefore wins over provider
+# argv selection when both are absent.  Its authoritative reader validates a
+# supplied identity before exactly one provider runner is required.
+if [ "$candidate_mode" = v2 ]; then
+  [ -n "$runtime_execution_id" ] || {
+    echo 'ERROR: CTX10_EXECUTION_IDENTITY_REQUIRED: context runtime v2 requires an initialized CTX-06 execution identity' >&2
+    exit 2
+  }
+elif [ "$runner_flag_count" -gt 1 ]; then
+  echo 'ERROR: choose only one runner flag' >&2
+  exit 2
+fi
+if [ -e "$project_root/.mana/context-runtime/runtime-selection-v1.json" ] ||
+   [ -L "$project_root/.mana/context-runtime/runtime-selection-v1.json" ]; then
+  if [ "$candidate_mode" = legacy ]; then
+    legacy_identity_args=(legacy-execution-identity --project-root "$project_root" --profile "$profile")
+    [ -z "$runtime_execution_id" ] || legacy_identity_args+=(--execution-id "$runtime_execution_id")
+    rollout_identity="$(python3 "$root/scripts/context-runtime-rollout.py" "${legacy_identity_args[@]}")" || exit 2
+  else
+    rollout_identity="$(python3 "$root/scripts/context-runtime-rollout.py" execution-identity --project-root "$project_root" --execution-id "$runtime_execution_id" --framework-root "$root" --profile "$profile")" || exit 2
+    identity_profile="$(printf '%s' "$rollout_identity" | python3 -c 'import json,sys; print(json.load(sys.stdin)["profileId"])')" || exit 2
+    [ "$identity_profile" = "$profile" ] || { echo 'ERROR: CTX10_EXECUTION_AUTHORITY_REJECTED: supplied CTX-06 execution authority was rejected' >&2; exit 2; }
+    if [ "$candidate_mode" = v2 ]; then
+      [ "$runner_flag_count" -eq 1 ] || {
+        echo 'ERROR: CTX10_PROVIDER_RUNNER_SELECTION_REQUIRED: context runtime v2 requires one provider runner flag' >&2
+        exit 2
+      }
+    fi
+  fi
+  identity_execution="$(printf '%s' "$rollout_identity" | python3 -c 'import json,sys; print(json.load(sys.stdin)["executionId"])')" || exit 2
+  identity_version="$(printf '%s' "$rollout_identity" | python3 -c 'import json,sys; print(json.load(sys.stdin)["executionVersion"])')" || exit 2
+  identity_workspace="$(printf '%s' "$rollout_identity" | python3 -c 'import json,sys; print(json.load(sys.stdin)["workspaceId"])')" || exit 2
+  python3 "$root/scripts/context-runtime-rollout.py" materialize-decision --project-root "$project_root" --profile "$profile" --execution-id "$identity_execution" --execution-version "$identity_version" --workspace-id "$identity_workspace" >/dev/null || exit 2
+  rollout_args[0]=resolve
+  rollout_args+=(--execution-id "$identity_execution" --execution-version "$identity_version" --workspace-id "$identity_workspace")
+fi
+rollout_decision="$(python3 "$root/scripts/context-runtime-rollout.py" "${rollout_args[@]}")" || exit 2
+context_runtime_version="$(printf '%s' "$rollout_decision" | python3 -c 'import json,sys; print(json.load(sys.stdin)["mode"])')" || exit 2
+rollout_warning="$(printf '%s' "$rollout_decision" | python3 -c 'import json,sys; value=json.load(sys.stdin).get("warning"); print("" if value is None else value["code"] + ": " + value["message"])')" || exit 2
+[ -z "$rollout_warning" ] || echo "WARNING: $rollout_warning" >&2
+
+[ "$context_runtime_version" = compare ] || [ -z "$comparison_target_key" ] || { echo 'ERROR: comparison target requires compare mode' >&2; exit 2; }
+case "$context_runtime_version" in
+  legacy)
+    [ -z "$legacy_runtime_artifact$v2_runtime_artifact" ] || { echo 'ERROR: comparison artifacts require --context-runtime compare' >&2; exit 2; }
+    ;;
+  v2)
+    [ "$render_only" = false ] || { echo 'ERROR: --render-only is a legacy renderer; execute an initialized run for context runtime v2' >&2; exit 2; }
+    # CTX-10-R2.1 validates these preconditions above. Keep this branch free
+    # of a second accidental ordering that could change the public category.
+    [ "$publish_high_risk_comments" = false ] || { echo 'ERROR: CTX-06C is read-only and cannot publish PR comments' >&2; exit 2; }
+    [ "$service_discovery_approved" = false ] || { echo 'ERROR: CTX-06C does not implement profile-specific service discovery' >&2; exit 2; }
+    v2_args=(
+      "$runtime_execution_id" --project-root "$project_root"
+      --profile "$profile" --provider "$runner"
+      --codex-model "$codex_model" --codex-full-model "$codex_full_model"
+      --claude-model "$claude_model" --claude-full-model "$claude_full_model"
+      --opencode-model "$opencode_model" --opencode-full-model "$opencode_full_model"
+    )
+    [ -z "$budget_mode" ] || v2_args+=(--budget-mode "$budget_mode")
+    for value in "${manifest_static_signals[@]+"${manifest_static_signals[@]}"}"; do v2_args+=(--static-signal "$value"); done
+    for value in "${manifest_requested_skills[@]+"${manifest_requested_skills[@]}"}"; do v2_args+=(--request-skill "$value"); done
+    for value in "${manifest_deep_load_skills[@]+"${manifest_deep_load_skills[@]}"}"; do v2_args+=(--deep-load-skill "$value"); done
+    exec "$root/scripts/run-profile-v2.sh" "${v2_args[@]}"
+    ;;
+  shadow)
+    [ "$render_only" = false ] || { echo "ERROR: context runtime $context_runtime_version does not render a provider prompt" >&2; exit 2; }
+    [ "$publish_high_risk_comments" = false ] || { echo "ERROR: context runtime $context_runtime_version cannot publish PR comments" >&2; exit 2; }
+    [ "$service_discovery_approved" = false ] || { echo "ERROR: context runtime $context_runtime_version cannot enable service discovery" >&2; exit 2; }
+    runtime_execution_id="${runtime_execution_id:-${manifest_execution_id:-}}"
+    [ -n "$runtime_execution_id" ] || { echo "ERROR: context runtime $context_runtime_version requires an initialized execution identity" >&2; exit 2; }
+    manifest_execution_id="$runtime_execution_id"
+    [ -z "$legacy_runtime_artifact$v2_runtime_artifact" ] || { echo 'ERROR: shadow does not accept comparison artifacts; CTX-09C owns live capture' >&2; exit 2; }
+    [ -n "$runner" ] || { echo 'ERROR: context runtime shadow requires one provider runner flag' >&2; exit 2; }
+    if [ ! -f "$project_root/.mana/active-workspace" ] || [ -L "$project_root/.mana/active-workspace" ]; then
+      echo 'ERROR: context runtime shadow requires one host-owned active Mana workspace' >&2
+      exit 2
+    fi
+    shadow_workspace_relative="$(sed -n '1p' "$project_root/.mana/active-workspace")"
+    case "$shadow_workspace_relative" in
+      .mana/features/*|.mana/sessions/*) ;;
+      *) echo 'ERROR: context runtime shadow active workspace is not canonical' >&2; exit 2 ;;
+    esac
+    python3 "$root/scripts/context-runtime-mode.py" shadow-preflight --project-root "$project_root" --execution-id "$runtime_execution_id" || exit 2
+    context_runtime_shadow=true
+    ;;
+  compare)
+    [ "$render_only" = false ] || { echo "ERROR: context runtime $context_runtime_version does not render a provider prompt" >&2; exit 2; }
+    [ "$publish_high_risk_comments" = false ] || { echo "ERROR: context runtime $context_runtime_version cannot publish PR comments" >&2; exit 2; }
+    [ "$service_discovery_approved" = false ] || { echo "ERROR: context runtime $context_runtime_version cannot enable service discovery" >&2; exit 2; }
+    runtime_execution_id="${runtime_execution_id:-${manifest_execution_id:-}}"
+    [ -n "$runtime_execution_id" ] || { echo "ERROR: context runtime $context_runtime_version requires an initialized execution identity" >&2; exit 2; }
+    mode_args=(compare --project-root "$project_root" --execution-id "$runtime_execution_id" --profile-id "$profile" --target-key "$comparison_target_key")
+    [ -z "$legacy_runtime_artifact" ] || mode_args+=(--legacy-artifact "$legacy_runtime_artifact")
+    [ -z "$v2_runtime_artifact" ] || mode_args+=(--v2-artifact "$v2_runtime_artifact")
+    exec python3 "$root/scripts/context-runtime-mode.py" "${mode_args[@]}"
+    ;;
+  *) echo 'ERROR: context runtime must be legacy, shadow, v2, or compare' >&2; exit 2 ;;
+esac
 
 current_branch=""
 if git -C "$project_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -496,46 +711,73 @@ if [ "$render_only" = true ] && [ -n "$runner" ]; then
   exit 2
 fi
 
-"$root/scripts/mana-update-check.sh" --root "$root" --profile "$profile" || exit 1
-
-profile_skills="$(mana_profile_skills "$file")"
-skill_index="$root/skills/index.yaml"
-
-skill_metadata() {
-  skill_id="$1"
-  awk -v target="$skill_id" '
-    $1 == "-" && $2 == "id:" {
-      if (found) { print risk "|" tier "|" mode "|" group; active = 0; exit }
-      active = ($3 == target)
-      found = active
-      next
-    }
-    active && $1 == "risk_level:" { risk = $2 }
-    active && $1 == "model_tier:" { tier = $2 }
-    active && $1 == "execution_mode:" { mode = $2 }
-    active && $1 == "delegation_group:" { group = $2 }
-    END { if (found && active) print risk "|" tier "|" mode "|" group }
-  ' "$skill_index"
-}
-
-model_escalation_skills=""
-if [ -n "$profile_skills" ]; then
-  while IFS= read -r skill; do
-    [ -n "$skill" ] || continue
-    metadata="$(skill_metadata "$skill")"
-    case "$metadata" in
-      *'|full|'*|high'|'*)
-      model_escalation_skills="${model_escalation_skills}${model_escalation_skills:+ }$skill"
-        ;;
-    esac
-  done <<EOF
-$profile_skills
-EOF
+# Shadow admission must not contact a remote before host isolation exists.
+# The sandboxed legacy invocation also receives update checks disabled.
+if [ "$context_runtime_shadow" = false ]; then
+  "$root/scripts/mana-update-check.sh" --root "$root" --profile "$profile" || exit 1
 fi
+
+for value in "${manifest_static_signals[@]+"${manifest_static_signals[@]}"}"; do manifest_validation_args+=(--static-signal "$value"); done
+for value in "${manifest_requested_skills[@]+"${manifest_requested_skills[@]}"}"; do manifest_validation_args+=(--request-skill "$value"); done
+for value in "${manifest_deep_load_skills[@]+"${manifest_deep_load_skills[@]}"}"; do manifest_validation_args+=(--deep-load-skill "$value"); done
+
+if [ -z "$context_manifest" ]; then
+  manifest_execution_id="${manifest_execution_id:-${MANA_RUNTIME_EXECUTION_ID:-execution-run-profile-$profile-$$}}"
+  compiled_manifest="$(
+    "$root/scripts/mana-compile-profile.sh" "$profile" --execution-id "$manifest_execution_id" \
+      "${manifest_validation_args[@]+"${manifest_validation_args[@]}"}"
+  )" || exit 1
+else
+  manifest_execution_id="${manifest_execution_id:-${MANA_RUNTIME_EXECUTION_ID:-}}"
+  [ -n "$manifest_execution_id" ] || { echo 'ERROR: a supplied --context-manifest requires host --manifest-execution-id' >&2; exit 2; }
+  manifest_parent="$(cd "$(dirname "$context_manifest")" 2>/dev/null && pwd -P)" || {
+    echo 'ERROR: canonical context manifest parent is unavailable' >&2
+    exit 1
+  }
+  context_manifest="$manifest_parent/$(basename "$context_manifest")"
+  compiled_manifest="$(
+    python3 "$root/scripts/lib/context-runtime.py" authoritative-materialize-context-manifest \
+      "$context_manifest" "$root" "$profile" "$manifest_execution_id" \
+      "${manifest_validation_args[@]+"${manifest_validation_args[@]}"}"
+  )" || exit 1
+fi
+
+# From this point onward activation and routing consume one immutable shell
+# value emitted by the authoritative boundary. The candidate pathname is never
+# reopened, so post-validation replacement cannot change execution or prompt.
+mana_execution_plan_json "$root" "$compiled_manifest" || { echo "ERROR: $MANA_PLAN_ERROR" >&2; exit 1; }
+
+# CTX-09A shadow preserves the exact legacy runner/output as authoritative,
+# but it may not use legacy authority to create a second application effect.
+# CTX-03's immutable manifest projection is the only source for this gate.
+if [ "$context_runtime_shadow" = true ] && [ -n "$MANA_PLAN_WRITE_REASON" ]; then
+  echo "ERROR: context runtime shadow rejects mutating legacy work: $MANA_PLAN_WRITE_REASON" >&2
+  exit 2
+fi
+
+if [ "$context_runtime_shadow" = true ]; then
+  jq -e 'all(.activatedSkills[]; .executionMode == "read")' <<<"$compiled_manifest" >/dev/null || {
+    echo 'ERROR: context runtime shadow rejects undeclared legacy effect authority' >&2
+    exit 2
+  }
+  for shadow_agent in $MANA_PLAN_AGENTS; do
+    [ "$(awk '
+      /^---[[:space:]]*$/ { boundaries++; if (boundaries == 2) exit; next }
+      boundaries == 1 && /^execution_mode:/ { sub(/^execution_mode:[[:space:]]*/, ""); print }
+    ' "$root/agents/$shadow_agent/AGENT.md")" = read ] || {
+      echo 'ERROR: context runtime shadow rejects undeclared agent effect authority' >&2
+      exit 2
+    }
+  done
+fi
+
+profile_runner_classes="$MANA_PLAN_RUNNERS"
+activation_migration_warning="$(jq -r '.warnings[]?' <<<"$compiled_manifest")"
+model_escalation_skills="$(jq -r '.modelEscalationSkills | join(" ")' <<<"$compiled_manifest")"
 
 model_routing_warning=""
 if [ -n "$model_escalation_skills" ]; then
-  model_routing_warning="This profile includes full-tier or high-risk skill candidates. The root model is for routing, evidence inventory, low-risk checks, and synthesis only; delegate deep judgment to the configured full specialist or stop with needs_model_escalation if escalation is unavailable."
+  model_routing_warning="This profile has active full-tier or high-risk work. The root model is for routing, evidence inventory, low-risk checks, and synthesis only; delegate deep judgment to the configured full specialist or stop with needs_model_escalation if escalation is unavailable."
 fi
 
 render_codex_agent() {
@@ -677,17 +919,22 @@ install_claude_agent_file() {
 }
 
 ensure_claude_agents() {
-  agents_dir="$project_root/.claude/agents"
+  ensure_claude_agents_at "$project_root"
+}
+
+ensure_claude_agents_at() {
+  local target_root="$1"
+  [ "$claude_subagents" = true ] || return 0
+  agents_dir="$target_root/.claude/agents"
   if ! mkdir -p "$agents_dir" 2>/dev/null; then
     claude_agent_install_warnings="${claude_agent_install_warnings}${claude_agent_install_warnings:+
 }WARNING: could not create $agents_dir; Claude Code delegation must fall back if agents are unavailable"
     return 0
   fi
 
-  orchestrator_content="$(render_claude_agent "mana-orchestrator" "Mana primary orchestrator for profile routing, light evidence inventory, bounded delegation, and final synthesis." "Agent(mana-explorer, mana-full-specialist, mana-worker), Read, Glob, Grep, Bash, Write, Edit" "$claude_model" "default" "low" "$(claude_agent_instructions mana-orchestrator)")"
+  claude_orchestrator_tools="Agent(mana-explorer, mana-full-specialist, mana-worker), Read, Glob, Grep, Bash, Write, Edit"
+  orchestrator_content="$(render_claude_agent "mana-orchestrator" "Mana primary orchestrator for profile routing, light evidence inventory, bounded delegation, and final synthesis." "$claude_orchestrator_tools" "$claude_model" "default" "low" "$(claude_agent_instructions mana-orchestrator)")"
   install_claude_agent_file "$agents_dir/mana-orchestrator.md" "$orchestrator_content" || true
-
-  [ "$claude_subagents" = true ] || return 0
 
   readonly_claude_tools="Read, Glob, Grep, Bash(git diff:*), Bash(git status:*), Bash(git log:*), Bash(git show:*), Bash(rg:*), Bash(find:*)"
   explorer_content="$(render_claude_agent "mana-explorer" "Mana read-only repository evidence discovery and inventory." "$readonly_claude_tools" "$claude_explorer_model" "default" "medium" "$(claude_agent_instructions mana-explorer)")"
@@ -760,7 +1007,13 @@ install_opencode_agent_file() {
 }
 
 ensure_opencode_agents() {
-  agents_dir="$project_root/.opencode/agents"
+  ensure_opencode_agents_at "$project_root"
+}
+
+ensure_opencode_agents_at() {
+  local target_root="$1"
+  [ "$opencode_subagents" = true ] || return 0
+  agents_dir="$target_root/.opencode/agents"
   if ! mkdir -p "$agents_dir" 2>/dev/null; then
     opencode_agent_install_warnings="${opencode_agent_install_warnings}${opencode_agent_install_warnings:+
 }WARNING: could not create $agents_dir; OpenCode delegation must fall back if agents are unavailable"
@@ -801,8 +1054,6 @@ ensure_opencode_agents() {
   orchestrator_content="$(render_opencode_agent "mana_orchestrator" "primary" "$opencode_model" "Mana primary orchestrator for profile routing, light evidence inventory, bounded delegation, and final synthesis." "$orchestrator_permissions" "$(opencode_agent_instructions mana_orchestrator)")"
   install_opencode_agent_file "$agents_dir/mana_orchestrator.md" "$orchestrator_content" || true
 
-  [ "$opencode_subagents" = true ] || return 0
-
   explorer_content="$(render_opencode_agent "mana_explorer" "subagent" "$opencode_explorer_model" "Mana read-only repository evidence discovery and inventory." "$readonly_permissions" "$(opencode_agent_instructions mana_explorer)")"
   full_content="$(render_opencode_agent "mana_full_specialist" "subagent" "$opencode_full_model" "Mana high-risk full-model specialist for bounded architecture, database, security, contract, concurrency, and production judgments." "$readonly_permissions" "$(opencode_agent_instructions mana_full_specialist)")"
   worker_content="$(render_opencode_agent "mana_worker" "subagent" "$opencode_worker_model" "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks." "$worker_permissions" "$(opencode_agent_instructions mana_worker)")"
@@ -813,8 +1064,13 @@ ensure_opencode_agents() {
 }
 
 ensure_codex_agents() {
+  ensure_codex_agents_at "$project_root"
+}
+
+ensure_codex_agents_at() {
+  local target_root="$1"
   [ "$codex_subagents" = true ] || return 0
-  agents_dir="$project_root/.codex/agents"
+  agents_dir="$target_root/.codex/agents"
   if ! mkdir -p "$agents_dir" 2>/dev/null; then
     codex_agent_install_warnings="${codex_agent_install_warnings}${codex_agent_install_warnings:+
 }WARNING: could not create $agents_dir; Codex subagent delegation must fall back if agents are unavailable"
@@ -846,12 +1102,12 @@ if [ "$runner" = "codex" ]; then
   echo "Codex worker model: $codex_worker_model"
   echo "Codex model policy: $codex_model_policy"
   echo "Codex subagents: $codex_subagents"
-  echo "Codex agent limits: max_threads=$codex_max_threads max_depth=$codex_max_depth interrupt_message=false"
+  echo "Codex agent limits: max_threads=$codex_effective_max_threads max_depth=$codex_effective_max_depth interrupt_message=false"
   if [ -n "$model_escalation_skills" ]; then
-    echo "Codex delegation/escalation candidate skills: $model_escalation_skills"
+    echo "Codex active delegation/escalation skills: $model_escalation_skills"
     echo "Model routing warning: $model_routing_warning"
   else
-    echo "Codex delegation/escalation candidate skills: none"
+    echo "Codex active delegation/escalation skills: none"
   fi
 fi
 if [ "$runner" = "claude" ]; then
@@ -862,10 +1118,10 @@ if [ "$runner" = "claude" ]; then
   echo "Claude subagents: $claude_subagents"
   echo "Claude delegation limit: max_direct_subagents=$claude_max_threads, max_depth=1"
   if [ -n "$model_escalation_skills" ]; then
-    echo "Claude delegation/escalation candidate skills: $model_escalation_skills"
+    echo "Claude active delegation/escalation skills: $model_escalation_skills"
     echo "Model routing warning: $model_routing_warning"
   else
-    echo "Claude delegation/escalation candidate skills: none"
+    echo "Claude active delegation/escalation skills: none"
   fi
 fi
 if [ "$runner" = "opencode" ]; then
@@ -876,12 +1132,13 @@ if [ "$runner" = "opencode" ]; then
   echo "OpenCode subagents: $opencode_subagents"
   echo "OpenCode agent limits: max_threads=$opencode_max_threads max_depth=1"
   if [ -n "$model_escalation_skills" ]; then
-    echo "OpenCode delegation/escalation candidate skills: $model_escalation_skills"
+    echo "OpenCode active delegation/escalation skills: $model_escalation_skills"
     echo "Model routing warning: $model_routing_warning"
   else
-    echo "OpenCode delegation/escalation candidate skills: none"
+    echo "OpenCode active delegation/escalation skills: none"
   fi
 fi
+[ -z "$activation_migration_warning" ] || echo "WARNING: $activation_migration_warning" >&2
 sed -n '1,220p' "$file"
 echo
 if [ -n "$pr_number" ] || [ "$publish_high_risk_comments" = true ] || [ "$service_discovery_approved" = true ] || [ -n "$jira_keys" ]; then
@@ -1173,6 +1430,9 @@ else
   echo "WARNING: User Context refresh failed: ${MANA_UC_ERROR:-unknown error}. The runner will not treat the local mirror as usable." >&2
 fi
 
+# Kept as a compatibility reference during staged runtime migration; provider
+# execution below uses only the compact canonical-manifest prompt.
+# shellcheck disable=SC2034
 legacy_prompt="$(cat <<PROMPT
 Run the Mana profile '$profile' in this repository.
 
@@ -1186,20 +1446,24 @@ Codex worker model: $codex_worker_model
 Codex model policy: $codex_model_policy
 Codex subagents enabled: $codex_subagents
 Codex agent runtime limits: max_threads=$codex_max_threads, max_depth=$codex_max_depth, interrupt_message=false
-Model delegation/escalation candidate skills: ${model_escalation_skills:-none}
+Codex effective child limits: max_threads=$codex_effective_max_threads, max_depth=$codex_effective_max_depth
+Active model delegation/escalation skills: ${model_escalation_skills:-none}
 Model routing warning: ${model_routing_warning:-none}
+Skill activation warning: ${activation_migration_warning:-none}
 Claude initial model: $claude_model
 Claude full model: $claude_full_model
 Claude explorer model: $claude_explorer_model
 Claude worker model: $claude_worker_model
 Claude subagents enabled: $claude_subagents
 Claude delegation limits: max_direct_subagents=$claude_max_threads, max_depth=1
+Claude effective child limits: max_direct_subagents=$claude_effective_max_threads, max_depth=$claude_effective_max_depth
 OpenCode initial model: $opencode_model
 OpenCode full model: $opencode_full_model
 OpenCode explorer model: $opencode_explorer_model
 OpenCode worker model: $opencode_worker_model
 OpenCode subagents enabled: $opencode_subagents
 OpenCode agent runtime limits: max_threads=$opencode_max_threads, max_depth=1
+OpenCode effective child limits: max_threads=$opencode_effective_max_threads, max_depth=$opencode_effective_max_depth
 User Context available: $user_context_available
 User Context entry points: $user_context_entries
 Profile input overrides:
@@ -1216,10 +1480,10 @@ Instructions:
 - Do not run './mana profile $profile' or 'scripts/run-profile.sh $profile' again; this command already rendered the profile and would recurse.
 - Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'.
 - Follow docs/policies/model-tier-routing-policy.md for provider-neutral economy/full routing, downgrade behavior, and Jira/tool access treatment.
-- If the selected runner is Codex, use the economy root model for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed Codex delegation/escalation candidate skills as full-model candidates, not mandatory work.
+- If the selected runner is Codex, use the economy root model for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed active delegation/escalation skills as work that requires the configured full-model path.
 - Codex runtime agents are capability classes only. Mana agents under agents/ remain semantic workflow orchestrators, and Mana skills under skills/ remain reusable domain capabilities. Do not map every Mana agent or every Mana skill to a separate Codex subagent.
 - Codex subagent orchestration is enabled: $codex_subagents. When enabled and available, delegate required high-risk, explicitly full-tier, noisy, or beyond-root-confidence work to project-scoped custom agents: mana_explorer, mana_full_specialist, and mana_worker. Child agents must not delegate further.
-- Inspect candidate skill metadata using progressive loading, determine which skills are truly required by current evidence, group related work by risk domain or execution phase, spawn no more than $codex_max_threads direct subagents, avoid one subagent per skill, prefer parallel delegation only for independent read-heavy work, wait for delegated work to finish, collect compact structured summaries, and synthesize the final Mana output.
+- Use the profile activation map and the active routing summary above; inspect front matter only for activated skills, group related work by risk domain or execution phase, spawn no more than $codex_max_threads direct subagents, avoid one subagent per skill, prefer parallel delegation only for independent read-heavy work, wait for delegated work to finish, collect compact structured summaries, and synthesize the final Mana output.
 - Delegation grouping policy is bounded and deterministic: requirements (story quality, epic/story goal extraction, acceptance-criteria testability), source (source impact, symbol and call-path mapping, technical task decomposition), tests (test inventory, green-border planning, missing-test analysis), architecture (architecture risk, NFR impact, transaction and concurrency review), contracts (API/event contracts and cross-service compatibility), database (schema and Liquibase production risk), security (trust boundaries, secrets, authorization, dependency-security evidence), operations (release, rollback, continuity, incident and production risk), documentation, and implementation.
 - Use mana_explorer for read-heavy evidence discovery, source impact mapping, symbol/call-path discovery, test inventory, contract inventory, dependency evidence, diff classification, and locating relevant Mana or project files.
 - Use mana_full_specialist for architecture, security, database, concurrency, cross-service, production, transactional, backwards-compatibility, model_tier: full, or large/ambiguous diff judgment. The root orchestrator must not directly perform deep high-risk analysis in those domains.
@@ -1227,7 +1491,7 @@ Instructions:
 - Wait for delegated work and aggregate only compact summaries and artifact paths. Do not import raw tool transcripts into the root context.
 - If Codex subagents are disabled, the installed Codex runtime cannot discover custom agents, spawning fails, a specialist returns insufficient evidence, or a high-risk judgment remains unsupported, preserve a concise handoff artifact in the workspace when possible and return status \`needs_model_escalation\`. Tell the user to rerun the same profile with \`MANA_CODEX_MODEL=$codex_full_model\` or \`--codex-model $codex_full_model\`. Do not silently continue a high-risk judgment on the economy model.
 - When Codex subagents are disabled, preserve the legacy economy-first/manual-escalation behavior: do not pretend a specialist ran, and stop with \`needs_model_escalation\` before deep analysis of required full-tier or high-risk work.
-- If the selected runner is Claude Code, use the mana-orchestrator economy root agent for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed delegation/escalation candidate skills as full-model candidates, not mandatory work.
+- If the selected runner is Claude Code, use the mana-orchestrator economy root agent for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed active delegation/escalation skills as work that requires the configured full-model path.
 - Claude Code runtime agents are capability classes only. Mana agents under agents/ remain semantic workflow orchestrators, and Mana skills under skills/ remain reusable domain capabilities. Do not map every Mana agent or every Mana skill to a separate Claude Code subagent.
 - Claude Code subagent orchestration is enabled: $claude_subagents. When enabled and available, delegate required high-risk, explicitly full-tier, noisy, or beyond-root-confidence work to project-scoped agents: mana-explorer, mana-full-specialist, and mana-worker. Child agents do not have the Agent tool and must not delegate further.
 - For Claude Code, spawn no more than $claude_max_threads direct subagents in total, no more than one per capability class, avoid one subagent per skill, prefer parallel delegation only for independent read-heavy work, wait for delegated work to finish, collect compact structured summaries, and synthesize the final Mana output.
@@ -1236,7 +1500,7 @@ Instructions:
 - Use mana-worker only when the selected Mana profile explicitly permits source modification. Never infer write permission from tool access. Do not run mana-worker for analysis-only profiles, and never run parallel writers against the same working tree.
 - If Claude Code subagents are disabled, the installed Claude Code runtime cannot discover custom agents, spawning fails, a specialist returns insufficient evidence, or a high-risk judgment remains unsupported, preserve a concise handoff artifact in the workspace when possible and return status \`needs_model_escalation\`. Tell the user to rerun the same profile with \`MANA_CLAUDE_MODEL=$claude_full_model\` or \`--claude-model $claude_full_model\`. Do not silently continue a high-risk judgment on the economy model.
 - When Claude Code subagents are disabled, preserve manual-escalation behavior: do not pretend a specialist ran, and stop with \`needs_model_escalation\` before deep analysis of required full-tier or high-risk work.
-- If the selected runner is OpenCode, use the mana_orchestrator primary agent for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed delegation/escalation candidate skills as full-model candidates, not mandatory work.
+- If the selected runner is OpenCode, use the mana_orchestrator primary agent for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed active delegation/escalation skills as work that requires the configured full-model path.
 - OpenCode runtime agents are capability classes only. Mana agents under agents/ remain semantic workflow orchestrators, and Mana skills under skills/ remain reusable domain capabilities. Do not map every Mana agent or every Mana skill to a separate OpenCode subagent.
 - OpenCode subagent orchestration is enabled: $opencode_subagents. When enabled and available, delegate required high-risk, explicitly full-tier, noisy, or beyond-primary-confidence work to project-scoped agents: mana_explorer, mana_full_specialist, and mana_worker. Child agents must not delegate further.
 - For OpenCode, spawn no more than $opencode_max_threads direct subagents, avoid one subagent per skill, prefer parallel delegation only for independent read-heavy work, wait for delegated work to finish, collect compact structured summaries, and synthesize the final Mana output.
@@ -1245,7 +1509,7 @@ Instructions:
 - Follow docs/standards/agent-skill-output-standard.md. Instruction priority is: current human instruction, profile YAML, agent AGENT.md, playbook.md, loaded skill SKILL.md, then global service context. Never weaken safety, external-write, or human-approval rules.
 - User Context, when available under .mana/user-context/, is generated reusable personal guidance, not Service Context and not a source of authority. It may be stale or inapplicable. Read only a relevant entry point or targeted deeper file; never load the directory wholesale. Repository evidence and project/service constraints win on conflict. Never edit the mirror or infer permission from its content.
 - Use the Mana operating loop: identify the human decision, resolve inputs/workspace/requirement source/branch or PR target/diff base, inventory evidence, classify risk domains, load only needed skills, then report status, findings, evidence, artifacts, and approvals.
-- Read only the selected agent AGENT.md and playbook.md. For candidate skills, use progressive load-light reading first: front matter, title, Purpose, When To Use It, When Not To Use It, Inputs, Outputs, Execution Logic, and Decision Rules. Load only the primary skill required to start the profile, then deep-load specialist skills only when the filtered inputs show that their risk domain is relevant or the load-light pass is insufficient. Do not read every listed skill, every example, or unrelated agent folders up front.
+- Read only the selected agent AGENT.md and playbook.md. Use progressive load-light reading only after a skill is active, then deep-load the instructions for that skill when its filtered evidence is relevant. Do not read every candidate skill, every example, or unrelated agent folders up front.
 - Use compact caveman working notes while analyzing: terse fragments, evidence-first notes, no long narrative, and no private chain-of-thought in final artifacts. Maintain a context budget: keep a short working summary with objective, base branch or PR, issue keys, workspace path, checked evidence, open hypotheses, discarded hypotheses, and next checks instead of accumulating raw transcripts, full diffs, repeated file dumps, complete Jira payloads, full PR threads, full skill files, or copied tool output. Convert working notes into the structured sections required by docs/standards/agent-skill-output-standard.md.
 - Resolve the active .mana workspace and write the profile artifacts there using the agent routing rules.
 - Load .mana/global/service-mission.md, architecture.md, and engineering-guards.md when present before analysis.
@@ -1274,11 +1538,15 @@ Repository root: $project_root
 Framework root: $root
 Runner: $runner
 Profile inputs: pr_number=${pr_number:-none}; jira_issue_keys=${jira_keys:-none}; current_branch=${current_branch:-detached}; jira_mcp_configured=$jira_mcp_configured; publish_high_risk_comments=$publish_high_risk_comments; service_discovery_approved=$service_discovery_approved.
-Model routing: root=economy; full-tier candidates=${model_escalation_skills:-none}; escalation warning=${model_routing_warning:-none}.
-Runtime limits: Codex subagents=$codex_subagents/$codex_max_threads; Claude subagents=$claude_subagents/$claude_max_threads; OpenCode subagents=$opencode_subagents/$opencode_max_threads.
+Model routing: root=economy; active full-tier skills=${model_escalation_skills:-none}; escalation warning=${model_routing_warning:-none}.
+Runner classes selected from active work: $(printf '%s' "$profile_runner_classes" | tr '\n' ',').
+Runtime limits: Codex subagents=$codex_subagents/$codex_max_threads; Claude subagents=$claude_subagents/$claude_max_threads; OpenCode subagents=$opencode_subagents/$opencode_max_threads. Effective child limits: Codex=$codex_effective_max_threads/$codex_effective_max_depth; Claude=$claude_effective_max_threads/$claude_effective_max_depth; OpenCode=$opencode_effective_max_threads/$opencode_effective_max_depth.
 User Context: available=$user_context_available; generated root=.mana/user-context; entry points=$user_context_entries.
+Compiled context manifest (authoritative for activation and routing): $compiled_manifest
 
-Read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file'. Follow docs/policies/runtime-execution-contract.md and docs/standards/output-contract.md. The skill_activation block of the profile is authoritative: begin with baseline skills, then load a conditional skill only after filtered evidence matches its signal. Use skills/index.yaml for metadata; read only the selected skill bodies.
+The compiled manifest above is authoritative for the activation set, activation reasons, model tier, risk, execution mode, delegation group, parallel safety, escalation, semantic agents, required artifacts, and available conditional catalog. Do not read or reconstruct those decisions from the profile, the complete skill catalog index, candidate skill bodies, or any alternate profile link. Candidate and inactive skills are catalog entries only, never selected work. Load a SKILL.md body only when its id appears in deepLoadedSkills; every deep-loaded id has already passed host activation validation.
+
+You may read '.mana/links/profiles/$profile.yaml' if present, otherwise '$file', only for workflow semantics not already compiled, and may read the selected semantic agent/playbook. Never use those documents to change activation or routing. Follow docs/policies/runtime-execution-contract.md and docs/standards/output-contract.md.
 
 Read only the selected agent AGENT.md and playbook, core service-context files, and evidence required for a concrete hypothesis. Do not recursively invoke Mana. Keep evidence compact and return artifact paths rather than transcripts.
 
@@ -1290,13 +1558,99 @@ For Jira, use read-only access when issue keys are available; report an access g
 PROMPT
 )"
 
+shadow_execute() (
+  local economy="$1" full="$2"
+  shift 2
+  local shadow_target_json provider_config_root provider_config_parent expected_config
+  shadow_setup_unavailable() {
+    printf 'ERROR: shadow unavailable: private provider configuration %s\n' "$1" >&2
+    return 2
+  }
+  if [ "$(uname -s)" = Darwin ]; then provider_config_parent=/private/tmp; else provider_config_parent=/tmp; fi
+  provider_config_root="$(mktemp -d "$provider_config_parent/mana-shadow-provider-config.XXXXXX")" || {
+    shadow_setup_unavailable 'could not be created'
+    return 2
+  }
+  trap 'rm -rf "$provider_config_root"' EXIT
+  trap 'exit 129' HUP
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+  chmod 700 "$provider_config_root" || {
+    shadow_setup_unavailable 'could not be secured'
+    return 2
+  }
+  # Shadow provider definitions belong to this invocation-owned root. They
+  # are never installed below the project root before sandbox admission.
+  expected_config=''
+  case "$runner" in
+    codex)
+      if [ "$codex_subagents" = true ]; then
+        ensure_codex_agents_at "$provider_config_root"
+        expected_config='.codex/agents/mana-explorer.toml .codex/agents/mana-full-specialist.toml .codex/agents/mana-worker.toml'
+      fi
+      ;;
+    claude)
+      if [ "$claude_subagents" = true ]; then
+        ensure_claude_agents_at "$provider_config_root"
+        expected_config='.claude/agents/mana-orchestrator.md .claude/agents/mana-explorer.md .claude/agents/mana-full-specialist.md .claude/agents/mana-worker.md'
+      fi
+      ;;
+    opencode)
+      if [ "$opencode_subagents" = true ]; then
+        ensure_opencode_agents_at "$provider_config_root"
+        expected_config='.opencode/agents/mana_orchestrator.md .opencode/agents/mana_explorer.md .opencode/agents/mana_full_specialist.md .opencode/agents/mana_worker.md'
+      fi
+      ;;
+    *)
+      shadow_setup_unavailable 'is unsupported for the selected provider'
+      return 2
+      ;;
+  esac
+  # Tighten every private provider entry after materialization. The legacy
+  # installer modes remain untouched; only this invocation-owned tree is
+  # subject to the shadow contract.
+  find "$provider_config_root" -type d -exec chmod 700 {} + || {
+    shadow_setup_unavailable 'directory permissions could not be secured'
+    return 2
+  }
+  find "$provider_config_root" -type f -exec chmod 600 {} + || {
+    shadow_setup_unavailable 'file permissions could not be secured'
+    return 2
+  }
+  for private_relative in $expected_config; do
+    private_entry="$provider_config_root/$private_relative"
+    if ! { [ -f "$private_entry" ] && [ ! -L "$private_entry" ]; }; then
+      shadow_setup_unavailable 'is incomplete or aliased'
+      return 2
+    fi
+    if [ "$(stat -f '%Lp:%l' "$private_entry")" != '600:1' ]; then
+      shadow_setup_unavailable 'contains an unsafe file instance'
+      return 2
+    fi
+  done
+  if find "$provider_config_root" -type l -print -quit | grep -q .; then
+    shadow_setup_unavailable 'contains an unsafe alias'
+    return 2
+  fi
+  shadow_target_json="$(jq -cn --arg repository "$project_root" --arg base "$current_branch" --arg pr "$pr_number" --arg jira "$jira_keys" '{repository:$repository,base:$base,prNumber:(if $pr=="" then null else ($pr|tonumber) end),workItem:$jira}')"
+  printf '%s' "$prompt" | MANA_SHADOW_PROVIDER_CONFIG_ROOT="$provider_config_root" python3 "$root/scripts/lib/context-shadow-input.py" create \
+    "$runtime_execution_id" "$profile" "$runner" "$project_root" "$shadow_workspace_relative" \
+    "$shadow_target_json" "$compiled_manifest" "$budget_mode" \
+    "$economy" "$full" "$@" | MANA_SHADOW_PROVIDER_CONFIG_ROOT="$provider_config_root" python3 "$root/scripts/context-runtime-live-shadow.py" --project-root "$project_root" --packet-stdin
+  local shadow_pipeline_status=("${PIPESTATUS[@]}")
+  [ "${shadow_pipeline_status[1]}" -eq 0 ] || return 2
+  return "${shadow_pipeline_status[2]}"
+)
+
 run_codex() {
-  ensure_codex_agents
+  if [ "$context_runtime_shadow" = false ]; then
+    ensure_codex_agents
+  fi
   if [ -n "$codex_agent_install_warnings" ]; then
     printf '%s\n' "$codex_agent_install_warnings" >&2
   fi
 
-  mana_provider_profile_args codex "$project_root" "$codex_model" "$codex_max_threads" "$codex_max_depth"
+  mana_provider_profile_args codex "$project_root" "$codex_model" "$codex_max_threads" "$codex_max_depth" "$codex_subagents"
   codex_args=("${MANA_PROVIDER_ARGS[@]}")
 
   if [ "$jira_mcp_configured" = true ] && [ "$jira_mcp_config_source" = "env_file" ]; then
@@ -1311,31 +1665,49 @@ run_codex() {
     )
   fi
 
-  MANA_PROFILE_RUNNING=1 codex "${codex_args[@]}" "$prompt"
+  if [ "$context_runtime_shadow" = true ]; then
+    shadow_execute "$codex_model" "$codex_full_model" "${codex_args[@]}"
+  else
+    MANA_PROFILE_RUNNING=1 mana_provider_execute codex "$project_root" "$profile" "$prompt" codex "${codex_args[@]}"
+  fi
 }
 
 run_claude() {
-  ensure_claude_agents
+  if [ "$context_runtime_shadow" = false ]; then
+    ensure_claude_agents
+  fi
   if [ -n "$claude_agent_install_warnings" ]; then
     printf '%s\n' "$claude_agent_install_warnings" >&2
   fi
 
-  mana_provider_profile_args claude "$project_root" "$claude_model" 1 1
+  mana_provider_profile_args claude "$project_root" "$claude_model" "$claude_max_threads" 1 "$claude_subagents"
   claude_args=("${MANA_PROVIDER_ARGS[@]}")
 
-  MANA_PROFILE_RUNNING=1 claude "${claude_args[@]}" "$prompt"
+  if [ "$context_runtime_shadow" = true ]; then
+    shadow_execute "$claude_model" "$claude_full_model" "${claude_args[@]}"
+  else
+    MANA_PROFILE_RUNNING=1 mana_provider_execute claude "$project_root" "$profile" "$prompt" claude "${claude_args[@]}"
+  fi
 }
 
 run_opencode() {
-  ensure_opencode_agents
+  if [ "$context_runtime_shadow" = false ]; then
+    ensure_opencode_agents
+  fi
   if [ -n "$opencode_agent_install_warnings" ]; then
     printf '%s\n' "$opencode_agent_install_warnings" >&2
   fi
 
-  mana_provider_profile_args opencode "$project_root" "$opencode_model" "$opencode_max_threads" 1
+  mana_provider_profile_args opencode "$project_root" "$opencode_model" "$opencode_max_threads" 1 "$opencode_subagents"
   opencode_args=("${MANA_PROVIDER_ARGS[@]}")
 
-  MANA_PROFILE_RUNNING=1 opencode "${opencode_args[@]}" "$prompt"
+  if [ "$context_runtime_shadow" = true ]; then
+    OPENCODE_CONFIG_CONTENT="$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" shadow_execute "$opencode_model" "$opencode_full_model" "${opencode_args[@]}"
+  elif [ -n "$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" ]; then
+    OPENCODE_CONFIG_CONTENT="$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" MANA_PROFILE_RUNNING=1 mana_provider_execute opencode "$project_root" "$profile" "$prompt" opencode "${opencode_args[@]}"
+  else
+    MANA_PROFILE_RUNNING=1 mana_provider_execute opencode "$project_root" "$profile" "$prompt" opencode "${opencode_args[@]}"
+  fi
 }
 
 case "$runner" in
@@ -1375,3 +1747,5 @@ case "$runner" in
     exit 2
     ;;
 esac
+
+exit "$?"

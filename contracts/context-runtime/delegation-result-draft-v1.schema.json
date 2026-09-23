@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/delegation-result-draft-v1.schema.json",
+  "title": "Mana Context Runtime delegation result draft v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "taskId", "status", "verifiedFacts", "findings",
+    "assumptions", "inferences", "openQuestions", "evidenceGaps",
+    "artifactRefs", "uncertainty"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.delegation-result-draft/v1"},
+    "taskId": {"type": "string", "pattern": "^T-[A-Za-z0-9._-]{1,120}$"},
+    "status": {"type": "string", "enum": ["complete", "partial", "blocked", "failed"]},
+    "verifiedFacts": {"$ref": "#/$defs/claims"},
+    "findings": {"$ref": "#/$defs/claims"},
+    "assumptions": {"$ref": "#/$defs/claims"},
+    "inferences": {"$ref": "#/$defs/claims"},
+    "openQuestions": {
+      "type": "array", "maxItems": 32,
+      "items": {"$ref": "#/$defs/question"}
+    },
+    "evidenceGaps": {
+      "type": "array", "maxItems": 32,
+      "items": {"$ref": "#/$defs/gap"}
+    },
+    "artifactRefs": {
+      "type": "array", "maxItems": 32,
+      "items": {"$ref": "#/$defs/artifact"}
+    },
+    "uncertainty": {"$ref": "#/$defs/uncertainty"}
+  },
+  "$defs": {
+    "evidenceRefs": {
+      "type": "array", "maxItems": 16, "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^E-[a-f0-9]{64}$"}
+    },
+    "subject": {
+      "type": "object", "additionalProperties": false,
+      "required": ["domain", "kind", "identifier"],
+      "properties": {
+        "domain": {
+          "type": "string",
+          "enum": ["application", "evidence", "external-observation", "repository", "requirement", "runtime-observation", "test"]
+        },
+        "kind": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"},
+        "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"}
+      }
+    },
+    "claim": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "subject", "predicate", "stance", "claim", "severity", "evidenceRefs"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Z]-[A-Za-z0-9._-]{1,120}$"},
+        "subject": {"$ref": "#/$defs/subject"},
+        "predicate": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"},
+        "stance": {"type": "string", "enum": ["affirmed", "denied", "uncertain"]},
+        "claim": {"type": "string", "minLength": 1, "maxLength": 512},
+        "severity": {"type": ["string", "null"], "enum": [null, "info", "warning", "high", "blocker"]},
+        "evidenceRefs": {"$ref": "#/$defs/evidenceRefs"}
+      }
+    },
+    "claims": {
+      "type": "array", "maxItems": 32,
+      "items": {"$ref": "#/$defs/claim"}
+    },
+    "question": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "subject", "question", "evidenceRefs"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^Q-[A-Za-z0-9._-]{1,120}$"},
+        "subject": {"$ref": "#/$defs/subject"},
+        "question": {"type": "string", "minLength": 1, "maxLength": 512},
+        "evidenceRefs": {"$ref": "#/$defs/evidenceRefs"}
+      }
+    },
+    "gap": {
+      "type": "object", "additionalProperties": false,
+      "required": ["description", "kind", "impact", "evidenceRefs"],
+      "properties": {
+        "description": {"type": "string", "minLength": 1, "maxLength": 256},
+        "kind": {"type": "string", "enum": ["missing-source", "missing-test", "unavailable-record", "insufficient-coverage", "unknown"]},
+        "impact": {"type": "string", "enum": ["blocks-fact", "blocks-completion", "reduces-confidence"]},
+        "evidenceRefs": {"$ref": "#/$defs/evidenceRefs"}
+      }
+    },
+    "artifact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["artifactId", "kind", "evidenceRefs"],
+      "properties": {
+        "artifactId": {"type": "string", "pattern": "^A-[A-Za-z0-9._-]{1,120}$"},
+        "kind": {"type": "string", "enum": ["checkpoint", "manifest", "report", "test-output", "other"]},
+        "evidenceRefs": {"$ref": "#/$defs/evidenceRefs"}
+      }
+    },
+    "uncertainty": {
+      "type": "object", "additionalProperties": false,
+      "required": ["level", "description", "evidenceRefs"],
+      "properties": {
+        "level": {"type": "string", "enum": ["none", "low", "medium", "high"]},
+        "description": {"type": ["string", "null"], "minLength": 1, "maxLength": 512},
+        "evidenceRefs": {"$ref": "#/$defs/evidenceRefs"}
+      }
+    }
+  }
+}

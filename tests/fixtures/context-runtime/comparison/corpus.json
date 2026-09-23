@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "mana.context-runtime.semantic-comparison-corpus/v1",
+  "cases": [
+    {"name": "status-drift", "dimension": "status", "field": "value", "value": "pass", "expected": "different"},
+    {"name": "blocker-negation", "dimension": "blockers", "field": "stance", "value": "denied", "expected": "different"},
+    {"name": "blocker-severity", "dimension": "blockers", "field": "severity", "value": "low", "expected": "different"},
+    {"name": "finding-validation", "dimension": "blockers", "field": "validation", "value": "rejected", "expected": "different"},
+    {"name": "warning-negation", "dimension": "warnings", "field": "stance", "value": "denied", "expected": "different"},
+    {"name": "evidence-revision", "dimension": "evidenceReferences", "field": "revision", "value": "fixture-revision-2", "expected": "different"},
+    {"name": "requirement-uncovered", "dimension": "requirementCoverage", "field": "value", "value": "uncovered", "expected": "different"},
+    {"name": "approval-weakened", "dimension": "approvalGates", "field": "requirement", "value": "optional", "expected": "different"},
+    {"name": "risk-deactivated", "dimension": "activatedRiskDomains", "field": "state", "value": "inactive", "expected": "different"},
+    {"name": "escalation-tier-weakened", "dimension": "highRiskEscalation", "field": "modelTier", "value": "economy", "expected": "different"},
+    {"name": "artifact-schema-drift", "dimension": "artifactCompleteness", "field": "schemaVersion", "value": "mana.fixture-review/v2", "expected": "different"},
+    {"name": "write-authority-weakened", "dimension": "externalWritePolicy", "field": "externalWrite", "value": true, "expected": "different"}
+  ]
+}

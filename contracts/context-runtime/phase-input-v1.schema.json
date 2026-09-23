@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/phase-input-v1.schema.json",
+  "title": "Mana Context Runtime phase input v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "executionId", "phaseId", "executionEnvelopeRef", "contextManifestRef", "objective", "checkpointRef", "evidenceRefs"],
+  "properties": {"schemaVersion": {"const": "mana.context-runtime.phase-input/v1"}, "executionId": {"type": "string", "pattern": "^execution-[A-Za-z0-9._-]{1,120}$"}, "phaseId": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,80}$"}, "executionEnvelopeRef": {"$ref": "#/$defs/ref"}, "contextManifestRef": {"$ref": "#/$defs/ref"}, "objective": {"type": "string", "minLength": 1, "maxLength": 4096}, "checkpointRef": {"type": ["string", "null"], "pattern": "^C-[A-Za-z0-9._-]{1,120}$"}, "evidenceRefs": {"type": "array", "maxItems": 256, "uniqueItems": true, "items": {"type": "string", "pattern": "^E-[A-Za-z0-9._-]{1,120}$"}}},
+  "$defs": {"ref": {"type": "string", "pattern": "^[A-Z]-[A-Za-z0-9._-]{1,120}$"}}
+}

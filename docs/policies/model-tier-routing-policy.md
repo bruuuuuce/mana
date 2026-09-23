@@ -58,7 +58,7 @@ workflow may modify external systems, source files, tickets, PRs, or releases.
    than inventing a verdict.
 
 ## Provider Mapping
-The mapping from abstract tiers to concrete models is configured at runtime:
+The legacy/root mapping from abstract tiers to concrete models is configured at runtime:
 
 ```yaml
 codex:
@@ -74,6 +74,11 @@ opencode:
 
 The default model IDs may change over time. This policy should not be updated
 just because a provider releases a new model.
+
+CTX-07B-R1A workers are stricter: concrete provider, economy/full model IDs,
+reasoning effort, and admitted scope/risk come only from the versioned
+host-owned `config/context-runtime/worker-routing-policy-v1.json`. Per-run
+worker model or effort flags and environment overrides are forbidden.
 
 ## Jira And Tool Access
 Jira is not a model tier. Treat it as a read/write capability with independent

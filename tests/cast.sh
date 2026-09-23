@@ -33,11 +33,13 @@ grep -Fq 'Service Context is incomplete' "$tmp/missing.out" || fail 'missing con
 if run does-not-exist --dry-run >"$tmp/invalid.out" 2>&1; then fail 'invalid profile accepted'; fi
 grep -Fq 'profile not found: does-not-exist' "$tmp/invalid.out" || fail 'invalid profile diagnostic'
 
-printf '%s\n' '#!/usr/bin/env bash' 'printf "mock codex invoked\\n" >&2' > "$tmp/bin/codex"
+# shellcheck disable=SC2016 # the generated stub expands this at invocation time
+printf '%s\n' '#!/usr/bin/env bash' ': > "${MANA_CAST_PROVIDER_SENTINEL:?}"' 'printf "mock codex invoked\\n" >&2' > "$tmp/bin/codex"
 chmod +x "$tmp/bin/codex"
-execution="$(PATH="$tmp/bin:$PATH" MANA_UPDATE_CHECK=off run mana-help --json 2>"$tmp/runner.err")" || fail 'runner execution failed'
+execution="$(PATH="$tmp/bin:$PATH" MANA_CAST_PROVIDER_SENTINEL="$tmp/provider-invoked" MANA_UPDATE_CHECK=off run mana-help --json 2>"$tmp/runner.err")" || fail 'runner execution failed'
 printf '%s\n' "$execution" | grep -Fq '"status":"executed"' || fail 'execution JSON status'
-grep -Fq 'mock codex invoked' "$tmp/runner.err" || fail 'existing runner did not invoke provider'
+[ -f "$tmp/provider-invoked" ] || fail 'existing runner did not invoke provider'
+! grep -Fq 'mock codex invoked' "$tmp/runner.err" || fail 'provider stderr escaped through the existing runner'
 
 "$root/scripts/divination.sh" --project-root "$project" 'Kafka contract and Liquibase migration' --json > "$tmp/divination.json"
 from="$(run --from "$tmp/divination.json" --dry-run --json)" || fail 'valid divination result rejected'

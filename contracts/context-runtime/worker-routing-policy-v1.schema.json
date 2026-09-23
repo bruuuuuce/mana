@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/context-runtime/worker-routing-policy-v1.schema.json",
+  "title": "Mana Context Runtime host worker routing policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "policyId", "mappings"],
+  "properties": {
+    "schemaVersion": {"const": "mana.context-runtime.worker-routing-policy/v1"},
+    "policyId": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$"},
+    "mappings": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": {"$ref": "#/$defs/mapping"}
+    }
+  },
+  "$defs": {
+    "mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "modelTier", "modelId", "reasoningEffort", "allowedScopeDomains", "allowedRiskLevels"],
+      "properties": {
+        "provider": {"type": "string", "enum": ["codex", "claude", "opencode"]},
+        "modelTier": {"type": "string", "enum": ["economy", "full"]},
+        "modelId": {"type": "string", "minLength": 1, "maxLength": 240, "pattern": "^[^\\r\\n]+$"},
+        "reasoningEffort": {"type": "string", "enum": ["minimal", "low", "medium", "high", "xhigh", "max"]},
+        "allowedScopeDomains": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 9,
+          "uniqueItems": true,
+          "items": {"type": "string", "enum": ["architecture", "contracts", "database", "evidence", "operations", "requirements", "security", "source", "tests"]}
+        },
+        "allowedRiskLevels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {"type": "string", "enum": ["low", "medium", "high", "unspecified"]}
+        }
+      }
+    }
+  }
+}

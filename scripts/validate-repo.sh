@@ -2,7 +2,37 @@
 set -u
 root="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 status=0
+for f in tests/context-runtime-r2c.py tests/fixtures/context-runtime/ctx09c-r2c-producer.py; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09C-R2C file $f" >&2; status=1; }
+done
+for f in tests/context-runtime-r2b.py tests/fixtures/context-runtime/ctx09c-r2b-provider.py; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09C-R2B file $f" >&2; status=1; }
+done
+if [ ! -f "$root/tests/context-runtime-r2d.py" ]; then
+  echo "ERROR: missing CTX-09C-R2D regression suite" >&2
+  status=1
+fi
 required_dirs=(docs skills agents profiles mcp templates scripts hooks evals .codex .junie .claude templates/mana-workspace)
+for f in scripts/lib/context-shadow-privacy.py tests/context-runtime-r3a.py tests/context-runtime-r3a.sh tests/context-runtime-mode-test-only.py tests/context-shadow-backend-test-harness.py tests/fixtures/context-runtime/ctx09c-r3a-usage.py; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09C-R3A file $f" >&2; status=1; }
+done
+if [ ! -f "$root/tests/context-runtime-r3b.py" ]; then
+  echo "ERROR: missing CTX-09C-R3B regression suite" >&2
+  status=1
+fi
+for f in scripts/context-runtime-mode.py tests/context-runtime-modes.sh tests/context-runtime-modes.py tests/fixtures/context-runtime/ctx09a-provider-stub.py; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09A file $f" >&2; status=1; }
+done
+for f in scripts/context-runtime-live-shadow.py scripts/lib/context-shadow-input.py scripts/lib/context-shadow-backend.py scripts/lib/context-shadow-consumer.py scripts/lib/context-shadow-provider.sh scripts/lib/context-shadow-phase-provider.sh tests/context-runtime-live-shadow.sh tests/context-runtime-live-shadow.py tests/context-runtime-shadow-input.py tests/context-shadow-consumer-test-only.py scripts/lib/context-shadow-boundary-probe.py tests/context-runtime-r2a.py tests/context-shadow-backend-test-only.py; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09C-R1A file $f" >&2; status=1; }
+done
+for f in scripts/mana-context-compare.sh scripts/lib/context-comparison.py contracts/context-runtime/semantic-comparison-input-v1.schema.json contracts/context-runtime/semantic-comparison-v1.schema.json tests/context-runtime-comparison.sh tests/context-runtime-comparison.py tests/fixtures/context-runtime/ctx09b-producer-harness.py tests/fixtures/context-runtime/comparison/baseline.json tests/fixtures/context-runtime/comparison/corpus.json; do
+  [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09B file $f" >&2; status=1; }
+done
+for f in scripts/mana-context-compare.sh tests/context-runtime-comparison.sh; do
+  [ -x "$root/$f" ] || { echo "ERROR: CTX-09B entry is not executable: $f" >&2; status=1; }
+  bash -n "$root/$f" || status=1
+done
 for d in "${required_dirs[@]}"; do
   if [ ! -d "$root/$d" ]; then echo "ERROR: missing directory $d" >&2; status=1; fi
 done
@@ -22,6 +52,9 @@ done
 for f in scripts/mana-workspace.sh scripts/mana-context.sh scripts/mana-user-learning.sh scripts/mana-pilot-feedback.sh scripts/mana-journey.sh scripts/mana-history.sh scripts/mana-rationale.sh scripts/mana-diagram.sh scripts/mana-concepts.sh scripts/mana-scout.sh scripts/mana-expand.sh scripts/mana-inspect.sh scripts/build-concept-index.sh scripts/evaluate-concept-index.sh scripts/bootstrap-project.sh scripts/mana-doctor.sh scripts/mana-update-check.sh scripts/run-sonar-scanner.sh scripts/run-dependency-evidence.sh scripts/divination.sh scripts/cast.sh scripts/mana-runtime.sh scripts/mana-explore.sh scripts/mana-learning.sh scripts/mana-eval.sh scripts/mana-verify.sh scripts/mana-repair.sh scripts/mana-repair-loop.sh scripts/mana-governance-report.sh scripts/validate-divination-metadata.sh scripts/validate-verification-skills.sh scripts/validate-story-start-scope-v2-contract.sh scripts/lib/divination.sh scripts/lib/explorer-retrieval.sh scripts/lib/user-context.sh scripts/lib/profile-metadata.sh scripts/lib/runtime-events.sh scripts/lib/verification.sh scripts/lib/repair.sh scripts/lib/repair-containment.sh scripts/lib/provider-dispatch.sh scripts/lib/story-start-stage-routing.sh scripts/lib/story-start-scope-v2.sh scripts/lib/story-start-scope-v2-normalize.py scripts/lib/story-start-scope-v2-render.py scripts/lib/verification-exec.pl tests/lib/json_schema_subset.py config/divination-domains.tsv config/runtime-retention.env.example config/user-context.env.example docs/workflow/mana-workspace.md docs/workflow/story-start-scope-v2.md docs/workflow/service-context-layer.md docs/workflow/user-context-layer.md docs/workflow/divination.md docs/workflow/casting.md docs/workflow/controlled-explorer-retrieval.md docs/workflow/governed-learning-signals.md docs/workflow/behavioural-evals.md docs/workflow/verification-skills.md docs/workflow/pilot-feedback.md docs/policies/story-start-stage-routing.md docs/policies/verification-execution-policy.md docs/standards/mana-pilot-feedback-v1.schema.json docs/standards/mana-pilot-feedback-aggregate-v1.schema.json docs/standards/mana-inspect-project-v1.schema.json docs/standards/mana-inspect-artifacts-v1.schema.json docs/standards/user-choice-signal.schema.json docs/standards/recurring-evidence-cluster.schema.json docs/standards/user-context-candidate.schema.json docs/standards/user-context-candidate-review.schema.json docs/standards/verification-evidence-standard.md docs/standards/verification-result.schema.json docs/standards/mana-learning-journey-v0.md docs/standards/mana-learning-journey-v0.schema.json docs/standards/mana-learning-history-v0.md docs/standards/mana-learning-diagram-v0.md docs/standards/mana-learning-concept-v0.schema.json docs/standards/mana-learning-concept-tagging-v0.md docs/standards/mana-learning-scout-v0.md docs/standards/mana-learning-scout-v0.schema.json docs/standards/mana-learning-scout-cycles-v0.md docs/standards/mana-learning-expansion-v0.md docs/standards/mana-learning-expansion-v0.schema.json learning-kb/concept-index.tsv docs/standards/bounded-repair.md docs/standards/repair-target.schema.json docs/standards/repair-attempt-result.schema.json docs/standards/repair-attempt-result.schema.json docs/standards/repair-loop-result.schema.json docs/deployment/project-link-bootstrap.md templates/mana-workspace/manifest.template.yaml templates/mana-workspace/index.template.md templates/mana-workspace/global/service-mission.template.md templates/mana-workspace/global/engineering-guards.template.md templates/mana-workspace/global/hooks-config.template.yaml templates/mana-workspace/global/sonar-project.properties.template; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1; fi
 done
+for f in scripts/lib/context-budget.py scripts/lib/provider-usage-parser.py tests/context-runtime-budgets.sh tests/context-runtime-budgets.py tests/run-profile-v2-test-only.sh tests/context-budget-test-only.py config/context-runtime/provider-budget-policy-v1.json contracts/context-runtime/provider-budget-policy-v1.schema.json contracts/context-runtime/provider-budget-decision-v1.schema.json scripts/mana-compile-profile.sh tests/context-runtime-profile-compiler.sh tests/fixtures/context-runtime/codex-prompt-stub.sh contracts/context-runtime/context-manifest-v1.schema.json docs/workflow/context-profile-compilation.md; do
+  if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1; fi
+done
 for f in scripts/lib/story-start-scope-v2-govern.py scripts/lib/story-start-scope-v2-render.py tests/story-start-scope-v2-governor.sh tests/story-start-scope-v2-integration.sh tests/story-start-scope-v2-release-gate.sh docs/roadmap/story-start-scope-v2/ss07-release-readiness.md docs/roadmap/story-start-scope-v2/ss07-human-acceptance-checklist.md; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1; fi
 done
@@ -29,6 +62,12 @@ if [ -f "$root/scripts/mana-workspace.sh" ] && [ ! -x "$root/scripts/mana-worksp
   echo "ERROR: scripts/mana-workspace.sh is not executable" >&2
   status=1
 fi
+for f in scripts/mana-compile-profile.sh tests/context-runtime-profile-compiler.sh tests/fixtures/context-runtime/codex-prompt-stub.sh; do
+  if [ -f "$root/$f" ] && [ ! -x "$root/$f" ]; then
+    echo "ERROR: $f is not executable" >&2
+    status=1
+  fi
+done
 for f in scripts/lib/analysis-trajectory-telemetry.sh scripts/lib/analysis-trajectory-telemetry.py contracts/analysis-trajectory/telemetry-event-v1.schema.json contracts/analysis-trajectory/run-summary-v1.schema.json docs/policies/analysis-trajectory-telemetry.md tests/analysis-trajectory-guard-tg02-telemetry.sh; do
   [ -f "$root/$f" ] || { echo "ERROR: missing $f" >&2; status=1; }
 done

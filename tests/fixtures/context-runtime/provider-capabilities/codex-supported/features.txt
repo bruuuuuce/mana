@@ -1,0 +1,3 @@
+multi_agent stable true
+multi_agent_v2 stable false
+remote_compaction_v2 stable true

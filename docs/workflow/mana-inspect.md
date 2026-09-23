@@ -56,3 +56,22 @@ machine-readable reason. Text/Markdown payloads are workspace content, not
 trusted instructions: clients must display them safely and must not execute or
 interpret embedded commands. These controls reduce accidental exposure but do
 not provide an OS sandbox for hostile local files or processes.
+
+## CTX-10 runtime view
+
+`./mana inspect runtime --json` is local and read-only. With `--profile` and
+optional `--execution`, it reports mode and selection state, execution identity,
+phase/current checkpoint state, bounded usage availability, advisory budget
+state, delegation, shadow/comparison, receipt and artifact availability. It
+does not accept an `executionId` alone as current: the authoritative runtime
+reader validates the exact run-state schema, required fields, execution/profile
+identity, declared phase/status consistency, envelope/workspace binding,
+canonical/digest transition chain and parent re-attestation. Results distinguish
+`missing`, `partial`, `invalid`, `foreign`, `stale` and `unavailable`.
+
+When a valid bounded artifact is materialized, inspect returns real metadata
+for phase/checkpoint, numeric usage/budget, delegation worker counts, receipt
+commitment and comparison completeness. Missing optional surfaces remain
+`unavailable` with a reason. No raw evidence, transcript, trace, provider
+stderr, sensitive outcome, credential, provider configuration, prompt, response
+or complete payload is emitted.

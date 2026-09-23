@@ -22,6 +22,14 @@ artifact, and approval-recorded events are intentionally deferred: current
 runners do not expose a safe structured callback for them, and Mana will not
 infer them from model transcripts.
 
+CTX-06C additionally emits `phase.started`, `provider.invoked`,
+`provider.completed`, `phase.checkpoint.accepted`, `phase.completed`,
+`phase.blocked`, `phase.failed`, `phase.interrupted`, and an explicit
+`provider.capability-fallback` when host schema validation replaces an
+unproven native schema transport. These events contain phase/attempt/status and
+evidence IDs only. They never contain the phase prompt, checkpoint claims,
+provider response, event stream, source content, or usage counters.
+
 Deterministic `mana verify` executions use the same envelope with
 `verification.started`, `check.started`, `check.passed`, `check.failed`,
 `check.blocked`, `check.inconclusive`, `evidence.created`, and
@@ -32,7 +40,9 @@ delivery evidence and is not duplicated into runtime telemetry.
 No event stores prompts, model responses, reasoning, environment variables,
 credentials, tokens, source contents, arbitrary tool payloads, or unnecessary
 personal data. Attributes accept only compact operational `key=value` facts;
-secret-like names and values are redacted defensively.
+secret-like names and values are redacted defensively. Provider usage is kept
+out of this envelope: [runtime usage observability](runtime-usage-observability.md)
+defines a separate, transcript-free metric artifact.
 
 Use `mana runtime sessions`, `mana runtime events <execution-id>`, and
 `mana runtime show <execution-id>` for inspection. `mana runtime prune
