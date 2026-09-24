@@ -1734,7 +1734,7 @@ def legacy_execution_identity(root: Path, profile: str,
 
 
 PROVIDERS = {
-    "codex": (".codex/config.toml", "# ", "codex-runtime-v2", "Mana runtime-v2 rollout metadata. Runtime mode is selected only by the host-owned profile policy."),
+    "codex": (".codex/config.toml", "# ", "codex-runtime-v2", "# Mana runtime-v2 rollout metadata. Runtime mode is selected only by the host-owned profile policy."),
     "claude": ("CLAUDE.md", "# ", "claude-runtime-v2", "Mana runtime-v2 rollout metadata. Runtime mode is selected only by the host-owned profile policy."),
     "opencode": ("opencode.jsonc", "// ", "opencode-runtime-v2", "Mana runtime-v2 rollout metadata. Runtime mode is selected only by the host-owned profile policy."),
 }
