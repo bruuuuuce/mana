@@ -12,15 +12,15 @@ Mana installs project-scoped Claude Code agents under `.claude/agents/`:
 
 - `mana-orchestrator`: economy root for routing, light evidence inventory,
   low-risk checks, delegation, aggregation, and final synthesis.
-- `mana-explorer`: read-only repository evidence discovery on `sonnet` by
+- `mana-explorer`: read-only repository evidence discovery on `claude-sonnet-5` by
   default.
 - `mana-full-specialist`: read-only architecture, security, database,
-  concurrency, contract, production, and full-tier judgment on `opus` by
+  concurrency, contract, production, and full-tier judgment on `claude-opus-5-5` by
   default.
-- `mana-worker`: serialized bounded writing on `sonnet` only when a selected
+- `mana-worker`: serialized bounded writing on `claude-sonnet-5` only when a selected
   profile explicitly permits source modification.
 
-The root defaults to `haiku`. Override models with `MANA_CLAUDE_MODEL`,
+The root defaults to `claude-haiku-4-5`. Override models with `MANA_CLAUDE_MODEL`,
 `MANA_CLAUDE_EXPLORER_MODEL`, `MANA_CLAUDE_FULL_MODEL`,
 `MANA_CLAUDE_WORKER_MODEL`, or the corresponding `--claude-*-model` flags.
 Disable delegation with `MANA_CLAUDE_SUBAGENTS=false` or

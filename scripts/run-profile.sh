@@ -28,11 +28,11 @@ codex_model_explicit=false
 [ -z "${MANA_CODEX_MODEL:-}" ] || codex_model_explicit=true
 codex_reasoning_effort_explicit=false
 [ -z "${MANA_CODEX_REASONING_EFFORT:-}" ] || codex_reasoning_effort_explicit=true
-codex_model="${MANA_CODEX_MODEL:-gpt-5.4-mini}"
+codex_model="${MANA_CODEX_MODEL:-gpt-6-luna}"
 codex_reasoning_effort="${MANA_CODEX_REASONING_EFFORT:-}"
-codex_full_model="${MANA_CODEX_FULL_MODEL:-gpt-5.6-sol}"
-codex_explorer_model="${MANA_CODEX_EXPLORER_MODEL:-gpt-5.6-terra}"
-codex_worker_model="${MANA_CODEX_WORKER_MODEL:-gpt-5.6-terra}"
+codex_full_model="${MANA_CODEX_FULL_MODEL:-gpt-6-sol}"
+codex_explorer_model="${MANA_CODEX_EXPLORER_MODEL:-gpt-6-luna}"
+codex_worker_model="${MANA_CODEX_WORKER_MODEL:-gpt-6-sol}"
 codex_model_policy="${MANA_CODEX_MODEL_POLICY:-economy-first}"
 codex_subagents="${MANA_CODEX_SUBAGENTS:-true}"
 codex_max_threads="${MANA_CODEX_MAX_THREADS:-3}"
@@ -42,11 +42,11 @@ claude_model_explicit=false
 [ -z "${MANA_CLAUDE_MODEL:-}" ] || claude_model_explicit=true
 claude_reasoning_effort_explicit=false
 [ -z "${MANA_CLAUDE_REASONING_EFFORT:-}" ] || claude_reasoning_effort_explicit=true
-claude_model="${MANA_CLAUDE_MODEL:-haiku}"
+claude_model="${MANA_CLAUDE_MODEL:-claude-haiku-4-5}"
 claude_reasoning_effort="${MANA_CLAUDE_REASONING_EFFORT:-}"
-claude_full_model="${MANA_CLAUDE_FULL_MODEL:-opus}"
-claude_explorer_model="${MANA_CLAUDE_EXPLORER_MODEL:-sonnet}"
-claude_worker_model="${MANA_CLAUDE_WORKER_MODEL:-sonnet}"
+claude_full_model="${MANA_CLAUDE_FULL_MODEL:-claude-opus-5-5}"
+claude_explorer_model="${MANA_CLAUDE_EXPLORER_MODEL:-claude-sonnet-5}"
+claude_worker_model="${MANA_CLAUDE_WORKER_MODEL:-claude-sonnet-5}"
 claude_subagents="${MANA_CLAUDE_SUBAGENTS:-true}"
 claude_max_threads="${MANA_CLAUDE_MAX_THREADS:-3}"
 claude_agent_install_warnings=""
@@ -54,7 +54,7 @@ opencode_model_explicit=false
 [ -z "${MANA_OPENCODE_MODEL:-}" ] || opencode_model_explicit=true
 opencode_reasoning_effort_explicit=false
 [ -z "${MANA_OPENCODE_REASONING_EFFORT:-}" ] || opencode_reasoning_effort_explicit=true
-opencode_model="${MANA_OPENCODE_MODEL:-opencode/gpt-5.1-codex}"
+opencode_model="${MANA_OPENCODE_MODEL:-opencode/gpt-6-luna}"
 opencode_reasoning_effort="${MANA_OPENCODE_REASONING_EFFORT:-}"
 opencode_full_model="${MANA_OPENCODE_FULL_MODEL:-}"
 opencode_explorer_model="${MANA_OPENCODE_EXPLORER_MODEL:-}"
@@ -98,24 +98,24 @@ Options:
   --codex                        Execute the rendered profile through Codex.
   --claude                       Execute the rendered profile through Claude Code.
   --opencode                     Execute the rendered profile through OpenCode.
-  --codex-model <model>          Codex model for the root orchestrator. Defaults to MANA_CODEX_MODEL or gpt-5.4-mini.
+  --codex-model <model>          Codex model for the root orchestrator. Defaults to MANA_CODEX_MODEL or gpt-6-luna.
   --codex-reasoning-effort <e>   Root compatibility effort for v2 stages. Defaults to MANA_CODEX_REASONING_EFFORT.
-  --codex-full-model <model>     Codex model for mana_full_specialist. Defaults to MANA_CODEX_FULL_MODEL or gpt-5.6-sol.
-  --codex-explorer-model <model> Codex model for mana_explorer. Defaults to MANA_CODEX_EXPLORER_MODEL or gpt-5.6-terra.
-  --codex-worker-model <model>   Codex model for mana_worker. Defaults to MANA_CODEX_WORKER_MODEL or gpt-5.6-terra.
+  --codex-full-model <model>     Codex model for mana_full_specialist. Defaults to MANA_CODEX_FULL_MODEL or gpt-6-sol.
+  --codex-explorer-model <model> Codex model for mana_explorer. Defaults to MANA_CODEX_EXPLORER_MODEL or gpt-6-luna.
+  --codex-worker-model <model>   Codex model for mana_worker. Defaults to MANA_CODEX_WORKER_MODEL or gpt-6-sol.
   --codex-model-policy <policy>  Model policy note passed to Codex. Defaults to economy-first.
   --no-codex-subagents           Disable Codex subagent orchestration and use legacy manual escalation.
-  --claude-model <model>         Claude model for the root orchestrator. Defaults to MANA_CLAUDE_MODEL or haiku.
+  --claude-model <model>         Claude model for the root orchestrator. Defaults to MANA_CLAUDE_MODEL or claude-haiku-4-5.
   --claude-reasoning-effort <e>  Root compatibility effort for v2 stages. Defaults to MANA_CLAUDE_REASONING_EFFORT.
-  --claude-full-model <model>    Claude model for mana-full-specialist. Defaults to MANA_CLAUDE_FULL_MODEL or opus.
-  --claude-explorer-model <m>    Claude model for mana-explorer. Defaults to MANA_CLAUDE_EXPLORER_MODEL or sonnet.
-  --claude-worker-model <model>  Claude model for mana-worker. Defaults to MANA_CLAUDE_WORKER_MODEL or sonnet.
+  --claude-full-model <model>    Claude model for mana-full-specialist. Defaults to MANA_CLAUDE_FULL_MODEL or claude-opus-5-5.
+  --claude-explorer-model <m>    Claude model for mana-explorer. Defaults to MANA_CLAUDE_EXPLORER_MODEL or claude-sonnet-5.
+  --claude-worker-model <model>  Claude model for mana-worker. Defaults to MANA_CLAUDE_WORKER_MODEL or claude-sonnet-5.
   --no-claude-subagents          Disable Claude subagent orchestration and use manual escalation.
-  --opencode-model <model>       OpenCode model for the primary orchestrator. Defaults to MANA_OPENCODE_MODEL or opencode/gpt-5.1-codex.
+  --opencode-model <model>       OpenCode model for the primary orchestrator. Defaults to MANA_OPENCODE_MODEL or opencode/gpt-6-luna.
   --opencode-reasoning-effort <e> Root compatibility effort for v2 stages. Defaults to MANA_OPENCODE_REASONING_EFFORT.
-  --opencode-full-model <model>  OpenCode model for mana_full_specialist. Defaults to MANA_OPENCODE_FULL_MODEL or the root OpenCode model.
-  --opencode-explorer-model <m>  OpenCode model for mana_explorer. Defaults to MANA_OPENCODE_EXPLORER_MODEL or the root OpenCode model.
-  --opencode-worker-model <m>    OpenCode model for mana_worker. Defaults to MANA_OPENCODE_WORKER_MODEL or the root OpenCode model.
+  --opencode-full-model <model>  OpenCode model for mana_full_specialist. Defaults to MANA_OPENCODE_FULL_MODEL or opencode/gpt-6-sol.
+  --opencode-explorer-model <m>  OpenCode model for mana_explorer. Defaults to MANA_OPENCODE_EXPLORER_MODEL or opencode/gpt-6-luna.
+  --opencode-worker-model <m>    OpenCode model for mana_worker. Defaults to MANA_OPENCODE_WORKER_MODEL or opencode/gpt-6-sol.
   --no-opencode-subagents        Disable OpenCode subagent orchestration and use manual escalation.
   --pr, --pr-number <value>      Pull request number or URL for requested-pr-review.
   --jira-key, --jira-issue <KEY> Add an explicit Jira issue key.
@@ -549,9 +549,15 @@ opencode_effective_max_threads="$opencode_max_threads"; opencode_effective_max_d
 [ "$claude_subagents" = true ] || { claude_effective_max_threads=0; claude_effective_max_depth=0; }
 [ "$opencode_subagents" = true ] || { opencode_effective_max_threads=0; opencode_effective_max_depth=0; }
 
-: "${opencode_full_model:=$opencode_model}"
-: "${opencode_explorer_model:=$opencode_model}"
-: "${opencode_worker_model:=$opencode_model}"
+if [ "$opencode_model_explicit" = true ]; then
+  : "${opencode_full_model:=$opencode_model}"
+  : "${opencode_explorer_model:=$opencode_model}"
+  : "${opencode_worker_model:=$opencode_model}"
+else
+  : "${opencode_full_model:=opencode/gpt-6-sol}"
+  : "${opencode_explorer_model:=opencode/gpt-6-luna}"
+  : "${opencode_worker_model:=opencode/gpt-6-sol}"
+fi
 
 [ -z "${MANA_CONTEXT_RUNTIME_VERSION+x}" ] || {
   echo 'ERROR: environment runtime mode authority is forbidden; use --context-runtime' >&2
@@ -1489,7 +1495,7 @@ Instructions:
 - Use mana_full_specialist for architecture, security, database, concurrency, cross-service, production, transactional, backwards-compatibility, model_tier: full, or large/ambiguous diff judgment. The root orchestrator must not directly perform deep high-risk analysis in those domains.
 - Use mana_worker only when the selected Mana profile explicitly permits source modification. Never infer write permission from a writable sandbox. Do not run mana_worker for analysis-only profiles, and never run parallel writers against the same working tree.
 - Wait for delegated work and aggregate only compact summaries and artifact paths. Do not import raw tool transcripts into the root context.
-- If Codex subagents are disabled, the installed Codex runtime cannot discover custom agents, spawning fails, a specialist returns insufficient evidence, or a high-risk judgment remains unsupported, preserve a concise handoff artifact in the workspace when possible and return status \`needs_model_escalation\`. Tell the user to rerun the same profile with \`MANA_CODEX_MODEL=$codex_full_model\` or \`--codex-model $codex_full_model\`. Do not silently continue a high-risk judgment on the economy model.
+- If Codex subagents are disabled, the installed Codex runtime cannot discover custom agents, spawning fails, a specialist returns insufficient evidence, or a high-risk judgment remains unsupported, preserve a concise handoff artifact in the workspace when possible and return status \`needs_model_escalation\`. Classify the missing capability as role_not_found, subagents_disabled, model_rejected, or role_discovery_unconfirmed; a generic "agent type is currently not available" error alone is inconclusive. Use \`$root/scripts/diagnose-codex-subagent.sh --project-root "$project_root"\` and inspect the effective Codex configuration in a fresh session. State the applicable remedy. Tell the user to rerun the same profile with \`MANA_CODEX_MODEL=$codex_full_model\` or \`--codex-model $codex_full_model\`. Do not silently continue a high-risk judgment on the economy model.
 - When Codex subagents are disabled, preserve the legacy economy-first/manual-escalation behavior: do not pretend a specialist ran, and stop with \`needs_model_escalation\` before deep analysis of required full-tier or high-risk work.
 - If the selected runner is Claude Code, use the mana-orchestrator economy root agent for routing, evidence inventory, low-risk checks, delegation, aggregation, and final synthesis. Treat the listed active delegation/escalation skills as work that requires the configured full-model path.
 - Claude Code runtime agents are capability classes only. Mana agents under agents/ remain semantic workflow orchestrators, and Mana skills under skills/ remain reusable domain capabilities. Do not map every Mana agent or every Mana skill to a separate Claude Code subagent.

@@ -112,7 +112,7 @@ make_fake_claude "$tmp/bin"
 project_with_spaces="$tmp/project with spaces"
 run_profile_with_stub "$project_with_spaces"
 assert_file_contains "$tmp/codex.args" "--model"
-assert_file_contains "$tmp/codex.args" "gpt-5.4-mini"
+assert_file_contains "$tmp/codex.args" "gpt-6-luna"
 assert_file_contains "$tmp/codex.args" "--cd"
 assert_file_contains "$tmp/codex.args" "$project_with_spaces"
 assert_file_contains "$tmp/codex.args" "agents.max_threads=3"
@@ -122,9 +122,9 @@ assert_file_contains "$tmp/codex.prompt" "delegate required high-risk"
 assert_file_contains "$tmp/codex.prompt" "Compiled context manifest (authoritative for activation and routing)"
 assert_file_not_contains "$tmp/codex.prompt" "skills/index.yaml"
 assert_file_contains "$tmp/codex.prompt" "needs_model_escalation"
-assert_file_contains "$project_with_spaces/.codex/agents/mana-full-specialist.toml" 'model = "gpt-5.6-sol"'
-assert_file_contains "$project_with_spaces/.codex/agents/mana-explorer.toml" 'model = "gpt-5.6-terra"'
-assert_file_contains "$project_with_spaces/.codex/agents/mana-worker.toml" 'model = "gpt-5.6-terra"'
+assert_file_contains "$project_with_spaces/.codex/agents/mana-full-specialist.toml" 'model = "gpt-6-sol"'
+assert_file_contains "$project_with_spaces/.codex/agents/mana-explorer.toml" 'model = "gpt-6-luna"'
+assert_file_contains "$project_with_spaces/.codex/agents/mana-worker.toml" 'model = "gpt-6-sol"'
 
 override_project="$tmp/override project"
 run_profile_with_stub "$override_project" \
@@ -147,14 +147,14 @@ run_claude_profile_with_stub "$claude_project"
 assert_file_contains "$tmp/claude.args" "--agent"
 assert_file_contains "$tmp/claude.args" "mana-orchestrator"
 assert_file_contains "$tmp/claude.args" "--model"
-assert_file_contains "$tmp/claude.args" "haiku"
+assert_file_contains "$tmp/claude.args" "claude-haiku-4-5"
 assert_file_contains "$tmp/claude.prompt" "Claude subagents=true/3"
 assert_file_contains "$tmp/claude.prompt" "Compiled context manifest (authoritative for activation and routing)"
 assert_file_contains "$tmp/claude.prompt" "needs_model_escalation"
 assert_file_contains "$claude_project/.claude/agents/mana-orchestrator.md" "Agent(mana-explorer, mana-full-specialist, mana-worker)"
-assert_file_contains "$claude_project/.claude/agents/mana-explorer.md" "model: sonnet"
-assert_file_contains "$claude_project/.claude/agents/mana-full-specialist.md" "model: opus"
-assert_file_contains "$claude_project/.claude/agents/mana-worker.md" "model: sonnet"
+assert_file_contains "$claude_project/.claude/agents/mana-explorer.md" "model: claude-sonnet-5"
+assert_file_contains "$claude_project/.claude/agents/mana-full-specialist.md" "model: claude-opus-5-5"
+assert_file_contains "$claude_project/.claude/agents/mana-worker.md" "model: claude-sonnet-5"
 
 claude_override_project="$tmp/claude override project"
 run_claude_profile_with_stub "$claude_override_project" \
@@ -189,6 +189,13 @@ mkdir -p "$bootstrap_project"
 "$root/scripts/bootstrap-project.sh" --project-root "$bootstrap_project" --mana-root "$root" --no-jira-env > "$tmp/bootstrap2.out" 2> "$tmp/bootstrap2.err"
 assert_file_contains "$bootstrap_project/.codex/agents/mana-explorer.toml" "Mana-managed Codex custom agent"
 assert_file_contains "$bootstrap_project/.codex/agents/mana-full-specialist.toml" 'name = "mana_full_specialist"'
+[ ! -L "$bootstrap_project/.codex/agents/mana-full-specialist.toml" ] || fail 'Codex custom agents must be physical TOML files for discovery'
+legacy_link_project="$tmp/legacy link project"
+mkdir -p "$legacy_link_project/.codex/agents"
+ln -s "$root/.codex/agents/mana-full-specialist.toml" "$legacy_link_project/.codex/agents/mana-full-specialist.toml"
+"$root/scripts/bootstrap-project.sh" --project-root "$legacy_link_project" --mana-root "$root" --no-jira-env > "$tmp/bootstrap-legacy-link.out" 2> "$tmp/bootstrap-legacy-link.err"
+[ ! -L "$legacy_link_project/.codex/agents/mana-full-specialist.toml" ] || fail 'bootstrap did not migrate a Mana-owned Codex role symlink'
+assert_file_contains "$legacy_link_project/.codex/agents/mana-full-specialist.toml" 'model = "gpt-6-sol"'
 assert_file_contains "$bootstrap_project/.codex/config.toml" "max_threads = 3"
 assert_file_contains "$bootstrap_project/AGENTS.md" "Do not create one Codex subagent per Mana skill"
 
@@ -221,7 +228,7 @@ assert_file_contains "$tmp/opencode.args" "run"
 assert_file_contains "$tmp/opencode.args" "--dir"
 assert_file_contains "$tmp/opencode.args" "$opencode_project"
 assert_file_contains "$tmp/opencode.args" "--model"
-assert_file_contains "$tmp/opencode.args" "opencode/gpt-5.1-codex"
+assert_file_contains "$tmp/opencode.args" "opencode/gpt-6-luna"
 assert_file_contains "$tmp/opencode.args" "--agent"
 assert_file_contains "$tmp/opencode.args" "mana_orchestrator"
 assert_file_contains "$tmp/opencode.prompt" "OpenCode subagents=true/3"
@@ -229,7 +236,8 @@ assert_file_not_contains "$tmp/opencode.prompt" "skills/index.yaml"
 assert_file_contains "$tmp/opencode.prompt" "needs_model_escalation"
 assert_file_contains "$opencode_project/.opencode/agents/mana_orchestrator.md" "mode: primary"
 assert_file_contains "$opencode_project/.opencode/agents/mana_explorer.md" "mode: subagent"
-assert_file_contains "$opencode_project/.opencode/agents/mana_full_specialist.md" "model: opencode/gpt-5.1-codex"
+assert_file_contains "$opencode_project/.opencode/agents/mana_full_specialist.md" "model: opencode/gpt-6-sol"
+assert_file_contains "$opencode_project/.opencode/agents/mana_worker.md" "model: opencode/gpt-6-sol"
 
 opencode_override_project="$tmp/opencode override project"
 run_opencode_profile_with_stub "$opencode_override_project" \
@@ -260,7 +268,7 @@ assert_file_contains "$bootstrap_project/.opencode/agents/mana_orchestrator.md" 
 assert_file_contains "$bootstrap_project/.opencode/agents/mana_full_specialist.md" "mode: subagent"
 assert_file_contains "$bootstrap_project/AGENTS.md" "OpenCode follows the same Mana chain"
 assert_file_contains "$bootstrap_project/.claude/agents/mana-orchestrator.md" "Mana-managed Claude Code subagent"
-assert_file_contains "$bootstrap_project/.claude/agents/mana-full-specialist.md" "model: opus"
+assert_file_contains "$bootstrap_project/.claude/agents/mana-full-specialist.md" "model: claude-opus-5-5"
 assert_file_contains "$bootstrap_project/AGENTS.md" "Claude Code follows the same bounded delegation chain"
 
 claude_collision_project="$tmp/claude collision project"

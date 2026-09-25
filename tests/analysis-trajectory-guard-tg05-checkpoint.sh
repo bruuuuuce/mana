@@ -237,7 +237,7 @@ jq -e '.mode == "OFF" and .status == "DISABLED" and .outcome == null and .calls 
 # shellcheck disable=SC1091
 . "$root/scripts/lib/story-start-stage-routing.sh"
 mana_story_start_stage_resolve codex trajectory-checkpoint '' '' false false '' '' || fail 'trajectory-checkpoint route resolution failed'
-[ "$MANA_STORY_START_ROUTE_MODEL:$MANA_STORY_START_ROUTE_EFFORT" = 'gpt-5.6-terra:high' ] || fail 'TG01 trajectory-checkpoint route changed'
+[ "$MANA_STORY_START_ROUTE_MODEL:$MANA_STORY_START_ROUTE_EFFORT" = 'gpt-6-luna:high' ] || fail 'TG01 trajectory-checkpoint route changed'
 if rg -n 'analysis-trajectory-checkpoint|trajectory-checkpoint-request' "$root/scripts/run-profile.sh" "$root/scripts/lib/story-start-scope-v2.sh" >/dev/null; then fail 'TG05 entered public Story Start control flow'; fi
 if rg -n 'subprocess|urllib|requests|httpx|socket|curl' "$checkpoint" >/dev/null; then fail 'TG05 host helper contains provider/network dispatch'; fi
 smoke="$root/scripts/analysis-trajectory-checkpoint-smoke.sh"

@@ -60,16 +60,16 @@ See [Story Start Scope v2](docs/workflow/story-start-scope-v2.md) for the input
 boundary, report semantics, owner-review behavior, and compatibility contract.
 
 Codex runs start with a small root orchestrator model configured by
-`MANA_CODEX_MODEL` or `--codex-model` (default: `gpt-5.4-mini`). The root model
+`MANA_CODEX_MODEL` or `--codex-model` (default: `gpt-6-luna`). The root model
 handles routing, light evidence inventory, low-risk checks, delegation,
 aggregation, and synthesis. Bounded high-risk work is delegated in the same run
 to Mana Codex custom agents when available:
 
-- `mana_explorer`: read-only evidence discovery on `gpt-5.6-terra` by default.
+- `mana_explorer`: read-only evidence discovery on `gpt-6-luna` by default.
 - `mana_full_specialist`: read-only architecture, security, database,
   concurrency, contract, production, and `model_tier: full` judgment on
-  `gpt-5.6-sol` by default.
-- `mana_worker`: serialized bounded writes on `gpt-5.6-terra` by default, only
+  `gpt-6-sol` by default.
+- `mana_worker`: serialized bounded writes on `gpt-6-sol` by default, only
   when a selected profile explicitly permits source modification.
 
 Override them with `MANA_CODEX_EXPLORER_MODEL`, `MANA_CODEX_FULL_MODEL`,
@@ -83,16 +83,17 @@ OpenCode uses the same Mana runtime shape with project-scoped agents under
 `.opencode/agents/`: `mana_orchestrator` as the primary agent plus
 `mana_explorer`, `mana_full_specialist`, and `mana_worker` as bounded
 subagents. OpenCode model IDs use `provider/model` format; defaults are
-`MANA_OPENCODE_MODEL=opencode/gpt-5.1-codex` and matching specialist variables
-fall back to the root OpenCode model unless overridden. Use `--opencode-model`,
+`MANA_OPENCODE_MODEL=opencode/gpt-6-luna`, explorer on `opencode/gpt-6-luna`,
+and specialist and worker on `opencode/gpt-6-sol`. An explicit root override
+still supplies unspecified role models. Use `--opencode-model`,
 `--opencode-explorer-model`, `--opencode-full-model`, `--opencode-worker-model`,
 or disable subagents with `MANA_OPENCODE_SUBAGENTS=false` /
 `--no-opencode-subagents`.
 
 Claude Code now uses the same project-scoped runtime shape under
-`.claude/agents/`: `mana-orchestrator` is the `haiku` economy root by default,
-`mana-explorer` and `mana-worker` default to `sonnet`, and
-`mana-full-specialist` defaults to `opus`. Use `MANA_CLAUDE_MODEL`,
+`.claude/agents/`: `mana-orchestrator` uses `claude-haiku-4-5` by default,
+`mana-explorer` and `mana-worker` use `claude-sonnet-5`, and
+`mana-full-specialist` uses `claude-opus-5-5`. Use `MANA_CLAUDE_MODEL`,
 `MANA_CLAUDE_EXPLORER_MODEL`, `MANA_CLAUDE_FULL_MODEL`,
 `MANA_CLAUDE_WORKER_MODEL`, or `--claude-model`, `--claude-explorer-model`,
 `--claude-full-model`, and `--claude-worker-model` for a single run. Disable

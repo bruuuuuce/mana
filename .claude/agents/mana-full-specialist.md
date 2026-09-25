@@ -5,7 +5,7 @@
 name: mana-full-specialist
 description: "Mana high-risk full-model specialist for bounded architecture, database, security, contract, concurrency, and production judgments."
 tools: Read, Glob, Grep, Bash(git diff:*), Bash(git status:*), Bash(git log:*), Bash(git show:*), Bash(rg:*), Bash(find:*)
-model: opus
+model: claude-opus-5-5
 permissionMode: default
 effort: high
 ---

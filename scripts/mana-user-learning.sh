@@ -163,9 +163,9 @@ m3_init_limits() {
   m3_max_output_bytes=$((m3_max_output_tokens * 4)); m3_provider="${MANA_USER_LEARNING_T1_PROVIDER:-codex}"; m3_codex_reasoning_effort="${MANA_USER_LEARNING_CODEX_REASONING_EFFORT:-}"
   case "$m3_codex_reasoning_effort" in ''|minimal|low|medium|high|xhigh) ;; *) fail 'M3 Codex reasoning effort must be minimal, low, medium, high, or xhigh' ;; esac
   case "$m3_provider" in
-    codex) m3_model="${MANA_USER_LEARNING_T1_MODEL:-${MANA_CODEX_MODEL:-gpt-5.4-mini}}" ;;
+    codex) m3_model="${MANA_USER_LEARNING_T1_MODEL:-${MANA_CODEX_MODEL:-gpt-6-luna}}" ;;
     claude) m3_model="${MANA_USER_LEARNING_T1_MODEL:-${MANA_CLAUDE_MODEL:-haiku}}" ;;
-    opencode) m3_model="${MANA_USER_LEARNING_T1_MODEL:-${MANA_OPENCODE_MODEL:-opencode/gpt-5.1-codex}}" ;;
+    opencode) m3_model="${MANA_USER_LEARNING_T1_MODEL:-${MANA_OPENCODE_MODEL:-opencode/gpt-6-luna}}" ;;
     stub) m3_model="${MANA_USER_LEARNING_T1_MODEL:-deterministic-stub}" ;;
     *) fail 'M3 T1 provider must be codex, claude, opencode, or explicit test stub' ;;
   esac

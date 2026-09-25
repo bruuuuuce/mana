@@ -33,7 +33,9 @@ artifacts remain in the target project under `.mana/`.
 Mana-managed Codex custom agents are installed under `.codex/agents/` so
 `./mana profile story-start --codex` can discover `mana_explorer`,
 `mana_full_specialist`, and `mana_worker` while running with the application
-repository as `--cd`.
+repository as `--cd`. These agent TOML files are copied as physical files even
+when the rest of the framework uses links; rerun bootstrap with `--force` to
+refresh an existing Mana-managed copy.
 Mana-managed OpenCode agents are installed under `.opencode/agents/` so
 `./mana profile story-start --opencode` can discover `mana_orchestrator`,
 `mana_explorer`, `mana_full_specialist`, and `mana_worker` from the target
