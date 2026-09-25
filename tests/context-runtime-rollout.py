@@ -663,6 +663,10 @@ def main() -> int:
             stub.chmod(0o755)
         provider_env = os.environ.copy()
         provider_env["PATH"] = str(provider_bin) + os.pathsep + provider_env["PATH"]
+        generated = Path(temporary) / "generated-provider-config"; generated.mkdir()
+        run("bootstrap", root=generated, env=provider_env)
+        codex_block = (generated / ".codex/config.toml").read_text().splitlines()
+        assert len(codex_block) == 3 and all(line.startswith("# ") for line in codex_block)
         marker_digest = hashlib.sha256(b"payload\n").hexdigest()
         provider_specs = (("codex", ".codex/config.toml", "# ", "codex-runtime-v2"), ("claude", "CLAUDE.md", "# ", "claude-runtime-v2"), ("opencode", "opencode.jsonc", "// ", "opencode-runtime-v2"))
         for name, relative, prefix, block_id in provider_specs:
