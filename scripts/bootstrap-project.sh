@@ -169,14 +169,15 @@ install_codex_agents() {
   [ -d "$source_agents_dir" ] || return 0
   mkdir -p "$target_agents_dir"
 
-  mode="copy"
-  if [ "$create_links" = true ]; then
-    mode="link"
-  fi
-
   for agent_file in mana-explorer.toml mana-full-specialist.toml mana-worker.toml; do
     [ -f "$source_agents_dir/$agent_file" ] || continue
-    install_managed_file_or_link "$source_agents_dir/$agent_file" "$target_agents_dir/$agent_file" "$mode"
+    # Codex discovers project roles from physical TOML files. Keep the Mana
+    # framework links elsewhere, but install these role manifests as copies.
+    if [ -L "$target_agents_dir/$agent_file" ] &&
+       [ "$(readlink "$target_agents_dir/$agent_file")" = "$source_agents_dir/$agent_file" ]; then
+      rm "$target_agents_dir/$agent_file"
+    fi
+    install_managed_file_or_link "$source_agents_dir/$agent_file" "$target_agents_dir/$agent_file" copy
   done
 
   config_file="$project_root/.codex/config.toml"

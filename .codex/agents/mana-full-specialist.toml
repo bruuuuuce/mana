@@ -3,7 +3,7 @@
 # Safe to replace with --force or during a Mana profile run.
 name = "mana_full_specialist"
 description = "Mana high-risk full-model specialist for bounded architecture, database, security, contract, concurrency, and production judgments."
-model = "gpt-5.6-sol"
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 developer_instructions = """

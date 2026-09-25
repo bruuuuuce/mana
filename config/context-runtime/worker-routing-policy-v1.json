@@ -5,7 +5,7 @@
     {
       "provider": "codex",
       "modelTier": "economy",
-      "modelId": "gpt-5.6-terra",
+      "modelId": "gpt-6-luna",
       "reasoningEffort": "medium",
       "allowedScopeDomains": ["evidence", "requirements", "source", "tests"],
       "allowedRiskLevels": ["low", "medium", "unspecified"]
@@ -13,7 +13,7 @@
     {
       "provider": "codex",
       "modelTier": "full",
-      "modelId": "gpt-5.6-sol",
+      "modelId": "gpt-6-sol",
       "reasoningEffort": "high",
       "allowedScopeDomains": ["architecture", "contracts", "database", "evidence", "operations", "requirements", "security", "source", "tests"],
       "allowedRiskLevels": ["high", "low", "medium", "unspecified"]
@@ -21,7 +21,7 @@
     {
       "provider": "claude",
       "modelTier": "economy",
-      "modelId": "sonnet",
+      "modelId": "claude-sonnet-5",
       "reasoningEffort": "medium",
       "allowedScopeDomains": ["evidence", "requirements", "source", "tests"],
       "allowedRiskLevels": ["low", "medium", "unspecified"]
@@ -29,7 +29,7 @@
     {
       "provider": "claude",
       "modelTier": "full",
-      "modelId": "opus",
+      "modelId": "claude-opus-5-5",
       "reasoningEffort": "high",
       "allowedScopeDomains": ["architecture", "contracts", "database", "evidence", "operations", "requirements", "security", "source", "tests"],
       "allowedRiskLevels": ["high", "low", "medium", "unspecified"]
@@ -37,7 +37,7 @@
     {
       "provider": "opencode",
       "modelTier": "economy",
-      "modelId": "opencode/gpt-5.1-codex",
+      "modelId": "opencode/gpt-6-luna",
       "reasoningEffort": "medium",
       "allowedScopeDomains": ["evidence", "requirements", "source", "tests"],
       "allowedRiskLevels": ["low", "medium", "unspecified"]
@@ -45,7 +45,7 @@
     {
       "provider": "opencode",
       "modelTier": "full",
-      "modelId": "opencode/gpt-5.1-codex",
+      "modelId": "opencode/gpt-6-sol",
       "reasoningEffort": "high",
       "allowedScopeDomains": ["architecture", "contracts", "database", "evidence", "operations", "requirements", "security", "source", "tests"],
       "allowedRiskLevels": ["high", "low", "medium", "unspecified"]

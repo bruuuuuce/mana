@@ -4,7 +4,7 @@
 # Safe to replace with --force or during a Mana profile run.
 description: "Mana primary orchestrator for profile routing, light evidence inventory, bounded delegation, and final synthesis."
 mode: primary
-model: github-copilot/claude-sonnet-5
+model: opencode/gpt-6-luna
 temperature: 0.1
 permission:
   read: allow

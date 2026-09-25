@@ -20,11 +20,12 @@ mana_story_start_stage_default_model() {
   local provider="$1" stage="$2"
   mana_story_start_stage_valid "$stage" || return 1
   case "$provider:$stage" in
-    codex:discovery|codex:correction|codex:trajectory-checkpoint) printf '%s\n' 'gpt-5.6-terra' ;;
-    codex:triage|codex:planner) printf '%s\n' 'gpt-5.6-sol' ;;
-    claude:discovery|claude:correction|claude:trajectory-checkpoint) printf '%s\n' 'sonnet' ;;
-    claude:triage|claude:planner) printf '%s\n' 'opus' ;;
-    opencode:*) printf '%s\n' 'opencode/gpt-5.1-codex' ;;
+    codex:discovery|codex:correction|codex:trajectory-checkpoint) printf '%s\n' 'gpt-6-luna' ;;
+    codex:triage|codex:planner) printf '%s\n' 'gpt-6-sol' ;;
+    claude:discovery|claude:correction|claude:trajectory-checkpoint) printf '%s\n' 'claude-sonnet-5' ;;
+    claude:triage|claude:planner) printf '%s\n' 'claude-opus-5-5' ;;
+    opencode:discovery|opencode:correction|opencode:trajectory-checkpoint) printf '%s\n' 'opencode/gpt-6-luna' ;;
+    opencode:triage|opencode:planner) printf '%s\n' 'opencode/gpt-6-sol' ;;
     *) return 1 ;;
   esac
 }

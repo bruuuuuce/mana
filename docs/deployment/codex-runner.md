@@ -16,10 +16,10 @@ Codex should run repository analysis, story planning, branch validation, PR read
 Default model settings:
 
 ```bash
-MANA_CODEX_MODEL=gpt-5.4-mini
-MANA_CODEX_EXPLORER_MODEL=gpt-5.6-terra
-MANA_CODEX_FULL_MODEL=gpt-5.6-sol
-MANA_CODEX_WORKER_MODEL=gpt-5.6-terra
+MANA_CODEX_MODEL=gpt-6-luna
+MANA_CODEX_EXPLORER_MODEL=gpt-6-luna
+MANA_CODEX_FULL_MODEL=gpt-6-sol
+MANA_CODEX_WORKER_MODEL=gpt-6-sol
 MANA_CODEX_MODEL_POLICY=economy-first
 MANA_CODEX_SUBAGENTS=true
 MANA_CODEX_MAX_THREADS=3
@@ -59,6 +59,25 @@ Fallback remains explicit. If subagents are disabled, missing, unsupported,
 fail to spawn, return insufficient evidence, or cannot complete a high-risk
 judgment safely, the run preserves a concise handoff artifact and returns
 `needs_model_escalation` with the existing full-model override guidance.
+
+For a spawn failure, run this from the Mana checkout:
+
+```bash
+scripts/diagnose-codex-subagent.sh --project-root /path/to/project
+```
+
+Pass `--spawn-error-file <file>` if
+the session's spawn error has been saved locally. The diagnostic reports the
+Codex CLI version, the on-disk project role catalog, the `multi_agent` feature,
+and a classified remedy. A present role file and enabled feature still require
+a spawn in a fresh session to prove discovery. In particular, `agent type is
+currently not available` does not by itself prove that the selected model was
+rejected. Check the redacted effective configuration with `codex doctor --json`
+and the target role's `model` field; do not copy credentials into reports.
+Bootstrap installs Codex agent TOML as physical files. In a fresh Codex CLI
+session, a symlinked project role was present on disk but unavailable at spawn;
+replacing it with a physical file made the same role discoverable. A Mana
+profile run also replaces Mana-managed symlinks with generated physical files.
 
 Subagents can increase total token usage. The benefit is smaller root context
 and narrower expensive-model usage.

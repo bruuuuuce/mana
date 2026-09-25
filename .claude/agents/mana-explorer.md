@@ -5,7 +5,7 @@
 name: mana-explorer
 description: "Mana read-only repository evidence discovery and inventory."
 tools: Read, Glob, Grep, Bash(git diff:*), Bash(git status:*), Bash(git log:*), Bash(git show:*), Bash(rg:*), Bash(find:*)
-model: sonnet
+model: claude-sonnet-5
 permissionMode: default
 effort: medium
 ---

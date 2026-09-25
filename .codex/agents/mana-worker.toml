@@ -3,7 +3,7 @@
 # Safe to replace with --force or during a Mana profile run.
 name = "mana_worker"
 description = "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks."
-model = "gpt-5.6-terra"
+model = "gpt-6-sol"
 model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"
 developer_instructions = """

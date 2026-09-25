@@ -27,11 +27,11 @@ unset MANA_CODEX_STORY_START_CORRECTION_MODEL MANA_CODEX_STORY_START_CORRECTION_
 unset MANA_CODEX_STORY_START_TRAJECTORY_CHECKPOINT_MODEL MANA_CODEX_STORY_START_TRAJECTORY_CHECKPOINT_EFFORT
 
 # Provider-stage defaults are explicit for all required routes.
-assert_route codex discovery gpt-5.4-mini '' false false '' '' gpt-5.6-terra high provider-stage-default provider-stage-default explicit
-assert_route codex triage gpt-5.4-mini '' false false '' '' gpt-5.6-sol xhigh provider-stage-default provider-stage-default explicit
-assert_route codex planner gpt-5.4-mini '' false false '' '' gpt-5.6-sol high provider-stage-default provider-stage-default explicit
-assert_route codex correction gpt-5.4-mini '' false false '' '' gpt-5.6-terra high provider-stage-default provider-stage-default explicit
-assert_route codex trajectory-checkpoint gpt-5.4-mini '' false false '' '' gpt-5.6-terra high provider-stage-default provider-stage-default explicit
+assert_route codex discovery gpt-6-luna '' false false '' '' gpt-6-luna high provider-stage-default provider-stage-default explicit
+assert_route codex triage gpt-6-luna '' false false '' '' gpt-6-sol xhigh provider-stage-default provider-stage-default explicit
+assert_route codex planner gpt-6-luna '' false false '' '' gpt-6-sol high provider-stage-default provider-stage-default explicit
+assert_route codex correction gpt-6-luna '' false false '' '' gpt-6-luna high provider-stage-default provider-stage-default explicit
+assert_route codex trajectory-checkpoint gpt-6-luna '' false false '' '' gpt-6-luna high provider-stage-default provider-stage-default explicit
 
 # Stage environment and CLI overrides supersede explicit root compatibility values.
 MANA_CODEX_STORY_START_DISCOVERY_MODEL=environment-discovery \
@@ -41,8 +41,16 @@ assert_route codex triage root-compat low true true cli-triage xhigh cli-triage 
 assert_route codex planner root-compat medium true true '' '' root-compat medium root-compatibility-override root-compatibility-override explicit
 
 # Unsupported adapters retain the requested effort as diagnostics only.
-assert_route claude triage haiku '' false false '' '' opus xhigh provider-stage-default provider-stage-default unsupported
-assert_route opencode correction opencode/root '' false false '' '' opencode/gpt-5.1-codex high provider-stage-default provider-stage-default unsupported
+assert_route claude triage claude-haiku-4-5 '' false false '' '' claude-opus-5-5 xhigh provider-stage-default provider-stage-default unsupported
+assert_route claude discovery claude-haiku-4-5 '' false false '' '' claude-sonnet-5 high provider-stage-default provider-stage-default unsupported
+assert_route claude planner claude-haiku-4-5 '' false false '' '' claude-opus-5-5 high provider-stage-default provider-stage-default unsupported
+assert_route claude correction claude-haiku-4-5 '' false false '' '' claude-sonnet-5 high provider-stage-default provider-stage-default unsupported
+assert_route claude trajectory-checkpoint claude-haiku-4-5 '' false false '' '' claude-sonnet-5 high provider-stage-default provider-stage-default unsupported
+assert_route opencode discovery opencode/root '' false false '' '' opencode/gpt-6-luna high provider-stage-default provider-stage-default unsupported
+assert_route opencode triage opencode/root '' false false '' '' opencode/gpt-6-sol xhigh provider-stage-default provider-stage-default unsupported
+assert_route opencode planner opencode/root '' false false '' '' opencode/gpt-6-sol high provider-stage-default provider-stage-default unsupported
+assert_route opencode correction opencode/root '' false false '' '' opencode/gpt-6-luna high provider-stage-default provider-stage-default unsupported
+assert_route opencode trajectory-checkpoint opencode/root '' false false '' '' opencode/gpt-6-luna high provider-stage-default provider-stage-default unsupported
 MANA_CODEX_STORY_START_DISCOVERY_EFFORT=unknown \
   mana_story_start_stage_resolve codex discovery root '' false false '' '' && fail 'invalid stage effort was accepted'
 
@@ -94,8 +102,8 @@ awk '
 cmp -s "$tmp/models.tsv" <(printf '%s\n' '1:cli-discovery' '2:cli-triage' '3:cli-planner') || fail 'stage-specific models were not dispatched in phase order'
 grep -Fxq 'model_reasoning_effort="high"' "$tmp/codex.args" || fail 'high effort missing from public stage dispatch'
 grep -Fxq 'model_reasoning_effort="xhigh"' "$tmp/codex.args" || fail 'xhigh effort missing from public stage dispatch'
-grep -Fq 'stage=correction provider=codex model=gpt-5.6-terra' "$tmp/v2.out" || fail 'correction route diagnostic missing'
-grep -Fq 'stage=trajectory-checkpoint provider=codex model=gpt-5.6-terra' "$tmp/v2.out" || fail 'future checkpoint route diagnostic missing'
+grep -Fq 'stage=correction provider=codex model=gpt-6-luna' "$tmp/v2.out" || fail 'correction route diagnostic missing'
+grep -Fq 'stage=trajectory-checkpoint provider=codex model=gpt-6-luna' "$tmp/v2.out" || fail 'future checkpoint route diagnostic missing'
 grep -Fq 'effort_dispatch=explicit' "$tmp/v2.out" || fail 'Codex effort diagnostic is not explicit'
 if grep -Fq 'COMPACT_DISCOVERY_PACKAGE' "$tmp/v2.out" || grep -Fq 'COMPACT_DISCOVERY_PACKAGE' "$tmp/v2.err" || grep -Fq 'stage-secret-not-for-output' "$tmp/v2.out" || grep -Fq 'stage-secret-not-for-output' "$tmp/v2.err"; then
   fail 'routing diagnostics leaked a prompt body or secret'

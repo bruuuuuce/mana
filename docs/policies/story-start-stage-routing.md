@@ -52,7 +52,7 @@ For example:
 MANA_STORY_START_SCOPE_VERSION=v2 \
 MANA_STORY_START_CONTEXT=.mana/features/EXAMPLE/context/story-start-context.json \
 scripts/run-profile.sh story-start --codex \
-  --story-start-triage-model gpt-5.6-sol \
+  --story-start-triage-model gpt-6-sol \
   --story-start-triage-effort xhigh
 ```
 
@@ -66,7 +66,7 @@ MANA_<PROVIDER>_STORY_START_<STAGE>_EFFORT
 For example:
 
 ```text
-MANA_CODEX_STORY_START_DISCOVERY_MODEL=gpt-5.6-terra
+MANA_CODEX_STORY_START_DISCOVERY_MODEL=gpt-6-luna
 MANA_CODEX_STORY_START_DISCOVERY_EFFORT=high
 ```
 
@@ -81,9 +81,9 @@ provider arguments.
 
 | Provider | Discovery | Triage | Planner | Correction | Trajectory checkpoint |
 |---|---|---|---|---|---|
-| Codex | `gpt-5.6-terra` / `high` | `gpt-5.6-sol` / `xhigh` | `gpt-5.6-sol` / `high` | `gpt-5.6-terra` / `high` | `gpt-5.6-terra` / `high` |
-| Claude | `sonnet` / `high` requested | `opus` / `xhigh` requested | `opus` / `high` requested | `sonnet` / `high` requested | `sonnet` / `high` requested |
-| OpenCode | `opencode/gpt-5.1-codex` / `high` requested | `opencode/gpt-5.1-codex` / `xhigh` requested | `opencode/gpt-5.1-codex` / `high` requested | `opencode/gpt-5.1-codex` / `high` requested | `opencode/gpt-5.1-codex` / `high` requested |
+| Codex | `gpt-6-luna` / `high` | `gpt-6-sol` / `xhigh` | `gpt-6-sol` / `high` | `gpt-6-luna` / `high` | `gpt-6-luna` / `high` |
+| Claude | `claude-sonnet-5` / `high` requested | `claude-opus-5-5` / `xhigh` requested | `claude-opus-5-5` / `high` requested | `claude-sonnet-5` / `high` requested | `claude-sonnet-5` / `high` requested |
+| OpenCode | `opencode/gpt-6-luna` / `high` requested | `opencode/gpt-6-sol` / `xhigh` requested | `opencode/gpt-6-sol` / `high` requested | `opencode/gpt-6-luna` / `high` requested | `opencode/gpt-6-luna` / `high` requested |
 
 These are Scope v2 defaults only. They do not rewrite global defaults used by
 other Mana profiles or change the Codex/Claude/OpenCode root agents in v1.
@@ -110,7 +110,7 @@ free-form output.
 At a v2 public run, `scripts/run-profile.sh` emits one line for each route:
 
 ```text
-Story Start Scope v2 route: stage=triage provider=codex model=gpt-5.6-sol model_source=provider-stage-default effort=xhigh effort_source=provider-stage-default effort_dispatch=explicit
+Story Start Scope v2 route: stage=triage provider=codex model=gpt-6-sol model_source=provider-stage-default effort=xhigh effort_source=provider-stage-default effort_dispatch=explicit
 ```
 
 The line contains only stage, provider, model, requested effort, source, and
