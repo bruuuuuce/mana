@@ -4,6 +4,7 @@
   "owner": "Mana",
   "schemas": [
     "schemas/project.schema.json",
+    "schemas/semantic-snapshot.schema.json",
     "schemas/artifacts.schema.json",
     "schemas/artifact.schema.json",
     "schemas/source.schema.json",

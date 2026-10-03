@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/mana-knowledge/v1/learning-review-queue.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "index", "candidates", "diagnostics"],
+  "properties": {
+    "schema": {"const": "mana.learning.review-queue/v1"},
+    "index": {"type": "object", "required": ["freshness", "reason", "revision"]},
+    "candidates": {"type": "array", "maxItems": 1000, "items": {"type": "object", "additionalProperties": false, "required": ["candidate_id", "source_scope", "revision", "status", "proposal", "evidence", "counter_evidence", "limitations", "target_scope", "source_reference", "review_id", "review_revision", "promotion_eligible", "promoted"], "properties": {
+      "candidate_id": {"type": "string", "minLength": 1},
+      "source_scope": {"enum": ["project", "user"]},
+      "revision": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+      "status": {"enum": ["candidate", "reviewed", "rejected", "deferred", "archived"]},
+      "proposal": {"type": ["string", "null"]},
+      "evidence": {"type": "array"},
+      "counter_evidence": {},
+      "limitations": {},
+      "target_scope": {"type": ["string", "null"]},
+      "source_reference": {"type": "string", "minLength": 1},
+      "review_id": {"type": ["string", "null"]},
+      "review_revision": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"},
+      "promotion_eligible": {"type": "boolean"},
+      "promoted": {"type": "boolean"}
+    }}},
+    "diagnostics": {"type": "array", "items": {"type": "object"}}
+  }
+}

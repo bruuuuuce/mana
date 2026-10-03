@@ -1,0 +1,25 @@
+{
+  "bundle": "mana-knowledge-contract",
+  "version": "v1",
+  "owner": "Mana",
+  "schemas": [
+    "schemas/index-status.schema.json",
+    "schemas/index-build.schema.json",
+    "schemas/search.schema.json",
+    "schemas/passage.schema.json",
+    "schemas/capabilities.schema.json",
+    "schemas/documents.schema.json",
+    "schemas/document.schema.json",
+    "schemas/learning-review-queue.schema.json"
+  ],
+  "fixtures": [
+    "fixtures/search.json",
+    "fixtures/passage.json",
+    "fixtures/capabilities.json",
+    "fixtures/documents.json",
+    "fixtures/document.json",
+    "fixtures/learning-review-queue.json"
+  ],
+  "modelCalls": 0,
+  "network": false
+}

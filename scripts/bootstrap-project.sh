@@ -257,6 +257,10 @@ Usage:
   ./mana cast <profile> [opts]           Validate and execute a Mana profile.
   ./mana explore "<question>" [opts]     Run bounded read-only explorer retrieval.
   ./mana inspect <cmd> --json            Inspect project, artifacts, detail, or source relations.
+  ./mana catalog <cmd> --json            Maintain the explicit derived catalog cache.
+  ./mana knowledge <cmd> --json          Build or query the bounded local knowledge index.
+  ./mana action <cmd> --json             Apply revision-checked knowledge or learning actions.
+  ./mana review-inbox <cmd> --json       Manage the opt-in host review inbox.
   ./mana context <cmd> [args...]         Inspect or refresh optional User Context.
   ./mana doctor [args...]                Diagnose Mana and this linked project.
   ./mana learning <cmd> [args...]        Inspect governed learning candidates.
@@ -298,6 +302,12 @@ Examples:
   ./mana inspect artifacts --json
   ./mana inspect artifact <artifact-id> --json
   ./mana inspect source src/Example.java --json
+  ./mana catalog status --json
+  ./mana catalog build --json
+  ./mana knowledge build --json
+  ./mana knowledge search --query "payment timeout" --scope project --json
+  ./mana action knowledge-edit --scope project --target .mana/global/notes.md --expected-revision sha256:<digest> --content-file /tmp/notes.md --json
+  ./mana review-inbox status --json
   ./mana context status
   ./mana context refresh
   ./mana learning candidates
@@ -345,6 +355,18 @@ USAGE
     ;;
   inspect)
     exec "$MANA_HOME/scripts/mana-inspect.sh" --project-root "$project_root" "$@"
+    ;;
+  catalog)
+    exec python3 "$MANA_HOME/scripts/mana-catalog.py" --project-root "$project_root" "$@"
+    ;;
+  knowledge)
+    exec python3 "$MANA_HOME/scripts/mana-knowledge.py" --project-root "$project_root" "$@"
+    ;;
+  action)
+    exec python3 "$MANA_HOME/scripts/mana-actions.py" --project-root "$project_root" "$@"
+    ;;
+  review-inbox)
+    exec python3 "$MANA_HOME/scripts/mana-review-inbox.py" "$@"
     ;;
   context)
     exec "$MANA_HOME/scripts/mana-context.sh" "$@" --project-root "$project_root"

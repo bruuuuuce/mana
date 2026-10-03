@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/mana-knowledge/v1/document.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "index", "document", "diagnostics"],
+  "properties": {
+    "schema": {"const": "mana.knowledge.document/v1"},
+    "index": {"type": "object", "required": ["freshness", "reason", "revision"]},
+    "document": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/document"}]},
+    "diagnostics": {"type": "array", "items": {"type": "object"}}
+  },
+  "$defs": {
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document_id", "source_reference", "source_scope", "lifecycle_state", "title", "document_revision", "byte_size", "returned_bytes", "truncated", "passages", "edit_capability"],
+      "properties": {
+        "document_id": {"type": "string", "pattern": "^doc_[0-9a-f]{24}$"},
+        "source_reference": {"type": "string", "minLength": 1},
+        "source_scope": {"enum": ["framework", "user", "project", "candidate"]},
+        "lifecycle_state": {"type": "string"},
+        "title": {"type": ["string", "null"]},
+        "document_revision": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "byte_size": {"type": "integer", "minimum": 0},
+        "returned_bytes": {"type": "integer", "minimum": 0, "maximum": 65536},
+        "truncated": {"type": "boolean"},
+        "passages": {"type": "array", "items": {"type": "object", "required": ["passage_id", "ordinal", "heading_path", "body", "passage_revision", "truncated"]}},
+        "edit_capability": {"type": "object", "additionalProperties": false, "required": ["available", "expected_revision", "exact_content", "target", "source_disclosure"], "properties": {"available": {"type": "boolean"}, "expected_revision": {"type": ["string", "null"]}, "exact_content": {"type": ["string", "null"]}, "target": {"type": ["string", "null"]}, "source_disclosure": {"type": ["string", "null"]}}}
+      }
+    }
+  }
+}

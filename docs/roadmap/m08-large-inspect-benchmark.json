@@ -1,0 +1,563 @@
+{
+  "cold": {
+    "legacy_full_read": {
+      "catalog_build_count": 4,
+      "digest_file_visits": 40000,
+      "operations": [
+        {
+          "elapsed_ms": 29.853,
+          "operation": "project",
+          "options": [],
+          "response_bytes": 1140
+        },
+        {
+          "elapsed_ms": 806.224,
+          "operation": "artifacts",
+          "options": [],
+          "response_bytes": 4623637
+        },
+        {
+          "elapsed_ms": 577.831,
+          "operation": "work-items",
+          "options": [],
+          "response_bytes": 410108
+        },
+        {
+          "elapsed_ms": 524.954,
+          "operation": "project-context",
+          "options": [],
+          "response_bytes": 981
+        },
+        {
+          "elapsed_ms": 815.734,
+          "operation": "activity",
+          "options": [],
+          "response_bytes": 26638947
+        }
+      ],
+      "peak_response_bytes": 26638947,
+      "process_count": 5,
+      "total_ms": 2754.596,
+      "total_response_bytes": 31674813
+    },
+    "snapshot_route_minimal": {
+      "catalog_build_count": 1,
+      "digest_file_visits": 10000,
+      "operations": [
+        {
+          "elapsed_ms": 31.531,
+          "operation": "project",
+          "options": [],
+          "response_bytes": 1140
+        },
+        {
+          "elapsed_ms": 999.638,
+          "operation": "semantic-snapshot",
+          "options": [],
+          "response_bytes": 411887
+        }
+      ],
+      "peak_response_bytes": 411887,
+      "process_count": 2,
+      "total_ms": 1031.169,
+      "total_response_bytes": 413027
+    },
+    "snapshot_supporting": {
+      "catalog_build_count": 1,
+      "digest_file_visits": 10000,
+      "operations": [
+        {
+          "elapsed_ms": 32.522,
+          "operation": "project",
+          "options": [],
+          "response_bytes": 1140
+        },
+        {
+          "elapsed_ms": 1256.674,
+          "operation": "semantic-snapshot",
+          "options": [
+            "--include-supporting"
+          ],
+          "response_bytes": 412890
+        }
+      ],
+      "peak_response_bytes": 412890,
+      "process_count": 2,
+      "total_ms": 1289.196,
+      "total_response_bytes": 414030
+    }
+  },
+  "environment": {
+    "machine": "arm64",
+    "mana_revision": "ac8531e7dd4b80f65b64c0f49543549d38429a4e",
+    "os": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.10.9"
+  },
+  "fixture": {
+    "class": "large",
+    "digest": "sha256:340832fe150b23b899166573231a8cc967dcf4127f0cb88ef3a320b87859a192",
+    "logical_counts": {
+      "artifacts": 10000,
+      "knowledge_documents": 2000,
+      "runtime_events": 50000,
+      "work_items": 500
+    },
+    "manifest_digest": "sha256:fe60235754b3254da264ec66e8e7e1a6084d37f8a7d1bad9fd14aa4ff98e63cd"
+  },
+  "improvement": {
+    "catalog_build_reduction": 3,
+    "process_reduction": 3,
+    "supporting_elapsed_ms": 1451.561,
+    "supporting_percent": 52.91
+  },
+  "median_total_ms": {
+    "legacy_full_read": 2743.409,
+    "snapshot_route_minimal": 1033.601,
+    "snapshot_supporting": 1291.848
+  },
+  "privacy": {
+    "absolute_paths": false,
+    "credentials": false,
+    "source_content": false
+  },
+  "repeated": {
+    "legacy_full_read": [
+      {
+        "catalog_build_count": 4,
+        "digest_file_visits": 40000,
+        "operations": [
+          {
+            "elapsed_ms": 29.853,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 806.224,
+            "operation": "artifacts",
+            "options": [],
+            "response_bytes": 4623637
+          },
+          {
+            "elapsed_ms": 577.831,
+            "operation": "work-items",
+            "options": [],
+            "response_bytes": 410108
+          },
+          {
+            "elapsed_ms": 524.954,
+            "operation": "project-context",
+            "options": [],
+            "response_bytes": 981
+          },
+          {
+            "elapsed_ms": 815.734,
+            "operation": "activity",
+            "options": [],
+            "response_bytes": 26638947
+          }
+        ],
+        "peak_response_bytes": 26638947,
+        "process_count": 5,
+        "total_ms": 2754.596,
+        "total_response_bytes": 31674813
+      },
+      {
+        "catalog_build_count": 4,
+        "digest_file_visits": 40000,
+        "operations": [
+          {
+            "elapsed_ms": 31.872,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 780.624,
+            "operation": "artifacts",
+            "options": [],
+            "response_bytes": 4623637
+          },
+          {
+            "elapsed_ms": 577.631,
+            "operation": "work-items",
+            "options": [],
+            "response_bytes": 410108
+          },
+          {
+            "elapsed_ms": 522.503,
+            "operation": "project-context",
+            "options": [],
+            "response_bytes": 981
+          },
+          {
+            "elapsed_ms": 810.265,
+            "operation": "activity",
+            "options": [],
+            "response_bytes": 26638947
+          }
+        ],
+        "peak_response_bytes": 26638947,
+        "process_count": 5,
+        "total_ms": 2722.895,
+        "total_response_bytes": 31674813
+      },
+      {
+        "catalog_build_count": 4,
+        "digest_file_visits": 40000,
+        "operations": [
+          {
+            "elapsed_ms": 33.127,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 777.596,
+            "operation": "artifacts",
+            "options": [],
+            "response_bytes": 4623637
+          },
+          {
+            "elapsed_ms": 576.296,
+            "operation": "work-items",
+            "options": [],
+            "response_bytes": 410108
+          },
+          {
+            "elapsed_ms": 530.591,
+            "operation": "project-context",
+            "options": [],
+            "response_bytes": 981
+          },
+          {
+            "elapsed_ms": 810.918,
+            "operation": "activity",
+            "options": [],
+            "response_bytes": 26638947
+          }
+        ],
+        "peak_response_bytes": 26638947,
+        "process_count": 5,
+        "total_ms": 2728.528,
+        "total_response_bytes": 31674813
+      },
+      {
+        "catalog_build_count": 4,
+        "digest_file_visits": 40000,
+        "operations": [
+          {
+            "elapsed_ms": 32.335,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 781.903,
+            "operation": "artifacts",
+            "options": [],
+            "response_bytes": 4623637
+          },
+          {
+            "elapsed_ms": 580.112,
+            "operation": "work-items",
+            "options": [],
+            "response_bytes": 410108
+          },
+          {
+            "elapsed_ms": 529.381,
+            "operation": "project-context",
+            "options": [],
+            "response_bytes": 981
+          },
+          {
+            "elapsed_ms": 819.678,
+            "operation": "activity",
+            "options": [],
+            "response_bytes": 26638947
+          }
+        ],
+        "peak_response_bytes": 26638947,
+        "process_count": 5,
+        "total_ms": 2743.409,
+        "total_response_bytes": 31674813
+      },
+      {
+        "catalog_build_count": 4,
+        "digest_file_visits": 40000,
+        "operations": [
+          {
+            "elapsed_ms": 33.784,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 779.564,
+            "operation": "artifacts",
+            "options": [],
+            "response_bytes": 4623637
+          },
+          {
+            "elapsed_ms": 580.298,
+            "operation": "work-items",
+            "options": [],
+            "response_bytes": 410108
+          },
+          {
+            "elapsed_ms": 531.694,
+            "operation": "project-context",
+            "options": [],
+            "response_bytes": 981
+          },
+          {
+            "elapsed_ms": 824.007,
+            "operation": "activity",
+            "options": [],
+            "response_bytes": 26638947
+          }
+        ],
+        "peak_response_bytes": 26638947,
+        "process_count": 5,
+        "total_ms": 2749.347,
+        "total_response_bytes": 31674813
+      }
+    ],
+    "snapshot_route_minimal": [
+      {
+        "catalog_build_count": 1,
+        "digest_file_visits": 10000,
+        "operations": [
+          {
+            "elapsed_ms": 31.531,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 999.638,
+            "operation": "semantic-snapshot",
+            "options": [],
+            "response_bytes": 411887
+          }
+        ],
+        "peak_response_bytes": 411887,
+        "process_count": 2,
+        "total_ms": 1031.169,
+        "total_response_bytes": 413027
+      },
+      {
+        "catalog_build_count": 1,
+        "digest_file_visits": 10000,
+        "operations": [
+          {
+            "elapsed_ms": 30.897,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 1008.987,
+            "operation": "semantic-snapshot",
+            "options": [],
+            "response_bytes": 411887
+          }
+        ],
+        "peak_response_bytes": 411887,
+        "process_count": 2,
+        "total_ms": 1039.884,
+        "total_response_bytes": 413027
+      },
+      {
+        "catalog_build_count": 1,
+        "digest_file_visits": 10000,
+        "operations": [
+          {
+            "elapsed_ms": 31.424,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 994.009,
+            "operation": "semantic-snapshot",
+            "options": [],
+            "response_bytes": 411887
+          }
+        ],
+        "peak_response_bytes": 411887,
+        "process_count": 2,
+        "total_ms": 1025.433,
+        "total_response_bytes": 413027
+      },
+      {
+        "catalog_build_count": 1,
+        "digest_file_visits": 10000,
+        "operations": [
+          {
+            "elapsed_ms": 31.374,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 1002.227,
+            "operation": "semantic-snapshot",
+            "options": [],
+            "response_bytes": 411887
+          }
+        ],
+        "peak_response_bytes": 411887,
+        "process_count": 2,
+        "total_ms": 1033.601,
+        "total_response_bytes": 413027
+      },
+      {
+        "catalog_build_count": 1,
+        "digest_file_visits": 10000,
+        "operations": [
+          {
+            "elapsed_ms": 31.176,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 1008.498,
+            "operation": "semantic-snapshot",
+            "options": [],
+            "response_bytes": 411887
+          }
+        ],
+        "peak_response_bytes": 411887,
+        "process_count": 2,
+        "total_ms": 1039.674,
+        "total_response_bytes": 413027
+      }
+    ],
+    "snapshot_supporting": [
+      {
+        "catalog_build_count": 1,
+        "digest_file_visits": 10000,
+        "operations": [
+          {
+            "elapsed_ms": 32.522,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 1256.674,
+            "operation": "semantic-snapshot",
+            "options": [
+              "--include-supporting"
+            ],
+            "response_bytes": 412890
+          }
+        ],
+        "peak_response_bytes": 412890,
+        "process_count": 2,
+        "total_ms": 1289.196,
+        "total_response_bytes": 414030
+      },
+      {
+        "catalog_build_count": 1,
+        "digest_file_visits": 10000,
+        "operations": [
+          {
+            "elapsed_ms": 31.378,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 1246.742,
+            "operation": "semantic-snapshot",
+            "options": [
+              "--include-supporting"
+            ],
+            "response_bytes": 412890
+          }
+        ],
+        "peak_response_bytes": 412890,
+        "process_count": 2,
+        "total_ms": 1278.12,
+        "total_response_bytes": 414030
+      },
+      {
+        "catalog_build_count": 1,
+        "digest_file_visits": 10000,
+        "operations": [
+          {
+            "elapsed_ms": 31.097,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 1294.213,
+            "operation": "semantic-snapshot",
+            "options": [
+              "--include-supporting"
+            ],
+            "response_bytes": 412890
+          }
+        ],
+        "peak_response_bytes": 412890,
+        "process_count": 2,
+        "total_ms": 1325.31,
+        "total_response_bytes": 414030
+      },
+      {
+        "catalog_build_count": 1,
+        "digest_file_visits": 10000,
+        "operations": [
+          {
+            "elapsed_ms": 31.541,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 1264.041,
+            "operation": "semantic-snapshot",
+            "options": [
+              "--include-supporting"
+            ],
+            "response_bytes": 412890
+          }
+        ],
+        "peak_response_bytes": 412890,
+        "process_count": 2,
+        "total_ms": 1295.582,
+        "total_response_bytes": 414030
+      },
+      {
+        "catalog_build_count": 1,
+        "digest_file_visits": 10000,
+        "operations": [
+          {
+            "elapsed_ms": 32.784,
+            "operation": "project",
+            "options": [],
+            "response_bytes": 1140
+          },
+          {
+            "elapsed_ms": 1259.064,
+            "operation": "semantic-snapshot",
+            "options": [
+              "--include-supporting"
+            ],
+            "response_bytes": 412890
+          }
+        ],
+        "peak_response_bytes": 412890,
+        "process_count": 2,
+        "total_ms": 1291.848,
+        "total_response_bytes": 414030
+      }
+    ]
+  },
+  "runs_per_mode": 5,
+  "schema": "mana.m08.inspect-benchmark/v1"
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/mana-actions/v1/action-receipt.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "action_id", "action", "target", "expected_revision", "before_revision", "after_revision", "outcome", "proposal_artifact", "details", "recorded_at", "guarantees", "receipt_artifact", "receipt_revision"],
+  "properties": {
+    "schema": {"const": "mana.action.receipt/v1"},
+    "action_id": {"type": "string", "pattern": "^act_[0-9a-f]{24}$"},
+    "action": {"enum": ["knowledge-edit", "project-learning", "user-learning-review", "user-learning-promote"]},
+    "target": {"type": "object"},
+    "expected_revision": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "before_revision": {"type": ["string", "null"]},
+    "after_revision": {"type": ["string", "null"]},
+    "outcome": {"enum": ["applied", "noop", "conflict", "validation_failure", "partial_refresh"]},
+    "proposal_artifact": {"type": ["string", "null"]},
+    "details": {"type": "object"},
+    "recorded_at": {"type": "string"},
+    "guarantees": {"type": "object", "additionalProperties": false, "required": ["model_calls", "network_calls", "automatic_promotion"], "properties": {"model_calls": {"const": 0}, "network_calls": {"const": 0}, "automatic_promotion": {"const": false}}},
+    "receipt_artifact": {"type": "string", "pattern": "^mana-cache://actions/receipts/act_[0-9a-f]{24}\\.json$"},
+    "receipt_revision": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}

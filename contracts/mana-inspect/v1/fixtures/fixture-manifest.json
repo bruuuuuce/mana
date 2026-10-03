@@ -21,6 +21,7 @@
     {"id":"work-item-sparse-attention-and-evidence","response":"sparse-work-item.json"},
     {"id":"project-context-missing-categories","response":"project-context.json"},
     {"id":"activity-explicit-and-filesystem-fallback","response":"activity.json"},
-    {"id":"empty-work-items","response":"empty-work-items.json"}
+    {"id":"empty-work-items","response":"empty-work-items.json"},
+    {"id":"semantic-snapshot-single-scan","response":"semantic-snapshot.json"}
   ]
 }

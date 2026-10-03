@@ -1,0 +1,10 @@
+{
+  "bundle": "mana-actions-contract",
+  "version": "v1",
+  "owner": "Mana",
+  "schemas": ["schemas/action-receipt.schema.json", "schemas/action-error.schema.json", "schemas/conflict-proposal.schema.json"],
+  "fixtures": ["fixtures/applied.json", "fixtures/conflict.json"],
+  "modelCalls": 0,
+  "network": false,
+  "automaticPromotion": false
+}

@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://mana.local/contracts/mana-knowledge/v1/index-build.schema.json",
+  "type":"object","additionalProperties":false,
+  "required":["schema","freshness","revision","documents","indexed_documents","reused_documents","removed_documents","indexed_passages","diagnostics","fts","guarantees"],
+  "properties":{
+    "schema":{"const":"mana.knowledge.index-build/v1"},
+    "freshness":{"const":"current"},
+    "revision":{"type":"string","pattern":"^sha256:[0-9a-f]{64}$"},
+    "documents":{"type":"integer","minimum":0},
+    "indexed_documents":{"type":"integer","minimum":0},
+    "reused_documents":{"type":"integer","minimum":0},
+    "removed_documents":{"type":"integer","minimum":0},
+    "indexed_passages":{"type":"integer","minimum":0},
+    "diagnostics":{"type":"array","items":{"type":"object"}},
+    "fts":{"const":"sqlite-fts5-bm25/v1"},
+    "guarantees":{"type":"object"}
+  }
+}

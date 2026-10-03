@@ -10,10 +10,10 @@ while [ "$#" -gt 0 ]; do
 done
 bundle="$(cd "$bundle" 2>/dev/null && pwd -P)" || { echo 'ERROR: unreadable bundle' >&2; exit 2; }
 command -v jq >/dev/null 2>&1 || { echo 'ERROR: jq is required' >&2; exit 5; }
-for file in bundle.json COMPATIBILITY.md SEMANTIC-CONTRACT.md fixtures/fixture-manifest.json fixtures/representative-artifacts.json schemas/project.schema.json schemas/artifacts.schema.json schemas/artifact.schema.json schemas/source.schema.json schemas/work-items.schema.json schemas/work-item.schema.json schemas/project-context.schema.json schemas/activity.schema.json; do
+for file in bundle.json COMPATIBILITY.md SEMANTIC-CONTRACT.md fixtures/fixture-manifest.json fixtures/representative-artifacts.json fixtures/semantic-snapshot.json schemas/project.schema.json schemas/semantic-snapshot.schema.json schemas/artifacts.schema.json schemas/artifact.schema.json schemas/source.schema.json schemas/work-items.schema.json schemas/work-item.schema.json schemas/project-context.schema.json schemas/activity.schema.json; do
   [ -f "$bundle/$file" ] || { echo "ERROR: missing bundle file: $file" >&2; exit 4; }
 done
-jq -e '.bundle=="mana-inspect-contract" and .version=="v1" and .owner=="Mana" and .modelCalls==0 and .network==false and (.schemas|length==8)' "$bundle/bundle.json" >/dev/null
+jq -e '.bundle=="mana-inspect-contract" and .version=="v1" and .owner=="Mana" and .modelCalls==0 and .network==false and (.schemas|length==9)' "$bundle/bundle.json" >/dev/null
 jq -e '.schema=="mana.inspect.fixture-manifest/v1" and ([.cases[].id]|index("work-items-feature") and index("work-item-feature-full") and index("work-item-session") and index("work-item-sparse-attention-and-evidence") and index("project-context-missing-categories") and index("activity-explicit-and-filesystem-fallback") and index("empty-work-items"))' "$bundle/fixtures/fixture-manifest.json" >/dev/null
 jq -e '([.[].family]|sort|unique)==["knowledge","learning","runtime","unknown","workspace"] and ([.[].kind]|index("repair-attempt-result") and index("verification-result") and index("runtime_events") and index("markdown") and index("journey") and index("journey_record"))' "$bundle/fixtures/representative-artifacts.json" >/dev/null
 while IFS= read -r schema; do
@@ -32,6 +32,7 @@ jq -e 'any(.sections[].artifacts[]; (.label|type)=="string" and (.label|length)>
 jq -e '.schema=="mana.inspect.project-context/v1" and ([.categories[].category]|sort|unique)==["architecture","database_policy","engineering_guards","glossary","integrations","learning_journeys","project_decisions","testing_policy"]' "$bundle/fixtures/project-context.json" >/dev/null
 jq -e 'all(.work_items[].artifacts[]; (.work_item_id == "feature:PROJ-24342") and (.section_id == "artifacts"))' "$bundle/fixtures/work-items.json" >/dev/null
 jq -e '.schema=="mana.inspect.activity/v1" and all(.events[]; ((.timestamp.value|length)>0) and (.timestamp.provenance|IN("explicit_domain_timestamp","filesystem_mtime_epoch")) and ((.target.artifact_id as $target | .related_artifact_ids|index($target)) != null)) and any(.events[]; .target.work_item_id=="feature:PROJ-24342" and .target.section_id=="plan" and .target.label=="Technical Task Breakdown") and any(.events[]; .target.work_item_id==null and .target.project_context_category=="architecture")' "$bundle/fixtures/activity.json" >/dev/null
+jq -e '.schema=="mana.inspect.semantic-snapshot/v1" and .inventory.catalog_build_count==1 and .projections.work_items.status=="available" and .projections.work_items.value.schema=="mana.inspect.work-items/v1" and all(.projections.project_context,.projections.activity,.projections.artifacts; .status=="not_requested" and .value==null) and .guarantees=={model_calls:0,network_calls:0,writes:false,paths:"project_relative_only"}' "$bundle/fixtures/semantic-snapshot.json" >/dev/null
 for invalid in fixtures/invalid/unstable-work-item-id.json fixtures/invalid/unsafe-artifact-path.json fixtures/invalid/activity-no-time-basis.json fixtures/invalid/undeclared-enum.json fixtures/invalid/duplicate-event-ids.json; do
   [ -f "$bundle/$invalid" ] || { echo "ERROR: missing invalid fixture: $invalid" >&2; exit 4; }
 done

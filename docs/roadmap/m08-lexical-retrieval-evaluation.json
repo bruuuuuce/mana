@@ -1,0 +1,450 @@
+{
+  "aggregate": {
+    "freshness_errors": 0,
+    "irrelevant_trap_hits": 0,
+    "max_returned_bytes": 959,
+    "mean_precision_at_k": 0.6211,
+    "mean_recall_at_k": 1.0,
+    "median_latency_ms": 42.578,
+    "source_scope_errors": 0
+  },
+  "answer_quality_evaluated": false,
+  "corpus_schema": "mana.knowledge.evaluation-corpus/v1",
+  "limits": {
+    "max_returned_bytes": 4096,
+    "top_k": 5
+  },
+  "question_count": 30,
+  "results": [
+    {
+      "freshness": "current",
+      "id": "q01-circuit-breaker",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 43.432,
+      "precision_at_k": 0.3333,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/global/architecture.md",
+        ".mana/global/architecture.md",
+        ".mana/global/payment-policy.md"
+      ],
+      "returned_bytes": 202,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q02-irreversible",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 44.366,
+      "precision_at_k": 0.5,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/global/architecture.md",
+        ".mana/global/payment-policy.md"
+      ],
+      "returned_bytes": 147,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q03-idempotency",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.72,
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/global/payment-policy.md"
+      ],
+      "returned_bytes": 112,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q04-addebito",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.011,
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/global/payment-policy.md"
+      ],
+      "returned_bytes": 112,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q05-liquibase",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.782,
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/global/database-policy.md"
+      ],
+      "returned_bytes": 75,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q06-schema-lock",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 43.045,
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/global/database-policy.md"
+      ],
+      "returned_bytes": 78,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q07-outbox",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.341,
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/global/integration-map.md"
+      ],
+      "returned_bytes": 85,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q08-event-order",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.286,
+      "precision_at_k": 0.5,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/global/integration-map.md",
+        ".mana/global/payment-policy.md"
+      ],
+      "returned_bytes": 194,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q09-security",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.039,
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/global/security-policy.md"
+      ],
+      "returned_bytes": 89,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q10-redaction",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 43.819,
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/global/security-policy.md"
+      ],
+      "returned_bytes": 86,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q11-user-evidence",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.004,
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/user-context/preferences.md"
+      ],
+      "returned_bytes": 104,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q12-user-commit",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 43.712,
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/user-context/preferences.md"
+      ],
+      "returned_bytes": 104,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q13-candidate-timeout",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.555,
+      "precision_at_k": 0.5,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/learning/candidates/learning-deadbeef.json",
+        ".mana/learning/candidates/learning-deadbeef.json"
+      ],
+      "returned_bytes": 92,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q14-candidate-counter",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.214,
+      "precision_at_k": 0.3333,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/learning/candidates/learning-deadbeef.json",
+        ".mana/learning/candidates/learning-deadbeef.json",
+        ".mana/learning/candidates/learning-deadbeef.json"
+      ],
+      "returned_bytes": 113,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q15-rejected",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 43.199,
+      "precision_at_k": 0.5,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/learning/candidates/learning-rejected.json",
+        ".mana/learning/candidates/learning-rejected.json"
+      ],
+      "returned_bytes": 71,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q16-framework-explorer",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.961,
+      "precision_at_k": 0.2,
+      "recall_at_k": 1.0,
+      "returned": [
+        "mana://framework/docs/workflow/controlled-explorer-retrieval.md",
+        "mana://framework/docs/workflow/controlled-explorer-retrieval.md",
+        "mana://framework/docs/workflow/controlled-explorer-retrieval.md",
+        "mana://framework/docs/workflow/controlled-explorer-retrieval.md",
+        "mana://framework/docs/workflow/user-context-layer.md"
+      ],
+      "returned_bytes": 913,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q17-framework-dump",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.664,
+      "precision_at_k": 0.2,
+      "recall_at_k": 1.0,
+      "returned": [
+        "mana://framework/docs/workflow/user-context-layer.md",
+        "mana://framework/docs/workflow/controlled-explorer-retrieval.md",
+        "mana://framework/docs/workflow/controlled-explorer-retrieval.md",
+        "mana://framework/docs/workflow/controlled-explorer-retrieval.md",
+        "mana://framework/docs/workflow/user-learning.md"
+      ],
+      "returned_bytes": 828,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q18-user-mirror",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.737,
+      "precision_at_k": 0.2,
+      "recall_at_k": 1.0,
+      "returned": [
+        "mana://framework/docs/workflow/controlled-explorer-retrieval.md",
+        "mana://framework/docs/workflow/user-learning.md",
+        "mana://framework/docs/workflow/user-context-layer.md",
+        "mana://framework/docs/workflow/user-context-layer.md",
+        "mana://framework/docs/workflow/user-context-layer.md"
+      ],
+      "returned_bytes": 905,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q19-user-authority",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.907,
+      "precision_at_k": 0.2,
+      "recall_at_k": 1.0,
+      "returned": [
+        "mana://framework/docs/workflow/user-context-layer.md",
+        "mana://framework/docs/workflow/user-context-layer.md",
+        "mana://framework/docs/workflow/user-context-layer.md",
+        "mana://framework/docs/workflow/user-context-layer.md",
+        "mana://framework/docs/workflow/user-context-layer.md"
+      ],
+      "returned_bytes": 779,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q20-learning-promotion",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.404,
+      "precision_at_k": 0.2,
+      "recall_at_k": 1.0,
+      "returned": [
+        "mana://framework/docs/workflow/user-learning.md",
+        "mana://framework/docs/workflow/user-learning.md",
+        "mana://framework/docs/workflow/user-learning.md",
+        "mana://framework/docs/workflow/user-learning.md",
+        "mana://framework/docs/workflow/user-learning.md"
+      ],
+      "returned_bytes": 959,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q21-learning-signal",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.601,
+      "precision_at_k": 0.2,
+      "recall_at_k": 1.0,
+      "returned": [
+        "mana://framework/docs/workflow/user-learning.md",
+        "mana://framework/docs/workflow/user-learning.md",
+        "mana://framework/docs/workflow/user-learning.md",
+        "mana://framework/docs/workflow/user-learning.md",
+        "mana://framework/docs/workflow/user-learning.md"
+      ],
+      "returned_bytes": 841,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q22-familiar-boundary",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.75,
+      "precision_at_k": 0.2,
+      "recall_at_k": 1.0,
+      "returned": [
+        "mana://framework/docs/standards/mana-familiar-v0.md",
+        "mana://framework/docs/standards/mana-familiar-v0.md",
+        "mana://framework/docs/standards/mana-familiar-v0.md",
+        "mana://framework/docs/standards/mana-familiar-v0.md",
+        "mana://framework/docs/standards/mana-familiar-v0.md"
+      ],
+      "returned_bytes": 597,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q23-scout-route",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.271,
+      "precision_at_k": 0.2,
+      "recall_at_k": 1.0,
+      "returned": [
+        "mana://framework/docs/standards/mana-learning-scout-v0.md",
+        "mana://framework/docs/standards/mana-learning-scout-v0.md",
+        "mana://framework/docs/standards/mana-learning-scout-v0.md",
+        "mana://framework/docs/standards/mana-learning-scout-v0.md",
+        "mana://framework/docs/standards/mana-learning-scout-v0.md"
+      ],
+      "returned_bytes": 858,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q24-conflict",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.332,
+      "precision_at_k": 0.6667,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/global/architecture.md",
+        ".mana/global/payment-policy.md",
+        ".mana/global/architecture.md"
+      ],
+      "returned_bytes": 199,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q25-mixed-scope",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.651,
+      "precision_at_k": 0.2,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/user-context/preferences.md",
+        "mana://framework/docs/workflow/user-learning.md",
+        "mana://framework/docs/workflow/user-learning.md",
+        "mana://framework/docs/workflow/user-learning.md",
+        "mana://framework/docs/workflow/user-learning.md"
+      ],
+      "returned_bytes": 804,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q26-no-answer",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.279,
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "returned": [],
+      "returned_bytes": 0,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q27-no-answer-framework",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.102,
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "returned": [],
+      "returned_bytes": 0,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q28-wrong-lifecycle",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.145,
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "returned": [],
+      "returned_bytes": 0,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q29-scope-isolation",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.04,
+      "precision_at_k": 1.0,
+      "recall_at_k": 1.0,
+      "returned": [],
+      "returned_bytes": 0,
+      "source_scope_errors": 0
+    },
+    {
+      "freshness": "current",
+      "id": "q30-bilingual-miss",
+      "irrelevant_trap_hits": [],
+      "latency_ms": 42.34,
+      "precision_at_k": 0.5,
+      "recall_at_k": 1.0,
+      "returned": [
+        ".mana/global/payment-policy.md",
+        ".mana/global/architecture.md"
+      ],
+      "returned_bytes": 147,
+      "source_scope_errors": 0
+    }
+  ],
+  "schema": "mana.knowledge.retrieval-evaluation/v1"
+}

@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://mana.local/contracts/mana-actions/v1/action-error.schema.json","type":"object","additionalProperties":false,"required":["schema","outcome","code"],"properties":{"schema":{"const":"mana.action.error/v1"},"outcome":{"const":"validation_failure"},"code":{"type":"string","minLength":1,"maxLength":512}}}
