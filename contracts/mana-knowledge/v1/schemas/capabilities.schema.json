@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/mana-knowledge/v1/capabilities.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "index", "scopes", "operations", "effective_context_trace", "diagnostics"],
+  "properties": {
+    "schema": {"const": "mana.knowledge.capabilities/v1"},
+    "index": {"type": "object", "required": ["freshness", "reason", "revision", "ranking"]},
+    "scopes": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "object", "required": ["scope", "health", "editable"], "properties": {"scope": {"enum": ["framework", "user", "project", "candidate"]}, "health": {"type": "string"}, "editable": {"type": "boolean"}, "reason": {"type": ["string", "null"]}, "source_disclosure": {"type": ["string", "null"]}}}},
+    "operations": {"type": "array", "minItems": 6, "items": {"type": "string"}, "uniqueItems": true},
+    "effective_context_trace": {"type": "object", "required": ["status", "reason"]},
+    "diagnostics": {"type": "array", "items": {"type": "object"}}
+  }
+}

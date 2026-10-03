@@ -6,6 +6,7 @@ operations they implement, and consumers negotiate them from
 
 ```text
 mana inspect work-items --json
+mana inspect semantic-snapshot --json
 mana inspect work-item <work-item-id> --json
 mana inspect project-context --json
 mana inspect activity --json
@@ -18,6 +19,7 @@ mana inspect activity --json
 | Operation | Schema | Meaning |
 | --- | --- | --- |
 | `work-items` | `mana.inspect.work-items/v1` | Compact work-item navigation list. |
+| `semantic-snapshot` | `mana.inspect.semantic-snapshot/v1` | Project identity and initial work summaries from one immutable catalog inventory. |
 | `work-item <id>` | `mana.inspect.work-item/v1` | One work item, stable sections, typed attention. |
 | `project-context` | `mana.inspect.project-context/v1` | Typed global Mana context. |
 | `activity` | `mana.inspect.activity/v1` | Conservative chronological semantic events. |
@@ -84,3 +86,23 @@ or claim what changed.
 Mana alone maps sources to semantic fields. Consumers render supplied responses
 and references; they must not scan `.mana/`, parse arbitrary prose, or use
 lexical inference to reconstruct missing semantics.
+
+## Single-scan snapshot
+
+`semantic-snapshot` is the route-minimal aggregate for initial Overview. It
+builds exactly one immutable catalog inventory, returns the project contract
+and the work-item projection derived from that inventory, and reports the
+catalog build count, admitted file count, admitted bytes, and a content-based
+snapshot revision. The revision excludes observational filesystem mtime: an
+atomic replacement with the same project-relative path and content revision
+keeps the same snapshot identity. Activity may still expose mtime through its
+explicitly labelled fallback without turning it into semantic change.
+Activity, project context, and the raw catalog are marked
+`not_requested` in the default route-minimal form. `--include-supporting`
+derives Activity and project context from the same inventory for a later
+supporting refresh; the raw catalog remains deferred.
+
+Each projection is explicitly status-bearing. A producer must report an
+optional projection as `unavailable` with a bounded diagnostic instead of
+discarding the independently valid project or work-item surfaces. The
+operation performs no network, model, project, or cache writes.

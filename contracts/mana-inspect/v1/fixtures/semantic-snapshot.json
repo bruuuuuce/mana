@@ -1,0 +1,32 @@
+{
+  "schema": "mana.inspect.semantic-snapshot/v1",
+  "snapshot_revision": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "inventory": {"catalog_build_count": 1, "file_count": 0, "admitted_bytes": 0},
+  "project": {
+    "schema": "mana.inspect.project/v1",
+    "project_id": "project:1111111111111111111111111111111111111111111111111111111111111111",
+    "framework": {"version": "0.5.0", "compatibility": "mana-inspect/v1"},
+    "mana": {"present": true, "active_workspace": ".mana/features/FEAT-1"},
+    "git": {"branch": "feature/inspect", "head": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "working_tree_dirty": false},
+    "capabilities": ["workspace", "semantic_work_items", "semantic_snapshot"],
+    "operations": [
+      {"name": "project", "schema": "mana.inspect.project/v1"},
+      {"name": "semantic-snapshot", "schema": "mana.inspect.semantic-snapshot/v1"},
+      {"name": "work-items", "schema": "mana.inspect.work-items/v1"}
+    ],
+    "guarantees": {"model_calls": 0, "writes": false, "paths": "project_relative_only"},
+    "diagnostics": []
+  },
+  "projections": {
+    "work_items": {
+      "status": "available",
+      "value": {"schema": "mana.inspect.work-items/v1", "work_items": [], "coverage": "none", "diagnostics": [], "guarantees": {"model_calls": 0, "writes": false, "semantic_inference": "canonical_structured_sources_only"}},
+      "diagnostic": null
+    },
+    "project_context": {"status": "not_requested", "value": null, "diagnostic": null},
+    "activity": {"status": "not_requested", "value": null, "diagnostic": null},
+    "artifacts": {"status": "not_requested", "value": null, "diagnostic": null}
+  },
+  "guarantees": {"model_calls": 0, "network_calls": 0, "writes": false, "paths": "project_relative_only"},
+  "diagnostics": []
+}

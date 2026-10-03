@@ -1,0 +1,10 @@
+{
+  "schema": "mana.knowledge.framework-sources/v1",
+  "sources": [
+    "docs/workflow/controlled-explorer-retrieval.md",
+    "docs/workflow/user-context-layer.md",
+    "docs/workflow/user-learning.md",
+    "docs/standards/mana-familiar-v0.md",
+    "docs/standards/mana-learning-scout-v0.md"
+  ]
+}

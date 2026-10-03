@@ -49,6 +49,14 @@ tests=(
   explorer-retrieval.sh
   jira-pr-evidence-completeness.sh
   learning-signals.sh
+  m08-fixture-benchmark.sh
+  mana-catalog.py
+  mana-actions.py
+  mana-actions-contract.sh
+  mana-knowledge.py
+  mana-knowledge-contract.sh
+  mana-review-inbox.py
+  mana-review-scheduler-contract.sh
   mana-concept-tagging.sh
   mana-concepts.sh
   mana-diagram.sh

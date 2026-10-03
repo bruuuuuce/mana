@@ -1,0 +1,34 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://mana.local/contracts/mana-knowledge/v1/search.schema.json",
+  "type":"object","additionalProperties":false,
+  "required":["schema","query","index","filters","limits","results","gaps","diagnostics","guarantees","returned_bytes"],
+  "properties":{
+    "schema":{"const":"mana.knowledge.search/v1"},
+    "query":{"type":"string","minLength":1,"maxLength":512},
+    "index":{"type":"object","required":["freshness","reason","revision","ranking"]},
+    "filters":{"type":"object","required":["scopes","lifecycles"]},
+    "limits":{"type":"object","required":["results","returned_bytes"]},
+    "results":{"type":"array","maxItems":20,"items":{"$ref":"#/$defs/result"}},
+    "gaps":{"type":"array","items":{"type":"object","required":["code"]}},
+    "diagnostics":{"type":"array","items":{"type":"object"}},
+    "guarantees":{"type":"object","required":["generated_answer","model_calls","network_calls"]},
+    "returned_bytes":{"type":"integer","minimum":0,"maximum":65536}
+  },
+  "$defs":{
+    "result":{"type":"object","additionalProperties":false,"required":["passage_id","document_id","title","heading_path","source_scope","lifecycle_state","source_reference","document_revision","passage_revision","rank","returned_bytes"],"properties":{
+      "passage_id":{"type":"string","pattern":"^psg_[0-9a-f]{24}$"},
+      "document_id":{"type":"string","pattern":"^doc_[0-9a-f]{24}$"},
+      "title":{"type":"string"},
+      "heading_path":{"type":"array","items":{"type":"string"}},
+      "source_scope":{"enum":["framework","user","project","candidate"]},
+      "lifecycle_state":{"enum":["active","candidate","reviewed","rejected","deferred","archived","superseded"]},
+      "source_reference":{"type":"string","minLength":1},
+      "document_revision":{"type":"string","pattern":"^sha256:[0-9a-f]{64}$"},
+      "passage_revision":{"type":"string","pattern":"^sha256:[0-9a-f]{64}$"},
+      "rank":{"type":"object","required":["algorithm","score","reasons"]},
+      "returned_bytes":{"type":"integer","minimum":0},
+      "snippet":{"type":"string"}
+    }}
+  }
+}

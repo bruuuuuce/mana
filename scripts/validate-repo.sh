@@ -141,10 +141,16 @@ if [ -f "$root/scripts/mana-user-learning.sh" ] && [ ! -x "$root/scripts/mana-us
   echo "ERROR: scripts/mana-user-learning.sh is not executable" >&2
   status=1
 fi
-for f in tests/user-learning-e2e.sh tests/user-learning-live-semantic.sh tests/mana-journey.sh tests/mana-history.sh tests/mana-diagram.sh tests/mana-concepts.sh tests/mana-concept-tagging.sh tests/mana-scout.sh tests/mana-scout-cycles.sh tests/mana-expand.sh tests/mana-inspect.sh tests/bug-hunter-agent.sh tests/mana-pilot-feedback.sh tests/run-zero-token-acceptance.sh tests/release-readiness.sh tests/story-start-deterministic-planning.sh tests/story-start-scope-v2-fixture.sh tests/story-start-scope-v2-schemas.sh tests/story-start-scope-v2-discovery.sh tests/story-start-scope-v2-triage.sh tests/story-start-scope-v2-planner.sh tests/story-start-scope-v2-integration.sh tests/story-start-scope-v2-release-gate.sh tests/story-start-stage-routing.sh; do
+for f in tests/user-learning-e2e.sh tests/user-learning-live-semantic.sh tests/mana-journey.sh tests/mana-history.sh tests/mana-diagram.sh tests/mana-concepts.sh tests/mana-concept-tagging.sh tests/mana-scout.sh tests/mana-scout-cycles.sh tests/mana-expand.sh tests/mana-inspect.sh tests/m08-fixture-benchmark.sh tests/mana-knowledge-contract.sh tests/mana-actions-contract.sh tests/mana-review-scheduler-contract.sh tests/bug-hunter-agent.sh tests/mana-pilot-feedback.sh tests/run-zero-token-acceptance.sh tests/release-readiness.sh tests/story-start-deterministic-planning.sh tests/story-start-scope-v2-fixture.sh tests/story-start-scope-v2-schemas.sh tests/story-start-scope-v2-discovery.sh tests/story-start-scope-v2-triage.sh tests/story-start-scope-v2-planner.sh tests/story-start-scope-v2-integration.sh tests/story-start-scope-v2-release-gate.sh tests/story-start-stage-routing.sh; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1
   elif [ ! -x "$root/$f" ]; then echo "ERROR: $f is not executable" >&2; status=1
   else bash -n "$root/$f" || status=1
+  fi
+done
+for f in scripts/mana-catalog.py scripts/mana-knowledge.py scripts/mana-actions.py scripts/mana-review-inbox.py tests/mana-catalog.py tests/mana-knowledge.py tests/mana-actions.py tests/mana-review-inbox.py; do
+  if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1
+  elif [ ! -x "$root/$f" ]; then echo "ERROR: $f is not executable" >&2; status=1
+  else python3 -m py_compile "$root/$f" || status=1
   fi
 done
 if [ -f "$root/tests/story-start-scope-v2-governor.sh" ]; then

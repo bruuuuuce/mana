@@ -97,6 +97,49 @@ jq -e '
 ' "$tmp/activity.json" >/dev/null || fail 'semantic verification activity timestamps, ordering, or fallback provenance failed'
 "$project/mana" inspect work-items --json > "$tmp/work-items-two.json"
 cmp -s "$tmp/work-items-one.json" "$tmp/work-items-two.json" || fail 'work-item list is not byte-stable'
+"$project/mana" inspect project --json > "$tmp/project-before-snapshot.json"
+# A real repository can produce an Activity projection larger than the host's
+# argv limit. The aggregate must stream that JSON internally instead of
+# passing it to jq through --argjson.
+awk 'BEGIN { for (i=0; i<1200; i++) printf "{\"eventId\":\"runtime-bulk-%04d\",\"timestamp\":\"2026-02-01T00:00:00Z\"}\n", i }' \
+  > "$project/.mana/runtime/events/bulk.jsonl"
+"$project/mana" inspect semantic-snapshot --include-supporting --json > "$tmp/semantic-snapshot-large-activity.json"
+[ "$(wc -c < "$tmp/semantic-snapshot-large-activity.json" | tr -d ' ')" -gt 262144 ] || fail 'large Activity regression fixture did not exceed the argv-risk threshold'
+jq -e '.projections.activity.status=="available" and (.projections.activity.value.events|length)>1000' "$tmp/semantic-snapshot-large-activity.json" >/dev/null || fail 'large Activity projection did not survive aggregate assembly'
+rm "$project/.mana/runtime/events/bulk.jsonl"
+snapshot_before="$(find "$project/.mana" -type f -exec shasum -a 256 {} + | LC_ALL=C sort)"
+"$project/mana" inspect semantic-snapshot --json > "$tmp/semantic-snapshot.json"
+"$project/mana" inspect semantic-snapshot --include-supporting --json > "$tmp/semantic-snapshot-supporting.json"
+snapshot_after="$(find "$project/.mana" -type f -exec shasum -a 256 {} + | LC_ALL=C sort)"
+[ "$snapshot_before" = "$snapshot_after" ] || fail 'semantic snapshot wrote beneath .mana'
+jq -e --slurpfile project "$tmp/project-before-snapshot.json" --slurpfile work "$tmp/work-items-two.json" '
+  .schema=="mana.inspect.semantic-snapshot/v1" and
+  .inventory.catalog_build_count==1 and
+  .inventory.file_count>0 and .inventory.admitted_bytes>0 and
+  .project==$project[0] and
+  .projections.work_items.status=="available" and
+  .projections.work_items.value==$work[0] and
+  all(.projections.project_context,.projections.activity,.projections.artifacts; .status=="not_requested" and .value==null) and
+  .guarantees=={model_calls:0,network_calls:0,writes:false,paths:"project_relative_only"}
+' "$tmp/semantic-snapshot.json" >/dev/null || fail 'single-scan semantic snapshot contract or v1 equivalence failed'
+jq -e --slurpfile project "$tmp/project-before-snapshot.json" --slurpfile work "$tmp/work-items-two.json" --slurpfile context "$tmp/project-context.json" --slurpfile activity "$tmp/activity.json" '
+  .inventory.catalog_build_count==1 and
+  .project==$project[0] and
+  .projections.work_items.value==$work[0] and
+  .projections.project_context=={status:"available",value:$context[0],diagnostic:null} and
+  .projections.activity=={status:"available",value:$activity[0],diagnostic:null} and
+  .projections.artifacts.status=="not_requested"
+' "$tmp/semantic-snapshot-supporting.json" >/dev/null || fail 'supporting semantic snapshot is not equivalent to individual v1 projections'
+replacement="$tmp/architecture-same-bytes.md"
+cp "$project/.mana/global/architecture.md" "$replacement"
+touch -t 203001010101 "$replacement"
+mv "$replacement" "$project/.mana/global/architecture.md"
+"$project/mana" inspect semantic-snapshot --json > "$tmp/semantic-snapshot-same-bytes.json"
+jq -e --slurpfile before "$tmp/semantic-snapshot.json" '
+  .snapshot_revision==$before[0].snapshot_revision and
+  .projections.work_items.value==$before[0].projections.work_items.value
+' "$tmp/semantic-snapshot-same-bytes.json" >/dev/null || fail 'same-byte atomic replacement changed semantic snapshot identity'
+[ "$(awk '/^semantic_snapshot_response\(\)/,/^work_item_response\(\)/ {if ($0 ~ /entries="\$\(catalog\)"/) count++} END {print count+0}' "$inspect")" -eq 1 ] || fail 'semantic snapshot contains more than one catalog build'
 jq -e '
   .schema=="mana.inspect.work-items/v1" and
   ([.work_items[].work_item_id]|index("feature:FEAT-1")) and

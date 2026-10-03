@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://mana.local/contracts/mana-knowledge/v1/index-status.schema.json",
+  "type":"object","additionalProperties":false,
+  "required":["schema","command","freshness","reason","revision","capability","diagnostics","guarantees"],
+  "properties":{
+    "schema":{"const":"mana.knowledge.index-status/v1"},
+    "command":{"enum":["status","build"]},
+    "freshness":{"enum":["current","stale","missing","invalid","unsupported"]},
+    "reason":{"type":"string","minLength":1},
+    "revision":{"type":["string","null"],"pattern":"^sha256:[0-9a-f]{64}$"},
+    "capability":{"enum":["sqlite-fts5-bm25/v1","unavailable"]},
+    "diagnostics":{"type":"array","items":{"type":"object"}},
+    "guarantees":{"type":"object"}
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "bundle": "mana-review-scheduler-contract",
+  "version": "v1",
+  "owner": "Mana",
+  "schemas": ["schemas/status.schema.json", "schemas/inbox.schema.json", "schemas/run.schema.json", "schemas/cycle.schema.json", "schemas/action-receipt.schema.json", "schemas/publication-receipt.schema.json"],
+  "fixtures": ["fixtures/status.json", "fixtures/inbox.json", "fixtures/run.json"],
+  "credentialsStored": false,
+  "implicitPublication": false
+}

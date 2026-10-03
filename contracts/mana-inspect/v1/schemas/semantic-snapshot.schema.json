@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mana.local/contracts/mana-inspect/v1/semantic-snapshot.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "snapshot_revision", "inventory", "project", "projections", "guarantees", "diagnostics"],
+  "properties": {
+    "schema": {"const": "mana.inspect.semantic-snapshot/v1"},
+    "snapshot_revision": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["catalog_build_count", "file_count", "admitted_bytes"],
+      "properties": {
+        "catalog_build_count": {"const": 1},
+        "file_count": {"type": "integer", "minimum": 0},
+        "admitted_bytes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "project": {"$ref": "project.schema.json"},
+    "projections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_items", "project_context", "activity", "artifacts"],
+      "properties": {
+        "work_items": {"$ref": "#/$defs/workItemsProjection"},
+        "project_context": {"$ref": "#/$defs/projectContextProjection"},
+        "activity": {"$ref": "#/$defs/activityProjection"},
+        "artifacts": {"$ref": "#/$defs/deferredProjection"}
+      }
+    },
+    "guarantees": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_calls", "network_calls", "writes", "paths"],
+      "properties": {
+        "model_calls": {"const": 0},
+        "network_calls": {"const": 0},
+        "writes": {"const": false},
+        "paths": {"const": "project_relative_only"}
+      }
+    },
+    "diagnostics": {"type": "array", "items": {"type": "object"}}
+  },
+  "$defs": {
+    "workItemsProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "value", "diagnostic"],
+      "properties": {
+        "status": {"const": "available"},
+        "value": {"$ref": "work-items.schema.json"},
+        "diagnostic": {"type": "null"}
+      }
+    },
+    "deferredProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "value", "diagnostic"],
+      "properties": {
+        "status": {"enum": ["not_requested", "unavailable"]},
+        "value": {"type": "null"},
+        "diagnostic": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["code"],
+              "properties": {"code": {"type": "string", "minLength": 1}}
+            }
+          ]
+        }
+      }
+    },
+    "projectContextProjection": {
+      "oneOf": [
+        {"$ref": "#/$defs/deferredProjection"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "value", "diagnostic"],
+          "properties": {
+            "status": {"const": "available"},
+            "value": {"$ref": "project-context.schema.json"},
+            "diagnostic": {"type": "null"}
+          }
+        }
+      ]
+    },
+    "activityProjection": {
+      "oneOf": [
+        {"$ref": "#/$defs/deferredProjection"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "value", "diagnostic"],
+          "properties": {
+            "status": {"const": "available"},
+            "value": {"$ref": "activity.schema.json"},
+            "diagnostic": {"type": "null"}
+          }
+        }
+      ]
+    }
+  }
+}
