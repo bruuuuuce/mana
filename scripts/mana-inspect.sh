@@ -38,6 +38,12 @@ done
 root="$(cd "$root" 2>/dev/null && pwd -P)" || fail "unreadable project root"
 mana="$root/.mana"
 [ ! -L "$mana" ] || { echo "ERROR: .mana must not be a symlink" >&2; exit "$malformed"; }
+# Avoid shell payload copies and repeated jq/Python startup for the cockpit.
+if [ "$command" = project ] || [ "$command" = semantic-snapshot ]; then
+  snapshot_args=(--project-root "$root" "$command")
+  [ "$include_supporting" = false ] || snapshot_args+=(--include-supporting)
+  exec python3 "$mana_root/scripts/mana-inspect-snapshot.py" "${snapshot_args[@]}"
+fi
 hash_text() { if command -v sha256sum >/dev/null; then printf '%s' "$1" | sha256sum | awk '{print $1}'; else printf '%s' "$1" | shasum -a 256 | awk '{print $1}'; fi; }
 hash_file() {
   if [ -n "${MANA_INSPECT_DIGEST_MAP:-}" ]; then
@@ -349,45 +355,6 @@ work_items_response() {
   [ -n "$entries" ] || entries="$(catalog)"
   python3 "$mana_root/scripts/mana-inspect-semantic.py" --project-root "$root" work-items <<<"$entries"
 }
-project_response() {
-  local remote id branch head dirty active value response
-  remote="$(git -C "$root" remote get-url origin 2>/dev/null || true)"; [ -n "$remote" ] && id="project:$(hash_text "remote:$remote")" || id="project:$(hash_text "root:$root")"
-  branch="$(git -C "$root" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unavailable)"; head="$(git -C "$root" rev-parse HEAD 2>/dev/null || echo unavailable)"; dirty=false; if git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1 && [ -n "$(git -C "$root" status --porcelain --untracked-files=normal 2>/dev/null)" ]; then dirty=true; fi
-  active=null; if [ -f "$mana/active-workspace" ] && ! [ -L "$mana/active-workspace" ]; then value="$(sed -n '1p' "$mana/active-workspace")"; case "$value" in .mana/features/*|.mana/sessions/*) active="$(jq -Rn --arg x "$value" '$x')";; esac; fi
-  jq -cn --arg project_id "$id" --arg branch "$branch" --arg head "$head" --argjson dirty "$dirty" --argjson present "$([ -d "$mana" ] && echo true || echo false)" --argjson active "$active" '{schema:"mana.inspect.project/v1",project_id:$project_id,framework:{version:"0.4.1",compatibility:"mana-inspect/v1"},mana:{present:$present,active_workspace:$active},git:{branch:$branch,head:$head,working_tree_dirty:$dirty},capabilities:(if $present then ["workspace","artifact_catalog","artifact_detail","source_relations","semantic_work_items","semantic_project_context","semantic_activity","semantic_snapshot"] else [] end),operations:[{name:"project",schema:"mana.inspect.project/v1"},{name:"semantic-snapshot",schema:"mana.inspect.semantic-snapshot/v1"},{name:"artifacts",schema:"mana.inspect.artifacts/v1"},{name:"artifact",schema:"mana.inspect.artifact/v1"},{name:"source",schema:"mana.inspect.source/v1"},{name:"work-items",schema:"mana.inspect.work-items/v1"},{name:"work-item",schema:"mana.inspect.work-item/v1"},{name:"project-context",schema:"mana.inspect.project-context/v1"},{name:"activity",schema:"mana.inspect.activity/v1"}],guarantees:{model_calls:0,writes:false,paths:"project_relative_only"},diagnostics:[]}'
-}
-semantic_snapshot_response() {
-  local entries semantic_entries project work_items project_context activity revision file_count admitted_bytes response
-  entries="$(catalog)"
-  project="$(project_response)"
-  work_items="$(work_items_response "$entries")"
-  project_context='{"status":"not_requested","value":null,"diagnostic":null}'
-  activity='{"status":"not_requested","value":null,"diagnostic":null}'
-  if [ "$include_supporting" = true ]; then
-    if value="$(context_response "$entries")"; then
-      project_context="$(jq -c '{status:"available",value:.,diagnostic:null}' <<<"$value")"
-    else
-      project_context='{"status":"unavailable","value":null,"diagnostic":{"code":"project_context_projection_failed"}}'
-    fi
-    if value="$(activity_response "$entries" 10000)"; then
-      activity="$(jq -c '{status:"available",value:.,diagnostic:null}' <<<"$value")"
-    else
-      activity='{"status":"unavailable","value":null,"diagnostic":{"code":"activity_projection_failed"}}'
-    fi
-  fi
-  # Snapshot identity is semantic and content-based. Filesystem mtime remains
-  # available to the explicitly labelled Activity fallback, but a same-byte
-  # atomic replacement must not invalidate the route-minimal read model.
-  semantic_entries="$(jq -cS 'map(del(.updated_at))' <<<"$entries")"
-  revision="sha256:$(hash_text "$semantic_entries")"
-  file_count="$(jq 'length' <<<"$entries")"
-  admitted_bytes="$(jq '[.[].byte_size]|add // 0' <<<"$entries")"
-  # Stream large projections through stdin. Passing Activity or Work JSON via
-  # `--argjson` puts their full payload in argv and fails at the host ARG_MAX
-  # before jq starts on real workspaces with thousands of admitted events.
-  response="$(printf '%s\n' "$project" "$work_items" "$project_context" "$activity" | jq -cs --arg revision "$revision" --argjson file_count "$file_count" --argjson admitted_bytes "$admitted_bytes" '.[0] as $project | .[1] as $work_items | .[2] as $project_context | .[3] as $activity | {schema:"mana.inspect.semantic-snapshot/v1",snapshot_revision:$revision,inventory:{catalog_build_count:1,file_count:$file_count,admitted_bytes:$admitted_bytes},project:$project,projections:{work_items:{status:"available",value:$work_items,diagnostic:null},project_context:$project_context,activity:$activity,artifacts:{status:"not_requested",value:null,diagnostic:null}},guarantees:{model_calls:0,network_calls:0,writes:false,paths:"project_relative_only"},diagnostics:[]}')"
-  validate_and_emit "$response" semantic-snapshot
-}
 work_item_response() {
   local entries type wsid dir item artifacts sections
   [[ "$target" =~ ^(feature|session):[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || fail "unsafe or malformed work-item ID"
@@ -419,12 +386,7 @@ validate_and_emit() {
   esac
   printf '%s\n' "$response"
 }
-if [ "$command" = project ]; then
-  response="$(project_response)"
-  validate_and_emit "$response" project
-elif [ "$command" = semantic-snapshot ]; then
-  semantic_snapshot_response
-elif [ "$command" = artifacts ]; then
+if [ "$command" = artifacts ]; then
   entries="$(catalog)"; response="$(jq -c '{schema:"mana.inspect.artifacts/v1",artifacts:.,guarantees:{model_calls:0,writes:false,paths:"project_relative_only"},diagnostics:[]}' <<<"$entries")"; validate_and_emit "$response" artifacts
 elif [ "$command" = artifact ]; then
   artifact_detail
