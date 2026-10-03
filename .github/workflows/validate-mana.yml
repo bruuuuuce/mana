@@ -16,6 +16,8 @@ jobs:
         run: bash -n scripts/*.sh hooks/pre-commit hooks/pre-push
       - name: Validate repository
         run: scripts/validate-repo.sh
+      - name: Single-process Inspect snapshot regression
+        run: python3 tests/mana-inspect-snapshot.py
       - name: Mana doctor
         env:
           MANA_UPDATE_CHECK: off
