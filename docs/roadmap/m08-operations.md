@@ -87,3 +87,18 @@ startup, frame, lifecycle, notification, and service-registration evidence are
 separate platform gates; one platform never proves the other. Failure of a GUI
 automation session is recorded as environment evidence unless the application
 itself crashes or violates a checked contract.
+
+
+### Project and semantic snapshot transport
+
+The Inspect shell entry point delegates `project` and `semantic-snapshot` to
+`mana-inspect-snapshot.py`. One Python process builds one immutable catalog and
+calls the existing semantic projections without serializing the inventory
+between child processes. It creates no bytecode cache. Snapshot identity
+retains the compact, sorted-key jq encoding used by the original producer;
+mtime stays outside that identity. Individual v1 operations remain available.
+
+Validate with `tests/mana-inspect.sh`, `tests/mana-inspect-contract.sh`,
+`python3 tests/mana-inspect-snapshot.py`, and `tests/m08-fixture-benchmark.sh`.
+The snapshot regression covers individual-projection equivalence, one catalog
+build, same-byte atomic replacement, and unchanged source bytes.
