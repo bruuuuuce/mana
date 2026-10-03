@@ -139,7 +139,6 @@ jq -e --slurpfile before "$tmp/semantic-snapshot.json" '
   .snapshot_revision==$before[0].snapshot_revision and
   .projections.work_items.value==$before[0].projections.work_items.value
 ' "$tmp/semantic-snapshot-same-bytes.json" >/dev/null || fail 'same-byte atomic replacement changed semantic snapshot identity'
-[ "$(awk '/^semantic_snapshot_response\(\)/,/^work_item_response\(\)/ {if ($0 ~ /entries="\$\(catalog\)"/) count++} END {print count+0}' "$inspect")" -eq 1 ] || fail 'semantic snapshot contains more than one catalog build'
 jq -e '
   .schema=="mana.inspect.work-items/v1" and
   ([.work_items[].work_item_id]|index("feature:FEAT-1")) and
@@ -231,3 +230,9 @@ for schema in "$root/docs/standards/mana-inspect-project-v1.schema.json" "$root/
   jq -e '."$schema"=="https://json-schema.org/draft/2020-12/schema" and .type=="object" and .additionalProperties==false' "$schema" >/dev/null || fail "invalid schema: $schema"
 done
 echo 'Mana inspect v1 tests passed'
+# The optimized single-process producer keeps the frozen jq revision encoding.
+"$project/mana" inspect artifacts --json > "$tmp/revision-inventory.json"
+"$project/mana" inspect semantic-snapshot --json > "$tmp/revision-snapshot.json"
+expected_revision="$(jq -cS '.artifacts|map(del(.updated_at))' "$tmp/revision-inventory.json")"
+expected_revision="sha256:$(printf '%s' "$expected_revision" | shasum -a 256 | awk '{print $1}')"
+[ "$(jq -r '.snapshot_revision' "$tmp/revision-snapshot.json")" = "$expected_revision" ] || fail 'snapshot revision changed from frozen jq encoding'
