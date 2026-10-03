@@ -272,6 +272,7 @@ Usage:
   ./mana history <cmd> [args...]         Add scoped Git archaeology to a Journey node.
   ./mana diagram <cmd> [args...]         Generate a selected Journey-region PlantUML diagram.
   ./mana user-learning <cmd> [args...]   Capture, aggregate, or synthesize external User Learning proposals.
+  ./mana human-feedback <cmd> [args...]  Manage explicit local artifact comments and decisions.
   ./mana pilot-feedback <cmd> [args...]  Record and aggregate explicit local pilot feedback.
   ./mana eval run [scenario] [opts]       Run deterministic behavioural evaluations.
   ./mana eval compare <base> <candidate>  Compare persisted evaluation results.
@@ -403,6 +404,9 @@ USAGE
     ;;
   pilot-feedback)
     exec "$MANA_HOME/scripts/mana-pilot-feedback.sh" --project-root "$project_root" "$@"
+    ;;
+  human-feedback)
+    exec "$MANA_HOME/scripts/mana-human-feedback.sh" --project-root "$project_root" "$@"
     ;;
   eval)
     exec "$MANA_HOME/scripts/mana-eval.sh" --project-root "$project_root" "$@"
