@@ -1,2 +1,5 @@
 # The concept registry has required trailing empty TSV fields.
 learning-kb/concept-index.tsv -whitespace
+
+# Git Bash must receive LF scripts even in Windows checkouts.
+*.sh text eol=lf
