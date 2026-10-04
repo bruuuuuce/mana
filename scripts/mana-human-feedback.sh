@@ -481,7 +481,7 @@ create() {
   safe_id "$artifact_id" || fail '--artifact-id must be safe'
   [ -n "$artifact_revision" ] || fail '--artifact-revision is required'
   validate_author; validate_body; validate_key
-  request="$(jq -cn --arg command create --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" --arg author "$author" --arg body "$body" --arg key "$idempotency_key" '{command:$command,artifact:$artifact,revision:$revision,section:$section,author:$author,body:$body,key:$key}')"
+  request="$(printf '%s' "$body" | jq -Rsc --arg command create --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" --arg author "$author" --arg key "$idempotency_key" '. as $body | {command:$command,artifact:$artifact,revision:$revision,section:$section,author:$author,body:$body,key:$key}')"
   digest="$(hash "$request")"
   acquire_lock
   ensure_target_indexes
@@ -510,7 +510,7 @@ create() {
   test_abort_after_prepare
   mark_target_indexes_dirty
   tmp="$(mktemp "$state/threads/.human-feedback.tmp.XXXXXX")"
-  jq -cn --arg id "$id" --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" --arg entry "$entry" --arg author "$author" --arg body "$body" --arg at "$(recorded_at)" '{schemaVersion:"mana.human-feedback.thread/v1",threadId:$id,revision:"1",target:{artifactId:$artifact,artifactRevision:$revision,sectionId:(if $section=="" then null else $section end)},state:"open",entries:[{entryId:$entry,kind:"comment",author:$author,body:$body,recordedAt:$at}]}' > "$tmp"
+  printf '%s' "$body" | jq -Rsc --arg id "$id" --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" --arg entry "$entry" --arg author "$author" --arg at "$(recorded_at)" '. as $body | {schemaVersion:"mana.human-feedback.thread/v1",threadId:$id,revision:"1",target:{artifactId:$artifact,artifactRevision:$revision,sectionId:(if $section=="" then null else $section end)},state:"open",entries:[{entryId:$entry,kind:"comment",author:$author,body:$body,recordedAt:$at}]}' > "$tmp"
   validate_thread_file "$tmp" || { rm -f "$tmp"; fail 'internal thread validation failed'; }
   mv "$tmp" "$file"
   test_abort_after_canonical_before_index
@@ -528,7 +528,7 @@ mutate() {
   [[ "$thread_revision" =~ ^[0-9]+$ ]] || fail '--thread-revision is required'
   validate_key
   if [ "$action" = reply ]; then validate_author; validate_body; fi
-  request="$(jq -cn --arg action "$action" --arg id "$thread_id" --arg revision "$thread_revision" --arg author "$author" --arg body "$body" --arg key "$idempotency_key" '{action:$action,id:$id,revision:$revision,author:$author,body:$body,key:$key}')"
+  request="$(printf '%s' "$body" | jq -Rsc --arg action "$action" --arg id "$thread_id" --arg revision "$thread_revision" --arg author "$author" --arg key "$idempotency_key" '. as $body | {action:$action,id:$id,revision:$revision,author:$author,body:$body,key:$key}')"
   digest="$(hash "$request")"
   acquire_lock
   if operation_record="$(idempotent_result "$digest")"; then
@@ -554,7 +554,7 @@ mutate() {
   case "$action" in
     reply)
       entry="entry_$(hash "$thread_id\037$next\037$body\037$author")"
-      jq --arg revision "$next" --arg entry "$entry" --arg author "$author" --arg body "$body" --arg at "$(recorded_at)" '.revision=$revision | .entries += [{entryId:$entry,kind:"reply",author:$author,body:$body,recordedAt:$at}]' "$file" > "$tmp";;
+      printf '%s' "$body" | jq -Rs --slurpfile record "$file" --arg revision "$next" --arg entry "$entry" --arg author "$author" --arg at "$(recorded_at)" '. as $body | $record[0] | .revision=$revision | .entries += [{entryId:$entry,kind:"reply",author:$author,body:$body,recordedAt:$at}]' > "$tmp";;
     resolve) jq --arg revision "$next" '.revision=$revision | .state="resolved"' "$file" > "$tmp";;
     reopen) jq --arg revision "$next" '.revision=$revision | .state="open"' "$file" > "$tmp";;
   esac
@@ -579,7 +579,7 @@ decide() {
   ' "$source" >/dev/null || fail 'decision or option is not available in the declared Story Start plan'
   decision_descriptor="$(jq -c --arg id "$decision_id" '.decisionRegister[] | select(.id==$id)' "$source")"
   decision_story="$(jq -r '.storyId // empty' "$source")"
-  request="$(jq -cn --arg decision "$decision_id" --arg revision "$decision_revision" --arg option "$option_id" --arg source "$decision_source" --arg source_revision "$actual_source_revision" --arg author "$author" --arg body "$body" --arg key "$idempotency_key" '{decision:$decision,revision:$revision,option:$option,source:$source,sourceRevision:$source_revision,author:$author,body:$body,key:$key}')"
+  request="$(printf '%s' "$body" | jq -Rsc --arg decision "$decision_id" --arg revision "$decision_revision" --arg option "$option_id" --arg source "$decision_source" --arg source_revision "$actual_source_revision" --arg author "$author" --arg key "$idempotency_key" '. as $body | {decision:$decision,revision:$revision,option:$option,source:$source,sourceRevision:$source_revision,author:$author,body:$body,key:$key}')"
   digest="$(hash "$request")"
   acquire_lock
   if operation_record="$(idempotent_result "$digest")"; then
@@ -613,9 +613,9 @@ decide() {
   test_abort_after_prepare
   tmp="$(mktemp "$state/decisions/.human-feedback.tmp.XXXXXX")"
   if [ -e "$file" ]; then
-    jq --argjson supersedes "$supersedes" --argjson descriptor "$decision_descriptor" --arg story "$decision_story" --arg revision "$next" --arg option "$option_id" --arg source "$decision_source" --arg source_revision "$actual_source_revision" --arg author "$author" --arg body "$body" --arg at "$(recorded_at)" '.supersedes=$supersedes | .decision=$descriptor | .storyId=$story | .revision=$revision | .selectedOptionId=$option | .source={path:$source,revision:$source_revision} | .history += [{optionId:$option,author:$author,rationale:$body,recordedAt:$at,sourceRevision:$source_revision}]' "$file" > "$tmp"
+    printf '%s' "$body" | jq -Rs --slurpfile record "$file" --argjson supersedes "$supersedes" --argjson descriptor "$decision_descriptor" --arg story "$decision_story" --arg revision "$next" --arg option "$option_id" --arg source "$decision_source" --arg source_revision "$actual_source_revision" --arg author "$author" --arg at "$(recorded_at)" '. as $body | $record[0] | .supersedes=$supersedes | .decision=$descriptor | .storyId=$story | .revision=$revision | .selectedOptionId=$option | .source={path:$source,revision:$source_revision} | .history += [{optionId:$option,author:$author,rationale:$body,recordedAt:$at,sourceRevision:$source_revision}]' > "$tmp"
   else
-    jq -cn --argjson supersedes "$supersedes" --argjson descriptor "$decision_descriptor" --arg story "$decision_story" --arg id "$decision_id" --arg option "$option_id" --arg source "$decision_source" --arg source_revision "$actual_source_revision" --arg author "$author" --arg body "$body" --arg at "$(recorded_at)" '{schemaVersion:"mana.human-feedback.decision/v1",decisionId:$id,decision:$descriptor,storyId:$story,supersedes:$supersedes,revision:"1",source:{path:$source,revision:$source_revision},selectedOptionId:$option,history:[{optionId:$option,author:$author,rationale:$body,recordedAt:$at,sourceRevision:$source_revision}]}' > "$tmp"
+    printf '%s' "$body" | jq -Rsc --argjson supersedes "$supersedes" --argjson descriptor "$decision_descriptor" --arg story "$decision_story" --arg id "$decision_id" --arg option "$option_id" --arg source "$decision_source" --arg source_revision "$actual_source_revision" --arg author "$author" --arg at "$(recorded_at)" '. as $body | {schemaVersion:"mana.human-feedback.decision/v1",decisionId:$id,decision:$descriptor,storyId:$story,supersedes:$supersedes,revision:"1",source:{path:$source,revision:$source_revision},selectedOptionId:$option,history:[{optionId:$option,author:$author,rationale:$body,recordedAt:$at,sourceRevision:$source_revision}]}' > "$tmp"
   fi
   jq -e '.schemaVersion=="mana.human-feedback.decision/v1" and (.decisionId|type=="string") and (.revision|type=="string") and (.selectedOptionId|type=="string") and (.history|type=="array" and length>0)' "$tmp" >/dev/null || { rm -f "$tmp"; fail 'internal decision validation failed'; }
   mv "$tmp" "$file"
