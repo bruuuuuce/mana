@@ -8,6 +8,7 @@ project="$tmp/project"
 mkdir -p "$project"
 command="$root/scripts/mana-human-feedback.sh"
 fail() { echo "FAIL: $*" >&2; exit 1; }
+python3 "$root/tests/mana-human-feedback-line-endings.py"
 
 # A read on a project with no feedback state is pure: it must not create .mana.
 empty="$tmp/empty"

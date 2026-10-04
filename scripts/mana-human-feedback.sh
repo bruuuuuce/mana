@@ -3,6 +3,12 @@
 # immutable; this command stores separate, versioned contribution records.
 set -euo pipefail
 
+# Native jq.exe translates raw LF output to CRLF unless binary mode is used.
+# Preserve request strings, IDs and intentional CRLF in Markdown exactly.
+if [ "${OS:-}" = Windows_NT ] || [[ "${OSTYPE:-}" == msys* || "${OSTYPE:-}" == cygwin* ]]; then
+  jq() { command jq --binary "$@"; }
+fi
+
 root="$(cd "$(dirname "$0")/.." && pwd)"
 project_root="$(pwd)"
 command=""; artifact_id=""; artifact_revision=""; section_id=""; thread_id=""; thread_revision=""; decision_id=""; decision_revision=""; option_id=""; decision_source=""; decision_source_revision=""; body=""; author=""; idempotency_key=""; operation_id=""; thread_cursor=""; page_limit="100"; request_stdin=false; json=false
