@@ -24,14 +24,15 @@ with tempfile.TemporaryDirectory(prefix='mana-portable-operation-') as temporary
         assert result.returncode != 0, 'injected interruption did not stop the producer'
         return result
     target = dict(artifactId='file:portable.md', artifactRevision='sha256:portable')
-    keys = ['comment:1791140989704833', 'reply:portable', 'CON', 'a'+':'*127]
+    keys = ['comment:1791140989704833', 'reply:portable', 'CON', 'a'+':'*127,
+            'operation_'+hashlib.sha256(b'comment:1791140989704833').hexdigest()]
     for ordinal, key in enumerate(keys):
         request = dict(**target, author='Portable fixture', body=f'Portable body {ordinal}', idempotencyKey=key)
         created = invoke('create', request)
         assert invoke('create', request) == created
         status = invoke('operation', dict(operationId=key))
         assert status['status'] == 'persisted' and status['result'] == created
-        file = project/'.mana/human-feedback/operations'/('operation_'+hashlib.sha256(key.encode()).hexdigest()+'.json')
+        file = project/'.mana/human-feedback/operations'/('operation~'+hashlib.sha256(key.encode()).hexdigest()+'.json')
         assert file.is_file() and json.loads(file.read_bytes())['operationId'] == key
     storage = project/'.mana/human-feedback'
     assert all(':' not in file.name for file in (storage/'operations').iterdir())
@@ -50,7 +51,7 @@ with tempfile.TemporaryDirectory(prefix='mana-portable-operation-') as temporary
         assert sum(entry['body'] == boundary for entry in entries) == 1
     if os.name != 'nt':
         key = keys[0]
-        current = storage/'operations'/('operation_'+hashlib.sha256(key.encode()).hexdigest()+'.json')
+        current = storage/'operations'/('operation~'+hashlib.sha256(key.encode()).hexdigest()+'.json')
         legacy = storage/'operations'/(key+'.json')
         current.rename(legacy)
         before = {p.name:p.read_bytes() for p in (storage/'operations').iterdir()}

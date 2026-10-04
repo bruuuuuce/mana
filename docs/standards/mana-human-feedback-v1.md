@@ -124,7 +124,7 @@ operations. Public Story Start publishes
 marker; its revision is the exact rendered Markdown SHA-256. Clients must not
 invent section identities when the capability or manifest is absent.
 
-Operation receipt filenames are `operation_<sha256(operationId)>.json`.
+Operation receipt filenames are `operation~<sha256(operationId)>.json`.
 The logical operation ID and request digest remain unchanged in the record.
 This avoids NTFS alternate streams, reserved device names and long key-derived
 filenames. Reads and committed replays also accept legacy `<operationId>.json`
