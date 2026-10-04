@@ -293,13 +293,33 @@ rebuild_target_indexes() {
   # Migration/recovery path for legacy or interrupted cache state. It runs
   # under the existing writer lock and only becomes visible once readiness is
   # atomically published; readers therefore never trust a partial rebuild.
-  local candidate artifact revision section id
+  local indexes index artifact revision section file temp
   find "$state/threads" -type l -print -quit | grep -q . && fail 'thread storage must not contain symlinks'
-  while IFS= read -r candidate; do
-    validate_thread_file "$candidate" || fail "malformed thread record: ${candidate#$project_root/}"
-    IFS=$'\t' read -r artifact revision section id < <(jq -r '[.target.artifactId,.target.artifactRevision,(.target.sectionId // ""),.threadId]|@tsv' "$candidate")
-    write_target_index_record "$artifact" "$revision" "$section" "$id"
-  done < <(find "$state/threads" -type f -name 'thread_*.json' ! -type l -print | LC_ALL=C sort)
+  # Validate the whole collection once before publishing any index. Native
+  # Windows process startup made the previous per-thread jq/hash/write loop
+  # exceed the consumer timeout during recovery after a canonical rename.
+  indexes="$(find "$state/threads" -type f -name 'thread_*.json' ! -type l -print | LC_ALL=C sort | while IFS= read -r candidate; do
+    cat "$candidate" || fail "unreadable thread record: ${candidate#$project_root/}"
+    printf '\n'
+  done | jq -L "$root/scripts/lib" -cs '
+    include "human-feedback-thread";
+    map(if valid_thread then . else error("malformed thread record") end) |
+    group_by([.target.artifactId, .target.artifactRevision, (.target.sectionId // "")])[] |
+    {schemaVersion:"mana.human-feedback.target-index/v1",
+     target:.[0].target, threadIds:(map(.threadId) | unique | sort)}
+  ')" || fail 'malformed thread record collection'
+  while IFS= read -r index; do
+    [ -n "$index" ] || continue
+    IFS=$'\037' read -r artifact revision section < <(printf '%s' "$index" | jq -r '[.target.artifactId,.target.artifactRevision,(.target.sectionId // "")]|join("\u001f")')
+    file="$(target_index_file "$artifact" "$revision" "$section")"
+    if [ -e "$file" ]; then
+      [ -f "$file" ] && [ ! -L "$file" ] || fail 'target index is unsafe'
+      validate_target_index "$file" "$artifact" "$revision" "$section" || fail 'target index is malformed'
+    fi
+    temp="$(mktemp "$state/indexes/.human-feedback.tmp.XXXXXX")"
+    printf '%s\n' "$index" > "$temp"
+    mv "$temp" "$file"
+  done <<<"$indexes"
   mark_target_indexes_ready
 }
 
