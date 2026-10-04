@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Preserve full NTFS identities in both derived SQLite indexes."""
+from contextlib import closing
 import importlib.util
 from pathlib import Path
 import sqlite3
@@ -35,7 +36,7 @@ class FileIdentityTest(unittest.TestCase):
                 first = catalog.build_database(root, database, 'test-project')
                 self.assertEqual(first['hashed_files'], 1)
                 self.assertEqual(catalog.build_database(root, database, 'test-project')['reused_files'], 1)
-                with sqlite3.connect(database) as connection:
+                with closing(sqlite3.connect(database)) as connection:
                     row = connection.execute('SELECT device,inode,typeof(device),typeof(inode) FROM entries').fetchone()
                 self.assertEqual(row, (f'integer:{info.st_dev}', f'integer:{info.st_ino}', 'text', 'text'))
                 # Same bytes, size and times; a new wide ID must invalidate reuse.
@@ -44,7 +45,7 @@ class FileIdentityTest(unittest.TestCase):
             target = knowledge.Source('doc:test', admitted[0][0], source, 'project', 'active', None, info, False)
             with patch.object(catalog, 'status', return_value=('current', '', {})), patch.object(knowledge, 'discover', return_value=([target], [], 'wide-id-signature')):
                 knowledge.build(root, database, 'test-project')
-            with sqlite3.connect(database) as connection:
+            with closing(sqlite3.connect(database)) as connection:
                 row = connection.execute('SELECT device,inode,typeof(inode) FROM knowledge_documents').fetchone()
             self.assertEqual(row, (f'integer:{info.st_dev}', f'integer:{info.st_ino}', 'text'))
             self.assertEqual(catalog.sqlite_file_identity(123), 123)
