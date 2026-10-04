@@ -634,6 +634,36 @@ def compatibility(reader_version: int, artifact_path: str) -> dict[str, Any]:
     }
 
 
+SECTION_TARGETS = {
+    "## 1. Story readiness": "story-readiness",
+    "## 2. Base implementation plan": "base-implementation-plan",
+    "## 3. Required enablers": "required-enablers",
+    "## 4. Conditional branches": "conditional-branches",
+    "## 5. Scenario estimates": "scenario-estimates",
+    "## 6. Decisions required": "decisions-required",
+    "## 7. Related findings not included in scope": "related-findings",
+    "## 8. Risks and optional improvements": "risks-and-optional-improvements",
+    "## 9. Evidence and provenance": "evidence-and-provenance",
+    "## 10. Validation/owner-review status": "validation-owner-review-status",
+}
+
+
+def feedback_targets(report: str) -> dict[str, Any]:
+    raw = Path(report).read_bytes()
+    sections = []
+    heading_index = 0
+    for line in raw.decode("utf-8").splitlines():
+        if re.match(r"^#{1,6}\s+", line):
+            heading_index += 1
+        if line in SECTION_TARGETS:
+            sections.append({"sectionId": SECTION_TARGETS[line], "headingIndex": heading_index})
+    if len(sections) != len(SECTION_TARGETS) or len({item["sectionId"] for item in sections}) != len(sections):
+        raise RenderError("passed report is missing or repeats a producer section")
+    return {"schemaVersion": "mana.story-start.feedback-targets/v1",
+            "artifactRevision": f"sha256:{hashlib.sha256(raw).hexdigest()}",
+            "sections": sections}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -657,6 +687,10 @@ def main() -> int:
     render.add_argument("output")
     render.add_argument("--plan")
     render.add_argument("--governance")
+
+    targets = subparsers.add_parser("feedback-targets")
+    targets.add_argument("report")
+    targets.add_argument("output")
 
     inspect = subparsers.add_parser("compatibility")
     inspect.add_argument("reader_version", type=int, choices=(1, 2))
@@ -691,6 +725,8 @@ def main() -> int:
             else:
                 markdown = render_owner_review(status, governance)
             atomic_write(args.output, markdown)
+        elif args.command == "feedback-targets":
+            atomic_json(args.output, feedback_targets(args.report))
         elif args.command == "compatibility":
             print(
                 json.dumps(
