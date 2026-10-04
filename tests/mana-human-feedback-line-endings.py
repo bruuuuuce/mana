@@ -34,6 +34,8 @@ sys.exit(result.returncode)
         assert result.returncode == 0, result.stderr.decode()
         return json.loads(result.stdout)
     request = dict(artifactId='file:report.md', artifactRevision='sha256:test', author=author, body=body, idempotencyKey='line-endings-create')
+    rejected = subprocess.run([str(ROOT / 'scripts/mana-human-feedback.sh'), '--project-root', str(project), 'create', '--request-stdin', '--json'], input=json.dumps(dict(request, body='unsafe\x00body')).encode(), capture_output=True, env=env)
+    assert rejected.returncode != 0 and not (project / '.mana').exists()
     created = invoke('create', request)
     assert invoke('create', request) == created
     replied = invoke('reply', dict(threadId=created['threadId'], threadRevision=created['threadRevision'], author=author, body=body, idempotencyKey='line-endings-reply'))
