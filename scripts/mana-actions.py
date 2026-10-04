@@ -99,7 +99,7 @@ def atomic_write(target: Path, content: bytes) -> None:
 
 
 def configured_user_source(project: Path) -> Path:
-    result = subprocess.run([str(ROOT / "scripts" / "mana-context.sh"), "path", "--source", "--project-root", str(project)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(catalog.shell_command(ROOT / "scripts" / "mana-context.sh", ["path", "--source", "--project-root", str(project)]), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if result.returncode != 0:
         raise ValueError("configured User Context source is unavailable")
     return Path(result.stdout.strip()).resolve(strict=True)
@@ -142,7 +142,7 @@ def knowledge_edit(project: Path, args: argparse.Namespace) -> tuple[dict, int]:
     atomic_write(target, content)
     after = sha(target.read_bytes())
     if args.scope == "user":
-        refresh = subprocess.run([str(ROOT / "scripts" / "mana-context.sh"), "refresh", "--json", "--project-root", str(project)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        refresh = subprocess.run(catalog.shell_command(ROOT / "scripts" / "mana-context.sh", ["refresh", "--json", "--project-root", str(project)]), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         outcome = "applied" if refresh.returncode == 0 else "partial_refresh"
         details = {"source_published": True, "mirror_refreshed": refresh.returncode == 0}
         return receipt(identifier, "knowledge-edit", target_info, args.expected_revision, current, after, outcome, details=details), 0 if refresh.returncode == 0 else 3
@@ -164,7 +164,7 @@ def project_learning(project: Path, args: argparse.Namespace) -> tuple[dict, int
     if current != args.expected_revision:
         return conflict(identifier, "project-learning", target_info, args.expected_revision, current, {"proposed_disposition": args.disposition})
     command = {"review": "review", "reject": "reject", "archive": "archive"}[args.disposition]
-    result = subprocess.run([str(ROOT / "scripts" / "mana-learning.sh"), "--project-root", str(project), command, args.candidate_id, "--json"], cwd=project, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(catalog.shell_command(ROOT / "scripts" / "mana-learning.sh", ["--project-root", str(project), command, args.candidate_id, "--json"]), cwd=project, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if result.returncode != 0:
         return receipt(identifier, "project-learning", target_info, args.expected_revision, current, current, "validation_failure", details={"code": "producer_rejected_transition"}), 2
     after = sha(target.read_bytes())
@@ -194,7 +194,7 @@ def user_learning(project: Path, args: argparse.Namespace) -> tuple[dict, int]:
     if current != args.expected_revision:
         return conflict(identifier, "user-learning-review", target_info, args.expected_revision, current, {"proposed_disposition": args.disposition})
     flags = {"accept": ["--accept"], "reject": ["--reject"], "defer": ["--defer"], "edit-and-accept": ["--edit", args.guidance, "--scope", args.review_scope]}[args.disposition]
-    result = subprocess.run([str(ROOT / "scripts" / "mana-user-learning.sh"), "--project-root", str(project), "review", args.candidate_id, *flags, "--json"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(catalog.shell_command(ROOT / "scripts" / "mana-user-learning.sh", ["--project-root", str(project), "review", args.candidate_id, *flags, "--json"]), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if result.returncode != 0:
         return receipt(identifier, "user-learning-review", target_info, args.expected_revision, current, current, "validation_failure", details={"code": "producer_rejected_transition"}), 2
     value = json.loads(result.stdout)
@@ -215,7 +215,7 @@ def user_learning_promote(project: Path, args: argparse.Namespace) -> tuple[dict
     current = sha(target.read_bytes())
     if current != args.expected_revision:
         return conflict(identifier, "user-learning-promote", target_info, args.expected_revision, current, {"proposed_action": "promote"})
-    result = subprocess.run([str(ROOT / "scripts" / "mana-user-learning.sh"), "--project-root", str(project), "promote", args.review_id, "--json"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(catalog.shell_command(ROOT / "scripts" / "mana-user-learning.sh", ["--project-root", str(project), "promote", args.review_id, "--json"]), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if result.returncode not in {0, 3}:
         return receipt(identifier, "user-learning-promote", target_info, args.expected_revision, current, current, "validation_failure", details={"code": "producer_rejected_transition"}), 2
     value = json.loads(result.stdout)

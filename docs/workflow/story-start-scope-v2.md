@@ -88,15 +88,19 @@ evidence/story-start-discovery-v2.json
 planning/story-start-scope-triage-v2.json
 planning/story-start-implementation-plan-v2.json
 planning/story-start-scope-v2.md
+planning/story-start-scope-v2.feedback-targets-v1.json
 validation/story-start-scope-governance-v2.json
+validation/story-start-human-decisions-v1.json
 validation/story-start-scope-run-v2.json
 ```
 
 `validation/story-start-scope-run-v2.json` is written last and is the
 cross-file publication marker. It distinguishes pipeline failure review from a
-valid plan that still needs a human decision. Every JSON root declares
-`artifactVersion: 2` and an explicit `schemaVersion`; entity IDs remain
-deterministic.
+valid plan that still needs a human decision. The phase artifacts declare
+`artifactVersion: 2` and explicit schema versions; entity IDs remain deterministic.
+The feedback manifest uses `mana.story-start.feedback-targets/v1`, binds ten
+producer-owned section IDs and heading locators to the exact Markdown SHA-256,
+and is published before the run marker. It grants no scope approval.
 
 Provider or governor failure produces a versioned `needs_owner_review` status
 and a usable diagnostic Markdown report. A failed plan is not published, no

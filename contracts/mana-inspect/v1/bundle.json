@@ -11,7 +11,8 @@
     "schemas/work-items.schema.json",
     "schemas/work-item.schema.json",
     "schemas/project-context.schema.json",
-    "schemas/activity.schema.json"
+    "schemas/activity.schema.json",
+    "schemas/activity-page.schema.json"
   ],
   "fixtureManifest": "fixtures/fixture-manifest.json",
   "compatibility": "COMPATIBILITY.md",

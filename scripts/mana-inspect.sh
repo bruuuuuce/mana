@@ -3,7 +3,7 @@
 set -u
 invalid=2 unsupported=3 malformed=4 internal=5
 mana_root="$(cd "$(dirname "$0")/.." && pwd -P)"
-root="$(pwd)"; command=""; target=""; json=false; include_supporting=false; runtime_profile="default"; runtime_execution=""
+root="$(pwd)"; command=""; target=""; json=false; include_supporting=false; runtime_profile="default"; runtime_execution=""; activity_limit=""; activity_cursor=""
 usage() { cat <<'USAGE'
 Usage: mana inspect <project|semantic-snapshot|artifacts|runtime> --json
        mana inspect artifact <artifact-id-or-.mana/path> --json
@@ -12,6 +12,7 @@ Usage: mana inspect <project|semantic-snapshot|artifacts|runtime> --json
        mana inspect work-item <feature:<workspace-id>|session:<workspace-id>> --json
        mana inspect project-context --json
        mana inspect activity --json
+       mana inspect activity-page [--limit 1..500] [--cursor <producer-cursor>] --json
        mana inspect runtime [--profile <profile>] [--execution <execution-id>] --json
 Exit codes: 0 success; 2 invalid input; 3 unsupported contract; 4 malformed workspace; 5 internal failure.
 USAGE
@@ -25,7 +26,9 @@ while [ "$#" -gt 0 ]; do
     --json) json=true; shift ;;
     --include-supporting) include_supporting=true; shift ;;
     --help|-h|help) usage; exit 0 ;;
-    project|semantic-snapshot|artifacts|work-items|project-context|activity|runtime) [ -z "$command" ] || fail "only one operation is allowed"; command="$1"; shift ;;
+    project|semantic-snapshot|artifacts|work-items|project-context|activity|activity-page|runtime) [ -z "$command" ] || fail "only one operation is allowed"; command="$1"; shift ;;
+    --limit) activity_limit="${2:-}"; [ -n "$activity_limit" ] || fail "--limit requires a value"; shift 2 ;;
+    --cursor) activity_cursor="${2:-}"; [ -n "$activity_cursor" ] || fail "--cursor requires a value"; shift 2 ;;
     --profile) runtime_profile="${2:-}"; [ -n "$runtime_profile" ] || fail "--profile requires a profile"; shift 2 ;;
     --execution) runtime_execution="${2:-}"; [ -n "$runtime_execution" ] || fail "--execution requires an execution identity"; shift 2 ;;
     artifact|source|work-item) [ -z "$command" ] || fail "only one operation is allowed"; command="$1"; target="${2:-}"; [ -n "$target" ] || fail "$command requires a target"; shift 2 ;;
@@ -35,13 +38,16 @@ done
 [ -n "$command" ] || fail "an inspect operation is required"
 [ "$json" = true ] || fail "--json is required for inspect v1"
 [ "$include_supporting" = false ] || [ "$command" = semantic-snapshot ] || fail "--include-supporting is valid only for semantic-snapshot"
+[ -z "$activity_limit$activity_cursor" ] || [ "$command" = activity-page ] || fail "--limit and --cursor require activity-page"
 root="$(cd "$root" 2>/dev/null && pwd -P)" || fail "unreadable project root"
 mana="$root/.mana"
 [ ! -L "$mana" ] || { echo "ERROR: .mana must not be a symlink" >&2; exit "$malformed"; }
 # Avoid shell payload copies and repeated jq/Python startup for the cockpit.
-if [ "$command" = project ] || [ "$command" = semantic-snapshot ]; then
+if [ "$command" = project ] || [ "$command" = semantic-snapshot ] || [ "$command" = activity-page ] || [ "$command" = artifacts ]; then
   snapshot_args=(--project-root "$root" "$command")
   [ "$include_supporting" = false ] || snapshot_args+=(--include-supporting)
+  [ -z "$activity_limit" ] || snapshot_args+=(--limit "$activity_limit")
+  [ -z "$activity_cursor" ] || snapshot_args+=(--cursor "$activity_cursor")
   exec python3 "$mana_root/scripts/mana-inspect-snapshot.py" "${snapshot_args[@]}"
 fi
 hash_text() { if command -v sha256sum >/dev/null; then printf '%s' "$1" | sha256sum | awk '{print $1}'; else printf '%s' "$1" | shasum -a 256 | awk '{print $1}'; fi; }

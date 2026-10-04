@@ -106,3 +106,19 @@ Each projection is explicitly status-bearing. A producer must report an
 optional projection as `unavailable` with a bounded diagnostic instead of
 discarding the independently valid project or work-item surfaces. The
 operation performs no network, model, project, or cache writes.
+
+## Bounded Activity pagination
+
+Feature-detect operation `activity-page` with schema
+`mana.inspect.activity-page/v1`. `mana inspect activity-page --limit 500
+[--cursor <producer-cursor>] --json` returns the same conservative events and
+ordering as `activity`, plus `view_revision`, `total_events`, and nullable
+`next_cursor`. Limit is 1..500. Each cursor binds an offset to the complete
+producer view, including timestamp provenance. Source changes or malformed
+cursors fail with exit 4; consumers must restart rather than combine revisions.
+The operation performs one read-only catalog inventory, makes no model or
+network call, and never creates a derived cache. The existing `activity` and
+bounded `semantic-snapshot` contracts retain their meaning; a large snapshot
+may still report Activity unavailable while the dedicated paginated view works.
+Clients should request pages only for Activity, retain explicit loading/error
+states, and virtualize rows. Filtering a loaded subset must be labeled as such.

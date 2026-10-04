@@ -18,8 +18,14 @@ jobs:
         run: scripts/validate-repo.sh
       - name: Single-process Inspect snapshot regression
         run: python3 tests/mana-inspect-snapshot.py
+      - name: Wide Windows file identities
+        run: python3 tests/mana-file-identities.py
       - name: Human Feedback producer
         run: tests/mana-human-feedback.sh
+      - name: Human decisions public replanning
+        run: PYTHONDONTWRITEBYTECODE=1 python3 tests/story-start-human-decisions.py
+      - name: Activity pagination
+        run: python3 tests/mana-inspect-activity-pages.py
       - name: Mana doctor
         env:
           MANA_UPDATE_CHECK: off

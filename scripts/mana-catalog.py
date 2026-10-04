@@ -8,6 +8,7 @@ import contextlib
 import hashlib
 import json
 import os
+import shutil
 import sqlite3
 import stat
 import subprocess
@@ -29,6 +30,17 @@ class CatalogError(RuntimeError):
 
 class BusyError(CatalogError):
     pass
+
+
+def shell_command(script: Path, arguments: list[str]) -> list[str]:
+    """Launch bundled shell producers with Git Bash on native Windows."""
+    if os.name != "nt":
+        return [str(script), *arguments]
+    candidates = [Path(os.environ.get("ProgramFiles", "C:/Program Files")) / "Git/bin/bash.exe", Path(os.environ.get("LOCALAPPDATA", "C:/nonexistent")) / "Programs/Git/bin/bash.exe"]
+    bash = next((str(path) for path in candidates if path.is_file()), None) or shutil.which("bash.exe")
+    if not bash:
+        raise CatalogError("Git Bash is required for Windows shell producers")
+    return [bash, "--noprofile", "--norc", str(script).replace("\\", "/"), *arguments]
 
 
 def cache_root(*, platform: str | None = None, environment: Mapping[str, str] | None = None, home: Path | None = None) -> Path:
@@ -238,13 +250,20 @@ def digest(path: Path) -> str:
     return value.hexdigest()
 
 
+def sqlite_file_identity(value: int) -> int | str:
+    # NTFS file IDs can be wider than SQLite's signed 64-bit INTEGER. A tagged
+    # decimal string keeps every bit and avoids INTEGER affinity converting a
+    # bare decimal string into an imprecise REAL. Existing small IDs stay ints.
+    return value if -(1 << 63) <= value < (1 << 63) else f"integer:{value}"
+
+
 def metadata_matches(row: sqlite3.Row, info: os.stat_result) -> bool:
     return all(
         row[key] == value
         for key, value in (
             ("byte_size", info.st_size),
-            ("device", info.st_dev),
-            ("inode", info.st_ino),
+            ("device", sqlite_file_identity(info.st_dev)),
+            ("inode", sqlite_file_identity(info.st_ino)),
             ("mtime_ns", info.st_mtime_ns),
             ("ctime_ns", info.st_ctime_ns),
             ("mode", stat.S_IMODE(info.st_mode)),
@@ -283,8 +302,8 @@ def build_database(root: Path, database: Path, identity: str) -> dict[str, objec
                     scope(relative),
                     file_type(relative),
                     info.st_size,
-                    info.st_dev,
-                    info.st_ino,
+                    sqlite_file_identity(info.st_dev),
+                    sqlite_file_identity(info.st_ino),
                     info.st_mtime_ns,
                     info.st_ctime_ns,
                     stat.S_IMODE(info.st_mode),

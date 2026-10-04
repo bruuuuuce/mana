@@ -990,6 +990,11 @@ class ScopeGovernor:
 
             for group in self.branch_groups.values():
                 in_group = selected_set & set(string_refs(group.get("branchRefs")))
+                decision = self.triage_decisions.get(group.get("decisionRef"), {})
+                if scenario.get("finality") == "committed" and decision.get("status") == "resolved":
+                    chosen = decision.get("selectedOptionId")
+                    if any(self.branches.get(ref, {}).get("decisionOptionRef") != chosen for ref in in_group):
+                        self.add("RESOLVED_DECISION_SCENARIO_CONTRADICTION", "implementation_plan", f"{path}/selectedBranchRefs", "A committed scenario must preserve the resolved decision selection.", entity_id=scenario.get("id"), related_refs=in_group)
                 rule = group.get("selectionRule")
                 if rule == "exactly_one" and len(in_group) != 1:
                     code = "SCENARIO_EXCLUSIVE_BRANCH_CONFLICT" if len(in_group) > 1 else "SCENARIO_EXACTLY_ONE_BRANCH_MISSING"

@@ -85,7 +85,7 @@ def configured_user_source(project: Path) -> Path | None:
     exact external target before asking Mana to mutate it.
     """
     result = subprocess.run(
-        [str(ROOT / "scripts" / "mana-context.sh"), "path", "--source", "--project-root", str(project)],
+        catalog.shell_command(ROOT / "scripts" / "mana-context.sh", ["path", "--source", "--project-root", str(project)]),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -326,7 +326,7 @@ def build(project: Path, database: Path, identity: str) -> dict[str, object]:
                     connection.execute("DELETE FROM knowledge_passages WHERE document_id=?", (source.document_id,))
                 title, passages = title_and_passages(source, content)
                 info = source.info
-                connection.execute("INSERT OR REPLACE INTO knowledge_documents VALUES(?,?,?,?,?,?,?,?,?,?,?)", (source.document_id, source.reference, source.scope, source.lifecycle, title, revision, len(content.encode()), info.st_dev, info.st_ino, info.st_mtime_ns, info.st_ctime_ns))
+                connection.execute("INSERT OR REPLACE INTO knowledge_documents VALUES(?,?,?,?,?,?,?,?,?,?,?)", (source.document_id, source.reference, source.scope, source.lifecycle, title, revision, len(content.encode()), catalog.sqlite_file_identity(info.st_dev), catalog.sqlite_file_identity(info.st_ino), info.st_mtime_ns, info.st_ctime_ns))
                 for ordinal, (passage_id, heading, body) in enumerate(passages):
                     passage_revision = f"sha256:{hashlib.sha256(body.encode()).hexdigest()}"
                     cursor = connection.execute("INSERT INTO knowledge_passages(passage_id,document_id,ordinal,heading_path,body,passage_revision,byte_size) VALUES(?,?,?,?,?,?,?)", (passage_id, source.document_id, ordinal, heading, body, passage_revision, len(body.encode())))
@@ -541,7 +541,7 @@ def learning_candidates(project: Path, database: Path, identity: str, args: argp
         raw = path.read_bytes()
         response["candidates"].append({"candidate_id": value.get("candidateId"), "source_scope": "project", "revision": f"sha256:{hashlib.sha256(raw).hexdigest()}", "status": status, "proposal": value.get("observation"), "evidence": value.get("evidenceReferences", []), "counter_evidence": value.get("counterEvidence"), "limitations": value.get("possibleImpact"), "target_scope": value.get("suggestedDestination"), "source_reference": path.relative_to(project).as_posix(), "review_id": None, "review_revision": None, "promotion_eligible": status == "reviewed", "promoted": False})
     state_base = Path(os.environ["MANA_USER_STATE_HOME"]) if os.environ.get("MANA_USER_STATE_HOME") else Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local" / "state")) / "mana"
-    result = subprocess.run([str(ROOT / "scripts" / "mana-user-learning.sh"), "--project-root", str(project), "candidates", "--json"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(catalog.shell_command(ROOT / "scripts" / "mana-user-learning.sh", ["--project-root", str(project), "candidates", "--json"]), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if result.returncode == 0:
         try:
             user_candidates = json.loads(result.stdout).get("candidates", [])

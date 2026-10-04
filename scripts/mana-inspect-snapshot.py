@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -37,14 +38,17 @@ def project(root: Path) -> dict:
         if lines and lines[0].startswith((".mana/features/", ".mana/sessions/")):
             active_value = lines[0]
     present = (root / ".mana").is_dir()
-    names = ["project", "semantic-snapshot", "artifacts", "artifact", "source", "work-items", "work-item", "project-context", "activity"]
+    names = ["project", "semantic-snapshot", "artifacts", "artifact", "source", "work-items", "work-item", "project-context", "activity", "activity-page"]
+    capabilities = ["workspace", "artifact_catalog", "artifact_detail", "source_relations", "semantic_work_items", "semantic_project_context", "semantic_activity", "semantic_snapshot"] if present else []
+    if present and Path(__file__).with_name("mana-human-feedback.sh").is_file():
+        capabilities.append("human_feedback")
     return {
         "schema": "mana.inspect.project/v1",
         "project_id": "project:" + hashlib.sha256(identity.encode()).hexdigest(),
         "framework": {"version": "0.4.1", "compatibility": "mana-inspect/v1"},
         "mana": {"present": present, "active_workspace": active_value},
         "git": {"branch": git(root, "rev-parse", "--abbrev-ref", "HEAD") or "unavailable", "head": git(root, "rev-parse", "HEAD") or "unavailable", "working_tree_dirty": bool(git(root, "status", "--porcelain", "--untracked-files=normal"))},
-        "capabilities": ["workspace", "artifact_catalog", "artifact_detail", "source_relations", "semantic_work_items", "semantic_project_context", "semantic_activity", "semantic_snapshot"] if present else [],
+        "capabilities": capabilities,
         "operations": [{"name": name, "schema": f"mana.inspect.{name}/v1"} for name in names],
         "guarantees": {"model_calls": 0, "writes": False, "paths": "project_relative_only"}, "diagnostics": [],
     }
@@ -74,13 +78,40 @@ def snapshot(root: Path, include_supporting: bool) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--project-root", required=True, type=Path)
-    parser.add_argument("operation", choices=("project", "semantic-snapshot"))
+    parser.add_argument("operation", choices=("project", "semantic-snapshot", "activity-page", "artifacts"))
     parser.add_argument("--include-supporting", action="store_true")
+    parser.add_argument("--limit", type=int, default=500)
+    parser.add_argument("--cursor")
     args = parser.parse_args()
     try:
         root = args.project_root.resolve(strict=True)
         if (root / ".mana").is_symlink(): raise ValueError(".mana must not be a symlink")
-        response = project(root) if args.operation == "project" else snapshot(root, args.include_supporting)
+        if args.operation == "artifacts":
+            response = {"schema": "mana.inspect.artifacts/v1",
+                        "artifacts": producer("catalog").catalog(root),
+                        "guarantees": {"model_calls": 0, "writes": False, "paths": "project_relative_only"},
+                        "diagnostics": []}
+        elif args.operation == "activity-page":
+            if not 1 <= args.limit <= 500:
+                raise ValueError("Activity page limit must be 1..500")
+            inventory = producer("catalog").catalog(root)
+            response = producer("semantic").activity(root, inventory, None)
+            canonical = json.dumps(response, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+            revision = hashlib.sha256(canonical.encode()).hexdigest()
+            offset = 0
+            if args.cursor:
+                match = re.fullmatch(r"([0-9a-f]{64}):([1-9][0-9]{0,9})", args.cursor)
+                if match is None or match.group(1) != revision:
+                    raise ValueError("activity_view_changed_or_invalid_cursor")
+                offset = int(match.group(2))
+            total = len(response["events"])
+            if offset > total:
+                raise ValueError("Activity cursor is outside the current view")
+            response["events"] = response["events"][offset:offset + args.limit]
+            response.update(schema="mana.inspect.activity-page/v1", view_revision="sha256:" + revision,
+                            total_events=total, next_cursor=f"{revision}:{offset + args.limit}" if offset + args.limit < total else None)
+        else:
+            response = project(root) if args.operation == "project" else snapshot(root, args.include_supporting)
         print(json.dumps(response, ensure_ascii=False, separators=(",", ":")))
         return 0
     except (OSError, ValueError) as error:
