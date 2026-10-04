@@ -155,8 +155,8 @@ target_index_file() {
 # Decision IDs are logical producer identifiers, never filesystem components.
 decision_file() { printf '%s/decisions/decision_%s.json' "$state" "$(hash "$1")"; }
 operation_file() { printf '%s/operations/%s.json' "$state" "$1"; }
-hash() { printf '%s' "$1" | shasum -a 256 | awk '{print $1}'; }
-hash_file() { shasum -a 256 "$1" | awk '{print $1}'; }
+hash() { if command -v sha256sum >/dev/null 2>&1; then printf '%s' "$1" | sha256sum | awk '{print $1}'; else printf '%s' "$1" | shasum -a 256 | awk '{print $1}'; fi; }
+hash_file() { if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | awk '{print $1}'; else shasum -a 256 "$1" | awk '{print $1}'; fi; }
 recorded_at() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 test_abort_after_record() {
   # Test-only crash boundary: production never sets this variable. SIGKILL

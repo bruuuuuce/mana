@@ -50,6 +50,12 @@ class SnapshotTest(unittest.TestCase):
             self.assertEqual([path for path in root.rglob("*") if path.is_file()], [source])
             self.assertEqual(first["projections"]["activity"]["status"], "available")
             self.assertEqual(first["inventory"]["catalog_build_count"], 1)
+            result = subprocess.run([str(Path(__file__).parents[1] / "scripts/mana-inspect.sh"), "--project-root", str(root), "artifacts", "--json"], check=True, capture_output=True, text=True)
+            public = json.loads(result.stdout)
+            self.assertEqual(public["schema"], "mana.inspect.artifacts/v1")
+            self.assertEqual(public["artifacts"], catalog.catalog(root))
+            self.assertEqual(public["guarantees"], {"model_calls": 0, "writes": False, "paths": "project_relative_only"})
+            self.assertEqual([path for path in root.rglob("*") if path.is_file()], [source])
 
 if __name__ == "__main__":
     unittest.main()

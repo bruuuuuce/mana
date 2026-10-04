@@ -43,7 +43,7 @@ root="$(cd "$root" 2>/dev/null && pwd -P)" || fail "unreadable project root"
 mana="$root/.mana"
 [ ! -L "$mana" ] || { echo "ERROR: .mana must not be a symlink" >&2; exit "$malformed"; }
 # Avoid shell payload copies and repeated jq/Python startup for the cockpit.
-if [ "$command" = project ] || [ "$command" = semantic-snapshot ] || [ "$command" = activity-page ]; then
+if [ "$command" = project ] || [ "$command" = semantic-snapshot ] || [ "$command" = activity-page ] || [ "$command" = artifacts ]; then
   snapshot_args=(--project-root "$root" "$command")
   [ "$include_supporting" = false ] || snapshot_args+=(--include-supporting)
   [ -z "$activity_limit" ] || snapshot_args+=(--limit "$activity_limit")

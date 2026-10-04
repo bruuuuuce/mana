@@ -240,4 +240,16 @@ rm "$project/.mana/human-feedback/threads/external/link"
 "$root/scripts/bootstrap-project.sh" --project-root "$project" --mana-root "$root" --no-jira-env >/dev/null
 "$project/mana" human-feedback list --artifact-id file:.mana/features/PAY-42/planning/story-start-scope-v2.md --artifact-revision sha256:report-one --section-id decisions-required --json > "$tmp/wrapper-list.json"
 jq -e '.schemaVersion=="mana.human-feedback.threads/v1" and (.threads|length)==1' "$tmp/wrapper-list.json" >/dev/null || fail 'project wrapper dispatch failed'
+# Git Bash provides sha256sum, but commonly has no Perl shasum.
+if command -v sha256sum >/dev/null 2>&1; then
+  portable="$tmp/hash-portability"
+  mkdir -p "$portable/.mana/features/PORTABLE/planning"
+  report="$portable/.mana/features/PORTABLE/planning/story-start-scope-v2.md"
+  printf '# Portable target\n' > "$report"
+  revision="sha256:$(sha256sum "$report" | awk '{print $1}')"
+  jq -cn --arg revision "$revision" '{schemaVersion:"mana.story-start.feedback-targets/v1",artifactRevision:$revision,sections:[{sectionId:"portable",headingIndex:1}]}' > "${report%.md}.feedback-targets-v1.json"
+  bash -c 'shasum() { return 127; }; export -f shasum; exec "$@"' portable-hash "$command" --project-root "$portable" targets --artifact-id file:.mana/features/PORTABLE/planning/story-start-scope-v2.md --artifact-revision "$revision" --json > "$tmp/portable-targets.json"
+  jq -e '.stableSections==true and .sections[0].sectionId=="portable"' "$tmp/portable-targets.json" >/dev/null || fail 'SHA-256 target validation depends on shasum'
+fi
+
 echo 'Mana human feedback tests passed'
