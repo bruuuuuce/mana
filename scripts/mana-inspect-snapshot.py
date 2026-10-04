@@ -39,13 +39,16 @@ def project(root: Path) -> dict:
             active_value = lines[0]
     present = (root / ".mana").is_dir()
     names = ["project", "semantic-snapshot", "artifacts", "artifact", "source", "work-items", "work-item", "project-context", "activity", "activity-page"]
+    capabilities = ["workspace", "artifact_catalog", "artifact_detail", "source_relations", "semantic_work_items", "semantic_project_context", "semantic_activity", "semantic_snapshot"] if present else []
+    if present and Path(__file__).with_name("mana-human-feedback.sh").is_file():
+        capabilities.append("human_feedback")
     return {
         "schema": "mana.inspect.project/v1",
         "project_id": "project:" + hashlib.sha256(identity.encode()).hexdigest(),
         "framework": {"version": "0.4.1", "compatibility": "mana-inspect/v1"},
         "mana": {"present": present, "active_workspace": active_value},
         "git": {"branch": git(root, "rev-parse", "--abbrev-ref", "HEAD") or "unavailable", "head": git(root, "rev-parse", "HEAD") or "unavailable", "working_tree_dirty": bool(git(root, "status", "--porcelain", "--untracked-files=normal"))},
-        "capabilities": ["workspace", "artifact_catalog", "artifact_detail", "source_relations", "semantic_work_items", "semantic_project_context", "semantic_activity", "semantic_snapshot"] if present else [],
+        "capabilities": capabilities,
         "operations": [{"name": name, "schema": f"mana.inspect.{name}/v1"} for name in names],
         "guarantees": {"model_calls": 0, "writes": False, "paths": "project_relative_only"}, "diagnostics": [],
     }

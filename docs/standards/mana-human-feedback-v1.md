@@ -113,3 +113,10 @@ Con quel manifesto `list-history` dichiara `valid`, `changed`, `missing` o
 `ambiguous`; una sezione assente o duplicata non viene mai riagganciata dal
 titolo Markdown. Artefatti legacy o senza capability restano commentabili a
 livello documento e usano soltanto `valid`/`changed` per la revisione.
+
+Inspect announces `human_feedback` only for a Mana project when its bundled
+Human Feedback command is present. Familiar additionally negotiates the command
+operations. Public Story Start publishes
+`planning/story-start-scope-v2.feedback-targets-v1.json` before the final run
+marker; its revision is the exact rendered Markdown SHA-256. Clients must not
+invent section identities when the capability or manifest is absent.
