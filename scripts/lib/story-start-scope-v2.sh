@@ -762,6 +762,8 @@ mana_story_start_scope_v2_run_public() {
   mana_story_start_scope_v2_validate_run_status "$status" >/dev/null || { rm -rf "$scratch"; return 2; }
   mana_story_start_scope_v2_render "$plan" "$governance" "$status" "$report" || { rm -rf "$scratch"; return 2; }
 
+  python3 "$renderer" feedback-targets "$report" "$scratch/feedback-targets.json" || { rm -rf "$scratch"; return 2; }
+
   # Publish only fully validated artifacts. The run status is copied last and
   # acts as the cross-file publication commit marker for consumers.
   mana_story_start_scope_v2_atomic_copy "$discovery" "$workspace/evidence/story-start-discovery-v2.json" || { rm -rf "$scratch"; return 2; }
@@ -770,6 +772,7 @@ mana_story_start_scope_v2_run_public() {
   mana_story_start_scope_v2_atomic_copy "$governance" "$workspace/validation/story-start-scope-governance-v2.json" || { rm -rf "$scratch"; return 2; }
   mana_story_start_scope_v2_atomic_copy "$MANA_STORY_START_HUMAN_DECISIONS" "$workspace/validation/story-start-human-decisions-v1.json" || { rm -rf "$scratch"; return 2; }
   mana_story_start_scope_v2_atomic_copy "$report" "$workspace/planning/story-start-scope-v2.md" || { rm -rf "$scratch"; return 2; }
+  mana_story_start_scope_v2_atomic_copy "$scratch/feedback-targets.json" "$workspace/planning/story-start-scope-v2.feedback-targets-v1.json" || { rm -rf "$scratch"; return 2; }
   mana_story_start_scope_v2_atomic_copy "$status" "$workspace/validation/story-start-scope-run-v2.json" || { rm -rf "$scratch"; return 2; }
   mana_trajectory_telemetry_emit search_scope_exited publication final-artifacts host none none scope-v2/public completed || true
   mana_trajectory_telemetry_emit analysis_completed publication final-artifacts host none none scope-v2/public completed || true

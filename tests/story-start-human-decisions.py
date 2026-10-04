@@ -2,6 +2,7 @@
 """Zero-token Decide -> real public replanning -> governed publication test."""
 import copy
 import importlib.util
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -103,6 +104,15 @@ esac
     for regeneration in range(2):
         run(command, env=env)
         published = load(source)
+        report = workspace / "planning/story-start-scope-v2.md"
+        metadata = load(workspace / "planning/story-start-scope-v2.feedback-targets-v1.json")
+        assert metadata["artifactRevision"] == "sha256:" + hashlib.sha256(report.read_bytes()).hexdigest()
+        headings = [line for line in report.read_text().splitlines() if line.startswith("#")]
+        base = next(item for item in metadata["sections"] if item["sectionId"] == "base-implementation-plan")
+        assert headings[base["headingIndex"] - 1] == "## 2. Base implementation plan"
+        assert len(metadata["sections"]) == 10
+        target_response = json.loads(run([feedback, "--project-root", project, "targets", "--artifact-id", "file:" + report.relative_to(project).as_posix(), "--artifact-revision", metadata["artifactRevision"], "--json"]).stdout)
+        assert target_response["stableSections"] and target_response["sections"] == metadata["sections"]
         match = next(item for item in published["decisionRegister"] if item["question"] == question)
         assert match["status"] == "resolved" and match["selectedOptionId"] == selected
         assert load(workspace / "validation/story-start-scope-governance-v2.json")["status"] == "passed"
