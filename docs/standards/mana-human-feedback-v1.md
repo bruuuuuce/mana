@@ -50,7 +50,10 @@ unire pagine da viste diverse. `operation --operation-id` restituisce
 
 Le mutazioni sono `create`, `reply`, `resolve`, `reopen` e `decide`. Per v2,
 `decision-targets --decision-source <path>` legge un piano Story Start
-pubblicato e restituisce decisioni e opzioni con hash `sourceRevision`.
+pubblicato e restituisce decisioni e opzioni con hash `sourceRevision`. Il campo
+additivo `selectedOptionId` conserva la scelta del piano pubblicato per le
+decisioni risolte, anche quando una rigenerazione cambia il loro ID. Questa
+proiezione resta distinta dalla revisione del record canonico human-feedback.
 `decide` richiede lo stesso path e hash, e rifiuta ID/opzione estranei o una
 fonte stale prima di creare un record. La decisione conserva una scelta umana e
 dichiara `replanning_required`; non costituisce approvazione del piano e non
