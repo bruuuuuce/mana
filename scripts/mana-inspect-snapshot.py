@@ -78,7 +78,7 @@ def snapshot(root: Path, include_supporting: bool) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--project-root", required=True, type=Path)
-    parser.add_argument("operation", choices=("project", "semantic-snapshot", "activity-page"))
+    parser.add_argument("operation", choices=("project", "semantic-snapshot", "activity-page", "artifacts"))
     parser.add_argument("--include-supporting", action="store_true")
     parser.add_argument("--limit", type=int, default=500)
     parser.add_argument("--cursor")
@@ -86,7 +86,12 @@ def main() -> int:
     try:
         root = args.project_root.resolve(strict=True)
         if (root / ".mana").is_symlink(): raise ValueError(".mana must not be a symlink")
-        if args.operation == "activity-page":
+        if args.operation == "artifacts":
+            response = {"schema": "mana.inspect.artifacts/v1",
+                        "artifacts": producer("catalog").catalog(root),
+                        "guarantees": {"model_calls": 0, "writes": False, "paths": "project_relative_only"},
+                        "diagnostics": []}
+        elif args.operation == "activity-page":
             if not 1 <= args.limit <= 500:
                 raise ValueError("Activity page limit must be 1..500")
             inventory = producer("catalog").catalog(root)
