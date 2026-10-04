@@ -212,14 +212,7 @@ decision_state() {
 }
 
 validate_thread_file() {
-  jq -e '
-    type == "object" and .schemaVersion == "mana.human-feedback.thread/v1" and
-    (.threadId|type == "string" and test("^thread_[0-9a-f]{64}$")) and
-    (.revision|type == "string" and test("^[0-9]+$")) and
-    (.target.artifactId|type == "string") and (.target.artifactRevision|type == "string") and
-    (.state|IN("open","resolved")) and (.entries|type == "array") and
-    all(.entries[]; (.entryId|type == "string") and (.author|type == "string") and (.body|type == "string") and (.kind|IN("comment","reply")))
-  ' "$1" >/dev/null
+  jq -L "$root/scripts/lib" -e 'include "human-feedback-thread"; valid_thread' "$1" >/dev/null
 }
 
 validate_target_index() {
@@ -269,10 +262,10 @@ write_target_index_record() {
     ids="$(jq -cn --arg id "$id" '[$id]')"
   fi
   temp="$(mktemp "$state/indexes/.human-feedback.tmp.XXXXXX")"
-  jq -cn --arg artifact "$artifact" --arg revision "$revision" --arg section "$section" --argjson ids "$ids" '
+  printf '%s\n' "$ids" | jq -c --arg artifact "$artifact" --arg revision "$revision" --arg section "$section" '
     {schemaVersion:"mana.human-feedback.target-index/v1",
      target:{artifactId:$artifact,artifactRevision:$revision,sectionId:(if $section=="" then null else $section end)},
-     threadIds:$ids}' > "$temp"
+     threadIds:.}' > "$temp"
   mv "$temp" "$file"
 }
 
@@ -426,22 +419,22 @@ list() {
       [ -n "$thread" ] || continue
       file="$(thread_file "$thread")"
       [ -f "$file" ] && [ ! -L "$file" ] || fail 'target index references an unavailable thread'
-      validate_thread_file "$file" || fail "malformed thread record: ${file#$project_root/}"
-      jq -c --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" '
+      jq -L "$root/scripts/lib" -c --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" '
+        include "human-feedback-thread";
+        if valid_thread then . else error("malformed thread record") end |
         select(.target.artifactId == $artifact and .target.artifactRevision == $revision and (.target.sectionId // "") == $section)
-      ' "$file"
+      ' "$file" || fail "malformed thread record: ${file#$project_root/}"
     done <<<"$ids" | jq -s .)"
   else
     # Index publication can be interrupted after the canonical thread rename.
     # A missing index must degrade to a complete read, never hide that record.
     entries="$(find "$state/threads" -type f -name 'thread_*.json' ! -type l -print | LC_ALL=C sort | while IFS= read -r file; do
-      validate_thread_file "$file" || fail "malformed thread record: ${file#$project_root/}"
-      jq -c --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" 'select(.target.artifactId == $artifact and .target.artifactRevision == $revision and (.target.sectionId // "") == $section)' "$file"
+      jq -L "$root/scripts/lib" -c --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" 'include "human-feedback-thread"; if valid_thread then . else error("malformed thread record") end | select(.target.artifactId == $artifact and .target.artifactRevision == $revision and (.target.sectionId // "") == $section)' "$file" || fail "malformed thread record: ${file#$project_root/}"
     done | jq -s .)"
   fi
   view_revision="sha256:$(hash "$entries")"
-  jq -cn --argjson entries "$entries" --arg cursor "$thread_cursor" --argjson limit "$page_limit" --arg view "$view_revision" '
-    [$entries[] | select(.threadId > $cursor)] as $remaining |
+  printf '%s\n' "$entries" | jq -c --arg cursor "$thread_cursor" --argjson limit "$page_limit" --arg view "$view_revision" '
+    [.[] | select(.threadId > $cursor)] as $remaining |
     ($remaining[:$limit]) as $page |
     {schemaVersion:"mana.human-feedback.threads/v1",threads:$page,
      nextCursor:(if ($remaining|length) > $limit then $page[-1].threadId else null end),
@@ -453,7 +446,7 @@ list() {
 # compare only stable IDs and revisions; it must never infer a missing or
 # ambiguous section from rendered Markdown text.
 list_history() {
-  local entries view_revision
+  local entries view_revision link_state
   safe_id "$artifact_id" || fail '--artifact-id must be safe'
   [ -n "$artifact_revision" ] || fail '--artifact-revision is required'
   [[ "$page_limit" =~ ^([1-9][0-9]?|1[0-9]{2}|200)$ ]] || fail '--limit must be an integer from 1 to 200'
@@ -461,19 +454,21 @@ list_history() {
   assert_existing_state_safe
   [ -d "$state/threads" ] || { jq -cn '{schemaVersion:"mana.human-feedback.thread-history/v1",threads:[],nextCursor:null,viewRevision:"sha256:empty"}'; return; }
   find "$state/threads" -type l -print -quit | grep -q . && fail 'thread storage must not contain symlinks'
+  # All selected threads share the requested stable section. Resolve its
+  # existence once, then compare each source revision in the same jq process
+  # that validates and projects the record (important on native Windows).
+  link_state="$(history_link_state "$section_id" "$artifact_revision")"
   entries="$(find "$state/threads" -type f -name 'thread_*.json' ! -type l -print | LC_ALL=C sort | while IFS= read -r file; do
-    validate_thread_file "$file" || fail "malformed thread record: ${file#$project_root/}"
-    target_section="$(jq -r '.target.sectionId // ""' "$file")"
-    source_revision="$(jq -r '.target.artifactRevision' "$file")"
-    link_state="$(history_link_state "$target_section" "$source_revision")"
-    jq -c --arg artifact "$artifact_id" --arg section "$section_id" --arg link "$link_state" '
+    jq -L "$root/scripts/lib" -c --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" --arg link "$link_state" '
+      include "human-feedback-thread";
+      if valid_thread then . else error("malformed thread record") end |
       select(.target.artifactId == $artifact and ((.target.sectionId // "") == $section)) |
-      . + {linkState:$link}
-    ' "$file"
+      . + {linkState:(if $link == "valid" and .target.artifactRevision != $revision then "changed" else $link end)}
+    ' "$file" || fail "malformed thread record: ${file#$project_root/}"
   done | jq -s .)"
   view_revision="sha256:$(hash "$entries")"
-  jq -cn --argjson entries "$entries" --arg cursor "$thread_cursor" --argjson limit "$page_limit" --arg view "$view_revision" '
-    [$entries[] | select(.threadId > $cursor)] as $remaining |
+  printf '%s\n' "$entries" | jq -c --arg cursor "$thread_cursor" --argjson limit "$page_limit" --arg view "$view_revision" '
+    [.[] | select(.threadId > $cursor)] as $remaining |
     ($remaining[:$limit]) as $page |
     {schemaVersion:"mana.human-feedback.thread-history/v1",threads:$page,
      nextCursor:(if ($remaining|length) > $limit then $page[-1].threadId else null end),
