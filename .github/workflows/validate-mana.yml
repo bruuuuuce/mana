@@ -18,6 +18,8 @@ jobs:
         run: scripts/validate-repo.sh
       - name: Single-process Inspect snapshot regression
         run: python3 tests/mana-inspect-snapshot.py
+      - name: Wide Windows file identities
+        run: python3 tests/mana-file-identities.py
       - name: Human Feedback producer
         run: tests/mana-human-feedback.sh
       - name: Human decisions public replanning

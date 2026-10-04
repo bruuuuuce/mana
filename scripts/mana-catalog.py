@@ -238,13 +238,20 @@ def digest(path: Path) -> str:
     return value.hexdigest()
 
 
+def sqlite_file_identity(value: int) -> int | str:
+    # NTFS file IDs can be wider than SQLite's signed 64-bit INTEGER. A tagged
+    # decimal string keeps every bit and avoids INTEGER affinity converting a
+    # bare decimal string into an imprecise REAL. Existing small IDs stay ints.
+    return value if -(1 << 63) <= value < (1 << 63) else f"integer:{value}"
+
+
 def metadata_matches(row: sqlite3.Row, info: os.stat_result) -> bool:
     return all(
         row[key] == value
         for key, value in (
             ("byte_size", info.st_size),
-            ("device", info.st_dev),
-            ("inode", info.st_ino),
+            ("device", sqlite_file_identity(info.st_dev)),
+            ("inode", sqlite_file_identity(info.st_ino)),
             ("mtime_ns", info.st_mtime_ns),
             ("ctime_ns", info.st_ctime_ns),
             ("mode", stat.S_IMODE(info.st_mode)),
@@ -283,8 +290,8 @@ def build_database(root: Path, database: Path, identity: str) -> dict[str, objec
                     scope(relative),
                     file_type(relative),
                     info.st_size,
-                    info.st_dev,
-                    info.st_ino,
+                    sqlite_file_identity(info.st_dev),
+                    sqlite_file_identity(info.st_ino),
                     info.st_mtime_ns,
                     info.st_ctime_ns,
                     stat.S_IMODE(info.st_mode),
