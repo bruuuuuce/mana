@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Paginated reads must accept a collection larger than an exec argument."""
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -23,7 +24,32 @@ with tempfile.TemporaryDirectory(prefix="mana-feedback-large-reads-") as tempora
     for ordinal in range(24):
         body = f"Synthetic large comment {ordinal}\n" + "x" * 60000
         created = invoke("create", dict(**target, author="Synthetic acceptance", body=body, idempotencyKey=f"large-{ordinal}"))
-        expected[created["threadId"]] = body
+        expected[created["threadId"]] = [body]
+    thread = next(iter(expected))
+    reply_body = "Synthetic large reply\n" + "y" * 60000 + "\n\n"
+    reply_request = dict(threadId=thread, threadRevision="1", author="Synthetic acceptance", body=reply_body, idempotencyKey="large-reply")
+    replied = invoke("reply", reply_request)
+    assert invoke("reply", reply_request) == replied
+    expected[thread].append(reply_body)
+    spec = importlib.util.spec_from_file_location("normalizer", ROOT / "scripts/lib/story-start-scope-v2-normalize.py")
+    normalizer = importlib.util.module_from_spec(spec); spec.loader.exec_module(normalizer)
+    fixtures = ROOT / "tests/fixtures/story-start-scope-v2"
+    def fixture(phase):
+        return json.loads((fixtures / phase / "provider-output.json").read_bytes())
+    discovery = normalizer.normalize_discovery(fixture("discovery"))
+    triage = normalizer.normalize_triage(fixture("triage"), discovery)
+    plan = normalizer.normalize_plan(fixture("planner"), normalizer.build_planning_context(discovery, triage), triage)
+    source = project / "plan.json"; source.write_text(json.dumps(plan))
+    targets = invoke("decision-targets", dict(decisionSource="plan.json"))
+    choice = targets["decisions"][0]
+    rationale = "Synthetic large rationale\n" + "z" * 60000 + "\n\n"
+    request = dict(decisionSource="plan.json", decisionSourceRevision=targets["sourceRevision"], decisionId=choice["decisionId"], decisionRevision="0", optionId=choice["options"][0]["optionId"], author="Synthetic acceptance", body=rationale, idempotencyKey="large-decision")
+    decided = invoke("decide", request)
+    assert invoke("decide", request) == decided
+    request.update(decisionRevision="1", idempotencyKey="large-decision-second")
+    invoke("decide", request)
+    state = invoke("decision-state", dict(decisionId=choice["decisionId"]))
+    assert [entry["rationale"] for entry in state["history"]] == [rationale, rationale]
     storage = project / ".mana/human-feedback"
     def snapshot():
         return {str(p.relative_to(storage)): hashlib.sha256(p.read_bytes()).hexdigest() for p in storage.rglob("*") if p.is_file()}
@@ -36,7 +62,7 @@ with tempfile.TemporaryDirectory(prefix="mana-feedback-large-reads-") as tempora
             assert len(page["threads"]) <= 2
             for thread in page["threads"]:
                 assert thread["threadId"] not in seen
-                seen[thread["threadId"]] = thread["entries"][0]["body"]
+                seen[thread["threadId"]] = [entry["body"] for entry in thread["entries"]]
             cursor = page["nextCursor"]
             if not cursor:
                 break
