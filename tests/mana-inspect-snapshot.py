@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Regression coverage for the read-only, single-inventory snapshot producer."""
 import importlib.util
+import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,6 +13,20 @@ snapshot = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(snapshot)
 
 class SnapshotTest(unittest.TestCase):
+    def test_feedback_capability_requires_project_and_bundled_producer(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.assertNotIn("human_feedback", snapshot.project(root)["capabilities"])
+            (root / ".mana").mkdir()
+            for operation in ("project", "semantic-snapshot"):
+                result = subprocess.run([str(Path(__file__).parents[1] / "scripts/mana-inspect.sh"), "--project-root", str(root), operation, "--json"], check=True, capture_output=True, text=True)
+                value = json.loads(result.stdout)
+                project = value if operation == "project" else value["project"]
+                self.assertIn("human_feedback", project["capabilities"])
+            with patch.object(snapshot, "__file__", str(root / "isolated-producer.py")):
+                self.assertNotIn("human_feedback", snapshot.project(root)["capabilities"])
+            self.assertEqual(list(root.rglob("*")), [root / ".mana"])
+
     def test_one_inventory_and_same_byte_publication(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
