@@ -67,6 +67,17 @@ final total: the discovery schema rejects them.
 COMPACT_DISCOVERY_PACKAGE
 CONTRACT
   jq -cS . "$package"
+  if [ -n "${MANA_STORY_START_HUMAN_DECISIONS:-}" ]; then
+    cat <<'HUMAN'
+
+VERIFIED_HUMAN_DECISIONS
+The following canonical human choices are mandatory. Preserve each exact
+question, owner, materiality and alternative set; emit the matching decision
+as resolved with its selectedOptionId. Do not infer scope approval or execute
+work. If evidence changes the alternatives, stop for explicit reconciliation.
+HUMAN
+    jq -cS . "$MANA_STORY_START_HUMAN_DECISIONS"
+  fi
 }
 
 mana_story_start_scope_v2_validate_discovery() {
@@ -652,6 +663,14 @@ mana_story_start_scope_v2_run_public() {
   fi
   story_id="$(jq -r '.storyId' "$package")"
   scratch="$(mktemp -d "${TMPDIR:-/tmp}/mana-story-start-public-v2.XXXXXX")" || return 2
+  local MANA_STORY_START_HUMAN_DECISIONS="$scratch/human-decisions.json"
+  local human_decisions_helper="$root/scripts/lib/story-start-human-decisions.py"
+  if ! python3 "$human_decisions_helper" snapshot "$workspace" "$story_id" "$MANA_STORY_START_HUMAN_DECISIONS"; then
+    rm -rf "$scratch"
+    mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" discovery \
+      'Canonical human choices require reconciliation before replanning.'
+    return 1
+  fi
   story="$scratch/story.json"
   discovery="$scratch/discovery.json"
   triage="$scratch/triage.json"
@@ -664,7 +683,8 @@ mana_story_start_scope_v2_run_public() {
   mana_trajectory_telemetry_emit analysis_started public_pipeline start "$provider" none none scope-v2/public started --reason-codes scope-v2-opt-in || true
 
   mana_trajectory_telemetry_emit provider_iteration_started provider_invocation discovery "$provider" "$discovery_model" "${discovery_effort:-none}" scope-v2/discovery started || true
-  if ! mana_story_start_scope_v2_discover "$provider" "$discovery_model" "$discovery_effort" "$package" "$discovery"; then
+  if ! mana_story_start_scope_v2_discover "$provider" "$discovery_model" "$discovery_effort" "$package" "$discovery" || \
+    ! python3 "$human_decisions_helper" verify "$MANA_STORY_START_HUMAN_DECISIONS" "$discovery"; then
     mana_trajectory_telemetry_emit provider_iteration_completed provider_invocation discovery "$provider" "$discovery_model" "${discovery_effort:-none}" scope-v2/discovery failed --reason-codes provider-or-schema-failure || true
     mana_trajectory_telemetry_emit analysis_failed public_pipeline discovery "$provider" none none scope-v2/public failed --reason-codes discovery-failure || true
     mana_trajectory_telemetry_finish || true
@@ -737,6 +757,7 @@ mana_story_start_scope_v2_run_public() {
   fi
   mana_trajectory_telemetry_emit provider_iteration_completed provider_invocation planner "$provider" "$planner_model" "${planner_effort:-none}" scope-v2/planner completed --evidence-added-refs artifact-implementation-plan-v2 || true
 
+  python3 "$human_decisions_helper" verify "$MANA_STORY_START_HUMAN_DECISIONS" "$plan" || { rm -rf "$scratch"; return 1; }
   python3 "$renderer" status-passed "$discovery" "$triage" "$plan" "$governance" "$status" || { rm -rf "$scratch"; return 2; }
   mana_story_start_scope_v2_validate_run_status "$status" >/dev/null || { rm -rf "$scratch"; return 2; }
   mana_story_start_scope_v2_render "$plan" "$governance" "$status" "$report" || { rm -rf "$scratch"; return 2; }
@@ -747,6 +768,7 @@ mana_story_start_scope_v2_run_public() {
   mana_story_start_scope_v2_atomic_copy "$triage" "$workspace/planning/story-start-scope-triage-v2.json" || { rm -rf "$scratch"; return 2; }
   mana_story_start_scope_v2_atomic_copy "$plan" "$workspace/planning/story-start-implementation-plan-v2.json" || { rm -rf "$scratch"; return 2; }
   mana_story_start_scope_v2_atomic_copy "$governance" "$workspace/validation/story-start-scope-governance-v2.json" || { rm -rf "$scratch"; return 2; }
+  mana_story_start_scope_v2_atomic_copy "$MANA_STORY_START_HUMAN_DECISIONS" "$workspace/validation/story-start-human-decisions-v1.json" || { rm -rf "$scratch"; return 2; }
   mana_story_start_scope_v2_atomic_copy "$report" "$workspace/planning/story-start-scope-v2.md" || { rm -rf "$scratch"; return 2; }
   mana_story_start_scope_v2_atomic_copy "$status" "$workspace/validation/story-start-scope-run-v2.json" || { rm -rf "$scratch"; return 2; }
   mana_trajectory_telemetry_emit search_scope_exited publication final-artifacts host none none scope-v2/public completed || true

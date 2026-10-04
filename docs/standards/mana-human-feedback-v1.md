@@ -54,8 +54,22 @@ pubblicato e restituisce decisioni e opzioni con hash `sourceRevision`.
 `decide` richiede lo stesso path e hash, e rifiuta ID/opzione estranei o una
 fonte stale prima di creare un record. La decisione conserva una scelta umana e
 dichiara `replanning_required`; non costituisce approvazione del piano e non
-avvia provider. Il consumo nel successivo planning context resta un passaggio
-separato e verificabile.
+avvia provider. Al successivo Story Start v2 il producer legge una fotografia
+immutabile delle scelte del solo workspace attivo e la passa a Discovery.
+Discovery deve preservare domanda, owner, materialita e alternative, dichiarando
+la decisione `resolved` con l'opzione registrata. Il host verifica la scelta,
+poi il governor impone lo stesso registro a Triage e Planner. Omissioni,
+contraddizioni e alternative cambiate bloccano la nuova pubblicazione.
+
+I nuovi record conservano il descrittore e lo story ID oltre al path/hash della
+fonte. Questo mantiene il collegamento attraverso gli ID derivati dal contenuto
+che cambiano quando la decisione viene risolta. Una nuova scelta esplicita sul
+piano rigenerato dichiara le coppie ID/revisione precedenti in `supersedes`, conservandone la
+storia. I record v1 precedenti privi di descrittore vengono accettati soltanto
+se il loro hash coincide ancora con la fonte: altrimenti richiedono una nuova
+registrazione esplicita. Il consumo non promuove scope e non approva il piano.
+`validation/story-start-human-decisions-v1.json` conserva la fotografia
+verificata; il run status rimane il commit marker pubblicato per ultimo.
 
 ## Commit, concorrenza e recupero
 

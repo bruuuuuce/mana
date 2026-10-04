@@ -564,7 +564,7 @@ mutate() {
 }
 
 decide() {
-  local request digest file current next result tmp source actual_source_revision
+  local request digest file current next result tmp source actual_source_revision decision_descriptor decision_story supersedes
   safe_id "$decision_id" || fail '--decision-id must be safe'
   safe_id "$option_id" || fail '--option-id must be safe'
   [[ "$decision_revision" =~ ^[0-9]+$ ]] || fail '--decision-revision is required'
@@ -576,6 +576,8 @@ decide() {
     .schemaVersion=="mana.story-start.implementation-plan/v2" and
     any(.decisionRegister[]; .id==$decision and (.status=="open" or .status=="resolved") and any(.options[]; .id==$option))
   ' "$source" >/dev/null || fail 'decision or option is not available in the declared Story Start plan'
+  decision_descriptor="$(jq -c --arg id "$decision_id" '.decisionRegister[] | select(.id==$id)' "$source")"
+  decision_story="$(jq -r '.storyId // empty' "$source")"
   request="$(jq -cn --arg decision "$decision_id" --arg revision "$decision_revision" --arg option "$option_id" --arg source "$decision_source" --arg source_revision "$actual_source_revision" --arg author "$author" --arg body "$body" --arg key "$idempotency_key" '{decision:$decision,revision:$revision,option:$option,source:$source,sourceRevision:$source_revision,author:$author,body:$body,key:$key}')"
   digest="$(hash "$request")"
   acquire_lock
@@ -604,14 +606,15 @@ decide() {
     next=1
     :
   fi
+  supersedes="$(python3 "$root/scripts/lib/story-start-human-decisions.py" supersedes "$state/decisions" "$source" "$decision_id" "$decision_source")" || fail 'canonical decision reconciliation failed'
   result="$(jq -cn --arg id "$decision_id" --arg option "$option_id" --arg revision "$next" '{schemaVersion:"mana.human-feedback.decision-result/v1",status:"recorded",decisionId:$id,selectedOptionId:$option,decisionRevision:$revision,planUpdate:"replanning_required"}')"
   write_operation "$idempotency_key" "$digest" "$result" prepared
   test_abort_after_prepare
   tmp="$(mktemp "$state/decisions/.human-feedback.tmp.XXXXXX")"
   if [ -e "$file" ]; then
-    jq --arg revision "$next" --arg option "$option_id" --arg source "$decision_source" --arg source_revision "$actual_source_revision" --arg author "$author" --arg body "$body" --arg at "$(recorded_at)" '.revision=$revision | .selectedOptionId=$option | .source={path:$source,revision:$source_revision} | .history += [{optionId:$option,author:$author,rationale:$body,recordedAt:$at,sourceRevision:$source_revision}]' "$file" > "$tmp"
+    jq --argjson supersedes "$supersedes" --argjson descriptor "$decision_descriptor" --arg story "$decision_story" --arg revision "$next" --arg option "$option_id" --arg source "$decision_source" --arg source_revision "$actual_source_revision" --arg author "$author" --arg body "$body" --arg at "$(recorded_at)" '.supersedes=$supersedes | .decision=$descriptor | .storyId=$story | .revision=$revision | .selectedOptionId=$option | .source={path:$source,revision:$source_revision} | .history += [{optionId:$option,author:$author,rationale:$body,recordedAt:$at,sourceRevision:$source_revision}]' "$file" > "$tmp"
   else
-    jq -cn --arg id "$decision_id" --arg option "$option_id" --arg source "$decision_source" --arg source_revision "$actual_source_revision" --arg author "$author" --arg body "$body" --arg at "$(recorded_at)" '{schemaVersion:"mana.human-feedback.decision/v1",decisionId:$id,revision:"1",source:{path:$source,revision:$source_revision},selectedOptionId:$option,history:[{optionId:$option,author:$author,rationale:$body,recordedAt:$at,sourceRevision:$source_revision}]}' > "$tmp"
+    jq -cn --argjson supersedes "$supersedes" --argjson descriptor "$decision_descriptor" --arg story "$decision_story" --arg id "$decision_id" --arg option "$option_id" --arg source "$decision_source" --arg source_revision "$actual_source_revision" --arg author "$author" --arg body "$body" --arg at "$(recorded_at)" '{schemaVersion:"mana.human-feedback.decision/v1",decisionId:$id,decision:$descriptor,storyId:$story,supersedes:$supersedes,revision:"1",source:{path:$source,revision:$source_revision},selectedOptionId:$option,history:[{optionId:$option,author:$author,rationale:$body,recordedAt:$at,sourceRevision:$source_revision}]}' > "$tmp"
   fi
   jq -e '.schemaVersion=="mana.human-feedback.decision/v1" and (.decisionId|type=="string") and (.revision|type=="string") and (.selectedOptionId|type=="string") and (.history|type=="array" and length>0)' "$tmp" >/dev/null || { rm -f "$tmp"; fail 'internal decision validation failed'; }
   mv "$tmp" "$file"
