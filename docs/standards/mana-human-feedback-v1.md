@@ -123,3 +123,11 @@ operations. Public Story Start publishes
 `planning/story-start-scope-v2.feedback-targets-v1.json` before the final run
 marker; its revision is the exact rendered Markdown SHA-256. Clients must not
 invent section identities when the capability or manifest is absent.
+
+Operation receipt filenames are `operation~<sha256(operationId)>.json`.
+The logical operation ID and request digest remain unchanged in the record.
+This avoids NTFS alternate streams, reserved device names and long key-derived
+filenames. Reads and committed replays also accept legacy `<operationId>.json`
+receipts without writing state; completion of a legacy prepared receipt
+publishes the portable receipt before removing the old file. Windows device
+names are never probed as legacy files.
