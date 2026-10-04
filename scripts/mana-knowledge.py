@@ -85,7 +85,7 @@ def configured_user_source(project: Path) -> Path | None:
     exact external target before asking Mana to mutate it.
     """
     result = subprocess.run(
-        [str(ROOT / "scripts" / "mana-context.sh"), "path", "--source", "--project-root", str(project)],
+        catalog.shell_command(ROOT / "scripts" / "mana-context.sh", ["path", "--source", "--project-root", str(project)]),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -541,7 +541,7 @@ def learning_candidates(project: Path, database: Path, identity: str, args: argp
         raw = path.read_bytes()
         response["candidates"].append({"candidate_id": value.get("candidateId"), "source_scope": "project", "revision": f"sha256:{hashlib.sha256(raw).hexdigest()}", "status": status, "proposal": value.get("observation"), "evidence": value.get("evidenceReferences", []), "counter_evidence": value.get("counterEvidence"), "limitations": value.get("possibleImpact"), "target_scope": value.get("suggestedDestination"), "source_reference": path.relative_to(project).as_posix(), "review_id": None, "review_revision": None, "promotion_eligible": status == "reviewed", "promoted": False})
     state_base = Path(os.environ["MANA_USER_STATE_HOME"]) if os.environ.get("MANA_USER_STATE_HOME") else Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local" / "state")) / "mana"
-    result = subprocess.run([str(ROOT / "scripts" / "mana-user-learning.sh"), "--project-root", str(project), "candidates", "--json"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(catalog.shell_command(ROOT / "scripts" / "mana-user-learning.sh", ["--project-root", str(project), "candidates", "--json"]), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if result.returncode == 0:
         try:
             user_candidates = json.loads(result.stdout).get("candidates", [])

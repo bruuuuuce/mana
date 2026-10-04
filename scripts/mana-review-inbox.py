@@ -286,7 +286,7 @@ def analyse(connection: sqlite3.Connection, config: dict, fixture: dict | None) 
             if not checkout or not Path(checkout).is_dir():
                 result_value = {"schema": "mana.review-scheduler.analysis-result/v1", "status": "failed", "findings": [], "error_code": "checkout-unavailable"}
             else:
-                process = subprocess.run([str(ROOT / "scripts" / "run-profile.sh"), "requested-pr-review", "--project-root", checkout, "--pr", row["url"], "--codex"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                process = subprocess.run(catalog.shell_command(ROOT / "scripts" / "run-profile.sh", ["requested-pr-review", "--project-root", checkout, "--pr", row["url"], "--codex"]), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 result_value = {"schema": "mana.review-scheduler.analysis-result/v1", "status": "completed" if process.returncode == 0 else "failed", "findings": [], "error_code": None if process.returncode == 0 else "governed-runner-failed"}
             attempted += 1
         findings = validate_findings(result_value)
