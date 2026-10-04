@@ -10,10 +10,10 @@ while [ "$#" -gt 0 ]; do
 done
 bundle="$(cd "$bundle" 2>/dev/null && pwd -P)" || { echo 'ERROR: unreadable bundle' >&2; exit 2; }
 command -v jq >/dev/null 2>&1 || { echo 'ERROR: jq is required' >&2; exit 5; }
-for file in bundle.json COMPATIBILITY.md SEMANTIC-CONTRACT.md fixtures/fixture-manifest.json fixtures/representative-artifacts.json fixtures/semantic-snapshot.json schemas/project.schema.json schemas/semantic-snapshot.schema.json schemas/artifacts.schema.json schemas/artifact.schema.json schemas/source.schema.json schemas/work-items.schema.json schemas/work-item.schema.json schemas/project-context.schema.json schemas/activity.schema.json; do
+for file in bundle.json COMPATIBILITY.md SEMANTIC-CONTRACT.md fixtures/fixture-manifest.json fixtures/representative-artifacts.json fixtures/semantic-snapshot.json schemas/project.schema.json schemas/semantic-snapshot.schema.json schemas/artifacts.schema.json schemas/artifact.schema.json schemas/source.schema.json schemas/work-items.schema.json schemas/work-item.schema.json schemas/project-context.schema.json schemas/activity.schema.json schemas/activity-page.schema.json; do
   [ -f "$bundle/$file" ] || { echo "ERROR: missing bundle file: $file" >&2; exit 4; }
 done
-jq -e '.bundle=="mana-inspect-contract" and .version=="v1" and .owner=="Mana" and .modelCalls==0 and .network==false and (.schemas|length==9)' "$bundle/bundle.json" >/dev/null
+jq -e '.bundle=="mana-inspect-contract" and .version=="v1" and .owner=="Mana" and .modelCalls==0 and .network==false and (.schemas|length==10)' "$bundle/bundle.json" >/dev/null
 jq -e '.schema=="mana.inspect.fixture-manifest/v1" and ([.cases[].id]|index("work-items-feature") and index("work-item-feature-full") and index("work-item-session") and index("work-item-sparse-attention-and-evidence") and index("project-context-missing-categories") and index("activity-explicit-and-filesystem-fallback") and index("empty-work-items"))' "$bundle/fixtures/fixture-manifest.json" >/dev/null
 jq -e '([.[].family]|sort|unique)==["knowledge","learning","runtime","unknown","workspace"] and ([.[].kind]|index("repair-attempt-result") and index("verification-result") and index("runtime_events") and index("markdown") and index("journey") and index("journey_record"))' "$bundle/fixtures/representative-artifacts.json" >/dev/null
 while IFS= read -r schema; do
