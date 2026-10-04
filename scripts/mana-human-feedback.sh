@@ -82,26 +82,26 @@ if [ "$request_stdin" = true ]; then
   printf '%s' "$request" | jq -e '
     type == "object" and
     (keys - ["artifactId","artifactRevision","sectionId","threadId","threadRevision","decisionId","decisionRevision","optionId","decisionSource","decisionSourceRevision","author","body","idempotencyKey","cursor","limit"] | length) == 0 and
-    all(.[]; type == "string")
+    all(.[]; type == "string" and (contains("\u0000") | not))
   ' >/dev/null || fail '--request-stdin must be a JSON object with only string request fields'
-  artifact_id="$(printf '%s' "$request" | jq -r '.artifactId // empty')"
-  artifact_revision="$(printf '%s' "$request" | jq -r '.artifactRevision // empty')"
-  section_id="$(printf '%s' "$request" | jq -r '.sectionId // empty')"
-  thread_id="$(printf '%s' "$request" | jq -r '.threadId // empty')"
-  thread_revision="$(printf '%s' "$request" | jq -r '.threadRevision // empty')"
-  decision_id="$(printf '%s' "$request" | jq -r '.decisionId // empty')"
-  decision_revision="$(printf '%s' "$request" | jq -r '.decisionRevision // empty')"
-  option_id="$(printf '%s' "$request" | jq -r '.optionId // empty')"
-  decision_source="$(printf '%s' "$request" | jq -r '.decisionSource // empty')"
-  decision_source_revision="$(printf '%s' "$request" | jq -r '.decisionSourceRevision // empty')"
-  author="$(printf '%s' "$request" | jq -r '.author // empty')"
-  # Command substitution strips trailing newlines. Append a sentinel while
-  # decoding then remove it so Markdown bodies round-trip byte-for-byte.
-  body="$(printf '%s' "$request" | jq -r '.body // empty | . + "\u0001"')"
-  body="${body%$'\001'}"
-  idempotency_key="$(printf '%s' "$request" | jq -r '.idempotencyKey // empty')"
-  thread_cursor="$(printf '%s' "$request" | jq -r '.cursor // empty')"
-  page_limit="$(printf '%s' "$request" | jq -r '.limit // "100"')"
+  # Decode all fields in one jq process. NUL delimiters preserve embedded and
+  # trailing newlines without shell evaluation or native argv payloads.
+  fields=()
+  while IFS= read -r -d '' field; do fields+=("$field"); done < <(
+    printf '%s' "$request" | jq -j '
+      (.artifactId // ""), (.artifactRevision // ""), (.sectionId // ""),
+      (.threadId // ""), (.threadRevision // ""), (.decisionId // ""),
+      (.decisionRevision // ""), (.optionId // ""), (.decisionSource // ""),
+      (.decisionSourceRevision // ""), (.author // ""), (.body // ""),
+      (.idempotencyKey // ""), (.cursor // ""), (.limit // "100") | . + "\u0000"'
+  )
+  [ "${#fields[@]}" -eq 15 ] || fail 'request decoding did not return every field'
+  artifact_id="${fields[0]}"; artifact_revision="${fields[1]}"; section_id="${fields[2]}"
+  thread_id="${fields[3]}"; thread_revision="${fields[4]}"; decision_id="${fields[5]}"
+  decision_revision="${fields[6]}"; option_id="${fields[7]}"; decision_source="${fields[8]}"
+  decision_source_revision="${fields[9]}"; author="${fields[10]}"; body="${fields[11]}"
+  idempotency_key="${fields[12]}"; thread_cursor="${fields[13]}"; page_limit="${fields[14]}"
+
 fi
 state="$project_root/.mana/human-feedback"
 
@@ -194,7 +194,7 @@ decision_targets() {
   source="$(decision_source_file)"
   actual="sha256:$(hash_file "$source")"
   jq -e '.schemaVersion=="mana.story-start.implementation-plan/v2" and (.decisionRegister|type=="array")' "$source" >/dev/null || fail 'decision source is not a valid Story Start v2 implementation plan'
-  jq -c --arg path "$decision_source" --arg revision "$actual" '{schemaVersion:"mana.human-feedback.decision-targets/v1",sourcePath:$path,sourceRevision:$revision,decisions:[.decisionRegister[]|{decisionId:.id,question:.question,status:.status,options:[.options[]|{optionId:.id,label:.label,summary:.summary}]}]}' "$source"
+  jq -c --arg path "$decision_source" --arg revision "$actual" '{schemaVersion:"mana.human-feedback.decision-targets/v1",sourcePath:$path,sourceRevision:$revision,decisions:[.decisionRegister[]|{decisionId:.id,question:.question,status:.status,selectedOptionId:(.selectedOptionId // null),options:[.options[]|{optionId:.id,label:.label,summary:.summary}]}]}' "$source"
 }
 
 decision_state() {
@@ -419,18 +419,24 @@ list() {
       [ -n "$thread" ] || continue
       file="$(thread_file "$thread")"
       [ -f "$file" ] && [ ! -L "$file" ] || fail 'target index references an unavailable thread'
-      jq -L "$root/scripts/lib" -c --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" '
-        include "human-feedback-thread";
-        if valid_thread then . else error("malformed thread record") end |
-        select(.target.artifactId == $artifact and .target.artifactRevision == $revision and (.target.sectionId // "") == $section)
-      ' "$file" || fail "malformed thread record: ${file#$project_root/}"
-    done <<<"$ids" | jq -s .)"
+      cat "$file" || fail "unreadable thread record: ${file#$project_root/}"
+      printf '\n'
+    done <<<"$ids" | jq -L "$root/scripts/lib" -s --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" '
+      include "human-feedback-thread";
+      map(if valid_thread then . else error("malformed thread record") end) |
+      map(select(.target.artifactId == $artifact and .target.artifactRevision == $revision and (.target.sectionId // "") == $section))
+    ')" || fail 'malformed thread record collection'
   else
     # Index publication can be interrupted after the canonical thread rename.
     # A missing index must degrade to a complete read, never hide that record.
     entries="$(find "$state/threads" -type f -name 'thread_*.json' ! -type l -print | LC_ALL=C sort | while IFS= read -r file; do
-      jq -L "$root/scripts/lib" -c --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" 'include "human-feedback-thread"; if valid_thread then . else error("malformed thread record") end | select(.target.artifactId == $artifact and .target.artifactRevision == $revision and (.target.sectionId // "") == $section)' "$file" || fail "malformed thread record: ${file#$project_root/}"
-    done | jq -s .)"
+      cat "$file" || fail "unreadable thread record: ${file#$project_root/}"
+      printf '\n'
+    done | jq -L "$root/scripts/lib" -s --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" '
+      include "human-feedback-thread";
+      map(if valid_thread then . else error("malformed thread record") end) |
+      map(select(.target.artifactId == $artifact and .target.artifactRevision == $revision and (.target.sectionId // "") == $section))
+    ')" || fail 'malformed thread record collection'
   fi
   view_revision="sha256:$(hash "$entries")"
   printf '%s\n' "$entries" | jq -c --arg cursor "$thread_cursor" --argjson limit "$page_limit" --arg view "$view_revision" '
@@ -459,13 +465,14 @@ list_history() {
   # that validates and projects the record (important on native Windows).
   link_state="$(history_link_state "$section_id" "$artifact_revision")"
   entries="$(find "$state/threads" -type f -name 'thread_*.json' ! -type l -print | LC_ALL=C sort | while IFS= read -r file; do
-    jq -L "$root/scripts/lib" -c --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" --arg link "$link_state" '
-      include "human-feedback-thread";
-      if valid_thread then . else error("malformed thread record") end |
-      select(.target.artifactId == $artifact and ((.target.sectionId // "") == $section)) |
-      . + {linkState:(if $link == "valid" and .target.artifactRevision != $revision then "changed" else $link end)}
-    ' "$file" || fail "malformed thread record: ${file#$project_root/}"
-  done | jq -s .)"
+    cat "$file" || fail "unreadable thread record: ${file#$project_root/}"
+    printf '\n'
+  done | jq -L "$root/scripts/lib" -s --arg artifact "$artifact_id" --arg revision "$artifact_revision" --arg section "$section_id" --arg link "$link_state" '
+    include "human-feedback-thread";
+    map(if valid_thread then . else error("malformed thread record") end) |
+    map(select(.target.artifactId == $artifact and ((.target.sectionId // "") == $section)) |
+        . + {linkState:(if $link == "valid" and .target.artifactRevision != $revision then "changed" else $link end)})
+  ')" || fail 'malformed thread record collection'
   view_revision="sha256:$(hash "$entries")"
   printf '%s\n' "$entries" | jq -c --arg cursor "$thread_cursor" --argjson limit "$page_limit" --arg view "$view_revision" '
     [.[] | select(.threadId > $cursor)] as $remaining |

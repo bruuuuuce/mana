@@ -116,6 +116,9 @@ esac
         match = next(item for item in published["decisionRegister"] if item["question"] == question)
         assert match["status"] == "resolved" and match["selectedOptionId"] == selected
         assert load(workspace / "validation/story-start-scope-governance-v2.json")["status"] == "passed"
+        current_targets = json.loads(run([feedback, "--project-root", project, "decision-targets", "--decision-source", relative, "--json"]).stdout)
+        projected = next(item for item in current_targets["decisions"] if item["decisionId"] == match["id"])
+        assert projected["status"] == "resolved" and projected["selectedOptionId"] == selected
 
     # Dropping the choice is rejected before publication; the last good plan
     # remains byte-identical. The test uses the real public pipeline.
