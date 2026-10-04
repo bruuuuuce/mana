@@ -326,7 +326,7 @@ def build(project: Path, database: Path, identity: str) -> dict[str, object]:
                     connection.execute("DELETE FROM knowledge_passages WHERE document_id=?", (source.document_id,))
                 title, passages = title_and_passages(source, content)
                 info = source.info
-                connection.execute("INSERT OR REPLACE INTO knowledge_documents VALUES(?,?,?,?,?,?,?,?,?,?,?)", (source.document_id, source.reference, source.scope, source.lifecycle, title, revision, len(content.encode()), info.st_dev, info.st_ino, info.st_mtime_ns, info.st_ctime_ns))
+                connection.execute("INSERT OR REPLACE INTO knowledge_documents VALUES(?,?,?,?,?,?,?,?,?,?,?)", (source.document_id, source.reference, source.scope, source.lifecycle, title, revision, len(content.encode()), catalog.sqlite_file_identity(info.st_dev), catalog.sqlite_file_identity(info.st_ino), info.st_mtime_ns, info.st_ctime_ns))
                 for ordinal, (passage_id, heading, body) in enumerate(passages):
                     passage_revision = f"sha256:{hashlib.sha256(body.encode()).hexdigest()}"
                     cursor = connection.execute("INSERT INTO knowledge_passages(passage_id,document_id,ordinal,heading_path,body,passage_revision,byte_size) VALUES(?,?,?,?,?,?,?)", (passage_id, source.document_id, ordinal, heading, body, passage_revision, len(body.encode())))
