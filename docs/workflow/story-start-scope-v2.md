@@ -89,6 +89,7 @@ planning/story-start-scope-triage-v2.json
 planning/story-start-implementation-plan-v2.json
 planning/story-start-scope-v2.md
 validation/story-start-scope-governance-v2.json
+validation/story-start-human-decisions-v1.json
 validation/story-start-scope-run-v2.json
 ```
 
