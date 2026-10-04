@@ -10,6 +10,7 @@ command="$root/scripts/mana-human-feedback.sh"
 fail() { echo "FAIL: $*" >&2; exit 1; }
 python3 "$root/tests/mana-human-feedback-line-endings.py"
 python3 "$root/tests/mana-human-feedback-large-reads.py"
+python3 "$root/tests/mana-human-feedback-portable-operations.py"
 
 # A read on a project with no feedback state is pure: it must not create .mana.
 empty="$tmp/empty"

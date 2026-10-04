@@ -160,7 +160,26 @@ target_index_file() {
 }
 # Decision IDs are logical producer identifiers, never filesystem components.
 decision_file() { printf '%s/decisions/decision_%s.json' "$state" "$(hash "$1")"; }
-operation_file() { printf '%s/operations/%s.json' "$state" "$1"; }
+# Operation IDs remain logical identities. Hash the filesystem component to
+# avoid NTFS streams, reserved device names and overlong encoded keys.
+operation_file() { printf '%s/operations/operation_%s.json' "$state" "$(hash "$1")"; }
+legacy_operation_file() {
+  # Probing a Windows device name can open a device instead of a receipt.
+  if [ "${OS:-}" = Windows_NT ] || [[ "${OSTYPE:-}" == msys* || "${OSTYPE:-}" == cygwin* ]]; then
+    case "${1%%.*}" in
+      [Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9]) return 0;;
+    esac
+  fi
+  printf '%s/operations/%s.json' "$state" "$1"
+}
+existing_operation_file() {
+  local file legacy
+  file="$(operation_file "$1")"
+  legacy="$(legacy_operation_file "$1")"
+  if [ -e "$file" ] || [ -L "$file" ]; then printf '%s' "$file"
+  elif [ -e "$legacy" ] || [ -L "$legacy" ]; then printf '%s' "$legacy"
+  else printf '%s' "$file"; fi
+}
 hash() { if command -v sha256sum >/dev/null 2>&1; then printf '%s' "$1" | sha256sum | awk '{print $1}'; else printf '%s' "$1" | shasum -a 256 | awk '{print $1}'; fi; }
 hash_file() { if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | awk '{print $1}'; else shasum -a 256 "$1" | awk '{print $1}'; fi; }
 recorded_at() { date -u +%Y-%m-%dT%H:%M:%SZ; }
@@ -293,17 +312,24 @@ write_operation() {
   temp="$(mktemp "$state/operations/.human-feedback.tmp.XXXXXX")"
   jq -cn --arg key "$key" --arg digest "$request_digest" --arg phase "$phase" --argjson result "$result" '{schemaVersion:"mana.human-feedback.operation/v1",operationId:$key,requestDigest:$digest,phase:$phase,result:$result}' > "$temp"
   mv "$temp" "$(operation_file "$key")"
+  # Retire a legacy receipt only after the portable record is durable.
+  local legacy="$(legacy_operation_file "$key")"
+  if [ -e "$legacy" ]; then
+    [ -f "$legacy" ] && [ ! -L "$legacy" ] || fail 'legacy operation record is unsafe'
+    rm "$legacy"
+  fi
 }
 
 idempotent_result() {
-  local digest="$1" file actual
-  file="$(operation_file "$idempotency_key")"
+  local digest="$1" file actual record
+  file="$(existing_operation_file "$idempotency_key")"
   [ -e "$file" ] || return 1
   [ ! -L "$file" ] || fail 'operation record must not be a symlink'
-  actual="$(jq -r '.requestDigest // empty' "$file")"
+  record="$(cat "$file")" || fail 'operation record is unreadable'
+  actual="$(printf '%s' "$record" | jq -r '.requestDigest // empty')" || fail 'operation record is malformed'
   [ "$actual" = "$digest" ] || return 2
-  jq -e '.schemaVersion=="mana.human-feedback.operation/v1" and (.phase|IN("prepared","committed")) and (.result|type=="object")' "$file" >/dev/null || fail 'operation record is malformed'
-  jq -c . "$file"
+  printf '%s' "$record" | jq -e --arg key "$idempotency_key" '.schemaVersion=="mana.human-feedback.operation/v1" and .operationId==$key and (.phase|IN("prepared","committed")) and (.result|type=="object")' >/dev/null || fail 'operation record is malformed'
+  printf '%s' "$record" | jq -c .
 }
 prepared_result_is_published() {
   local result="$1" id revision option file
@@ -329,13 +355,13 @@ prepared_result_is_published() {
 operation() {
   validate_key_for "$operation_id"
   assert_existing_state_safe
-  file="$(operation_file "$operation_id")"
+  file="$(existing_operation_file "$operation_id")"
   if [ ! -e "$file" ]; then
     jq -cn --arg id "$operation_id" '{schemaVersion:"mana.human-feedback.operation-status/v1",operationId:$id,status:"unknown"}'
     return
   fi
   [ -f "$file" ] && [ ! -L "$file" ] || fail 'operation record is unsafe'
-  jq -c '{schemaVersion:"mana.human-feedback.operation-status/v1",operationId:.operationId,status:(if .phase=="committed" then "persisted" else "outcome_to_verify" end),result:.result}' "$file"
+  cat "$file" | jq -c --arg key "$operation_id" 'if .schemaVersion=="mana.human-feedback.operation/v1" and .operationId==$key and (.phase|IN("prepared","committed")) and (.result|type=="object") then {schemaVersion:"mana.human-feedback.operation-status/v1",operationId:.operationId,status:(if .phase=="committed" then "persisted" else "outcome_to_verify" end),result:.result} else error("malformed operation record") end'
 }
 
 capabilities() {
