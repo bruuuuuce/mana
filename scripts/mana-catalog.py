@@ -8,6 +8,7 @@ import contextlib
 import hashlib
 import json
 import os
+import shutil
 import sqlite3
 import stat
 import subprocess
@@ -29,6 +30,17 @@ class CatalogError(RuntimeError):
 
 class BusyError(CatalogError):
     pass
+
+
+def shell_command(script: Path, arguments: list[str]) -> list[str]:
+    """Launch bundled shell producers with Git Bash on native Windows."""
+    if os.name != "nt":
+        return [str(script), *arguments]
+    candidates = [Path(os.environ.get("ProgramFiles", "C:/Program Files")) / "Git/bin/bash.exe", Path(os.environ.get("LOCALAPPDATA", "C:/nonexistent")) / "Programs/Git/bin/bash.exe"]
+    bash = next((str(path) for path in candidates if path.is_file()), None) or shutil.which("bash.exe")
+    if not bash:
+        raise CatalogError("Git Bash is required for Windows shell producers")
+    return [bash, "--noprofile", "--norc", str(script).replace("\\", "/"), *arguments]
 
 
 def cache_root(*, platform: str | None = None, environment: Mapping[str, str] | None = None, home: Path | None = None) -> Path:
