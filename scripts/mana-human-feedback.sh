@@ -160,9 +160,10 @@ target_index_file() {
 }
 # Decision IDs are logical producer identifiers, never filesystem components.
 decision_file() { printf '%s/decisions/decision_%s.json' "$state" "$(hash "$1")"; }
-# Operation IDs remain logical identities. Hash the filesystem component to
+# The tilde is outside the logical-key alphabet: new filenames cannot alias
+# a valid legacy key. Operation IDs remain logical identities. Hash components to
 # avoid NTFS streams, reserved device names and overlong encoded keys.
-operation_file() { printf '%s/operations/operation_%s.json' "$state" "$(hash "$1")"; }
+operation_file() { printf '%s/operations/operation~%s.json' "$state" "$(hash "$1")"; }
 legacy_operation_file() {
   # Probing a Windows device name can open a device instead of a receipt.
   if [ "${OS:-}" = Windows_NT ] || [[ "${OSTYPE:-}" == msys* || "${OSTYPE:-}" == cygwin* ]]; then
