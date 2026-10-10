@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import fcntl
 import re
 from contextlib import contextmanager
 import importlib.util
@@ -168,7 +167,7 @@ def _task_lock(root: Path, key: str):
         # publication race or bootstrap temporary can exist. Unsupported directory
         # flock fails closed, just like unsupported CTX-03 rename primitives.
         runtime._test_sync("worker-before-state-lock")
-        fcntl.flock(parent, fcntl.LOCK_EX)
+        runtime.lock_exclusive(parent)
         if not runtime._same_existing_directory_from_root(root_fd, components, parent, nofollow, directory):
             fail("worker state lock binding changed")
         _HELD_LOCKS.add(identity)

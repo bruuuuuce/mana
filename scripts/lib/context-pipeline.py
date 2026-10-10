@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import contextlib
-import fcntl
 import hashlib
 import importlib.util
 import json
@@ -1333,7 +1332,7 @@ def _head_cas_lock(context: RunContext):
                     root_fd, components, parent_fd, nofollow, directory
                 )):
             fail("run-state CAS lock binding is invalid")
-        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+        runtime.lock_exclusive(lock_fd)
         if (not runtime._verify_identity(parent_fd, lock_name, identity)
                 or not runtime._same_existing_directory_from_root(
                     root_fd, components, parent_fd, nofollow, directory
@@ -1345,7 +1344,7 @@ def _head_cas_lock(context: RunContext):
     finally:
         if lock_fd >= 0:
             try:
-                fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                runtime.unlock(lock_fd)
             finally:
                 os.close(lock_fd)
         for opened_fd in reversed(parent_fds):

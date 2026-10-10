@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import importlib.util
-import fcntl
 import json
 import os
 import re
@@ -457,7 +456,7 @@ def with_run_lock(project_root_value: str, execution_id: str, command: list[str]
             )
         ):
             fail("provider phase lock is not a regular file")
-        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+        runtime.lock_exclusive(lock_fd)
         if (
             not runtime._verify_identity(
                 parent_fd, relative.split("/")[-1], identity

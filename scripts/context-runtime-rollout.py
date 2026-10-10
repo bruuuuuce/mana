@@ -442,6 +442,7 @@ def load_policy(root: Path) -> tuple[dict[str, object] | None, str]:
 
 
 def _project_root_binding(root: Path) -> str:
+    _runtime_module()._require_secure_dir_fd_support()
     metadata = root.stat(follow_symlinks=False)
     if not stat.S_ISDIR(metadata.st_mode) or metadata.st_uid != os.getuid():
         raise RolloutError("project root is not a host-owned directory")
@@ -1746,7 +1747,10 @@ def _warning(code: str, severity: str, profile: str, runtime: str, reason: str, 
 
 
 def _capability_report(root: Path) -> tuple[dict[str, object] | None, str]:
-    raw = _safe_read(root, ".mana/runtime/provider-capabilities-v1.json")
+    try:
+        raw = _safe_read(root, ".mana/runtime/provider-capabilities-v1.json")
+    except _runtime_module().PlatformUnavailable:
+        return None, "unavailable"
     if raw is None:
         return None, "unavailable"
     try:
@@ -1804,7 +1808,12 @@ def _profile_diagnostics(root: Path, policy: dict[str, object] | None, policy_st
                 warnings.append(_warning("CTX10_BOOTSTRAP_STALE", "warning", profile, effective, "provider rollout metadata is stale", "refresh only the bounded managed block through explicit bootstrap"))
             elif state["managedBlock"] == "future":
                 warnings.append(_warning("CTX10_MANAGED_BLOCK_FUTURE", "warning", profile, effective, "provider rollout metadata is newer than this runtime", "upgrade Mana or recover the block manually; do not overwrite it"))
-        readiness = "ready" if effective == "legacy" and policy_state != "invalid" else ("blocked" if gaps else "unavailable" if policy_state != "current" else "ready")
+        if policy_state == "unavailable":
+            gaps.append("context-runtime-platform-primitives")
+            warnings.append(_warning("CTX10_PLATFORM_UNAVAILABLE", "warning", profile, effective,
+                                     "authoritative runtime readers and publications are unavailable on this host",
+                                     "use a host with the required Context Runtime primitives"))
+        readiness = "ready" if effective == "legacy" and policy_state not in {"invalid", "unavailable"} else ("blocked" if gaps else "unavailable" if policy_state != "current" else "ready")
         disposition, migration_warning = _migration_metadata(configured, bool(selection.get("exempted", False)), declared=declared)
         values.append({"profileId": profile, "configuredSelection": configured, "inheritedDefault": configured == "inherited", "effectiveRuntime": effective, "migrationDisposition": disposition, "migrationWarning": migration_warning, "readiness": readiness, "blockingCapabilityGaps": gaps, "bootstrapState": policy_state, "migrationWarnings": warnings})
     return values
@@ -1813,6 +1822,8 @@ def _profile_diagnostics(root: Path, policy: dict[str, object] | None, policy_st
 def status(root: Path) -> dict[str, object]:
     try:
         policy, policy_state = load_policy(root)
+    except _runtime_module().PlatformUnavailable:
+        policy, policy_state = None, "unavailable"
     except RolloutError:
         policy, policy_state = None, "invalid"
     providers = {}
@@ -1825,6 +1836,8 @@ def status(root: Path) -> dict[str, object]:
             raw = _safe_read(root, relative) or b""
             block = next((item for item in _parse_blocks(raw) if item["id"] == block_id), None)
             state = "missing" if block is None else "future" if int(block["version"]) > VERSION else "stale" if int(block["version"]) < VERSION else "current"
+        except _runtime_module().PlatformUnavailable:
+            state = "unavailable"
         except RolloutError:
             state = "invalid"
         providers[name] = {"installed": True, "managedBlock": state, "warning": None}
@@ -1835,7 +1848,9 @@ def status(root: Path) -> dict[str, object]:
     except FileNotFoundError:
         linked = False
     diagnostics = _profile_diagnostics(root, policy, policy_state, providers)
-    return {"schemaVersion": "mana.context-runtime.rollout-status/v1", "legacyAvailable": True, "v2Available": (Path(__file__).with_name("run-profile-v2.sh").is_file()), "policy": policy_state, "profiles": sorted((policy or {"profiles": {}})["profiles"].keys()), "profileDiagnostics": diagnostics, "providers": providers, "noLinks": not linked, "budget": "provisional-no-empirical-baseline", "capabilityReport": _capability_report(root)[1] == "current", "usageMetrics": (root / ".mana/runtime/metrics").is_dir()}
+    # Even legacy dispatch must read policy through candidate before rendering.
+    # A platform denial there is not the inherited legacy rollout default.
+    return {"schemaVersion": "mana.context-runtime.rollout-status/v1", "legacyAvailable": policy_state != "unavailable", "v2Available": policy_state != "unavailable" and (Path(__file__).with_name("run-profile-v2.sh").is_file()), "policy": policy_state, "profiles": sorted((policy or {"profiles": {}})["profiles"].keys()), "profileDiagnostics": diagnostics, "providers": providers, "noLinks": not linked, "budget": "provisional-no-empirical-baseline", "capabilityReport": _capability_report(root)[1] == "current", "usageMetrics": (root / ".mana/runtime/metrics").is_dir()}
 
 
 def _json_artifact(root: Path, relative: str) -> tuple[dict[str, object] | None, str]:
@@ -1957,15 +1972,24 @@ def _run_state_status(root: Path, profile: str, execution: str, framework_root: 
 
 
 def inspect(root: Path, profile: str, execution: str | None, framework_root: Path | None = None) -> dict[str, object]:
-    decision = preview_policy(root, profile)
+    if execution is not None and not re.fullmatch(r"execution-[A-Za-z0-9._-]{1,120}", execution):
+        raise RolloutError("execution identity is invalid")
+    try:
+        decision = preview_policy(root, profile)
+        platform_unavailable = False
+    except _runtime_module().PlatformUnavailable:
+        # Preserve the existing diagnostic shape and the compiled legacy default.
+        # This is an observer only: unreadable policy is never dispatch authority.
+        decision = _selection_from_policy(None, "unavailable", profile)
+        platform_unavailable = True
     run_state: dict[str, object] | None = None
-    artifact_status, artifact_reason = "missing", "not-requested"
+    artifact_status, artifact_reason = ("unavailable", "context-runtime-platform-primitives-unavailable") if platform_unavailable else ("missing", "not-requested")
     unavailable = {"status": "unavailable", "reason": "execution-not-requested"}
     usage, delegation, receipt = unavailable, unavailable, unavailable
     comparison = {"status": "not-requested" if decision["mode"] in {"legacy", "v2"} else "unavailable", "reason": "execution-not-requested"}
-    if execution is not None:
-        if not re.fullmatch(r"execution-[A-Za-z0-9._-]{1,120}", execution):
-            raise RolloutError("execution identity is invalid")
+    if platform_unavailable:
+        usage = delegation = receipt = comparison = {"status": "unavailable", "reason": artifact_reason}
+    elif execution is not None:
         run_state, artifact_status, artifact_reason = _run_state_status(root, profile, execution, framework_root)
         ctx = _runtime_module()
         usage = _surface(root, [f".mana/runtime/metrics/{execution}/usage-summary-v1.json"], lambda v: ctx.validate_model("usage-summary", v), lambda v: v["executionId"] == execution and v["profileId"] == profile, lambda v: {"usageStatus": v["usageStatus"], "totals": v["totals"], "turns": v["turns"], "toolCalls": v["toolCalls"], "workers": v["workers"], "compactions": v["compactions"]})

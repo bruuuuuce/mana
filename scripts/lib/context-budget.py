@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import fcntl
 import hashlib
 import importlib.util
 import json
@@ -253,7 +252,7 @@ def decision_lock(project_root: Path, execution_id: str):
         identity = runtime._entry_identity(os.fstat(fd))
         if not stat.S_ISREG(os.fstat(fd).st_mode):
             raise BudgetError("budget decision lock is not regular")
-        fcntl.flock(fd, fcntl.LOCK_EX)
+        runtime.lock_exclusive(fd)
         if not runtime._verify_identity(parent, relative.split("/")[-1], identity) or not runtime._same_existing_directory_from_root(root_fd, relative.split("/")[:-1], parent, nofollow, directory):
             raise BudgetError("budget decision lock binding changed")
         yield

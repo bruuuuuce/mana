@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import ctypes
 import errno
-import fcntl
+try:
+    import fcntl
+except ModuleNotFoundError:
+    fcntl = None  # Importable diagnostics; protected operations still fail closed.
 import hashlib
 import json
 import os
@@ -93,6 +96,25 @@ LEGACY_ACTIVATION_WARNING = (
 
 class ContractError(ValueError):
     pass
+
+
+class PlatformUnavailable(ContractError):
+    """The host cannot provide a required Context Runtime primitive."""
+
+
+def _require_flock() -> None:
+    if fcntl is None:
+        raise PlatformUnavailable("context runtime unavailable: platform lacks flock")
+
+
+def lock_exclusive(fd: int) -> None:
+    _require_flock()
+    fcntl.flock(fd, fcntl.LOCK_EX)
+
+
+def unlock(fd: int) -> None:
+    _require_flock()
+    fcntl.flock(fd, fcntl.LOCK_UN)
 
 
 @dataclass(frozen=True)
@@ -989,7 +1011,7 @@ def _require_secure_dir_fd_support() -> tuple[int, int]:
     nofollow, directory = getattr(os, "O_NOFOLLOW", None), getattr(os, "O_DIRECTORY", None)
     required = (os.open, os.mkdir, os.stat, os.unlink)
     if nofollow is None or directory is None or any(fn not in os.supports_dir_fd for fn in required):
-        raise ContractError("platform lacks required directory-FD/no-follow primitives")
+        raise PlatformUnavailable("context runtime unavailable: platform lacks required directory-FD/no-follow primitives")
     return nofollow, directory
 
 
@@ -1090,6 +1112,7 @@ def stable_file_lock(project_root: Path, relative: str) -> Iterator[tuple[int, i
     """
     if not is_safe_relative_path(relative):
         raise ContractError("lock path must be a safe project-relative path")
+    _require_flock()
     nofollow, directory = _require_secure_dir_fd_support()
     components = relative.split("/")
     parent_components, lock_name = components[:-1], components[-1]
@@ -1130,7 +1153,7 @@ def stable_file_lock(project_root: Path, relative: str) -> Iterator[tuple[int, i
             or not _verify_identity(parent_fd, lock_name, identity)
         ):
             raise ContractError("stable lock entry is unsafe")
-        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+        lock_exclusive(lock_fd)
         locked = True
         _test_lock_sync("after-lock-acquired")
         metadata = os.fstat(lock_fd)
@@ -1165,7 +1188,7 @@ def stable_file_lock(project_root: Path, relative: str) -> Iterator[tuple[int, i
         if lock_fd >= 0:
             try:
                 if locked:
-                    fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                    unlock(lock_fd)
                     _test_lock_sync("after-lock-release-before-close")
             finally:
                 os.close(lock_fd)
@@ -1704,8 +1727,11 @@ class _RenamePrimitives:
     RENAME_EXCL = 0x00000004
 
     def __init__(self) -> None:
-        libc = ctypes.CDLL(None, use_errno=True)
         self._function: Any | None = None
+        self._noreplace = self._exchange = 0
+        if not (sys.platform.startswith("linux") or sys.platform == "darwin"):
+            return
+        libc = ctypes.CDLL(None, use_errno=True)
         if sys.platform.startswith("linux") and hasattr(libc, "renameat2"):
             function = libc.renameat2
             function.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
@@ -1725,7 +1751,7 @@ class _RenamePrimitives:
 
     def _rename(self, source_fd: int, source: str, target_fd: int, target: str, flag: int) -> None:
         if self._function is None:
-            raise ContractError("platform lacks kernel no-replace/exchange rename primitives")
+            raise PlatformUnavailable("context runtime unavailable: platform lacks kernel no-replace/exchange rename primitives")
         ctypes.set_errno(0)
         result = self._function(source_fd, os.fsencode(source), target_fd, os.fsencode(target), flag)
         if result != 0:
@@ -1742,7 +1768,7 @@ class _RenamePrimitives:
 def _require_rename_primitives() -> _RenamePrimitives:
     primitives = _RenamePrimitives()
     if not primitives.available:
-        raise ContractError("platform lacks kernel no-replace/exchange rename primitives")
+        raise PlatformUnavailable("context runtime unavailable: platform lacks kernel no-replace/exchange rename primitives")
     return primitives
 
 

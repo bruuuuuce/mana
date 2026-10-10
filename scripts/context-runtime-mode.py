@@ -2,7 +2,6 @@
 """CTX-09A host-only, local mode hand-offs; no semantic comparison or live v2."""
 import argparse
 import errno
-import fcntl
 import hashlib
 import importlib.util
 import json
@@ -404,7 +403,7 @@ def _publish_runtime_artifact(project_root, execution_id, profile_id, target_key
         raise runtime.ContractError("invalid host publication")
     with HostRoot(project_root) as root, publication_signals():
         with root.directory_fd(namespace.split("/"), create=True) as receipts:
-            fcntl.flock(receipts, fcntl.LOCK_EX)
+            runtime.lock_exclusive(receipts)
             absent(receipts, key)
             absent(receipts, key + ".commit")
             components = relative_path(path)
@@ -643,7 +642,7 @@ def main():
                     raise runtime.ContractError("shadow accepts no comparison artifacts")
                 value.update(v2Execution="deferred-ctx-09c", publication="disabled")
             with root.directory_fd(NAMESPACE.split("/"), create=True) as parent:
-                fcntl.flock(parent, fcntl.LOCK_EX)
+                runtime.lock_exclusive(parent)
                 root.attest_directory(NAMESPACE.split("/"), parent)
                 absent(parent, args.execution_id)
                 if args.mode == "shadow-run":

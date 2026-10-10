@@ -11,7 +11,6 @@ either command and never forwards the shadow output to the caller.
 from __future__ import annotations
 
 import argparse
-import fcntl
 import hashlib
 import importlib.util
 import json
@@ -350,7 +349,7 @@ def producer_lock(root, relative):
             if (not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1
                     or metadata.st_uid != os.getuid() or stat.S_IMODE(metadata.st_mode) != 0o600):
                 raise mode.runtime.ContractError("producer lock is not private")
-            fcntl.flock(fd, fcntl.LOCK_EX)
+            mode.runtime.lock_exclusive(fd)
             root.attest_directory(parts[:-1], parent)
             if not mode.runtime._verify_identity(parent, parts[-1], mode.runtime._entry_identity(metadata)):
                 raise mode.runtime.ContractError("producer lock binding changed")
