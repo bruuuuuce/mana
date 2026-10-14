@@ -50,7 +50,7 @@ chmod +x "$tmp/provider-stub"
 
 init_project() {
   local project="$1" initial="${2:-TWO}"; mkdir -p "$project"; git -C "$project" init -q; git -C "$project" config user.email test@example.invalid; git -C "$project" config user.name Test; git -C "$project" config commit.gpgsign false
-  printf 'OK\n' > "$project/fixture.sh"; printf 'base\n' > "$project/unrelated.txt"; printf '.mana/\n' > "$project/.gitignore"; git -C "$project" add .; git -C "$project" commit -qm base
+  printf 'OK\n' > "$project/fixture.sh"; printf 'base\n' > "$project/unrelated.txt"; printf '.mana/\n' > "$project/.gitignore"; git -C "$project" add .
   if [ "$initial" = MANY ]; then i=0; while [ "$i" -lt 99 ]; do printf 'TWO-%s\n' "$i"; i=$((i+1)); done > "$project/fixture.sh"; else printf '%s\n' "$initial" > "$project/fixture.sh"; fi
 }
 make_origin() { local project="$1" capture="$2"; PATH="$tmp/bin:$PATH" "$root/scripts/mana-verify.sh" --project-root "$project" --skill shell-syntax-verification --json > "$capture" && fail 'controlled negative fixture passed'; find "$project/.mana" -path '*/evidence/verification/*/result.json' -type f | tail -n1; }

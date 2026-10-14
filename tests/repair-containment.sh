@@ -5,7 +5,7 @@ root="$(cd "$(dirname "$0")/.." && pwd)"; tmp="$(mktemp -d "${TMPDIR:-/tmp}/mana
 fail() { echo "FAIL: $*" >&2; exit 1; }
 init_repo() {
   mkdir -p "$1"; git -C "$1" init -q; git -C "$1" config user.email test@example.invalid; git -C "$1" config user.name Test; git -C "$1" config commit.gpgsign false
-  printf '#!/usr/bin/env bash\ntrue\n' > "$1/fixture.sh"; printf 'base\n' > "$1/unrelated.txt"; printf '.mana/\n' > "$1/.gitignore"; git -C "$1" add .; git -C "$1" commit -qm base
+  printf '#!/usr/bin/env bash\ntrue\n' > "$1/fixture.sh"; printf 'base\n' > "$1/unrelated.txt"; printf '.mana/\n' > "$1/.gitignore"; git -C "$1" add .
   printf '#!/usr/bin/env bash\nif then\n' > "$1/fixture.sh"
 }
 make_origin() { "$root/scripts/mana-verify.sh" --project-root "$1" --skill shell-syntax-verification --json > "$tmp/verify.json" && fail 'invalid shell fixture passed'; find "$1/.mana" -path '*/evidence/verification/*/result.json' -type f | tail -n1; }

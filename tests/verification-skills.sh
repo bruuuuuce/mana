@@ -192,7 +192,7 @@ mkdir -p "$mutation_project/build"; printf 'generated\n' > "$mutation_project/bu
 
 # A tracked path remains attribution-sensitive even under a conventional build
 # directory; only untracked build/cache output receives the path exemption.
-printf 'tracked output\n' > "$mutation_project/build/tracked.txt"; git -C "$mutation_project" add -f build/tracked.txt; git -C "$mutation_project" commit -qm 'tracked build fixture'; mkdir -p "$tmp/tracked-build-before" "$tmp/tracked-build-after"; verification_snapshot_source_state "$mutation_project" "$tmp/tracked-build-before/state" "$tmp/tracked-build-before/paths" "$tmp/tracked-build-before/untracked"; printf 'changed by verifier\n' >> "$mutation_project/build/tracked.txt"
+printf 'tracked output\n' > "$mutation_project/build/tracked.txt"; git -C "$mutation_project" add -f build/tracked.txt; mkdir -p "$tmp/tracked-build-before" "$tmp/tracked-build-after"; verification_snapshot_source_state "$mutation_project" "$tmp/tracked-build-before/state" "$tmp/tracked-build-before/paths" "$tmp/tracked-build-before/untracked"; printf 'changed by verifier\n' >> "$mutation_project/build/tracked.txt"
 mutations="$(verification_detect_source_mutations "$mutation_project" "$tmp/tracked-build-before/state" "$tmp/tracked-build-before/paths" "$tmp/tracked-build-before/untracked" "$tmp/tracked-build-after")"; printf '%s\n' "$mutations" | grep -Fq build/tracked.txt || fail 'tracked build path mutation was ignored'
 
 # A pre-existing untracked source path is fingerprinted by content/type/mode.

@@ -4,7 +4,7 @@ set -eu
 root="$(cd "$(dirname "$0")/.." && pwd)"; tmp="$(mktemp -d "${TMPDIR:-/tmp}/mana-repair-tests.XXXXXX")"; trap 'rm -rf "$tmp"' EXIT
 . "$root/scripts/lib/verification.sh"; . "$root/scripts/lib/repair.sh"
 fail() { echo "FAIL: $*" >&2; exit 1; }
-init_repo() { mkdir -p "$1"; git -C "$1" init -q; git -C "$1" config user.email test@example.invalid; git -C "$1" config user.name Test; git -C "$1" config commit.gpgsign false; printf '#!/usr/bin/env bash\ntrue\n' > "$1/fixture.sh"; printf 'base\n' > "$1/unrelated.txt"; printf '.mana/\n' > "$1/.gitignore"; git -C "$1" add .; git -C "$1" commit -qm base; printf '#!/usr/bin/env bash\nif then\n' > "$1/fixture.sh"; }
+init_repo() { mkdir -p "$1"; git -C "$1" init -q; git -C "$1" config user.email test@example.invalid; git -C "$1" config user.name Test; git -C "$1" config commit.gpgsign false; printf '#!/usr/bin/env bash\ntrue\n' > "$1/fixture.sh"; printf 'base\n' > "$1/unrelated.txt"; printf '.mana/\n' > "$1/.gitignore"; git -C "$1" add .; printf '#!/usr/bin/env bash\nif then\n' > "$1/fixture.sh"; }
 make_origin() { "$root/scripts/mana-verify.sh" --project-root "$1" --skill shell-syntax-verification --json > "$2" && fail 'broken syntax passed'; find "$1/.mana" -path '*/evidence/verification/*/result.json' -type f | tail -n1; }
 make_stub() { printf '%s\n' '#!/usr/bin/env bash' "$2" > "$1"; chmod +x "$1"; }
 repair() { MANA_REPAIR_ALLOW_STUB=true MANA_REPAIR_STUB_COMMAND="$2" "$root/scripts/mana-repair.sh" --project-root "$1" --from "$3" --check "$4" --allow-path fixture.sh --runner stub --once --json; }
@@ -32,7 +32,7 @@ dirty_result="$(repair "$dirty_project" "$stub" "$dirty_origin" "$dirty_check")"
 
 # Multiple failed concerns require selection; an explicit repair compares only
 # its bounded cohort and ignores the unrelated historical failure.
-multi_project="$tmp/multi"; init_repo "$multi_project"; printf '#!/usr/bin/env bash\ntrue\n' > "$multi_project/second.sh"; git -C "$multi_project" add second.sh; git -C "$multi_project" commit -qm second; printf '#!/usr/bin/env bash\nif then\n' > "$multi_project/second.sh"; multi_origin="$(make_origin "$multi_project" "$tmp/multi.json")"; multi_check="$(jq -r '.checks[]|select(.rerunDescriptor.path=="fixture.sh")|.checkId' "$multi_origin")"
+multi_project="$tmp/multi"; init_repo "$multi_project"; printf '#!/usr/bin/env bash\ntrue\n' > "$multi_project/second.sh"; git -C "$multi_project" add second.sh; printf '#!/usr/bin/env bash\nif then\n' > "$multi_project/second.sh"; multi_origin="$(make_origin "$multi_project" "$tmp/multi.json")"; multi_check="$(jq -r '.checks[]|select(.rerunDescriptor.path=="fixture.sh")|.checkId' "$multi_origin")"
 multi_plan="$(MANA_REPAIR_ALLOW_STUB=true MANA_REPAIR_STUB_COMMAND="$stub" "$root/scripts/mana-repair.sh" --project-root "$multi_project" --from "$multi_origin" --allow-path fixture.sh --runner stub --once --dry-run --json 2>/dev/null || true)"; jq -e '.eligibility=="requires_human" and (.reason|contains("explicit --check"))' <<<"$multi_plan" >/dev/null || fail 'multiple failures were selected automatically'
 multi_result="$(repair "$multi_project" "$stub" "$multi_origin" "$multi_check")" || fail 'explicit bounded cohort repair failed'; jq -e '.comparison=="RESOLVED" and .newRequiredFailures==[] and .verificationRerunCount==1' <<<"$multi_result" >/dev/null || fail 'unrelated baseline failure contaminated comparison'
 
