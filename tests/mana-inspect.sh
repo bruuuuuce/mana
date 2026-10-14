@@ -191,22 +191,27 @@ if "$project/mana" inspect artifact verification:run-1 --json >/dev/null 2>&1; t
 rm -rf "$project/.mana/sessions/session-1/evidence"
 
 # Detail and source navigation use only producer-owned Journey anchors.
-mkdir -p "$project/src/main/java/example"
-printf '%s\n' 'class PaymentService {}' > "$project/src/main/java/example/PaymentService.java"
-git -C "$project" -c user.name=Mana -c user.email=mana@example.invalid add src
-git -C "$project" -c user.name=Mana -c user.email=mana@example.invalid -c commit.gpgsign=false commit -qm source-fixture
-revision="$(git -C "$project" rev-parse HEAD)"
-journey="$($root/scripts/mana-journey.sh --project-root "$project" create --title 'Inspect source' --start-kind http_endpoint --start-value /payments --termination-kind runtime_effect --termination-condition committed --revision "$revision")"
-node="$($root/scripts/mana-journey.sh --project-root "$project" add-node "$journey" --kind code)"
-anchor="$($root/scripts/mana-journey.sh --project-root "$project" add-anchor "$journey" --node "$node" --revision "$revision" --path src/main/java/example/PaymentService.java --start-line 1 --end-line 1 --symbol PaymentService)"
-"$project/mana" inspect artifact "journey:$journey" --json > "$tmp/journey-detail.json"
+# Reuse a pinned existing object, without creating fixture commits. Keep this
+# source fixture separate from the synthetic catalog/workspace above.
+source_project="$tmp/source-snapshot"
+revision="$(git -C "$root" rev-parse HEAD)"
+source_path="scripts/lib/json.sh"
+git clone --quiet --no-hardlinks --no-checkout "$root" "$source_project"
+git -C "$source_project" checkout --quiet --detach "$revision"
+git -C "$source_project" show "$revision:$source_path" > "$tmp/source-original.sh"
+cmp -s "$tmp/source-original.sh" "$source_project/$source_path" || fail 'source fixture differs from its existing snapshot'
+"$root/scripts/bootstrap-project.sh" --project-root "$source_project" --mana-root "$root" --no-jira-env >/dev/null
+journey="$($root/scripts/mana-journey.sh --project-root "$source_project" create --title 'Inspect source' --start-kind http_endpoint --start-value /payments --termination-kind runtime_effect --termination-condition committed --revision "$revision")"
+node="$($root/scripts/mana-journey.sh --project-root "$source_project" add-node "$journey" --kind code)"
+anchor="$($root/scripts/mana-journey.sh --project-root "$source_project" add-anchor "$journey" --node "$node" --revision "$revision" --path "$source_path" --start-line 5 --end-line 7 --symbol mana_json_require)"
+"$source_project/mana" inspect artifact "journey:$journey" --json > "$tmp/journey-detail.json"
 jq -e --arg journey "$journey" --arg anchor "$anchor" '.schema=="mana.inspect.artifact/v1" and .artifact.artifact_id==("journey:"+$journey) and .payload.included==true and any(.relations[]; .anchor_id==$anchor and .staleness=="fresh")' "$tmp/journey-detail.json" >/dev/null || fail 'Journey detail relation failed'
-"$project/mana" inspect source src/main/java/example/PaymentService.java --json > "$tmp/source-detail.json"
+"$source_project/mana" inspect source "$source_path" --json > "$tmp/source-detail.json"
 jq -e --arg anchor "$anchor" '.schema=="mana.inspect.source/v1" and .coverage=="explicit_journey_anchors" and any(.relations[]; (.anchor_id==$anchor) and (.source.revision|test("^[0-9a-f]{40}$")))' "$tmp/source-detail.json" >/dev/null || fail 'source relation failed'
-printf '%s\n' '// dirty' >> "$project/src/main/java/example/PaymentService.java"
-"$project/mana" inspect source src/main/java/example/PaymentService.java --json | jq -e '.relations[0].staleness=="working_tree_only"' >/dev/null || fail 'working-tree staleness failed'
-rm "$project/src/main/java/example/PaymentService.java"
-"$project/mana" inspect source src/main/java/example/PaymentService.java --json | jq -e '.source.availability=="missing" and .relations[0].staleness=="missing"' >/dev/null || fail 'missing-source staleness failed'
+printf '%s\n' '# dirty' >> "$source_project/$source_path"
+"$source_project/mana" inspect source "$source_path" --json | jq -e '.relations[0].staleness=="working_tree_only"' >/dev/null || fail 'working-tree staleness failed'
+rm "$source_project/$source_path"
+"$source_project/mana" inspect source "$source_path" --json | jq -e '.source.availability=="missing" and .relations[0].staleness=="missing"' >/dev/null || fail 'missing-source staleness failed'
 
 printf '%s' 'payload' > "$project/.mana/small.txt"
 printf 'text\000more' > "$project/.mana/binary.txt"
