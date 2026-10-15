@@ -103,6 +103,20 @@ verification_json_array_lines() {
   jq -Rsc 'split("\n") | map(select(length > 0))'
 }
 
+verification_selection_array() (
+  # The private selection directory is flat. Bash 3.2 globbing preserves path
+  # bytes and C filename order without requiring sort -z or parsing filenames.
+  export LC_ALL=C
+  shopt -s nullglob
+  [ -d "$1" ] && [ -r "$1" ] && [ -x "$1" ] || return 1
+  files=("$1"/*.json)
+  if [ "${#files[@]}" -eq 0 ]; then
+    printf '[]\n'
+  else
+    jq -s '.' "${files[@]}" < /dev/null
+  fi
+)
+
 verification_target_fingerprint() {
   # Stable verification target: adapter, normalized action, cwd, and scope.
   printf 'adapter=%s\nargv=%s\ncwd=%s\nscope=%s\n' "$1" "$2" "$3" "$4" | verification_digest_text

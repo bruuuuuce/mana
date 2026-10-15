@@ -251,7 +251,7 @@ for skill in $selected_skills; do
   if [ "$skill_count" -gt "$skill_max" ]; then plan_blockers="${plan_blockers}${plan_blockers:+$newline}$skill planned checks ($skill_count) exceed its maximum ($skill_max)"; fi
 done
 
-selections_json="$(find "$selection_dir" -type f -name '*.json' -print | LC_ALL=C sort | xargs jq -s '.' 2>/dev/null || printf '[]')"
+selections_json="$(verification_selection_array "$selection_dir")" || fail 'could not assemble verification selections'
 actions_json() {
   while IFS="$tab" read -r skill version spec_digest base_id instance_id adapter target timeout_seconds cost trust effects scope required skill_max_seconds skill_max_output; do
     [ -n "$skill" ] || continue

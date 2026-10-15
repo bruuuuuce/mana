@@ -94,6 +94,7 @@ tests=(
   user-learning-review.sh
   user-learning-synthesis.sh
   user-learning.sh
+  verification-selection-paths.sh
   verification-skills.sh
 )
 
