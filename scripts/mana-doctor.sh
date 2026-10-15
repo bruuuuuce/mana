@@ -158,7 +158,10 @@ check_external_tools() {
     else
       warn "sonar-scanner is installed but did not run; check Java version and scanner installation"
     fi
-    warn "Sonar server/authentication probe skipped: mana doctor is local-only"
+    if ! has_sonar_credentials_in_env; then
+      warn "Sonar env not configured; set SONAR_HOST_URL and SONAR_TOKEN to enable Sonar evidence checks"
+    fi
+    echo "Sonar server/authentication probe skipped: mana doctor is local-only"
   fi
 
   if check_optional_tool docker "Jira MCP container runner"; then
