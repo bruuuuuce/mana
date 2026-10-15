@@ -14,6 +14,7 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 profile=""
 project_root=""
 render_only=false
+diagnostic_only=false
 runner=""
 runner_flag_count=0
 pr_number=""
@@ -95,6 +96,7 @@ Usage:
 Options:
   --project-root <path>          Target project root. Defaults to current directory.
   --render-only                  Render the profile and never start a runner.
+  --diagnose                     Validate/render without execution state or remote freshness probes.
   --codex                        Execute the rendered profile through Codex.
   --claude                       Execute the rendered profile through Claude Code.
   --opencode                     Execute the rendered profile through OpenCode.
@@ -160,6 +162,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --render-only)
       render_only=true
+      shift
+      ;;
+    --diagnose)
+      diagnostic_only=true
       shift
       ;;
     --codex)
@@ -485,6 +491,15 @@ if [ -z "$project_root" ]; then
   project_root="$(pwd)"
 fi
 
+if [ "$diagnostic_only" = true ]; then
+  if [ -n "$runner$runtime_execution_id$manifest_execution_id$context_manifest" ] ||
+     [ "$context_runtime_explicit" = true ]; then
+    echo 'ERROR: --diagnose cannot select a runner, execution identity, manifest or runtime override' >&2
+    exit 2
+  fi
+  render_only=true
+fi
+
 case "$codex_subagents" in
   true|TRUE|True|1|yes|YES|on|ON)
     codex_subagents=true
@@ -590,8 +605,10 @@ elif [ "$runner_flag_count" -gt 1 ]; then
   echo 'ERROR: choose only one runner flag' >&2
   exit 2
 fi
-if [ -e "$project_root/.mana/context-runtime/runtime-selection-v1.json" ] ||
-   [ -L "$project_root/.mana/context-runtime/runtime-selection-v1.json" ]; then
+# Diagnostic loading uses the read-only candidate preview, never dispatch authority.
+if [ "$diagnostic_only" = false ] && {
+   [ -e "$project_root/.mana/context-runtime/runtime-selection-v1.json" ] ||
+   [ -L "$project_root/.mana/context-runtime/runtime-selection-v1.json" ]; }; then
   if [ "$candidate_mode" = legacy ]; then
     legacy_identity_args=(legacy-execution-identity --project-root "$project_root" --profile "$profile")
     [ -z "$runtime_execution_id" ] || legacy_identity_args+=(--execution-id "$runtime_execution_id")
@@ -720,7 +737,11 @@ fi
 # Shadow admission must not contact a remote before host isolation exists.
 # The sandboxed legacy invocation also receives update checks disabled.
 if [ "$context_runtime_shadow" = false ]; then
-  "$root/scripts/mana-update-check.sh" --root "$root" --profile "$profile" || exit 1
+  if [ "$diagnostic_only" = true ]; then
+    "$root/scripts/mana-update-check.sh" --root "$root" --profile "$profile" --no-fetch || exit 1
+  else
+    "$root/scripts/mana-update-check.sh" --root "$root" --profile "$profile" || exit 1
+  fi
 fi
 
 for value in "${manifest_static_signals[@]+"${manifest_static_signals[@]}"}"; do manifest_validation_args+=(--static-signal "$value"); done

@@ -270,10 +270,10 @@ if "$root/scripts/validate-output-standard.sh" "$root"; then pass "agent and ski
 if "$root/scripts/validate-story-trace.sh" "$root"; then pass "story trace standard"; else error "story trace standard validation failed"; fi
 if "$root/scripts/validate-developer-choice-log.sh" "$root"; then pass "developer choice log standard"; else error "developer choice log standard validation failed"; fi
 
-if "$root/scripts/run-profile.sh" mana-help >/dev/null; then pass "mana-help profile loads"; else error "mana-help profile failed"; fi
-if "$root/scripts/run-profile.sh" jessica-fletcher >/dev/null; then pass "jessica-fletcher profile loads"; else error "jessica-fletcher profile failed"; fi
+if "$root/scripts/run-profile.sh" mana-help --project-root "${project:-$root}" --diagnose >/dev/null; then pass "mana-help profile loads"; else error "mana-help profile failed"; fi
+if "$root/scripts/run-profile.sh" jessica-fletcher --project-root "${project:-$root}" --diagnose >/dev/null; then pass "jessica-fletcher profile loads"; else error "jessica-fletcher profile failed"; fi
 for profile in pre-commit am-release-ready architecture-review team-planning story-ready-for-dev; do
-  if "$root/scripts/run-profile.sh" "$profile" >/dev/null; then
+  if "$root/scripts/run-profile.sh" "$profile" --project-root "${project:-$root}" --diagnose >/dev/null; then
     pass "$profile profile loads"
   else
     error "$profile profile failed"
@@ -360,13 +360,13 @@ if [ -n "$project" ]; then
   else
     warn "project evidence index is unavailable/not-materialized; doctor will not generate it"
   fi
-  if [ -x "$project/mana" ] && "$project/mana" profile mana-help >/dev/null; then
+  if [ -x "$project/mana" ] && "$project/mana" profile mana-help --project-root "$project" --diagnose >/dev/null; then
     pass "project wrapper can load mana-help"
   elif [ -x "$project/mana" ]; then
     error "project wrapper failed to load mana-help"
   fi
   for project_profile in story-start branch-ready requested-pr-review; do
-    if [ -x "$project/mana" ] && "$project/mana" profile "$project_profile" >/dev/null; then
+    if [ -x "$project/mana" ] && "$project/mana" profile "$project_profile" --project-root "$project" --diagnose >/dev/null; then
       pass "project wrapper can load $project_profile"
     elif [ -x "$project/mana" ]; then
       warn "project wrapper failed to load $project_profile"
