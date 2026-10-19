@@ -69,6 +69,7 @@ tests=(
   mana-rationale.sh
   mana-scout-cycles.sh
   mana-scout.sh
+  mana-skill-factory.py
   profile-skill-activation.sh
   provider-capabilities.sh
   provider-dispatch.sh

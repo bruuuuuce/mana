@@ -147,7 +147,12 @@ for f in tests/user-learning-e2e.sh tests/user-learning-live-semantic.sh tests/m
   else bash -n "$root/$f" || status=1
   fi
 done
-for f in scripts/mana-catalog.py scripts/mana-knowledge.py scripts/mana-actions.py scripts/mana-review-inbox.py tests/mana-catalog.py tests/mana-knowledge.py tests/mana-actions.py tests/mana-review-inbox.py; do
+for f in scripts/skill_factory/__init__.py scripts/skill_factory/contracts.py scripts/skill_factory/java_spring.py; do
+  if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1
+  else python3 -m py_compile "$root/$f" || status=1
+  fi
+done
+for f in scripts/mana-catalog.py scripts/mana-knowledge.py scripts/mana-actions.py scripts/mana-review-inbox.py scripts/mana-skill-factory.py tests/mana-catalog.py tests/mana-knowledge.py tests/mana-actions.py tests/mana-review-inbox.py tests/mana-skill-factory.py; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1
   elif [ ! -x "$root/$f" ]; then echo "ERROR: $f is not executable" >&2; status=1
   else python3 -m py_compile "$root/$f" || status=1

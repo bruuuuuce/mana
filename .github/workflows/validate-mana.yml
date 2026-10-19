@@ -62,6 +62,8 @@ jobs:
         run: tests/mana-diagram.sh
       - name: Verification Skills
         run: tests/verification-skills.sh
+      - name: Specialist skill candidates
+        run: python3 tests/mana-skill-factory.py
       - name: Provider dispatch
         run: tests/provider-dispatch.sh
       - name: Repair containment
