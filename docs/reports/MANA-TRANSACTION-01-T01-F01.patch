@@ -1,0 +1,1070 @@
+diff --git a/docs/standards/transaction-model-v1.md b/docs/standards/transaction-model-v1.md
+--- a/docs/standards/transaction-model-v1.md
++++ b/docs/standards/transaction-model-v1.md
+@@ -23,7 +23,7 @@
+ conditional scenario, potentially containing UNKNOWN regions; inspect uncertainties.
+ Exit 2 means blocked input/tooling/parse/publication. No candidate is activated.
+ 
+-The context JSON has exactly these fields:
++The context JSON requires these fields (existing v1 inputs remain valid):
+ 
+ ```json
+ {
+@@ -42,6 +42,14 @@
+ true models the conditional case; it is never reported as runtime qualification.
+ The fixture explicitly stipulates support to exercise the positive oracle and
+ uses `context-unknown.json` to exercise the unproven case.
++
++F01 adds one optional field, `aspectjWeaving`, accepting `UNKNOWN` (the default)
++or `ASSUMED_APPLIED`. The latter explicitly stipulates **if transactional weaving
++applies to these methods**; it is never evidence that a weaver ran. A source
++`mode = AdviceMode.ASPECTJ` declaration alone cannot establish weaving application.
++The field cannot resolve an unknown interception mode or override PROXY semantics.
++No build, runtime probe, weaving tool or evidence-verification infrastructure is
++introduced. Inputs cannot claim a `PROVEN` or runtime `APPLIED` status.
+ 
+ ## Architecture And Budgets
+ 
+@@ -79,8 +87,9 @@
+ | `entry`, `context`, `contextEvidence`, `assumptions` | Requested entry and explicit scenario inputs, hash/location and conditional premises |
+ | `evidence` | Relative source paths with SHA-256 snapshot hashes |
+ | `managers` | Source-declared manager identity/type/location and separately labelled assumed capabilities |
+-| `frames` | Caller/callee method, actual source invocation location, bean/class/name evidence, proxy mode/crossing, manager, boundary configuration, before/during/after state and certainty |
+-| `logicalScopes` | Intercepted method transaction scopes; unannotated/self-invoked method executions do not create these |
++| `interceptionMode`, `proxyMode`, `aspectjWeaving` | PROXY/ASPECTJ/UNKNOWN mode; separate CLASS/JDK/UNKNOWN proxy configuration; explicit conditional weaving premise and runtimeApplication UNKNOWN |
++| `frames` | Caller/callee method, actual source invocation location, bean/class/name evidence, proxy mode/crossing, interception, effectiveContext, manager, boundary configuration, before/during/after state and certainty |
++| `logicalScopes` | Intercepted method transaction scopes; unannotated executions and PROXY self-invocations do not create these |
+ | `physicalTransactions` | Symbolic P identities, manager and begin/end frame; `runtimeIdentity` and outcome always UNKNOWN |
+ | `suspensions` | Retained old P, replacement P and owning scope; never conflated with a savepoint |
+ | `savepoints` | SP identity attached to the **same** physical P and owning nested scope |
+@@ -97,6 +106,22 @@
+ `TRANSACTION_PHYSICAL`, `TRANSACTION_SUSPENDED`, `TRANSACTION_SAVEPOINT`,
+ `NO_TRANSACTION`, and `UNKNOWN`. Frames are method executions, not automatically
+ transaction logical scopes. Logical/physical IDs are never interchangeable.
++
++Each new frame has two independent F01 observations:
++
++- `interception.status`: `APPLIED`, `BYPASSED` or `UNKNOWN`, with a reason.
++  APPLIED describes conditional advice application, not successful boundary
++  creation: an unsupported capability/manager can still leave context UNKNOWN.
++- `effectiveContext.before/during/after`: `ACTIVE`, `INACTIVE` or `UNKNOWN`,
++  derived respectively from previous/during/after state. ACTIVE refers to the
++  symbolic P under scenario premises; it does not establish a runtime identity.
++
++BYPASSED never converts ACTIVE to INACTIVE. A known PROXY self-call inherits
++the caller's P (or its known absence/uncertainty), ignoring the called annotation's
++propagation. UNKNOWN advice produces UNKNOWN effective context and stops confident
++body traversal. An unannotated wrapper can retain a known initial context while a
++later annotated call becomes UNKNOWN; its subsequent continuation is then UNKNOWN.
++Historical v1 models without these additive fields remain readable/validatable.
+ 
+ ## Bounded Resolution
+ 
+@@ -110,13 +135,26 @@
+ it does not claim that a real Spring context could start from a static fixture.
+ 
+ A single explicit `@EnableTransactionManagement(proxyTargetClass=true)` with proxy
+-mode supports conditional public class-proxy interception. Self/direct invocation
+-bypasses transaction annotations. Private/static/final methods are not assumed
++mode supports conditional public class-proxy interception. In known PROXY mode,
++self/direct invocation bypasses transaction annotations and retains caller context.
++Private/static/final methods are not assumed
+ intercepted; inaccessible external private calls are UNKNOWN. JDK proxies, nonpublic
+ class-proxy visibility/version variations, final classes, unknown proxy settings,
+ async, complex control flow, lambdas/method references and unresolved calls retain
+ UNKNOWN. Reflection/programmatic transactions stop confident continuation; target
+ code is never executed to fill the gap.
++
++In explicitly declared ASPECTJ mode, the `ASSUMED_APPLIED` weaving premise permits
++conditional advice on self/direct invocations, reusing the same REQUIRED,
++REQUIRES_NEW and NESTED engine rules and manager capabilities. Without that premise,
++annotated calls are UNKNOWN; a self-call is never treated as a PROXY bypass.
++Interception mode UNKNOWN also leaves annotated self/direct calls UNKNOWN.
++The positive AspectJ subset remains public concrete stereotype-bean methods with
++the existing straight-line/annotation/manager limits; private/static/final and
++other AspectJ forms are not newly qualified. `proxy.crossed` is false in AspectJ
++scenarios and its reason is `NOT_APPLICABLE_ASPECTJ`: advice application is a
++separate observation. The legacy `entryThroughProxy` input only affects PROXY
++interception and cannot enable or disable AspectJ weaving.
+ 
+ Method `@Transactional` replaces class defaults. Only boundary attributes
+ (propagation/manager qualifier) are resolved; other annotation arguments are retained
+@@ -133,7 +171,9 @@
+ | REQUIRES_NEW | Open independent P; if an old P exists require explicit suspend support, emit SUSPEND before begin and RESUME after end |
+ | NESTED with an old P | Require explicit savepoint support; create SP on old P, never an independent physical transaction |
+ | NESTED without an old P | Start a P under the same no-transaction entry rules; no fictitious savepoint |
+-| Unannotated/self-invoked method | Execute in inherited context without creating a logical transaction scope; NO_TRANSACTION and UNKNOWN remain distinct |
++| Unannotated method / PROXY self-invocation | Execute in inherited context without creating a logical transaction scope; NO_TRANSACTION and UNKNOWN remain distinct |
++| ASPECTJ self-invocation with ASSUMED_APPLIED weaving | Apply the conditional annotated propagation rules above; no proxy crossing is required |
++| ASPECTJ without weaving premise / unknown interception mode | Annotated call stays UNKNOWN, never a proxy bypass assumption |
+ | Other propagation / unknown manager or prior identity | Recognize configuration, emit UNKNOWN/UNSUPPORTED; do not infer unimplemented behavior |
+ 
+ Physical IDs are `SYMBOLIC_SCENARIO`, certainty `CONDITIONAL`, actual runtime identity
+@@ -153,6 +193,10 @@
+ yellow/savepoint, gray/no transaction and red/unknown regions. Every region also
+ has textual kind/ID labels; color is supplementary. BEGIN/END, SUSPEND/RESUME and
+ SP notes have explicit identifiers and event positions, with a legend.
++F01 notes separately label interception and effective context, plus INHERITED or
++INDEPENDENT physical identity. AspectJ notes state the conditional weaving premise.
++Original v1 diagrams/models remain unchanged; the renderer can read historical
++models using their existing logical/physical state when additive fields are absent.
+ 
+ Sequence `group` fragments are nested method regions; they are not a faithful
+ arbitrary overlapping multi-participant resource-region notation. In particular,
+@@ -171,6 +215,8 @@
+ These explain the intended semantics; local static fixtures do not certify runtime behavior.
+ 
+ Run `python3 tests/transaction-boundaries.py` and the affected factory regressions.
++Run `python3 tests/transaction-self-invocation.py -v` for the eight F01 oracles,
++capability/uncertainty negatives, target immutability and historical rendering.
+ Set `MANA_PLANTUML_JAR` to an existing local jar for real syntax/SVG checks. Missing
+ PlantUML marks that test NOT RUN/skipped; it is never a syntax PASS. No renderer or
+ Java dependencies are downloaded. No deadlock/resource/lock analysis is included.
+diff --git a/scripts/mana-transaction.py b/scripts/mana-transaction.py
+--- a/scripts/mana-transaction.py
++++ b/scripts/mana-transaction.py
+@@ -21,13 +21,25 @@
+ 
+ def context_input(path, raw=None):
+     context = factory.bounded_json(factory.read_file(path) if raw is None else raw)
+-    if not isinstance(context, dict) or set(context) != {
++    required = {
+         "schema",
+         "initialState",
+         "entryThroughProxy",
+         "managerCapabilities",
+-    }:
++    }
++    if (
++        not isinstance(context, dict)
++        or not required <= set(context)
++        or set(context) - required - {"aspectjWeaving"}
++    ):
+         raise factory.FactoryError("invalid transaction context fields")
++    if context.get("aspectjWeaving", "UNKNOWN") not in (
++        "UNKNOWN",
++        "ASSUMED_APPLIED",
++    ):
++        raise factory.FactoryError(
++            "aspectjWeaving must be UNKNOWN or ASSUMED_APPLIED; never runtime proof"
++        )
+     if (
+         context["schema"] != "mana.transaction-context/v1"
+         or context["initialState"] not in ["NO_TRANSACTION", "UNKNOWN"]
+diff --git a/scripts/skill_factory/transactions/model.py b/scripts/skill_factory/transactions/model.py
+--- a/scripts/skill_factory/transactions/model.py
++++ b/scripts/skill_factory/transactions/model.py
+@@ -53,6 +53,14 @@
+     return {"kind": "UNKNOWN", "physicalId": None, "manager": None}
+ 
+ 
++def effective_context(state):
++    return {
++        "NO_TRANSACTION": "INACTIVE",
++        "TRANSACTION_PHYSICAL": "ACTIVE",
++        "UNKNOWN": "UNKNOWN",
++    }[state["kind"]]
++
++
+ def build(facts, context, entry):
+     classes = {c["name"]: c for c in facts["classes"]}
+     if len(classes) != len(facts["classes"]):
+@@ -75,17 +83,23 @@
+         for a in c["annotations"]
+         if a["type"] == ENABLE
+     ]
+-    proxy_mode = "UNKNOWN"
++    interception_mode = proxy_mode = "UNKNOWN"
+     if len(configs) == 1:
+         args = configs[0][1]["args"]
+         mode = args.get("mode", {}).get(
+             "text", "org.springframework.context.annotation.AdviceMode.PROXY"
+         )
+         if mode == "org.springframework.context.annotation.AdviceMode.PROXY":
++            interception_mode = "PROXY"
+             value = literal(configs[0][1], "proxyTargetClass", False)
+             proxy_mode = (
+                 "CLASS" if value is True else "JDK" if value is False else "UNKNOWN"
+             )
++        elif mode == "org.springframework.context.annotation.AdviceMode.ASPECTJ":
++            interception_mode = "ASPECTJ"
++    weaving = context.get("aspectjWeaving", "UNKNOWN")
++    if weaving not in ("UNKNOWN", "ASSUMED_APPLIED"):
++        raise ValueError("invalid AspectJ weaving scenario premise")
+     managers = {}
+     for cls in classes.values():
+         if not annotation(cls, SPRING + "context.annotation.Configuration"):
+@@ -122,6 +136,11 @@
+         "entry": entry,
+         "status": "CONDITIONAL_STATIC_SCENARIO",
+         "proxyMode": proxy_mode,
++        "interceptionMode": interception_mode,
++        "aspectjWeaving": {
++            "application": weaving if interception_mode == "ASPECTJ" else "UNKNOWN",
++            "runtimeApplication": "UNKNOWN",
++        },
+         "assumptions": [
+             "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+             "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+@@ -139,6 +158,10 @@
+         "events": [],
+         "uncertainties": [],
+     }
++    if interception_mode == "ASPECTJ" and weaving == "ASSUMED_APPLIED":
++        report["assumptions"].append(
++            "AspectJ weaving application is an explicit conditional scenario assumption, not statically demonstrated or runtime-proven."
++        )
+ 
+     def emit(kind, frame, **extra):
+         report["events"].append(
+@@ -150,7 +173,9 @@
+             }
+         )
+ 
+-    def uncertain(frame, reason, unsupported=False):
++    def uncertain(frame, reason, unsupported=False, *, preserve_interception=False):
++        if not preserve_interception:
++            frame["interception"] = {"status": "UNKNOWN", "reason": reason}
+         frame["certainty"] = "UNKNOWN"
+         frame["reason"] = reason
+         frame["duringState"] = unknown()
+@@ -237,6 +262,36 @@
+         call["bindingEvidence"] = field["evidence"]
+         return candidates[0], True, "INJECTED_BEAN_SCENARIO"
+ 
++    def interception(cls, method, conf, crossing):
++        """Resolve advice application separately from the inherited context."""
++        if not conf:
++            return "BYPASSED", "NO_TRANSACTIONAL_ANNOTATION"
++        if interception_mode == "UNKNOWN":
++            return "UNKNOWN", "PROXY_OR_ASPECTJ_MODE_NOT_ESTABLISHED"
++        flags = set(method["flags"])
++        if interception_mode == "ASPECTJ":
++            if weaving != "ASSUMED_APPLIED":
++                return "UNKNOWN", "ASPECTJ_WEAVING_NOT_ESTABLISHED"
++            # Retain T01's public concrete-method subset; no full AspectJ resolver.
++            if flags & {"private", "static", "final"} or "public" not in flags:
++                return "UNKNOWN", "ASPECTJ_METHOD_SHAPE_NOT_MODELED"
++            if cls["name"] not in beans or "final" in cls["flags"]:
++                return "UNKNOWN", "ASPECTJ_BEAN_SHAPE_NOT_MODELED"
++            return "APPLIED", "ASPECTJ_WEAVING_ASSUMED_APPLIED"
++        if crossing is False:
++            return "BYPASSED", "SELF_OR_DIRECT_CALL"
++        if flags & {"private", "static", "final"}:
++            return "BYPASSED", "NON_INTERCEPTABLE_METHOD"
++        if (
++            crossing is not True
++            or proxy_mode != "CLASS"
++            or "public" not in flags
++            or cls["name"] not in beans
++            or "final" in cls["flags"]
++        ):
++            return "UNKNOWN", "PROXY_OR_VISIBILITY_NOT_ESTABLISHED"
++        return "APPLIED", "SCENARIO_PROXY_CALL"
++
+     def visit(key, previous, crossing, caller=None, site=None, stack=()):
+         cls, method = methods[key]
+         frame = {
+@@ -247,7 +302,7 @@
+             "bean": cls["name"] if cls["name"] in beans else None,
+             "proxy": {
+                 "mode": proxy_mode,
+-                "crossed": crossing,
++                "crossed": crossing if interception_mode != "ASPECTJ" else False,
+                 "configurationEvidence": [a["evidence"] for _, a in configs],
+             },
+             "manager": None,
+@@ -277,13 +332,10 @@
+         report["frames"].append(frame)
+         conf = frame["configuration"]
+         flags = set(method["flags"])
+-        bypass = crossing is False or bool(flags & {"private", "static", "final"})
++        status, reason = interception(cls, method, conf, crossing)
++        frame["interception"] = {"status": status, "reason": reason}
+         frame["proxy"]["reason"] = (
+-            "SELF_OR_DIRECT_CALL"
+-            if crossing is False
+-            else "NON_INTERCEPTABLE_METHOD"
+-            if bypass
+-            else "SCENARIO_PROXY_CALL"
++            "NOT_APPLICABLE_ASPECTJ" if interception_mode == "ASPECTJ" else reason
+         )
+         if key in stack or len(stack) >= 16 or len(report["frames"]) >= 128:
+             uncertain(frame, "RECURSION_OR_TRACE_BUDGET")
+@@ -293,7 +345,11 @@
+             uncertain(frame, "INHERITANCE_OR_INTERFACE_RESOLUTION_NOT_MODELED")
+         elif cls["kind"] != "CLASS" or "abstract" in cls["flags"]:
+             uncertain(frame, "NON_CONCRETE_BEAN_TYPE")
+-        elif crossing is True and "final" in cls["flags"]:
++        elif (
++            interception_mode == "PROXY"
++            and crossing is True
++            and "final" in cls["flags"]
++        ):
+             uncertain(frame, "FINAL_CLASS_PROXY_NOT_ESTABLISHED")
+         elif crossing is True and cls["name"] not in beans:
+             uncertain(frame, "BEAN_IDENTITY_NOT_ESTABLISHED")
+@@ -306,19 +362,22 @@
+             uncertain(frame, "UNSUPPORTED_CONTROL_FLOW_OR_PROGRAMMATIC_EXPRESSION")
+         elif crossing is True and "private" in flags:
+             uncertain(frame, "INACCESSIBLE_EXTERNAL_PRIVATE_METHOD")
+-        elif previous["kind"] == "UNKNOWN" and (conf is None or bypass):
+-            uncertain(frame, "INHERITED_TRANSACTION_CONTEXT_UNKNOWN")
+-        elif conf and not bypass:
+-            if (
+-                cls["name"] not in beans
+-                or crossing is None
+-                or proxy_mode != "CLASS"
+-                or "final" in cls["flags"]
+-                or "public" not in flags
+-            ):
+-                uncertain(frame, "PROXY_OR_VISIBILITY_NOT_ESTABLISHED")
+-            elif conf["propagation"] not in {"REQUIRED", "REQUIRES_NEW", "NESTED"}:
+-                uncertain(frame, "PROPAGATION_NOT_MODELED:" + conf["propagation"], True)
++        elif status == "UNKNOWN":
++            uncertain(frame, reason)
++        elif previous["kind"] == "UNKNOWN" and status == "BYPASSED":
++            uncertain(
++                frame,
++                "INHERITED_TRANSACTION_CONTEXT_UNKNOWN",
++                preserve_interception=True,
++            )
++        elif status == "APPLIED":
++            if conf["propagation"] not in {"REQUIRED", "REQUIRES_NEW", "NESTED"}:
++                uncertain(
++                    frame,
++                    "PROPAGATION_NOT_MODELED:" + conf["propagation"],
++                    True,
++                    preserve_interception=True,
++                )
+             else:
+                 selected = conf["managerQualifier"]
+                 if not selected and len(managers) == 1:
+@@ -329,11 +388,19 @@
+                     or manager["type"]
+                     != SPRING + "jdbc.datasource.DataSourceTransactionManager"
+                 ):
+-                    uncertain(frame, "AMBIGUOUS_OR_UNMODELED_MANAGER")
++                    uncertain(
++                        frame,
++                        "AMBIGUOUS_OR_UNMODELED_MANAGER",
++                        preserve_interception=True,
++                    )
+                 elif previous["kind"] == "UNKNOWN" or (
+                     previous["physicalId"] and previous["manager"] != selected
+                 ):
+-                    uncertain(frame, "PRIOR_CONTEXT_OR_MANAGER_IDENTITY_UNKNOWN")
++                    uncertain(
++                        frame,
++                        "PRIOR_CONTEXT_OR_MANAGER_IDENTITY_UNKNOWN",
++                        preserve_interception=True,
++                    )
+                 else:
+                     frame["manager"] = selected
+                     frame["logicalScope"] = "L" + str(len(report["logicalScopes"]) + 1)
+@@ -359,13 +426,18 @@
+                             if caps.get("savepoints") is False
+                             else "SAVEPOINT_CAPABILITY_UNKNOWN",
+                             caps.get("savepoints") is False,
++                            preserve_interception=True,
+                         )
+                     elif (
+                         previous["physicalId"]
+                         and prop == "REQUIRES_NEW"
+                         and caps.get("suspend") is not True
+                     ):
+-                        uncertain(frame, "SUSPENSION_CAPABILITY_UNKNOWN_OR_UNSUPPORTED")
++                        uncertain(
++                            frame,
++                            "SUSPENSION_CAPABILITY_UNKNOWN_OR_UNSUPPORTED",
++                            preserve_interception=True,
++                        )
+                     elif prop == "REQUIRES_NEW" or not previous["physicalId"]:
+                         physical = {
+                             "id": "P" + str(len(report["physicalTransactions"]) + 1),
+@@ -492,6 +564,14 @@
+             )
+         if frame["certainty"] == "UNKNOWN" or frame.get("continuation") == "UNKNOWN":
+             frame["afterState"] = unknown()
++        frame["effectiveContext"] = {
++            key: effective_context(frame[field])
++            for key, field in (
++                ("before", "previousState"),
++                ("during", "duringState"),
++                ("after", "afterState"),
++            )
++        }
+         emit("FRAME_EXIT", frame)
+         return frame
+ 
+@@ -543,6 +623,30 @@
+     if stack:
+         raise ValueError("open frames")
+     for frame in frames.values():
++        # Historical v1 fixtures may omit the additive F01 fields.
++        if "effectiveContext" in frame:
++            expected = {
++                key: effective_context(frame[field])
++                for key, field in (
++                    ("before", "previousState"),
++                    ("during", "duringState"),
++                    ("after", "afterState"),
++                )
++            }
++            if frame["effectiveContext"] != expected:
++                raise ValueError("effective context contradicts physical state")
++        if "interception" in frame:
++            status = frame["interception"]["status"]
++            if status not in {"APPLIED", "BYPASSED", "UNKNOWN"}:
++                raise ValueError("invalid interception status")
++            if status == "BYPASSED" and (
++                frame["logicalScope"] is not None
++                or frame["duringState"] != frame["previousState"]
++                and frame["duringState"]["kind"] != "UNKNOWN"
++            ):
++                raise ValueError("bypassed advice changed inherited context")
++            if status == "UNKNOWN" and frame["duringState"]["kind"] != "UNKNOWN":
++                raise ValueError("unknown advice asserted an effective context")
+         for state in [
+             frame["previousState"],
+             frame["duringState"],
+diff --git a/scripts/skill_factory/transactions/plantuml.py b/scripts/skill_factory/transactions/plantuml.py
+--- a/scripts/skill_factory/transactions/plantuml.py
++++ b/scripts/skill_factory/transactions/plantuml.py
+@@ -37,6 +37,9 @@
+         "Gray: NO_TRANSACTION; red: UNKNOWN / unsupported path",
+         "Groups show method nesting. BEGIN/END notes define physical lifetimes.",
+         "Suspended lifetime overlap is explicit in SUSPEND/RESUME notes.",
++        "Interception: APPLIED / BYPASSED / UNKNOWN; context: ACTIVE / INACTIVE / UNKNOWN.",
++        "INHERITED physical context does not require interception of this method.",
++        "AspectJ ASSUMED_APPLIED is a conditional premise, never runtime weaving proof.",
+         "endlegend",
+     ]
+     for event in report["events"]:
+@@ -71,8 +74,43 @@
+             )
+             text = f"{frame['id']} {prop} {frame['logicalScope'] or 'METHOD_EXECUTION'} {state['physicalId'] or state['kind']}"
+             lines.append(f"group {color} {label(text)}")
++            # Accept historical v1 models, which predate the additive F01 fields.
++            interception = frame.get("interception", {}).get(
++                "status",
++                "UNKNOWN"
++                if unknown
++                else "APPLIED"
++                if frame["logicalScope"]
++                else "BYPASSED",
++            )
++            context = frame.get("effectiveContext", {}).get(
++                "during",
++                "UNKNOWN"
++                if state["kind"] == "UNKNOWN"
++                else "ACTIVE"
++                if state["physicalId"]
++                else "INACTIVE",
++            )
++            physical = (
++                "INDEPENDENT " + state["physicalId"]
++                if new
++                else "INHERITED " + state["physicalId"]
++                if state["physicalId"]
++                else state["kind"]
++            )
+             lines.append(
+-                f"note right of {callee}: proxy={label(frame['proxy']['reason'])}; manager={label(frame['manager'] or 'UNKNOWN_OR_NOT_USED')}"
++                f"note right of {callee}: interception={label(interception)}; context={label(context)}; {label(physical)}"
++            )
++            if report.get("interceptionMode") == "ASPECTJ":
++                application = report["aspectjWeaving"]["application"]
++                lines.append(
++                    f"note right of {callee}: ASPECTJ weaving={label(application)} / conditional scenario"
++                )
++            reason = frame.get("interception", {}).get(
++                "reason", frame["proxy"]["reason"]
++            )
++            lines.append(
++                f"note right of {callee}: advice={label(reason)}; manager={label(frame['manager'] or 'UNKNOWN_OR_NOT_USED')}"
+             )
+             if unknown:
+                 lines.append(
+diff --git a/tests/transaction-self-invocation.py b/tests/transaction-self-invocation.py
+new file mode 100755
+--- /dev/null
++++ b/tests/transaction-self-invocation.py
+@@ -0,0 +1,303 @@
++#!/usr/bin/env python3
++"""Focused F01 source fixtures and independent self-invocation expectations."""
++
++import copy
++import hashlib
++import importlib.util
++import json
++import os
++from pathlib import Path
++import shutil
++import subprocess
++import tempfile
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++FIXTURE = ROOT / "tests/fixtures/transaction-self-invocation"
++spec = importlib.util.spec_from_file_location(
++    "transaction_f01_entry", ROOT / "scripts/mana-transaction.py"
++)
++cli = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(cli)
++
++
++def snapshot(root):
++    return {
++        str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
++        for p in root.rglob("*")
++        if p.is_file()
++    }
++
++
++class SelfInvocationTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.before = snapshot(FIXTURE)
++        cls.oracles = json.loads((FIXTURE / "oracles.json").read_text())
++        cls.facts = {}
++        for name in ("proxy", "aspectj", "unknown"):
++            project = FIXTURE / name
++            files = cli.factory.project_files(
++                project, cli.factory.adapter_for("transaction-analysis")
++            )
++            cls.facts[name] = cli.java_facts(cli.factory, project, files)
++
++    @classmethod
++    def tearDownClass(cls):
++        if snapshot(FIXTURE) != cls.before:
++            raise AssertionError("analysis changed source fixtures")
++
++    def context(self, oracle):
++        context = {
++            "schema": "mana.transaction-context/v1",
++            "initialState": "NO_TRANSACTION",
++            "entryThroughProxy": oracle["entryThroughProxy"],
++            "managerCapabilities": {"tx": {"suspend": True, "savepoints": True}},
++        }
++        if "aspectjWeaving" in oracle:
++            context["aspectjWeaving"] = oracle["aspectjWeaving"]
++        return cli.context_input(None, json.dumps(context).encode())
++
++    def model(self, name):
++        oracle = self.oracles[name]
++        report = cli.build(
++            copy.deepcopy(self.facts[oracle["project"]]),
++            self.context(oracle),
++            oracle["entry"],
++        )
++        cli.validate_model(report)
++        return report
++
++    def assert_case(self, name):
++        expected = self.oracles[name]
++        report = self.model(name)
++        frames = report["frames"]
++        self.assertEqual(
++            [f["interception"]["status"] for f in frames], expected["interception"]
++        )
++        self.assertEqual(
++            [f["effectiveContext"]["during"] for f in frames], expected["during"]
++        )
++        self.assertEqual(
++            [f["duringState"]["physicalId"] for f in frames], expected["physical"]
++        )
++        self.assertEqual([f["logicalScope"] for f in frames], expected["logical"])
++        self.assertEqual(frames[1]["effectiveContext"]["after"], expected["childAfter"])
++        self.assertEqual(
++            frames[1]["afterState"]["physicalId"],
++            frames[0]["duringState"]["physicalId"],
++        )
++        self.assertEqual(len(report["physicalTransactions"]), expected["physicalCount"])
++        self.assertEqual(len(report["suspensions"]), expected["suspensions"])
++        self.assertEqual(len(report["savepoints"]), expected["savepoints"])
++        self.assertEqual(
++            [
++                e["kind"]
++                for e in report["events"]
++                if e["kind"] not in {"FRAME_ENTER", "FRAME_EXIT"}
++            ],
++            expected["boundaryEvents"],
++        )
++        site = frames[1]["callSite"]
++        source = (FIXTURE / expected["project"] / site["file"]).read_text()
++        callee = frames[1]["calleeMethod"].split("#")[1]
++        self.assertIn("this." + callee, source.splitlines()[site["line"] - 1])
++        if "reason" in expected:
++            self.assertEqual(frames[1]["reason"], expected["reason"])
++            self.assertEqual(frames[0]["effectiveContext"]["after"], "UNKNOWN")
++        else:
++            self.assertFalse(report["uncertainties"])
++        text = cli.render(report)
++        for frame in frames:
++            self.assertIn("interception=" + frame["interception"]["status"], text)
++            self.assertIn("context=" + frame["effectiveContext"]["during"], text)
++        if expected["during"] == ["ACTIVE", "ACTIVE"]:
++            self.assertNotIn("METHOD_EXECUTION NO_TRANSACTION", text)
++        if expected["project"] == "aspectj":
++            self.assertTrue(all(f["proxy"]["crossed"] is False for f in frames))
++            self.assertEqual(report["aspectjWeaving"]["runtimeApplication"], "UNKNOWN")
++        return report
++
++    def test_01_proxy_required_inactive(self):
++        self.assert_case("proxy_required_inactive")
++
++    def test_02_proxy_required_active(self):
++        self.assert_case("proxy_required_active")
++
++    def test_03_proxy_requires_new_active(self):
++        report = self.assert_case("proxy_requires_new_active")
++        self.assertIn("INHERITED P1", cli.render(report))
++
++    def test_04_aspectj_required_conditional(self):
++        report = self.assert_case("aspectj_required_conditional")
++        self.assertIn("ASPECTJ weaving=ASSUMED_APPLIED", cli.render(report))
++
++    def test_05_aspectj_requires_new_conditional(self):
++        report = self.assert_case("aspectj_requires_new_conditional")
++        self.assertIn("INDEPENDENT P2", cli.render(report))
++        self.assertEqual(report["suspensions"][0]["physicalId"], "P1")
++        self.assertEqual(report["suspensions"][0]["replacementPhysicalId"], "P2")
++
++    def test_06_aspectj_nested_conditional(self):
++        report = self.assert_case("aspectj_nested_conditional")
++        self.assertEqual(report["savepoints"][0]["physicalId"], "P1")
++
++    def test_07_aspectj_weaving_unproven(self):
++        self.assert_case("aspectj_weaving_unproven")
++
++    def test_08_unknown_mode(self):
++        self.assert_case("unknown_mode")
++
++    def test_aspectj_required_joins_active_context(self):
++        oracle = self.oracles["aspectj_required_conditional"]
++        report = cli.build(
++            self.facts["aspectj"],
++            self.context(oracle),
++            "selftest.Calls#activeRequired()",
++        )
++        cli.validate_model(report)
++        self.assertEqual([f["logicalScope"] for f in report["frames"]], ["L1", "L2"])
++        self.assertEqual(
++            [f["duringState"]["physicalId"] for f in report["frames"]], ["P1", "P1"]
++        )
++
++    def test_missing_capabilities_do_not_invent_aspectj_boundaries(self):
++        for name, capability in [
++            ("aspectj_requires_new_conditional", "suspend"),
++            ("aspectj_nested_conditional", "savepoints"),
++        ]:
++            for value in (None, False):
++                with self.subTest(name=name, capability=value):
++                    oracle = self.oracles[name]
++                    context = self.context(oracle)
++                    context["managerCapabilities"]["tx"][capability] = value
++                    report = cli.build(self.facts["aspectj"], context, oracle["entry"])
++                    cli.validate_model(report)
++                    self.assertEqual(
++                        report["frames"][1]["interception"]["status"], "APPLIED"
++                    )
++                    self.assertEqual(
++                        report["frames"][1]["effectiveContext"]["during"], "UNKNOWN"
++                    )
++                    self.assertEqual(len(report["physicalTransactions"]), 1)
++                    self.assertFalse(report["suspensions"])
++                    self.assertFalse(report["savepoints"])
++
++    def test_unknown_prior_context_is_not_inactive_after_bypass(self):
++        oracle = self.oracles["proxy_required_inactive"]
++        context = self.context(oracle)
++        context["initialState"] = "UNKNOWN"
++        context["entryThroughProxy"] = False
++        report = cli.build(self.facts["proxy"], context, "selftest.Calls#required()")
++        cli.validate_model(report)
++        self.assertEqual(report["frames"][0]["interception"]["status"], "BYPASSED")
++        self.assertEqual(report["frames"][0]["effectiveContext"]["during"], "UNKNOWN")
++
++    def test_context_rejects_weaving_truth_claims_and_unknown_fields(self):
++        context = self.context(self.oracles["aspectj_required_conditional"])
++        for value in (True, None, {}, "PROVEN", "APPLIED"):
++            with self.subTest(value=value):
++                with self.assertRaises(ValueError):
++                    cli.context_input(
++                        None, json.dumps({**context, "aspectjWeaving": value}).encode()
++                    )
++        with self.assertRaises(ValueError):
++            cli.context_input(None, json.dumps({**context, "activate": True}).encode())
++
++    def test_original_r1_counterexample_stays_unknown(self):
++        original = ROOT / "tests/fixtures/transaction-boundaries"
++        with tempfile.TemporaryDirectory() as temp:
++            project = Path(temp) / "project"
++            shutil.copytree(original, project)
++            source = project / "src/main/java/fixture/Scenario.java"
++            source.write_text(
++                source.read_text().replace(
++                    "@EnableTransactionManagement(proxyTargetClass = true)",
++                    "@EnableTransactionManagement(mode = org.springframework.context.annotation.AdviceMode.ASPECTJ, proxyTargetClass = true)",
++                )
++            )
++            context = project / "context.json"
++            context.write_text(
++                json.dumps(
++                    {**json.loads(context.read_text()), "entryThroughProxy": False}
++                )
++            )
++            before = snapshot(project)
++            report = cli.analyze(project, context, "fixture.A#selfOutside()")
++            self.assertEqual(snapshot(project), before)
++            self.assertEqual(report["interceptionMode"], "ASPECTJ")
++            self.assertEqual(report["frames"][1]["interception"]["status"], "UNKNOWN")
++            self.assertEqual(
++                report["frames"][1]["effectiveContext"]["during"], "UNKNOWN"
++            )
++            self.assertTrue(report["uncertainties"])
++            self.assertFalse(report["physicalTransactions"])
++
++    def test_validator_rejects_conflated_context_and_interception(self):
++        report = self.model("proxy_requires_new_active")
++        report["frames"][1]["effectiveContext"]["during"] = "INACTIVE"
++        with self.assertRaises(ValueError):
++            cli.validate_model(report)
++        report = self.model("proxy_requires_new_active")
++        report["frames"][1]["duringState"] = report["frames"][0]["previousState"]
++        report["frames"][1]["effectiveContext"]["during"] = "INACTIVE"
++        with self.assertRaises(ValueError):
++            cli.validate_model(report)
++
++    def test_cli_does_not_change_analyzed_projects(self):
++        for name, oracle in self.oracles.items():
++            with self.subTest(name=name), tempfile.TemporaryDirectory() as temp:
++                context = Path(temp) / "context.json"
++                context.write_text(json.dumps(self.context(oracle)))
++                report = cli.analyze(
++                    FIXTURE / oracle["project"], context, oracle["entry"]
++                )
++                self.assertEqual(
++                    [f["interception"]["status"] for f in report["frames"]],
++                    oracle["interception"],
++                )
++        self.assertEqual(snapshot(FIXTURE), self.before)
++
++    def test_plantuml_syntax_and_svg_for_f01_and_historical_models(self):
++        jar = Path(
++            os.environ.get("MANA_PLANTUML_JAR", "/Applications/plantuml-1.2024.8.jar")
++        )
++        if not jar.is_file():
++            self.skipTest("PlantUML unavailable: NOT RUN")
++        with tempfile.TemporaryDirectory() as temp:
++            stage = Path(temp).resolve()
++            for name in self.oracles:
++                (stage / (name + ".puml")).write_text(cli.render(self.model(name)))
++            examples = ROOT / "docs/examples/transaction-01-t01"
++            for path in examples.glob("*/transaction-model.json"):
++                model = json.loads(path.read_text())
++                cli.validate_model(model)
++                (stage / ("historical-" + path.parent.name + ".puml")).write_text(
++                    cli.render(model)
++                )
++            self.assertEqual(len(list(stage.glob("*.puml"))), 16)
++            args = [
++                "java",
++                "-Djava.awt.headless=true",
++                "-Djava.io.tmpdir=" + str(stage),
++                "-XX:-UsePerfData",
++                "-jar",
++                str(jar),
++            ]
++            for flag in ("-checkonly", "-tsvg"):
++                result = subprocess.run(
++                    [*args, flag, *map(str, sorted(stage.glob("*.puml")))],
++                    cwd=stage,
++                    capture_output=True,
++                    text=True,
++                    timeout=60,
++                )
++                self.assertEqual(result.returncode, 0, result.stderr)
++            self.assertEqual(len(list(stage.glob("*.svg"))), 16)
++            self.assertTrue(
++                all("Syntax Error" not in p.read_text() for p in stage.glob("*.svg"))
++            )
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/fixtures/transaction-self-invocation/README.md b/tests/fixtures/transaction-self-invocation/README.md
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-self-invocation/README.md
+@@ -0,0 +1,21 @@
++# T01-F01 self-invocation oracles
++
++The three parse-only projects differ solely in transaction interception configuration:
++PROXY, ASPECTJ, and absent/UNKNOWN. They are never built or executed. The eight
++expectations in `oracles.json` are manually specified from the source calls and
++Spring's proxy/weaving rules; the analyzer does not generate expectations.
++
++The active child cases obtain P1 from an intercepted caller in the same trace;
++they do not invent an external runtime transaction identity. PROXY self-calls
++retain the incoming context even when their annotations declare REQUIRES_NEW.
++
++AspectJ positive cases explicitly stipulate `aspectjWeaving: ASSUMED_APPLIED`.
++They test what follows **if transactional weaving applies** to the modeled methods.
++They do not demonstrate a working weaver, classpath or running Spring application.
++The source annotation alone leaves weaving UNKNOWN. Even an assumed weaver cannot
++resolve a missing interception mode. This follows the permitted conditional
++scenario contract; runtime weaving evidence remains outside T01.
++
++Run `python3 tests/transaction-self-invocation.py -v`. The original sixteen tests
++remain in `tests/transaction-boundaries.py`. Set `MANA_PLANTUML_JAR` to a local jar
++for syntax/SVG qualification. Missing tooling is a skip/NOT RUN, never a PASS.
+diff --git a/tests/fixtures/transaction-self-invocation/aspectj/pom.xml b/tests/fixtures/transaction-self-invocation/aspectj/pom.xml
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-self-invocation/aspectj/pom.xml
+@@ -0,0 +1,7 @@
++<project xmlns="http://maven.apache.org/POM/4.0.0">
++  <modelVersion>4.0.0</modelVersion><groupId>mana.fixture</groupId>
++  <artifactId>transaction-boundaries</artifactId><version>1</version>
++  <dependencies><dependency><groupId>org.springframework</groupId>
++    <artifactId>spring-tx</artifactId><version>6.2.19</version>
++  </dependency></dependencies>
++</project>
+diff --git a/tests/fixtures/transaction-self-invocation/aspectj/src/main/java/selftest/Calls.java b/tests/fixtures/transaction-self-invocation/aspectj/src/main/java/selftest/Calls.java
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-self-invocation/aspectj/src/main/java/selftest/Calls.java
+@@ -0,0 +1,24 @@
++package selftest;
++import org.springframework.stereotype.Service;
++import org.springframework.transaction.annotation.Transactional;
++import org.springframework.transaction.annotation.Propagation;
++import org.springframework.transaction.annotation.EnableTransactionManagement;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.context.annotation.Bean;
++import org.springframework.jdbc.datasource.DataSourceTransactionManager;
++
++@Configuration
++@EnableTransactionManagement(mode = org.springframework.context.annotation.AdviceMode.ASPECTJ)
++class Config {
++    @Bean public DataSourceTransactionManager tx() { return new DataSourceTransactionManager(); }
++}
++@Service
++class Calls {
++    public void outsideRequired() { this.required(); }
++    @Transactional public void activeRequired() { this.required(); }
++    @Transactional public void activeNew() { this.independent(); }
++    @Transactional public void activeNested() { this.nested(); }
++    @Transactional public void required() {}
++    @Transactional(propagation = Propagation.REQUIRES_NEW) public void independent() {}
++    @Transactional(propagation = Propagation.NESTED) public void nested() {}
++}
+diff --git a/tests/fixtures/transaction-self-invocation/oracles.json b/tests/fixtures/transaction-self-invocation/oracles.json
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-self-invocation/oracles.json
+@@ -0,0 +1,120 @@
++{
++  "proxy_required_inactive": {
++    "project": "proxy",
++    "entry": "selftest.Calls#outsideRequired()",
++    "entryThroughProxy": true,
++    "interception": ["BYPASSED", "BYPASSED"],
++    "during": ["INACTIVE", "INACTIVE"],
++    "physical": [null, null],
++    "logical": [null, null],
++    "childAfter": "INACTIVE",
++    "physicalCount": 0,
++    "suspensions": 0,
++    "savepoints": 0,
++    "boundaryEvents": []
++  },
++  "proxy_required_active": {
++    "project": "proxy",
++    "entry": "selftest.Calls#activeRequired()",
++    "entryThroughProxy": true,
++    "interception": ["APPLIED", "BYPASSED"],
++    "during": ["ACTIVE", "ACTIVE"],
++    "physical": ["P1", "P1"],
++    "logical": ["L1", null],
++    "childAfter": "ACTIVE",
++    "physicalCount": 1,
++    "suspensions": 0,
++    "savepoints": 0,
++    "boundaryEvents": ["PHYSICAL_BEGIN", "LOGICAL_BEGIN", "LOGICAL_END", "PHYSICAL_END_OUTCOME_UNKNOWN"]
++  },
++  "proxy_requires_new_active": {
++    "project": "proxy",
++    "entry": "selftest.Calls#activeNew()",
++    "entryThroughProxy": true,
++    "interception": ["APPLIED", "BYPASSED"],
++    "during": ["ACTIVE", "ACTIVE"],
++    "physical": ["P1", "P1"],
++    "logical": ["L1", null],
++    "childAfter": "ACTIVE",
++    "physicalCount": 1,
++    "suspensions": 0,
++    "savepoints": 0,
++    "boundaryEvents": ["PHYSICAL_BEGIN", "LOGICAL_BEGIN", "LOGICAL_END", "PHYSICAL_END_OUTCOME_UNKNOWN"]
++  },
++  "aspectj_required_conditional": {
++    "project": "aspectj",
++    "entry": "selftest.Calls#outsideRequired()",
++    "entryThroughProxy": false,
++    "aspectjWeaving": "ASSUMED_APPLIED",
++    "interception": ["BYPASSED", "APPLIED"],
++    "during": ["INACTIVE", "ACTIVE"],
++    "physical": [null, "P1"],
++    "logical": [null, "L1"],
++    "childAfter": "INACTIVE",
++    "physicalCount": 1,
++    "suspensions": 0,
++    "savepoints": 0,
++    "boundaryEvents": ["PHYSICAL_BEGIN", "LOGICAL_BEGIN", "LOGICAL_END", "PHYSICAL_END_OUTCOME_UNKNOWN"]
++  },
++  "aspectj_requires_new_conditional": {
++    "project": "aspectj",
++    "entry": "selftest.Calls#activeNew()",
++    "entryThroughProxy": false,
++    "aspectjWeaving": "ASSUMED_APPLIED",
++    "interception": ["APPLIED", "APPLIED"],
++    "during": ["ACTIVE", "ACTIVE"],
++    "physical": ["P1", "P2"],
++    "logical": ["L1", "L2"],
++    "childAfter": "ACTIVE",
++    "physicalCount": 2,
++    "suspensions": 1,
++    "savepoints": 0,
++    "boundaryEvents": ["PHYSICAL_BEGIN", "LOGICAL_BEGIN", "SUSPEND", "PHYSICAL_BEGIN", "LOGICAL_BEGIN", "LOGICAL_END", "PHYSICAL_END_OUTCOME_UNKNOWN", "RESUME_CONDITIONAL", "LOGICAL_END", "PHYSICAL_END_OUTCOME_UNKNOWN"]
++  },
++  "aspectj_nested_conditional": {
++    "project": "aspectj",
++    "entry": "selftest.Calls#activeNested()",
++    "entryThroughProxy": false,
++    "aspectjWeaving": "ASSUMED_APPLIED",
++    "interception": ["APPLIED", "APPLIED"],
++    "during": ["ACTIVE", "ACTIVE"],
++    "physical": ["P1", "P1"],
++    "logical": ["L1", "L2"],
++    "childAfter": "ACTIVE",
++    "physicalCount": 1,
++    "suspensions": 0,
++    "savepoints": 1,
++    "boundaryEvents": ["PHYSICAL_BEGIN", "LOGICAL_BEGIN", "LOGICAL_BEGIN", "SAVEPOINT_CREATE", "SAVEPOINT_RELEASE_CONDITIONAL", "LOGICAL_END", "LOGICAL_END", "PHYSICAL_END_OUTCOME_UNKNOWN"]
++  },
++  "aspectj_weaving_unproven": {
++    "project": "aspectj",
++    "entry": "selftest.Calls#outsideRequired()",
++    "entryThroughProxy": false,
++    "interception": ["BYPASSED", "UNKNOWN"],
++    "during": ["INACTIVE", "UNKNOWN"],
++    "physical": [null, null],
++    "logical": [null, null],
++    "childAfter": "UNKNOWN",
++    "physicalCount": 0,
++    "suspensions": 0,
++    "savepoints": 0,
++    "boundaryEvents": [],
++    "reason": "ASPECTJ_WEAVING_NOT_ESTABLISHED"
++  },
++  "unknown_mode": {
++    "project": "unknown",
++    "entry": "selftest.Calls#outsideRequired()",
++    "entryThroughProxy": false,
++    "aspectjWeaving": "ASSUMED_APPLIED",
++    "interception": ["BYPASSED", "UNKNOWN"],
++    "during": ["INACTIVE", "UNKNOWN"],
++    "physical": [null, null],
++    "logical": [null, null],
++    "childAfter": "UNKNOWN",
++    "physicalCount": 0,
++    "suspensions": 0,
++    "savepoints": 0,
++    "boundaryEvents": [],
++    "reason": "PROXY_OR_ASPECTJ_MODE_NOT_ESTABLISHED"
++  }
++}
+diff --git a/tests/fixtures/transaction-self-invocation/proxy/pom.xml b/tests/fixtures/transaction-self-invocation/proxy/pom.xml
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-self-invocation/proxy/pom.xml
+@@ -0,0 +1,7 @@
++<project xmlns="http://maven.apache.org/POM/4.0.0">
++  <modelVersion>4.0.0</modelVersion><groupId>mana.fixture</groupId>
++  <artifactId>transaction-boundaries</artifactId><version>1</version>
++  <dependencies><dependency><groupId>org.springframework</groupId>
++    <artifactId>spring-tx</artifactId><version>6.2.19</version>
++  </dependency></dependencies>
++</project>
+diff --git a/tests/fixtures/transaction-self-invocation/proxy/src/main/java/selftest/Calls.java b/tests/fixtures/transaction-self-invocation/proxy/src/main/java/selftest/Calls.java
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-self-invocation/proxy/src/main/java/selftest/Calls.java
+@@ -0,0 +1,24 @@
++package selftest;
++import org.springframework.stereotype.Service;
++import org.springframework.transaction.annotation.Transactional;
++import org.springframework.transaction.annotation.Propagation;
++import org.springframework.transaction.annotation.EnableTransactionManagement;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.context.annotation.Bean;
++import org.springframework.jdbc.datasource.DataSourceTransactionManager;
++
++@Configuration
++@EnableTransactionManagement(proxyTargetClass = true)
++class Config {
++    @Bean public DataSourceTransactionManager tx() { return new DataSourceTransactionManager(); }
++}
++@Service
++class Calls {
++    public void outsideRequired() { this.required(); }
++    @Transactional public void activeRequired() { this.required(); }
++    @Transactional public void activeNew() { this.independent(); }
++    @Transactional public void activeNested() { this.nested(); }
++    @Transactional public void required() {}
++    @Transactional(propagation = Propagation.REQUIRES_NEW) public void independent() {}
++    @Transactional(propagation = Propagation.NESTED) public void nested() {}
++}
+diff --git a/tests/fixtures/transaction-self-invocation/unknown/pom.xml b/tests/fixtures/transaction-self-invocation/unknown/pom.xml
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-self-invocation/unknown/pom.xml
+@@ -0,0 +1,7 @@
++<project xmlns="http://maven.apache.org/POM/4.0.0">
++  <modelVersion>4.0.0</modelVersion><groupId>mana.fixture</groupId>
++  <artifactId>transaction-boundaries</artifactId><version>1</version>
++  <dependencies><dependency><groupId>org.springframework</groupId>
++    <artifactId>spring-tx</artifactId><version>6.2.19</version>
++  </dependency></dependencies>
++</project>
+diff --git a/tests/fixtures/transaction-self-invocation/unknown/src/main/java/selftest/Calls.java b/tests/fixtures/transaction-self-invocation/unknown/src/main/java/selftest/Calls.java
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-self-invocation/unknown/src/main/java/selftest/Calls.java
+@@ -0,0 +1,24 @@
++package selftest;
++import org.springframework.stereotype.Service;
++import org.springframework.transaction.annotation.Transactional;
++import org.springframework.transaction.annotation.Propagation;
++import org.springframework.transaction.annotation.EnableTransactionManagement;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.context.annotation.Bean;
++import org.springframework.jdbc.datasource.DataSourceTransactionManager;
++
++@Configuration
++
++class Config {
++    @Bean public DataSourceTransactionManager tx() { return new DataSourceTransactionManager(); }
++}
++@Service
++class Calls {
++    public void outsideRequired() { this.required(); }
++    @Transactional public void activeRequired() { this.required(); }
++    @Transactional public void activeNew() { this.independent(); }
++    @Transactional public void activeNested() { this.nested(); }
++    @Transactional public void required() {}
++    @Transactional(propagation = Propagation.REQUIRES_NEW) public void independent() {}
++    @Transactional(propagation = Propagation.NESTED) public void nested() {}
++}

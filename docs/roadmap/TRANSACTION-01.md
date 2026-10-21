@@ -3,6 +3,12 @@
 Status: proposal only. MANA-META-SKILL-00 supplies a candidate contract and
 technology evidence; it supplies no transaction analyzer or execution approval.
 
+T01 update: the bounded conditional static engine is now implemented under
+`MANA-TRANSACTION-01-T01`, subject to review. See
+`docs/standards/transaction-model-v1.md` and the T01 delivery report for exact
+limits/evidence. The original broad proposal below is not a claim of complete
+analysis or candidate approval. Resource/lock work remains out of scope.
+
 ## Objective
 
 Implement a bounded static Java/Spring analyzer capable of substantiating the

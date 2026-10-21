@@ -70,6 +70,9 @@ tests=(
   mana-scout-cycles.sh
   mana-scout.sh
   mana-skill-factory.py
+  transaction-boundaries.py
+  transaction-transition-contract.py
+  transaction-aop-causal-order.py
   profile-skill-activation.sh
   provider-capabilities.sh
   provider-dispatch.sh

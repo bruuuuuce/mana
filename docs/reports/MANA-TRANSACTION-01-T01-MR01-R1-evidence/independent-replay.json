@@ -1,0 +1,1022 @@
+{
+  "oracles": [
+    {
+      "id": "O01",
+      "transition": "T01",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O02",
+      "transition": "T02",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O03",
+      "transition": "T03",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O04",
+      "transition": "T04",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O05",
+      "transition": "T05",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O06",
+      "transition": "T06",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O07",
+      "transition": "T06",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: APPLIED effects contradict propagation/manager/capabilities",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O08",
+      "transition": "T06",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: APPLIED effects contradict propagation/manager/capabilities",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O09",
+      "transition": "T04",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: APPLIED effects contradict propagation/manager/capabilities",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O10",
+      "transition": "T04",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: APPLIED effects contradict propagation/manager/capabilities",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O11",
+      "transition": "T04",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: APPLIED propagation effects/cardinality mismatch",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O12",
+      "transition": "T06",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: APPLIED propagation effects/cardinality mismatch",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O13",
+      "transition": "T02",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: after-state did not restore incoming physical context",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        },
+        {
+          "accepted": false,
+          "error": "ValueError: after-state did not restore incoming physical context",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O14",
+      "transition": "T01",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: unfinished physical lifetime, suspension or scope",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O15",
+      "transition": "T02",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: physical end attached to wrong frame / ownership",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O16",
+      "transition": "T04",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: resume requires a live suspended context and ended replacement",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O17",
+      "transition": "T01",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: invalid physical begin or reused physical identity",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O18",
+      "transition": "T16",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: physical certainty is not common to advice alternatives",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O19",
+      "transition": "T17",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: physical certainty is not common to advice alternatives",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O20",
+      "transition": "T17",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: physical certainty is not common to advice alternatives",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O21",
+      "transition": "T18",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: branch-only boundary materialized as an unconditional entity",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O22",
+      "transition": "T16",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: composition requires both advice alternatives",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O23",
+      "transition": "T18",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: applied alternative contradicts propagation/manager/capabilities",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O24",
+      "transition": "T14",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O25",
+      "transition": "T13",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O26",
+      "transition": "T15",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O27",
+      "transition": "T16",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O28",
+      "transition": "T17",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O29",
+      "transition": "T18",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O30",
+      "transition": "T19",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O31",
+      "transition": "T03",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O32",
+      "transition": "T05",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O33",
+      "transition": "T07",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O34",
+      "transition": "T22",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O35",
+      "transition": "T11",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: APPLIED effects contradict propagation/manager/capabilities",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O36",
+      "transition": "T01",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: physical context outside its active lifetime",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O37",
+      "transition": "T06",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: manager capabilities contradict scenario context",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O38",
+      "transition": "T05",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: savepoint must share physical transaction",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O39",
+      "transition": "T02",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: APPLIED propagation effects/cardinality mismatch",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O40",
+      "transition": "T02",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: APPLIED propagation effects/cardinality mismatch",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O41",
+      "transition": "T06",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: APPLIED propagation effects/cardinality mismatch",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O42",
+      "transition": "T24",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "O43",
+      "transition": "T19",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: bypass contradicts interception mode/evidence",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "O44",
+      "transition": "T24",
+      "expected": "REJECT",
+      "variants": [
+        {
+          "accepted": false,
+          "error": "ValueError: physical certainty is not common to advice alternatives",
+          "inputUnchanged": true,
+          "matched": true,
+          "semanticDiagnosticMatched": true
+        }
+      ]
+    },
+    {
+      "id": "T08",
+      "transition": "T08",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "T09",
+      "transition": "T09",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "T10",
+      "transition": "T10",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "T20",
+      "transition": "T20",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "T21",
+      "transition": "T21",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "T12",
+      "transition": "T12",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "T11",
+      "transition": "T11",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "T23",
+      "transition": "T23",
+      "expected": "ACCEPT",
+      "variants": [
+        {
+          "accepted": true,
+          "error": null,
+          "inputUnchanged": true,
+          "matched": true
+        }
+      ]
+    }
+  ],
+  "r4": [
+    {
+      "case": "hand-savepoints-False",
+      "archivePointer": "reviewArtifacts/hand-savepoints-False.json",
+      "canonicalSha256": "6a9c1c7a3c72a7699ff7f6575fddf8191f757a2f406b1f71ad69023918ffc5d4",
+      "accepted": false,
+      "error": "ValueError: APPLIED effects contradict propagation/manager/capabilities",
+      "inputUnchanged": true
+    },
+    {
+      "case": "hand-savepoints-None",
+      "archivePointer": "reviewArtifacts/hand-savepoints-None.json",
+      "canonicalSha256": "5556069f0153a9751a8b20c6d569ddd8f5a869a03b686ced1dec029a1db239cd",
+      "accepted": false,
+      "error": "ValueError: APPLIED effects contradict propagation/manager/capabilities",
+      "inputUnchanged": true
+    },
+    {
+      "case": "hand-suspend-false",
+      "archivePointer": "reviewArtifacts/hand-suspend-false.json",
+      "canonicalSha256": "0bae7d84508c3c6d0e4b66eee89010bab957a4ebcd21eb19b10baf356c37ed90",
+      "accepted": false,
+      "error": "ValueError: APPLIED effects contradict propagation/manager/capabilities",
+      "inputUnchanged": true
+    },
+    {
+      "case": "hand-new-reuses-p1-savepoint",
+      "archivePointer": "reviewArtifacts/hand-new-reuses-p1-savepoint.json",
+      "canonicalSha256": "771f36dbc020261fa9b62296f81d969f2ec3a76ff4284084f2562eb920d32bfd",
+      "accepted": false,
+      "error": "ValueError: APPLIED propagation effects/cardinality mismatch",
+      "inputUnchanged": true
+    },
+    {
+      "case": "hand-nested-allocates-p2",
+      "archivePointer": "reviewArtifacts/hand-nested-allocates-p2.json",
+      "canonicalSha256": "9b18193905d309421eb3bb9a2ffa1a82f95caa26f61aec0cac6c067ac94cbbe8",
+      "accepted": false,
+      "error": "ValueError: APPLIED propagation effects/cardinality mismatch",
+      "inputUnchanged": true
+    },
+    {
+      "case": "complete-nested-unsupported",
+      "archivePointer": "reviewArtifacts/complete-nested-unsupported.json",
+      "canonicalSha256": "270314b096a7835ae331a864d77da4ea1df68fb1738f44ede99a9f07badce444",
+      "accepted": false,
+      "error": "ValueError: APPLIED effects contradict propagation/manager/capabilities",
+      "inputUnchanged": true
+    },
+    {
+      "case": "complete-requires_new-unsupported",
+      "archivePointer": "reviewArtifacts/complete-requires_new-unsupported.json",
+      "canonicalSha256": "28408525d56c73dc506b33ea5bce19b7b9baa78b5e84fe05ec2a91bec5ce5d98",
+      "accepted": false,
+      "error": "ValueError: APPLIED effects contradict propagation/manager/capabilities",
+      "inputUnchanged": true
+    },
+    {
+      "case": "hand-logical-close-drops-live-p1",
+      "archivePointer": "reviewArtifacts/hand-logical-close-drops-live-p1.json",
+      "canonicalSha256": "2cc8e569164d563b50bb645e21a84c3f7373c924597fbcfedb338fcfa4ce4fbd",
+      "accepted": false,
+      "error": "ValueError: after-state did not restore incoming physical context",
+      "inputUnchanged": true
+    },
+    {
+      "case": "complete-logical-close-drops-live-p1",
+      "archivePointer": "reviewArtifacts/complete-logical-close-drops-live-p1.json",
+      "canonicalSha256": "bc30b71acf9d99dd4f213d2bc7c144158765f134cb58562c848ba9276ae5deb6",
+      "accepted": false,
+      "error": "ValueError: after-state did not restore incoming physical context",
+      "inputUnchanged": true
+    },
+    {
+      "case": "hand-unknown-REQUIRED",
+      "archivePointer": "reviewArtifacts/hand-unknown-REQUIRED.json",
+      "canonicalSha256": "25e58405e3094bd0268167b51595907d1e843e70510993cc5fe8f91808d5ddc7",
+      "accepted": false,
+      "error": "ValueError: applied interception lacks compatible scenario evidence",
+      "inputUnchanged": true,
+      "classification": "LEGITIMATELY_REJECTED",
+      "globalMode": "ASPECTJ",
+      "weaving": {
+        "application": "ASSUMED_APPLIED",
+        "runtimeApplication": "UNKNOWN"
+      },
+      "framePremises": [
+        {
+          "id": "F1",
+          "proxy": {
+            "reason": "SCENARIO_PROXY_CALL",
+            "mode": "CLASS",
+            "crossed": true
+          },
+          "interception": {
+            "status": "APPLIED",
+            "reason": "SCENARIO_PROXY_CALL"
+          }
+        },
+        {
+          "id": "F2",
+          "proxy": {
+            "reason": "SCENARIO_PROXY_CALL",
+            "mode": "CLASS",
+            "crossed": true
+          },
+          "interception": {
+            "status": "UNKNOWN",
+            "reason": "ASPECTJ_METHOD_SHAPE_NOT_MODELED"
+          }
+        }
+      ]
+    },
+    {
+      "case": "hand-unknown-NESTED",
+      "archivePointer": "reviewArtifacts/hand-unknown-NESTED.json",
+      "canonicalSha256": "a3d99613bef23b6d636434405b343427ab8b4a946923416bdc6ccff8217a8850",
+      "accepted": false,
+      "error": "ValueError: applied interception lacks compatible scenario evidence",
+      "inputUnchanged": true,
+      "classification": "LEGITIMATELY_REJECTED",
+      "globalMode": "ASPECTJ",
+      "weaving": {
+        "application": "ASSUMED_APPLIED",
+        "runtimeApplication": "UNKNOWN"
+      },
+      "framePremises": [
+        {
+          "id": "F1",
+          "proxy": {
+            "reason": "SCENARIO_PROXY_CALL",
+            "mode": "CLASS",
+            "crossed": true
+          },
+          "interception": {
+            "status": "APPLIED",
+            "reason": "SCENARIO_PROXY_CALL"
+          }
+        },
+        {
+          "id": "F2",
+          "proxy": {
+            "reason": "SCENARIO_PROXY_CALL",
+            "mode": "CLASS",
+            "crossed": true
+          },
+          "interception": {
+            "status": "UNKNOWN",
+            "reason": "ASPECTJ_METHOD_SHAPE_NOT_MODELED"
+          }
+        }
+      ]
+    },
+    {
+      "case": "hand-unknown-REQUIRES_NEW",
+      "archivePointer": "reviewArtifacts/hand-unknown-REQUIRES_NEW.json",
+      "canonicalSha256": "5187c67b23a1c2764fc0834bdb3ad81efbd9729d29dbcbc4cce09b01b6a9cf2f",
+      "accepted": false,
+      "error": "ValueError: applied interception lacks compatible scenario evidence",
+      "inputUnchanged": true,
+      "classification": "LEGITIMATELY_REJECTED",
+      "globalMode": "ASPECTJ",
+      "weaving": {
+        "application": "ASSUMED_APPLIED",
+        "runtimeApplication": "UNKNOWN"
+      },
+      "framePremises": [
+        {
+          "id": "F1",
+          "proxy": {
+            "reason": "SCENARIO_PROXY_CALL",
+            "mode": "CLASS",
+            "crossed": true
+          },
+          "interception": {
+            "status": "APPLIED",
+            "reason": "SCENARIO_PROXY_CALL"
+          }
+        },
+        {
+          "id": "F2",
+          "proxy": {
+            "reason": "SCENARIO_PROXY_CALL",
+            "mode": "CLASS",
+            "crossed": true
+          },
+          "interception": {
+            "status": "UNKNOWN",
+            "reason": "ASPECTJ_METHOD_SHAPE_NOT_MODELED"
+          }
+        }
+      ]
+    }
+  ],
+  "counterexamples": [
+    {
+      "finding": "R1-F01",
+      "base": "O27",
+      "baseline": {
+        "accepted": true,
+        "error": null,
+        "inputUnchanged": true
+      },
+      "expected": "REJECT",
+      "actual": {
+        "accepted": true,
+        "error": null,
+        "inputUnchanged": true
+      },
+      "payload": "O27-aspectj-proxy-contradiction.json",
+      "sha256": "4e445f459d431356804898f5a0cf6e73591855cddd5fed506c68ddcc79bd1382",
+      "sourceUnchanged": true,
+      "rendererIdenticalToValidBaseline": true
+    },
+    {
+      "finding": "R1-F01",
+      "base": "O28",
+      "baseline": {
+        "accepted": true,
+        "error": null,
+        "inputUnchanged": true
+      },
+      "expected": "REJECT",
+      "actual": {
+        "accepted": true,
+        "error": null,
+        "inputUnchanged": true
+      },
+      "payload": "O28-aspectj-proxy-contradiction.json",
+      "sha256": "da634c134ba22c2f597a1d43cda075c2f90db4c09f374a176c27bf5aea837ac8",
+      "sourceUnchanged": true,
+      "rendererIdenticalToValidBaseline": true
+    },
+    {
+      "finding": "R1-F01",
+      "base": "O29",
+      "baseline": {
+        "accepted": true,
+        "error": null,
+        "inputUnchanged": true
+      },
+      "expected": "REJECT",
+      "actual": {
+        "accepted": true,
+        "error": null,
+        "inputUnchanged": true
+      },
+      "payload": "O29-aspectj-proxy-contradiction.json",
+      "sha256": "0bd29862a6aae78b28bd2058f20ee21fe0067a690c905bb871fabbd113d8659f",
+      "sourceUnchanged": true,
+      "rendererIdenticalToValidBaseline": true
+    },
+    {
+      "finding": "R1-F02",
+      "base": "O02",
+      "baseline": {
+        "accepted": true,
+        "error": null,
+        "inputUnchanged": true
+      },
+      "expected": "REJECT",
+      "actual": {
+        "accepted": true,
+        "error": null,
+        "inputUnchanged": true
+      },
+      "payload": "O02-child-after-unresolved-call.json",
+      "sha256": "b9a24bfadb0272baf782e6d086b382ec9b66574173c4849504a9e603b7f95e64",
+      "sourceSha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d",
+      "laterChildCallSource": "other.inner()",
+      "unresolvedCallSource": "System.gc()",
+      "sourceSpansRecomputed": true,
+      "rendererClaimsRemainingOrderNotAssertedBeforeF2": true
+    }
+  ],
+  "positiveNested": {
+    "expected": "ACCEPT",
+    "actual": {
+      "accepted": true,
+      "error": null,
+      "inputUnchanged": true
+    },
+    "payload": "nested-new-three-frames.json",
+    "sha256": "f57bd90d06ab5f2094dc8353ec35e6c2980f124e5ca571f16abb930bb3ce95cc",
+    "sourceSha256": "02019f92822b8a39c3acf9b7999eacc039ec334fd59a2ae503d5fb910d5e69e2",
+    "suspensions": 2,
+    "eventOrder": [
+      {
+        "kind": "SUSPEND",
+        "entity": "S1",
+        "physicalId": "P1"
+      },
+      {
+        "kind": "SUSPEND",
+        "entity": "S2",
+        "physicalId": "P2"
+      },
+      {
+        "kind": "RESUME_CONDITIONAL",
+        "entity": "S2",
+        "physicalId": "P2"
+      },
+      {
+        "kind": "RESUME_CONDITIONAL",
+        "entity": "S1",
+        "physicalId": "P1"
+      }
+    ]
+  }
+}

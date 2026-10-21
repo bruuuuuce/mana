@@ -94,9 +94,15 @@ class JavaSpringAdapter:
             "supportedTechnologies": ["java", "spring", "maven"],
             "evidence": facts,
             "technologyClaim": "declared dependency and source presence only; resolved versions and runtime use unknown",
-            "offeredCapabilities": ["reviewable-future-analysis-contract"],
+            "offeredCapabilities": [
+                "reviewable-future-analysis-contract",
+                "conditional-required-requires-new-nested-boundaries-t01",
+                "java-ast-zero-argument-source-call-sites-t01",
+                "plantuml-logical-physical-scope-rendering-t01",
+                "transaction-model-invariant-validation-t01",
+            ],
             "futureCapabilities": [
-                {"id": item, "status": "not_implemented"} for item in FUTURE
+                {"id": item, "status": "partially_implemented"} for item in FUTURE
             ],
             "usableEvidence": [
                 "java-source",
@@ -112,15 +118,20 @@ class JavaSpringAdapter:
             "requiredTools": [
                 {"id": "read_files", "status": "framework_declared"},
                 {"id": "code_search", "status": "framework_declared"},
-                {"id": "transaction-analyzer", "status": "not_implemented"},
+                {"id": "transaction-analyzer", "status": "framework_declared"},
+                {"id": "jdk-java-and-javac", "status": "environment_required"},
             ],
             "knowledgeReferences": [
                 "docs/policies/verification-execution-policy.md",
                 "docs/standards/agent-skill-output-standard.md",
                 "templates/skill-factory/java-spring-transaction-analysis.md",
+                "docs/standards/transaction-model-v1.md",
+                "scripts/mana-transaction.py",
             ],
             "limits": [
-                "No transaction analysis or diagram generation",
+                "T01 conditional static scenarios only; no runtime transaction identity or commit/rollback proof",
+                "JDK parser, conventional Java and zero-argument straight-line methods only; unsupported paths remain UNKNOWN",
+                "Entry context and manager suspend/savepoint capabilities require explicit scenario inputs",
                 "No dependency resolution or runtime claims",
                 "No Gradle, inherited-only dependencies, profiles or nonstandard source roots",
                 "No promotion, registration, approval recording or execution API",

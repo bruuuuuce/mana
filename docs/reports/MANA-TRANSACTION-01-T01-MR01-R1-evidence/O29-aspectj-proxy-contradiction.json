@@ -1,0 +1,368 @@
+{
+  "schema": "mana.transaction-model/v1",
+  "entry": "Review#outer()",
+  "status": "CONDITIONAL_STATIC_SCENARIO",
+  "proxyMode": "CLASS",
+  "interceptionMode": "ASPECTJ",
+  "aspectjWeaving": {
+    "application": "ASSUMED_APPLIED",
+    "runtimeApplication": "UNKNOWN"
+  },
+  "assumptions": [
+    "SYNTHETIC HAND-AUTHORED MR00 ORACLE; not JDK output or runtime proof.",
+    "Normal synchronous unwind is conditional; manager capability premises are stipulated."
+  ],
+  "context": {
+    "schema": "mana.transaction-context/v1",
+    "initialState": "NO_TRANSACTION",
+    "entryThroughProxy": true,
+    "managerCapabilities": {
+      "tx": {
+        "suspend": true,
+        "savepoints": true
+      }
+    }
+  },
+  "managers": [
+    {
+      "id": "tx",
+      "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+      "capabilities": {
+        "suspend": true,
+        "savepoints": true
+      },
+      "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION",
+      "evidence": {
+        "file": "Synthetic.java",
+        "start": 0,
+        "end": 550,
+        "line": 1,
+        "sha256": "446b7611e177ae1cac733d4e8a006df7c4d5cf3358ad065f7fa1e7048aca9ee4"
+      }
+    }
+  ],
+  "frames": [
+    {
+      "id": "F1",
+      "callerMethod": null,
+      "calleeMethod": "Review#outer()",
+      "callSite": null,
+      "bean": "Review",
+      "beanName": "review",
+      "proxy": {
+        "mode": "CLASS",
+        "crossed": false,
+        "reason": "NOT_APPLICABLE_ASPECTJ",
+        "configurationEvidence": [
+          {
+            "file": "Synthetic.java",
+            "start": 0,
+            "end": 550,
+            "line": 1,
+            "sha256": "446b7611e177ae1cac733d4e8a006df7c4d5cf3358ad065f7fa1e7048aca9ee4"
+          }
+        ]
+      },
+      "configuration": {
+        "propagation": "REQUIRED",
+        "managerQualifier": "tx",
+        "attributes": {},
+        "origin": "method",
+        "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+        "unmodeledAttributes": [],
+        "evidence": {
+          "file": "Synthetic.java",
+          "start": 633,
+          "end": 718,
+          "line": 17,
+          "sha256": "446b7611e177ae1cac733d4e8a006df7c4d5cf3358ad065f7fa1e7048aca9ee4"
+        }
+      },
+      "interception": {
+        "status": "APPLIED",
+        "reason": "ASPECTJ_WEAVING_ASSUMED_APPLIED"
+      },
+      "manager": "tx",
+      "logicalScope": "L1",
+      "previousState": {
+        "kind": "NO_TRANSACTION",
+        "physicalId": null,
+        "manager": null
+      },
+      "duringState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "afterState": {
+        "kind": "NO_TRANSACTION",
+        "physicalId": null,
+        "manager": null
+      },
+      "certainty": "CONDITIONAL",
+      "bodyTraversal": "STRAIGHT_LINE",
+      "depth": 0,
+      "effectiveContext": {
+        "before": "INACTIVE",
+        "during": "ACTIVE",
+        "after": "INACTIVE"
+      },
+      "evidence": {
+        "file": "Synthetic.java",
+        "start": 633,
+        "end": 718,
+        "line": 17,
+        "sha256": "446b7611e177ae1cac733d4e8a006df7c4d5cf3358ad065f7fa1e7048aca9ee4"
+      },
+      "beanEvidence": {
+        "file": "Synthetic.java",
+        "start": 550,
+        "end": 720,
+        "line": 12,
+        "sha256": "446b7611e177ae1cac733d4e8a006df7c4d5cf3358ad065f7fa1e7048aca9ee4"
+      }
+    },
+    {
+      "id": "F2",
+      "callerMethod": "Review#outer()",
+      "calleeMethod": "Other#inner()",
+      "callSite": {
+        "file": "Synthetic.java",
+        "start": 701,
+        "end": 714,
+        "line": 18,
+        "sha256": "446b7611e177ae1cac733d4e8a006df7c4d5cf3358ad065f7fa1e7048aca9ee4"
+      },
+      "bean": "Other",
+      "beanName": "other",
+      "proxy": {
+        "mode": "CLASS",
+        "crossed": true,
+        "reason": "SCENARIO_PROXY_CALL",
+        "configurationEvidence": [
+          {
+            "file": "Synthetic.java",
+            "start": 0,
+            "end": 550,
+            "line": 1,
+            "sha256": "446b7611e177ae1cac733d4e8a006df7c4d5cf3358ad065f7fa1e7048aca9ee4"
+          }
+        ]
+      },
+      "configuration": {
+        "propagation": "NESTED",
+        "managerQualifier": "tx",
+        "attributes": {},
+        "origin": "method",
+        "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+        "unmodeledAttributes": [],
+        "evidence": {
+          "file": "Synthetic.java",
+          "start": 802,
+          "end": 912,
+          "line": 25,
+          "sha256": "446b7611e177ae1cac733d4e8a006df7c4d5cf3358ad065f7fa1e7048aca9ee4"
+        }
+      },
+      "interception": {
+        "status": "UNKNOWN",
+        "reason": "ASPECTJ_METHOD_SHAPE_NOT_MODELED"
+      },
+      "manager": "tx",
+      "logicalScope": null,
+      "previousState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "duringState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "afterState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "certainty": "UNKNOWN",
+      "bodyTraversal": "NOT_ASSERTED",
+      "depth": 1,
+      "effectiveContext": {
+        "before": "ACTIVE",
+        "during": "ACTIVE",
+        "after": "ACTIVE"
+      },
+      "reason": "ASPECTJ_METHOD_SHAPE_NOT_MODELED",
+      "contextComposition": {
+        "premises": {
+          "execution": "SYNCHRONOUS_BOUNDARY",
+          "otherBoundaryMechanisms": "NONE_OBSERVED",
+          "body": "EMPTY",
+          "evidence": {
+            "file": "Synthetic.java",
+            "start": 802,
+            "end": 912,
+            "line": 25,
+            "sha256": "446b7611e177ae1cac733d4e8a006df7c4d5cf3358ad065f7fa1e7048aca9ee4"
+          }
+        },
+        "alternatives": {
+          "APPLIED": {
+            "duringState": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "afterState": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "identity": "INHERITED",
+            "logicalScope": "IF_APPLIED",
+            "savepoint": "IF_APPLIED",
+            "suspension": "ABSENT",
+            "resolution": "SUPPORTED"
+          },
+          "BYPASSED": {
+            "duringState": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "afterState": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "identity": "INHERITED",
+            "logicalScope": "ABSENT",
+            "savepoint": "ABSENT",
+            "suspension": "ABSENT",
+            "resolution": "BYPASSED"
+          }
+        },
+        "duringState": {
+          "kind": "TRANSACTION_PHYSICAL",
+          "physicalId": "P1",
+          "manager": "tx"
+        },
+        "afterState": {
+          "kind": "TRANSACTION_PHYSICAL",
+          "physicalId": "P1",
+          "manager": "tx"
+        }
+      },
+      "evidence": {
+        "file": "Synthetic.java",
+        "start": 802,
+        "end": 912,
+        "line": 25,
+        "sha256": "446b7611e177ae1cac733d4e8a006df7c4d5cf3358ad065f7fa1e7048aca9ee4"
+      },
+      "beanEvidence": {
+        "file": "Synthetic.java",
+        "start": 720,
+        "end": 914,
+        "line": 20,
+        "sha256": "446b7611e177ae1cac733d4e8a006df7c4d5cf3358ad065f7fa1e7048aca9ee4"
+      }
+    }
+  ],
+  "logicalScopes": [
+    {
+      "id": "L1",
+      "kind": "TRANSACTION_LOGICAL_SCOPE",
+      "frame": "F1",
+      "physicalId": "P1",
+      "certainty": "CONDITIONAL"
+    }
+  ],
+  "physicalTransactions": [
+    {
+      "id": "P1",
+      "kind": "TRANSACTION_PHYSICAL",
+      "manager": "tx",
+      "beginFrame": "F1",
+      "endFrame": "F1",
+      "identity": "SYMBOLIC_SCENARIO",
+      "runtimeIdentity": "UNKNOWN",
+      "certainty": "CONDITIONAL",
+      "outcome": "UNKNOWN"
+    }
+  ],
+  "savepoints": [],
+  "suspensions": [],
+  "events": [
+    {
+      "kind": "FRAME_ENTER",
+      "frame": "F1",
+      "sequence": 1
+    },
+    {
+      "kind": "PHYSICAL_BEGIN",
+      "frame": "F1",
+      "entity": "P1",
+      "sequence": 2
+    },
+    {
+      "kind": "LOGICAL_BEGIN",
+      "frame": "F1",
+      "entity": "L1",
+      "sequence": 3
+    },
+    {
+      "kind": "FRAME_ENTER",
+      "frame": "F2",
+      "sequence": 4
+    },
+    {
+      "kind": "FRAME_EXIT",
+      "frame": "F2",
+      "sequence": 5
+    },
+    {
+      "kind": "LOGICAL_END",
+      "frame": "F1",
+      "entity": "L1",
+      "sequence": 6
+    },
+    {
+      "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+      "frame": "F1",
+      "entity": "P1",
+      "sequence": 7
+    },
+    {
+      "kind": "FRAME_EXIT",
+      "frame": "F1",
+      "sequence": 8
+    }
+  ],
+  "uncertainties": [
+    {
+      "frame": "F2",
+      "reason": "ASPECTJ_METHOD_SHAPE_NOT_MODELED",
+      "classification": "UNKNOWN",
+      "evidence": {
+        "file": "Synthetic.java",
+        "start": 802,
+        "end": 912,
+        "line": 25,
+        "sha256": "446b7611e177ae1cac733d4e8a006df7c4d5cf3358ad065f7fa1e7048aca9ee4"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "Synthetic.java",
+      "sha256": "446b7611e177ae1cac733d4e8a006df7c4d5cf3358ad065f7fa1e7048aca9ee4"
+    }
+  ],
+  "contextEvidence": {
+    "sha256": "c488880742b63454f9bb6798567346ad0ac363fd88d9074f46ed7395cae9c07e",
+    "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+    "path": "EXTERNAL_CONTEXT"
+  }
+}

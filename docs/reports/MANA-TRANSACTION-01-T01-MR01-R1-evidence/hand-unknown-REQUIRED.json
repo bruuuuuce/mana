@@ -1,0 +1,301 @@
+{
+  "schema": "mana.transaction-model/v1",
+  "entry": "Review#outer()",
+  "status": "CONDITIONAL_STATIC_SCENARIO",
+  "proxyMode": "UNKNOWN",
+  "interceptionMode": "ASPECTJ",
+  "aspectjWeaving": {
+    "application": "ASSUMED_APPLIED",
+    "runtimeApplication": "UNKNOWN"
+  },
+  "context": {
+    "schema": "mana.transaction-context/v1",
+    "initialState": "NO_TRANSACTION",
+    "entryThroughProxy": true,
+    "managerCapabilities": {
+      "tx": {
+        "suspend": true,
+        "savepoints": true
+      }
+    }
+  },
+  "managers": [
+    {
+      "id": "tx",
+      "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+      "evidence": {
+        "file": "Review.java",
+        "start": 0,
+        "end": 78,
+        "line": 1,
+        "sha256": "bc687e89eda842b1ffebb438a28cb5d00eb2a898c41c6535ad9a9df75754aebc"
+      },
+      "capabilities": {
+        "suspend": true,
+        "savepoints": true
+      }
+    }
+  ],
+  "frames": [
+    {
+      "id": "F1",
+      "callerMethod": null,
+      "calleeMethod": "Review#outer()",
+      "callSite": null,
+      "evidence": {
+        "file": "Review.java",
+        "start": 0,
+        "end": 78,
+        "line": 1,
+        "sha256": "bc687e89eda842b1ffebb438a28cb5d00eb2a898c41c6535ad9a9df75754aebc"
+      },
+      "proxy": {
+        "reason": "SCENARIO_PROXY_CALL",
+        "mode": "CLASS",
+        "crossed": true
+      },
+      "configuration": {
+        "propagation": "REQUIRED",
+        "managerQualifier": "tx",
+        "evidence": {
+          "file": "Review.java",
+          "start": 0,
+          "end": 78,
+          "line": 1,
+          "sha256": "bc687e89eda842b1ffebb438a28cb5d00eb2a898c41c6535ad9a9df75754aebc"
+        },
+        "attributes": {},
+        "origin": "method",
+        "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+        "unmodeledAttributes": []
+      },
+      "interception": {
+        "status": "APPLIED",
+        "reason": "SCENARIO_PROXY_CALL"
+      },
+      "manager": "tx",
+      "logicalScope": "L1",
+      "previousState": {
+        "kind": "NO_TRANSACTION",
+        "physicalId": null,
+        "manager": null
+      },
+      "duringState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "afterState": {
+        "kind": "NO_TRANSACTION",
+        "physicalId": null,
+        "manager": null
+      },
+      "certainty": "CONDITIONAL",
+      "bodyTraversal": "STRAIGHT_LINE",
+      "effectiveContext": {
+        "before": "INACTIVE",
+        "during": "ACTIVE",
+        "after": "INACTIVE"
+      }
+    },
+    {
+      "id": "F2",
+      "callerMethod": "Review#outer()",
+      "calleeMethod": "Review#inner()",
+      "callSite": {
+        "file": "Review.java",
+        "start": 37,
+        "end": 49,
+        "line": 1,
+        "sha256": "bc687e89eda842b1ffebb438a28cb5d00eb2a898c41c6535ad9a9df75754aebc"
+      },
+      "evidence": {
+        "file": "Review.java",
+        "start": 0,
+        "end": 78,
+        "line": 1,
+        "sha256": "bc687e89eda842b1ffebb438a28cb5d00eb2a898c41c6535ad9a9df75754aebc"
+      },
+      "proxy": {
+        "reason": "SCENARIO_PROXY_CALL",
+        "mode": "CLASS",
+        "crossed": true
+      },
+      "configuration": {
+        "propagation": "REQUIRED",
+        "managerQualifier": "tx",
+        "evidence": {
+          "file": "Review.java",
+          "start": 0,
+          "end": 78,
+          "line": 1,
+          "sha256": "bc687e89eda842b1ffebb438a28cb5d00eb2a898c41c6535ad9a9df75754aebc"
+        },
+        "attributes": {},
+        "origin": "method",
+        "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+        "unmodeledAttributes": []
+      },
+      "interception": {
+        "status": "UNKNOWN",
+        "reason": "ASPECTJ_METHOD_SHAPE_NOT_MODELED"
+      },
+      "manager": "tx",
+      "logicalScope": null,
+      "previousState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "duringState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "afterState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "certainty": "UNKNOWN",
+      "bodyTraversal": "NOT_ASSERTED",
+      "effectiveContext": {
+        "before": "ACTIVE",
+        "during": "ACTIVE",
+        "after": "ACTIVE"
+      },
+      "reason": "ASPECTJ_METHOD_SHAPE_NOT_MODELED",
+      "contextComposition": {
+        "premises": {
+          "execution": "SYNCHRONOUS_BOUNDARY",
+          "otherBoundaryMechanisms": "NONE_OBSERVED",
+          "body": "EMPTY",
+          "evidence": {
+            "file": "Review.java",
+            "start": 0,
+            "end": 78,
+            "line": 1,
+            "sha256": "bc687e89eda842b1ffebb438a28cb5d00eb2a898c41c6535ad9a9df75754aebc"
+          }
+        },
+        "alternatives": {
+          "APPLIED": {
+            "duringState": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "afterState": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "identity": "INHERITED",
+            "logicalScope": "IF_APPLIED",
+            "savepoint": "ABSENT",
+            "suspension": "ABSENT",
+            "resolution": "SUPPORTED"
+          },
+          "BYPASSED": {
+            "duringState": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "afterState": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "identity": "INHERITED",
+            "logicalScope": "ABSENT",
+            "savepoint": "ABSENT",
+            "suspension": "ABSENT",
+            "resolution": "BYPASSED"
+          }
+        },
+        "duringState": {
+          "kind": "TRANSACTION_PHYSICAL",
+          "physicalId": "P1",
+          "manager": "tx"
+        },
+        "afterState": {
+          "kind": "TRANSACTION_PHYSICAL",
+          "physicalId": "P1",
+          "manager": "tx"
+        }
+      }
+    }
+  ],
+  "logicalScopes": [
+    {
+      "id": "L1",
+      "kind": "TRANSACTION_LOGICAL_SCOPE",
+      "frame": "F1",
+      "physicalId": "P1",
+      "certainty": "CONDITIONAL"
+    }
+  ],
+  "physicalTransactions": [
+    {
+      "id": "P1",
+      "kind": "TRANSACTION_PHYSICAL",
+      "manager": "tx",
+      "beginFrame": "F1",
+      "endFrame": "F1",
+      "identity": "SYMBOLIC_SCENARIO",
+      "runtimeIdentity": "UNKNOWN",
+      "certainty": "CONDITIONAL",
+      "outcome": "UNKNOWN"
+    }
+  ],
+  "savepoints": [],
+  "suspensions": [],
+  "events": [
+    {
+      "sequence": 1,
+      "kind": "FRAME_ENTER",
+      "frame": "F1"
+    },
+    {
+      "sequence": 2,
+      "kind": "PHYSICAL_BEGIN",
+      "frame": "F1",
+      "entity": "P1"
+    },
+    {
+      "sequence": 3,
+      "kind": "LOGICAL_BEGIN",
+      "frame": "F1",
+      "entity": "L1"
+    },
+    {
+      "sequence": 4,
+      "kind": "FRAME_ENTER",
+      "frame": "F2"
+    },
+    {
+      "sequence": 5,
+      "kind": "FRAME_EXIT",
+      "frame": "F2"
+    },
+    {
+      "sequence": 6,
+      "kind": "LOGICAL_END",
+      "frame": "F1",
+      "entity": "L1"
+    },
+    {
+      "sequence": 7,
+      "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+      "frame": "F1",
+      "entity": "P1"
+    },
+    {
+      "sequence": 8,
+      "kind": "FRAME_EXIT",
+      "frame": "F1"
+    }
+  ],
+  "uncertainties": []
+}

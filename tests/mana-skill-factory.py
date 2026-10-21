@@ -129,7 +129,10 @@ class FactoryTests(unittest.TestCase):
         self.assertFalse(value["registered"])
         self.assertEqual(value["approval"]["status"], "pending")
         self.assertTrue(
-            all(c["status"] == "not_implemented" for c in value["futureCapabilities"])
+            all(
+                c["status"] == "partially_implemented"
+                for c in value["futureCapabilities"]
+            )
         )
         self.assertEqual(snapshot(self.project), before)
         self.assertEqual(snapshot(ROOT / "skills"), discovery)

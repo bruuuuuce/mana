@@ -2,7 +2,8 @@
 
 MANA-META-SKILL-00 generates an evidence-backed candidate. The first supported
 request is `transaction-analysis` for a Java/Spring Maven project. Transaction
-analysis itself belongs to TRANSACTION-01 and is not implemented.
+analysis is a separate explicit operation. The bounded T01 engine is documented
+in [Transaction Model v1](../standards/transaction-model-v1.md); generation never runs it.
 
 ## Usage
 
@@ -64,8 +65,8 @@ generation and validation; cleanup is not the immutability proof.
 3. Select the sole supported request/domain pair and its curated contract from
    `templates/skill-factory/java-spring-transaction-analysis.md`. Unsupported
    requests or unproven technology block. No project text becomes instructions.
-4. Select existing read-only Mana tool identifiers and a deliberately unavailable
-   future `transaction-analyzer` dependency. Do not advertise implemented analysis
+4. Select existing read-only Mana tool identifiers and the bounded T01
+   `transaction-analyzer` helper. Do not advertise unsupported analysis
    or infer transaction-manager, proxy, savepoint or runtime capabilities.
 5. Validate native metadata through `scripts/validate-skills.sh` in isolation,
    then validate the exact candidate content, dependency/limit declarations,
@@ -109,8 +110,10 @@ the same Java/Spring technology to exercise this seam; it adds no supported doma
 
 Generation is explicitly template based. Project-derived information remains
 dependency/source observations and hashes; it is not dynamically generated
-transaction knowledge. The candidate format and existing Java/Spring template
-are unchanged.
+transaction knowledge. The candidate envelope format is unchanged. The Java/Spring
+recipe/template now declares bounded T01 capabilities; full-domain future capabilities
+remain `partially_implemented`. Historical META-SKILL-00 examples remain immutable
+and fail current exact-template revalidation; generate a fresh candidate for review.
 
 ## JSON Complexity Contract (F01)
 
@@ -158,8 +161,9 @@ Detection supports conventional Maven layout and direct declarations only.
 Gradle, inherited-only/project-property dependency coordinates, activated profiles,
 resolved versions and nonstandard roots are unsupported. Java file presence does
 not establish compilability. The evidence inventory is not a semantic index or
-complete project snapshot. There is no classpath resolution, call graph, method
-identification, propagation computation, diagram rendering or runtime probe.
+complete project snapshot. Generation does not run classpath resolution, transaction
+analysis, diagram rendering or runtime probes. The separate T01 helper uses bounded
+Java AST/call scenarios and PlantUML rendering, with unsupported/UNKNOWN paths.
 
 Filesystem checks guard normal local use, not hostile concurrent filesystem
 replacement. Detection/validation should run against a stable checkout. The

@@ -1,7 +1,7 @@
 ---
 name: java-spring-transaction-analysis
-version: 0.1.0
-description: Candidate future contract for Java/Spring transaction analysis; analyzers are not implemented and execution is blocked.
+version: 0.2.0
+description: Untrusted candidate for bounded Java/Spring T01 static transaction scenarios and PlantUML scopes; explicit invocation and context required.
 compatibility:
   - codex
   - claude
@@ -15,9 +15,10 @@ inputs:
   - technology_evidence
   - explicit_transaction_analysis_request
   - java_sources
-  - spring_configuration
+  - explicit_transaction_context
 outputs:
-  - transaction_analysis_contract
+  - transaction_model
+  - transaction_sequence_plantuml
 risk_level: high
 model_tier: full
 execution_mode: read
@@ -32,75 +33,76 @@ tags:
   - transaction-analysis
 ---
 
-# Java/Spring Transaction Analysis Candidate
+# Java/Spring Transaction Analysis Candidate — T01
 
 ## Purpose
-Provide a reviewable future contract for TRANSACTION-01. This generated candidate
-is untrusted, unregistered and non-executable. No analyzer is implemented.
+Describe the implemented bounded Transaction Boundary Engine. This generated
+candidate remains untrusted, unregistered and non-executable. Generating or
+validating it does not run analysis or approve/activate the skill.
 
 ## When To Use It
-Review when an explicit transaction-analysis request matches Java sources and
-direct Spring dependency declarations in the same conventional Maven module.
-Source/dependency presence does not prove transaction usage, resolved versions,
-Spring proxy configuration, transaction-manager capabilities or runtime behavior.
+Review for an explicit Java/Spring transaction-analysis request after the existing
+Maven/source technology gate succeeds. Before a separately authorized manual run,
+read `docs/standards/transaction-model-v1.md` and supply an explicit scenario context.
+Do not treat Spring dependency presence as proof of AOP interception, transaction
+manager capabilities, driver savepoints or runtime transaction identity.
 
 ## Outputs
-Current output: this candidate contract and its evidence manifest only.
-Future output: evidence-backed transaction findings, boundaries, uncertainty
-records and a sequence diagram with overlapping transaction regions.
+On separate manual invocation, `scripts/mana-transaction.py` emits a validated
+`mana.transaction-model/v1` model and `sequence.puml` in a fresh external directory.
+The factory itself still emits only this skill candidate and its evidence manifest.
+
+## Implemented Capabilities
+- Parse Java ASTs using a fixed Mana JDK helper, without target compilation,
+  attribution, class loading, annotation processing, build scripts or model calls.
+- Resolve bounded zero-argument synchronous source call scenarios through concrete
+  `@Autowired` fields, with explicit imports, stereotypes and class proxy config.
+- Distinguish method execution, logical transaction scopes and symbolic physical
+  transactions for REQUIRED, REQUIRES_NEW and conditional NESTED/savepoints.
+- Preserve self-invocation bypass, unannotated inherited/no-transaction context,
+  class/method annotation precedence and unresolved call/configuration evidence.
+- Render labelled PlantUML regions, shared identities, savepoints and explicit
+  suspension/resumption events. Validate model identity and lifetime invariants.
 
 ## Decision Rules
-- Candidate validation is structural compatibility, never analysis qualification.
-- Keep every future capability `not_implemented` until TRANSACTION-01 supplies
-  implementation and verification evidence.
-- Missing runtime dispatch, proxy, manager or configuration evidence stays unknown.
-- Stop execution: human approval is pending and analyzers are unavailable.
+- Every physical ID is SYMBOLIC_SCENARIO; actual runtime identity and transaction
+  outcome stay UNKNOWN. Entry state/proxy and manager capabilities are declared
+  scenario assumptions, not runtime proof inferred from source.
+- Unmodeled propagation, manager ambiguity, unknown prior context, AOP uncertainty,
+  async, complex control flow, inheritance, dynamic/reflective/programmatic calls
+  stop confident traversal and retain explicit UNKNOWN/UNSUPPORTED diagnostics.
+- Candidate validation and model invariant validation are separate decisions;
+  neither constitutes human approval or runtime qualification.
 
-## Supported Technologies And Applicability
-Java and Spring declared through Maven direct dependencies. Gradle, inherited-only
-dependencies, activated profiles and nonstandard source roots are unsupported in
-this factory version. XML declarations are evidence of intent, not a resolved classpath.
+## Limits And Prerequisites
+JDK `java`/`javac` are required for analysis. The local JDK determines accepted
+Java syntax. Evidence reads reuse factory limits; AST extraction is capped at
+64 Java files / 2 MiB, 60 seconds per tool call and a 4 MiB fact/result budget.
+Only conventional Maven/direct Spring evidence is supported by technology gating.
+Only annotation-driven class proxies, declared concrete DataSourceTransactionManager
+beans, direct public zero-argument straight-line methods and conservative wiring
+are positively modeled. Other proxy/dispatch/configuration forms stay UNKNOWN.
+No full Spring context, dependency resolution, exception/rollback computation,
+resources/locks or deadlock analysis is implemented. T02/T03 remain out of scope.
 
-## Future Analysis Contract
-All items below are requested capabilities, not demonstrated analysis results:
-1. Identify transactional methods with annotation/configuration provenance,
-   including unresolved class-level, inherited and meta-annotation cases.
-2. Model Spring propagation: REQUIRED, REQUIRES_NEW, NESTED, SUPPORTS,
-   MANDATORY, NOT_SUPPORTED and NEVER, with explicit manager/configuration assumptions.
-3. Distinguish reused transactions, independent transactions and nested savepoint
-   regions. Do not infer savepoint support from Spring presence.
-4. Identify entry, exit, suspension, resumption and uncertain transaction boundaries.
-5. Produce sequence diagrams with overlapping regions: logical method scopes and
-   physical transaction identity must remain distinct. A nested region must not
-   imply an independent physical transaction. Diagram syntax/renderer is to be
-   selected and verified in TRANSACTION-01.
-6. Report unresolved static cases, including proxy/self-invocation, dynamic dispatch,
-   multiple managers, async/reactive execution and missing configuration. Do not
-   convert possible call edges into proven runtime execution or commit/rollback facts.
-
-## Usable Evidence And Tools
-Use source locations/hashes, direct dependency declarations, explicit project
-configuration and separately approved runtime evidence. `read_files` and
-`code_search` are existing Mana tool identifiers. The transaction analyzer is
-`not_implemented`; there is no command, adapter or Verification Skill spec here.
-No build scripts, Maven plugins, repository wrappers, LLMs or external services
-are invoked by generation or validation.
+## Diagram Notation
+PlantUML groups follow method nesting. Labels carry L/P/S/SP identities and
+semantic kinds in addition to colors. Physical lifetime BEGIN/END and suspension
+notes make overlapping retained lifetimes explicit; groups do not pretend that
+overlapping physical/resource regions are ordinary lexical nested transactions.
 
 ## Verification Criteria
-Recompute evidence hashes; run the existing Mana skill validator in isolation;
-reject changed/extra candidate fields, content, tools or artifacts; retain
-generated trust, pending human approval and non-executable state. Future analysis
-needs independent positive and negative cases for every claimed propagation and
-diagram capability before its status can change.
+Use `tests/transaction-boundaries.py`, the eight independent fixture oracles,
+negative controls and `tests/mana-skill-factory.py`. Check actual PlantUML syntax
+and SVG rendering using a local jar; a skipped renderer check remains NOT RUN.
+Retain source hashes, call-site locations, conditional assumptions and UNKNOWNs.
 
 ## Human Approval
-Architect / Team Leader must review evidence, applicability, tools, limitations
-and exact candidate content before any registration or activation. This factory
-has no approval, promotion or execution operation. Approval alone cannot supply
-the missing analyzers. Use existing Mana governance and generated trust policy;
-do not treat a learning-agent review as human authorization.
+Architect / Team Leader review is mandatory before registration or activation.
+The factory has no promotion operation. The separate analysis CLI requires an
+explicit human request; it does not consume candidate approval as authorization.
+This file is a review artifact, not an executable Verification Skill spec.
 
 ## Output Standard
-Follow `docs/standards/agent-skill-output-standard.md`. Maintain compact caveman
-working notes and context budget discipline; preserve evidence references and
-unknowns without publishing private chain-of-thought.
+Follow `docs/standards/agent-skill-output-standard.md`. Keep compact caveman
+working notes and context budget discipline, preserving evidence and limits.

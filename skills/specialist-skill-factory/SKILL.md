@@ -41,7 +41,8 @@ an explicit candidate directory outside the analyzed project.
 
 ## When To Use It
 An explicit transaction-analysis request for a Java/Spring Maven project needs a
-specialist contract. Full transaction analysis belongs to TRANSACTION-01.
+specialist contract. Bounded T01 analysis is a separate explicit invocation;
+generation and candidate validation never run it.
 
 ## Outputs
 A candidate bundle containing `SKILL.md` and `candidate.json`, with source hashes,

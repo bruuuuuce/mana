@@ -1,0 +1,170 @@
+{
+  "required": {
+    "entry": "fixture.A#required()",
+    "physicalByFrame": [
+      "P1",
+      "P1"
+    ],
+    "logicalByFrame": [
+      "L1",
+      "L2"
+    ],
+    "physicalCount": 1,
+    "savepoints": 0,
+    "suspensions": 0,
+    "unknownFrames": [],
+    "source": {
+      "path": "src/main/java/fixture/Scenario.java",
+      "callExpression": "b.required()",
+      "callee": "fixture.B#required()"
+    }
+  },
+  "requires_new": {
+    "entry": "fixture.A#independent()",
+    "physicalByFrame": [
+      "P1",
+      "P2"
+    ],
+    "logicalByFrame": [
+      "L1",
+      "L2"
+    ],
+    "physicalCount": 2,
+    "savepoints": 0,
+    "suspensions": 1,
+    "unknownFrames": [],
+    "source": {
+      "path": "src/main/java/fixture/Scenario.java",
+      "callExpression": "b.independent()",
+      "callee": "fixture.B#independent()"
+    }
+  },
+  "nested": {
+    "entry": "fixture.A#nested()",
+    "physicalByFrame": [
+      "P1",
+      "P1"
+    ],
+    "logicalByFrame": [
+      "L1",
+      "L2"
+    ],
+    "physicalCount": 1,
+    "savepoints": 1,
+    "suspensions": 0,
+    "unknownFrames": [],
+    "source": {
+      "path": "src/main/java/fixture/Scenario.java",
+      "callExpression": "b.nested()",
+      "callee": "fixture.B#nested()"
+    }
+  },
+  "outside": {
+    "entry": "fixture.A#outside()",
+    "physicalByFrame": [
+      null,
+      "P1"
+    ],
+    "logicalByFrame": [
+      null,
+      "L1"
+    ],
+    "physicalCount": 1,
+    "savepoints": 0,
+    "suspensions": 0,
+    "unknownFrames": [],
+    "source": {
+      "path": "src/main/java/fixture/Scenario.java",
+      "callExpression": "b.required()",
+      "callee": "fixture.B#required()"
+    }
+  },
+  "inherited": {
+    "entry": "fixture.A#inherited()",
+    "physicalByFrame": [
+      "P1",
+      "P1"
+    ],
+    "logicalByFrame": [
+      "L1",
+      null
+    ],
+    "physicalCount": 1,
+    "savepoints": 0,
+    "suspensions": 0,
+    "unknownFrames": [],
+    "source": {
+      "path": "src/main/java/fixture/Scenario.java",
+      "callExpression": "b.plain()",
+      "callee": "fixture.B#plain()"
+    }
+  },
+  "self_invocation": {
+    "entry": "fixture.A#self()",
+    "physicalByFrame": [
+      "P1",
+      "P1"
+    ],
+    "logicalByFrame": [
+      "L1",
+      null
+    ],
+    "physicalCount": 1,
+    "savepoints": 0,
+    "suspensions": 0,
+    "unknownFrames": [],
+    "source": {
+      "path": "src/main/java/fixture/Scenario.java",
+      "callExpression": "this.localNew()",
+      "callee": "fixture.A#localNew()"
+    }
+  },
+  "unsupported_propagation": {
+    "entry": "fixture.A#unsupported()",
+    "physicalByFrame": [
+      "P1",
+      null
+    ],
+    "logicalByFrame": [
+      "L1",
+      null
+    ],
+    "physicalCount": 1,
+    "savepoints": 0,
+    "suspensions": 0,
+    "unknownFrames": [
+      "F2"
+    ],
+    "source": {
+      "path": "src/main/java/fixture/Scenario.java",
+      "callExpression": "b.supports()",
+      "callee": "fixture.B#supports()"
+    }
+  },
+  "capability_unknown": {
+    "entry": "fixture.A#ambiguous()",
+    "capabilityOverride": {
+      "suspend": true,
+      "savepoints": null
+    },
+    "physicalByFrame": [
+      "P1",
+      null
+    ],
+    "logicalByFrame": [
+      "L1",
+      "L2"
+    ],
+    "physicalCount": 1,
+    "savepoints": 0,
+    "suspensions": 0,
+    "unknownFrames": [
+      "F2"
+    ],
+    "source": {
+      "path": "src/main/java/fixture/Scenario.java",
+      "callExpression": "b.nested()",
+      "callee": "fixture.B#nested()"
+    }
+  }
+}

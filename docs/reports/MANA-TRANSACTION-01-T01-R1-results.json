@@ -1,0 +1,563 @@
+{
+  "review": "MANA-TRANSACTION-01-T01-R1",
+  "date": "2026-10-20",
+  "verdict": "NEEDS_FIX",
+  "reviewStoppedAtFirstBlockingFinding": true,
+  "commitCreated": null,
+  "mergePerformed": false,
+  "checks": {
+    "engine": {
+      "command": [
+        "python3",
+        "tests/transaction-boundaries.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "test_ambiguous_managers_visibility_async_and_control_flow_are_unknown (__main__.TransactionTests) ... ok\ntest_annotation_is_not_interception_and_direct_entry_bypasses (__main__.TransactionTests) ... ok\ntest_eight_independent_oracles (__main__.TransactionTests) ... ok\ntest_evidence_is_exact_and_call_site_is_in_caller (__main__.TransactionTests) ... ok\ntest_intermediate_unannotated_call_and_class_annotation (__main__.TransactionTests) ... ok\ntest_java_parser_does_not_treat_comments_or_strings_as_calls (__main__.TransactionTests) ... ok\ntest_jdk_proxy_dynamic_dispatch_and_unresolved_call_do_not_invent_edges (__main__.TransactionTests) ... ok\ntest_missing_prior_context_never_creates_certain_physical_identity (__main__.TransactionTests) ... ok\ntest_nested_reuses_physical_and_false_capability_is_unsupported (__main__.TransactionTests) ... ok\ntest_parser_temporary_isolation_and_no_target_build (__main__.TransactionTests) ... ok\ntest_pipeline_write_observation_and_jdk_arguments (__main__.TransactionTests) ... ok\ntest_plantuml_syntax_and_svg_for_all_oracles (__main__.TransactionTests) ... ok\ntest_reflection_unknown_continuation_and_suspension_capability (__main__.TransactionTests) ... ok\ntest_renderer_contains_explicit_identity_and_no_injected_directive (__main__.TransactionTests) ... ok\ntest_requires_new_suspends_before_begin_and_resumes_after_end (__main__.TransactionTests) ... ok\ntest_validator_rejects_wrong_identity_and_unbalanced_trace (__main__.TransactionTests) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 4.811s\n\nOK\n"
+    },
+    "factory": {
+      "command": [
+        "python3",
+        "tests/mana-skill-factory.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "test_adapter_boundary_extends_same_technology_without_core_changes (__main__.FactoryTests) ... ok\ntest_candidate_not_discovered_or_accepted_by_profile_compiler (__main__.FactoryTests) ... ok\ntest_duplicate_json_keys_rejected (__main__.FactoryTests) ... ok\ntest_evidence_native_contract_read_only_and_no_activation (__main__.FactoryTests) ... ok\ntest_external_temporary_paths_spaces_symlinks_and_child_writes (__main__.FactoryTests) ... ok\ntest_internal_temp_cli_returns_diagnostic_without_output (__main__.FactoryTests) ... ok\ntest_json_malformed_and_deep_cli_block_without_writes (__main__.FactoryTests) ... ok\ntest_json_size_depth_and_token_boundaries (__main__.FactoryTests) ... ok\ntest_malformed_unsafe_and_oversized_evidence (__main__.FactoryTests) ... ok\ntest_module_locality_and_multimodule_support (__main__.FactoryTests) ... ok\ntest_native_validation_failure_precedes_output_writes (__main__.FactoryTests) ... ok\ntest_no_approval_activation_or_analysis_cli (__main__.FactoryTests) ... ok\ntest_no_java_or_symlink_or_generated_evidence (__main__.FactoryTests) ... ok\ntest_overcomplex_generated_manifest_rejected_before_output (__main__.FactoryTests) ... ok\ntest_project_wrappers_are_never_run (__main__.FactoryTests) ... ok\ntest_quoted_brackets_and_escapes_do_not_consume_depth_budget (__main__.FactoryTests) ... ok\ntest_reject_target_and_discovery_output_and_symlink_alias (__main__.FactoryTests) ... ok\ntest_stale_evidence_and_overwrite_rejected (__main__.FactoryTests) ... ok\ntest_tampering_cannot_create_trust_or_executable_tools (__main__.FactoryTests) ... ok\ntest_temporary_environment_fallbacks_without_host_changes (__main__.FactoryTests) ... ok\ntest_unsafe_or_missing_temporary_parent_blocks_before_any_write (__main__.FactoryTests) ... ok\ntest_unsupported_and_false_positive_technologies (__main__.FactoryTests) ... ok\ntest_unsupported_requests_and_adapter_governance_override_block (__main__.FactoryTests) ... ok\n\n----------------------------------------------------------------------\nRan 23 tests in 5.816s\n\nOK\n"
+    },
+    "repository": {
+      "command": [
+        "scripts/validate-repo.sh"
+      ],
+      "exitCode": 0,
+      "stdout": "Verification skills validation passed\nSkills validation passed\nAgents validation passed\nDivination metadata validation passed\nOutput standard validation passed\nStory trace validation passed\nDeveloper choice log validation passed\nRepository validation passed\n",
+      "stderr": ""
+    },
+    "profiles": {
+      "command": [
+        "tests/profile-skill-activation.sh"
+      ],
+      "exitCode": 0,
+      "stdout": "Profile skill activation tests passed\n",
+      "stderr": ""
+    },
+    "ruff": {
+      "command": [
+        "ruff",
+        "check",
+        "scripts/mana-transaction.py",
+        "scripts/skill_factory",
+        "tests/mana-skill-factory.py",
+        "tests/transaction-boundaries.py"
+      ],
+      "exitCode": 0,
+      "stdout": "All checks passed!\n",
+      "stderr": ""
+    },
+    "format": {
+      "command": [
+        "ruff",
+        "format",
+        "--check",
+        "scripts/mana-transaction.py",
+        "scripts/skill_factory",
+        "tests/mana-skill-factory.py",
+        "tests/transaction-boundaries.py"
+      ],
+      "exitCode": 0,
+      "stdout": "10 files already formatted\n",
+      "stderr": ""
+    },
+    "diff": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "diagrams": {
+    "required": {
+      "oracle": "PASS",
+      "modelToDiagram": "PASS",
+      "plantumlSha256": "7072d316b2f0be26ec5830c4f14a28465bc050c0a638bd3a8478a881427ca1f4"
+    },
+    "requires_new": {
+      "oracle": "PASS",
+      "modelToDiagram": "PASS",
+      "plantumlSha256": "94517aa5849262460a613a11016c77c9ce4173dad58f87d5c20a388fd8b71a01"
+    },
+    "nested": {
+      "oracle": "PASS",
+      "modelToDiagram": "PASS",
+      "plantumlSha256": "8686385998f43d9917b2f648d60f5adf53dacafbc79004588e010c3d1f1e0499"
+    },
+    "outside": {
+      "oracle": "PASS",
+      "modelToDiagram": "PASS",
+      "plantumlSha256": "45f82f4b461f5671b72a36070dfb4b9cfb00b32506219a1c8951ceb2bd3d5eef"
+    },
+    "inherited": {
+      "oracle": "PASS",
+      "modelToDiagram": "PASS",
+      "plantumlSha256": "69656c43a5db27f939ac88bdd0f3602764102ae8a9994f041c00f0f38e6f26bb"
+    },
+    "self_invocation": {
+      "oracle": "PASS",
+      "modelToDiagram": "PASS",
+      "plantumlSha256": "cc6b3a613f2999cc9135d8a0fa5a01750e05be733817a67563f2de9a14f30a1a"
+    },
+    "unsupported_propagation": {
+      "oracle": "PASS",
+      "modelToDiagram": "PASS",
+      "plantumlSha256": "ed74b13806eefca3bdf9bac6920bd3e5aed142472efce093c524fa8e809633c3"
+    },
+    "capability_unknown": {
+      "oracle": "PASS",
+      "modelToDiagram": "PASS",
+      "plantumlSha256": "9eac9b8a4fd60c0c53398b01972c8276e009c0f8506ea61e6a3d3693547efa9d"
+    },
+    "-checkonly": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "-tsvg": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "-tpng": {
+      "exitCode": 0,
+      "stdout": "CodeCache: size=131072Kb used=6523Kb max_used=6536Kb free=124548Kb\n bounds [0x0000000108a64000, 0x00000001090d4000, 0x0000000110a64000]\n total_blobs=1906 nmethods=1398 adapters=421\n compilation: disabled (not enough contiguous free space left)\n",
+      "stderr": "OpenJDK 64-Bit Server VM warning: CodeCache is full. Compiler has been disabled.\nOpenJDK 64-Bit Server VM warning: Try increasing the code cache size using -XX:ReservedCodeCacheSize=\n"
+    },
+    "jarSha256": "b88519d2f37c089a470ee7044ec011a72d130e70a61f7fcaa424179f1c1f4641"
+  },
+  "visualInspection": {
+    "cases": [
+      "required",
+      "requires_new",
+      "nested",
+      "outside",
+      "inherited",
+      "self_invocation",
+      "unsupported_propagation",
+      "capability_unknown"
+    ],
+    "result": "PASS for delivered fixture semantics, labels, ordering and stated overlap limit; not full engine acceptance"
+  },
+  "blockingFinding": {
+    "id": "R1-F01",
+    "severity": "HIGH",
+    "subject": "Unsupported AspectJ configuration receives proxy self-invocation bypass semantics",
+    "locations": [
+      "scripts/skill_factory/transactions/model.py:80",
+      "scripts/skill_factory/transactions/model.py:280",
+      "scripts/skill_factory/transactions/model.py:311"
+    ],
+    "reproduction": {
+      "command": [
+        "python3",
+        "scripts/mana-transaction.py",
+        "--project-root",
+        "/private/tmp/mana-t01-r1-20261020/aspectj-project",
+        "--context",
+        "/private/tmp/mana-t01-r1-20261020/aspectj-project/context.json",
+        "--entry",
+        "fixture.A#selfOutside()",
+        "--output-dir",
+        "/private/tmp/mana-t01-r1-20261020/aspectj-output"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"frames\": 2, \"uncertainties\": 0, \"candidateActivated\": false}\n",
+      "stderr": "",
+      "sourceReplacement": {
+        "before": "@EnableTransactionManagement(proxyTargetClass = true)",
+        "after": "@EnableTransactionManagement(mode = org.springframework.context.annotation.AdviceMode.ASPECTJ, proxyTargetClass = true)"
+      },
+      "context": {
+        "schema": "mana.transaction-context/v1",
+        "initialState": "NO_TRANSACTION",
+        "entryThroughProxy": false,
+        "managerCapabilities": {
+          "tx": {
+            "suspend": true,
+            "savepoints": true
+          }
+        }
+      },
+      "targetHashesBefore": {
+        "context-unknown.json": "58cf18f70d5ad61956a2fdf1e8a9ec8235e4b014aadbf46f58922114b716753a",
+        "pom.xml": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347",
+        "README.md": "8304defaba0b5146ed272497074ac89f13a101e3ef0286172ac5635f4e20e0d1",
+        "context.json": "7f76cc343b95973b23774e4e6f33805702b1fa0ecbe5c6be27bcb9495dc8e1d0",
+        "oracles.json": "d5f237a2f928915fb8c5ea5e9ad538914ce23d5bdc3240686048940ef8ba0e01",
+        "src/main/java/fixture/Scenario.java": "e8b01f2ae8cb6a097c6df92eb3a536e9b69c4b0aec0cac3bb169ade0ef517cc0"
+      },
+      "model": {
+        "schema": "mana.transaction-model/v1",
+        "entry": "fixture.A#selfOutside()",
+        "status": "CONDITIONAL_STATIC_SCENARIO",
+        "proxyMode": "UNKNOWN",
+        "assumptions": [
+          "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+          "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+          "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+          "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+          "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven."
+        ],
+        "context": {
+          "schema": "mana.transaction-context/v1",
+          "initialState": "NO_TRANSACTION",
+          "entryThroughProxy": false,
+          "managerCapabilities": {
+            "tx": {
+              "suspend": true,
+              "savepoints": true
+            }
+          }
+        },
+        "managers": [
+          {
+            "id": "tx",
+            "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+            "evidence": {
+              "file": "src/main/java/fixture/Scenario.java",
+              "start": 731,
+              "end": 824,
+              "line": 15,
+              "sha256": "e8b01f2ae8cb6a097c6df92eb3a536e9b69c4b0aec0cac3bb169ade0ef517cc0"
+            },
+            "capabilities": {
+              "suspend": true,
+              "savepoints": true
+            },
+            "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+          }
+        ],
+        "frames": [
+          {
+            "id": "F1",
+            "callerMethod": null,
+            "calleeMethod": "fixture.A#selfOutside()",
+            "callSite": null,
+            "bean": "fixture.A",
+            "proxy": {
+              "mode": "UNKNOWN",
+              "crossed": false,
+              "configurationEvidence": [
+                {
+                  "file": "src/main/java/fixture/Scenario.java",
+                  "start": 592,
+                  "end": 711,
+                  "line": 13,
+                  "sha256": "e8b01f2ae8cb6a097c6df92eb3a536e9b69c4b0aec0cac3bb169ade0ef517cc0"
+                }
+              ],
+              "reason": "SELF_OR_DIRECT_CALL"
+            },
+            "manager": null,
+            "configuration": null,
+            "logicalScope": null,
+            "previousState": {
+              "kind": "NO_TRANSACTION",
+              "physicalId": null,
+              "manager": null
+            },
+            "duringState": {
+              "kind": "NO_TRANSACTION",
+              "physicalId": null,
+              "manager": null
+            },
+            "afterState": {
+              "kind": "NO_TRANSACTION",
+              "physicalId": null,
+              "manager": null
+            },
+            "certainty": "CONDITIONAL",
+            "bodyTraversal": "STRAIGHT_LINE",
+            "evidence": {
+              "file": "src/main/java/fixture/Scenario.java",
+              "start": 1775,
+              "end": 1821,
+              "line": 34,
+              "sha256": "e8b01f2ae8cb6a097c6df92eb3a536e9b69c4b0aec0cac3bb169ade0ef517cc0"
+            },
+            "depth": 0,
+            "beanEvidence": {
+              "file": "src/main/java/fixture/Scenario.java",
+              "start": 827,
+              "end": 2007,
+              "line": 17,
+              "sha256": "e8b01f2ae8cb6a097c6df92eb3a536e9b69c4b0aec0cac3bb169ade0ef517cc0"
+            },
+            "beanName": "a"
+          },
+          {
+            "id": "F2",
+            "callerMethod": "fixture.A#selfOutside()",
+            "calleeMethod": "fixture.A#localNew()",
+            "callSite": {
+              "file": "src/main/java/fixture/Scenario.java",
+              "start": 1803,
+              "end": 1818,
+              "line": 34,
+              "sha256": "e8b01f2ae8cb6a097c6df92eb3a536e9b69c4b0aec0cac3bb169ade0ef517cc0"
+            },
+            "bean": "fixture.A",
+            "proxy": {
+              "mode": "UNKNOWN",
+              "crossed": false,
+              "configurationEvidence": [
+                {
+                  "file": "src/main/java/fixture/Scenario.java",
+                  "start": 592,
+                  "end": 711,
+                  "line": 13,
+                  "sha256": "e8b01f2ae8cb6a097c6df92eb3a536e9b69c4b0aec0cac3bb169ade0ef517cc0"
+                }
+              ],
+              "reason": "SELF_OR_DIRECT_CALL"
+            },
+            "manager": null,
+            "configuration": {
+              "propagation": "REQUIRES_NEW",
+              "managerQualifier": "",
+              "attributes": {
+                "propagation": {
+                  "kind": "MEMBER_SELECT",
+                  "literal": null,
+                  "text": "org.springframework.transaction.annotation.Propagation.REQUIRES_NEW"
+                }
+              },
+              "evidence": {
+                "file": "src/main/java/fixture/Scenario.java",
+                "start": 1213,
+                "end": 1267,
+                "line": 26,
+                "sha256": "e8b01f2ae8cb6a097c6df92eb3a536e9b69c4b0aec0cac3bb169ade0ef517cc0"
+              },
+              "origin": "method",
+              "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+              "unmodeledAttributes": []
+            },
+            "logicalScope": null,
+            "previousState": {
+              "kind": "NO_TRANSACTION",
+              "physicalId": null,
+              "manager": null
+            },
+            "duringState": {
+              "kind": "NO_TRANSACTION",
+              "physicalId": null,
+              "manager": null
+            },
+            "afterState": {
+              "kind": "NO_TRANSACTION",
+              "physicalId": null,
+              "manager": null
+            },
+            "certainty": "CONDITIONAL",
+            "bodyTraversal": "STRAIGHT_LINE",
+            "evidence": {
+              "file": "src/main/java/fixture/Scenario.java",
+              "start": 1213,
+              "end": 1293,
+              "line": 26,
+              "sha256": "e8b01f2ae8cb6a097c6df92eb3a536e9b69c4b0aec0cac3bb169ade0ef517cc0"
+            },
+            "depth": 1,
+            "beanEvidence": {
+              "file": "src/main/java/fixture/Scenario.java",
+              "start": 827,
+              "end": 2007,
+              "line": 17,
+              "sha256": "e8b01f2ae8cb6a097c6df92eb3a536e9b69c4b0aec0cac3bb169ade0ef517cc0"
+            },
+            "beanName": "a",
+            "receiverBindingEvidence": null
+          }
+        ],
+        "logicalScopes": [],
+        "physicalTransactions": [],
+        "suspensions": [],
+        "savepoints": [],
+        "events": [
+          {
+            "sequence": 1,
+            "kind": "FRAME_ENTER",
+            "frame": "F1"
+          },
+          {
+            "sequence": 2,
+            "kind": "FRAME_ENTER",
+            "frame": "F2"
+          },
+          {
+            "sequence": 3,
+            "kind": "FRAME_EXIT",
+            "frame": "F2"
+          },
+          {
+            "sequence": 4,
+            "kind": "FRAME_EXIT",
+            "frame": "F1"
+          }
+        ],
+        "uncertainties": [],
+        "evidence": [
+          {
+            "path": "pom.xml",
+            "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347"
+          },
+          {
+            "path": "src/main/java/fixture/Scenario.java",
+            "sha256": "e8b01f2ae8cb6a097c6df92eb3a536e9b69c4b0aec0cac3bb169ade0ef517cc0"
+          }
+        ],
+        "contextEvidence": {
+          "sha256": "7f76cc343b95973b23774e4e6f33805702b1fa0ecbe5c6be27bcb9495dc8e1d0",
+          "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+          "path": "context.json"
+        }
+      },
+      "diagram": "@startuml\nhide footbox\ntitle Conditional static transaction scenario - runtime identity UNKNOWN\nactor \"Scenario entry\" as Entry\nparticipant \"fixture.A\" as B1\nlegend left\nAll P identifiers are SYMBOLIC_SCENARIO; actual runtime identity UNKNOWN.\nL = TRANSACTION_LOGICAL_SCOPE; P = TRANSACTION_PHYSICAL\nS = TRANSACTION_SUSPENDED; SP = TRANSACTION_SAVEPOINT\nGreen: shared physical context / logical scope\nBlue: independent physical scope; outer P retained while SUSPENDED\nYellow: nested SAVEPOINT on the SAME P\nGray: NO_TRANSACTION; red: UNKNOWN / unsupported path\nGroups show method nesting. BEGIN/END notes define physical lifetimes.\nSuspended lifetime overlap is explicit in SUSPEND/RESUME notes.\nendlegend\nEntry -> B1: fixture.A#selfOutside() / CONDITIONAL_CALL\ngroup #EEEEEE F1 UNANNOTATED METHOD_EXECUTION NO_TRANSACTION\nnote right of B1: proxy=SELF_OR_DIRECT_CALL; manager=UNKNOWN_OR_NOT_USED\nB1 -> B1: fixture.A#localNew() / CONDITIONAL_CALL\ngroup #EEEEEE F2 REQUIRES_NEW METHOD_EXECUTION NO_TRANSACTION\nnote right of B1: proxy=SELF_OR_DIRECT_CALL; manager=UNKNOWN_OR_NOT_USED\nend\nB1 --> B1: scope exit / outcome UNKNOWN\nend\nB1 --> Entry: scope exit / outcome UNKNOWN\n@enduml\n",
+      "targetUnchanged": true,
+      "expected": "Explicit UNKNOWN/UNSUPPORTED for unsupported AspectJ semantics; no proxy self-invocation bypass conclusion",
+      "actual": {
+        "proxyMode": "UNKNOWN",
+        "frames": [
+          {
+            "callee": "fixture.A#selfOutside()",
+            "certainty": "CONDITIONAL",
+            "duringState": {
+              "kind": "NO_TRANSACTION",
+              "physicalId": null,
+              "manager": null
+            },
+            "proxy": {
+              "mode": "UNKNOWN",
+              "crossed": false,
+              "configurationEvidence": [
+                {
+                  "file": "src/main/java/fixture/Scenario.java",
+                  "start": 592,
+                  "end": 711,
+                  "line": 13,
+                  "sha256": "e8b01f2ae8cb6a097c6df92eb3a536e9b69c4b0aec0cac3bb169ade0ef517cc0"
+                }
+              ],
+              "reason": "SELF_OR_DIRECT_CALL"
+            }
+          },
+          {
+            "callee": "fixture.A#localNew()",
+            "certainty": "CONDITIONAL",
+            "duringState": {
+              "kind": "NO_TRANSACTION",
+              "physicalId": null,
+              "manager": null
+            },
+            "proxy": {
+              "mode": "UNKNOWN",
+              "crossed": false,
+              "configurationEvidence": [
+                {
+                  "file": "src/main/java/fixture/Scenario.java",
+                  "start": 592,
+                  "end": 711,
+                  "line": 13,
+                  "sha256": "e8b01f2ae8cb6a097c6df92eb3a536e9b69c4b0aec0cac3bb169ade0ef517cc0"
+                }
+              ],
+              "reason": "SELF_OR_DIRECT_CALL"
+            }
+          }
+        ],
+        "uncertainties": []
+      }
+    }
+  },
+  "reviewInputHashes": {
+    "docs/examples/transaction-01-t01/candidate/SKILL.md": "43f72d10e8cef96fdc4b57748816aa73aaf9adb62032cb66b5a4ecb6f56d72cf",
+    "docs/examples/transaction-01-t01/candidate/candidate.json": "73da988d7ba93cbf1e34619cbd71e777f977f450ce42c14fd3b33151a7e511b2",
+    "docs/examples/transaction-01-t01/capability_unknown/sequence.puml": "9eac9b8a4fd60c0c53398b01972c8276e009c0f8506ea61e6a3d3693547efa9d",
+    "docs/examples/transaction-01-t01/capability_unknown/transaction-model.json": "f277e915e135c835a051b15dfad08dad2817ff328997699049dd848d87e42161",
+    "docs/examples/transaction-01-t01/inherited/sequence.puml": "69656c43a5db27f939ac88bdd0f3602764102ae8a9994f041c00f0f38e6f26bb",
+    "docs/examples/transaction-01-t01/inherited/transaction-model.json": "d03e83d2d7f884658266fe1f4184aba6a53b8e1fbb337b3e3247485813dfb2d2",
+    "docs/examples/transaction-01-t01/nested/sequence.puml": "8686385998f43d9917b2f648d60f5adf53dacafbc79004588e010c3d1f1e0499",
+    "docs/examples/transaction-01-t01/nested/sequence.svg": "32b29ad2953fe8606777abe9841c0eeb1feda1ca2671430d977623a9d143862f",
+    "docs/examples/transaction-01-t01/nested/transaction-model.json": "f645e570c18f9afb7f7a8d927d838b42c6b4133288b2f1e8808e2a19cfa4613a",
+    "docs/examples/transaction-01-t01/outside/sequence.puml": "45f82f4b461f5671b72a36070dfb4b9cfb00b32506219a1c8951ceb2bd3d5eef",
+    "docs/examples/transaction-01-t01/outside/transaction-model.json": "cba752947efc9eef6b4b8db0567f0a7cb0b6376e7dedb5b3f50e1dfffa997254",
+    "docs/examples/transaction-01-t01/required/sequence.puml": "7072d316b2f0be26ec5830c4f14a28465bc050c0a638bd3a8478a881427ca1f4",
+    "docs/examples/transaction-01-t01/required/transaction-model.json": "8bc80aef94d2915cbf5688b62758a5832ab21021f85a84c22e4304acaac48158",
+    "docs/examples/transaction-01-t01/requires_new/sequence.puml": "94517aa5849262460a613a11016c77c9ce4173dad58f87d5c20a388fd8b71a01",
+    "docs/examples/transaction-01-t01/requires_new/sequence.svg": "916da7ac0413a7ac6ea8703834947a800ec8a391212d1106807265460a056430",
+    "docs/examples/transaction-01-t01/requires_new/transaction-model.json": "275d61f45fa88706cbf8688faeb9d380a462141f28e8369b8cb16c5f3a50481b",
+    "docs/examples/transaction-01-t01/self_invocation/sequence.puml": "cc6b3a613f2999cc9135d8a0fa5a01750e05be733817a67563f2de9a14f30a1a",
+    "docs/examples/transaction-01-t01/self_invocation/transaction-model.json": "6ca4562296e51d2392666dfaa78f4ce3401a2dfdcc85c7be41f1740af9a6ff90",
+    "docs/examples/transaction-01-t01/unsupported_propagation/sequence.puml": "ed74b13806eefca3bdf9bac6920bd3e5aed142472efce093c524fa8e809633c3",
+    "docs/examples/transaction-01-t01/unsupported_propagation/transaction-model.json": "94d5c351add27fa392804cbc8c39402d636d3cac77dbd7d80e3b7c0735b447c4",
+    "docs/reports/MANA-TRANSACTION-01-T01-results.json": "8828e9af61babb88ffe48a650a133725ca43108c8b3d357b1838616e641e2bc3",
+    "docs/reports/MANA-TRANSACTION-01-T01.md": "147283de513058e9560efea949b473e598033556719b9f169f74ed40037fa44f",
+    "docs/roadmap/TRANSACTION-01-T02.md": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+    "docs/standards/transaction-model-v1.md": "3563e5df01f7984a21affcf6c1d8a4b98f8349d1cdf88dd81c10ea6f9c1430e3",
+    "scripts/mana-transaction.py": "e9d6332d8ce408b494c3fc60be2a20d1f750caf2dadcc3c7eb8e0b248d46a8d1",
+    "scripts/skill_factory/transactions/JavaFacts.java": "24a0f037e5ae46050acaf91b6470ed4f1d9167695d4efd2ff5c4365dbc5177a4",
+    "scripts/skill_factory/transactions/__init__.py": "c567911efd3fa30018d9560b29a639f54b69b12ece5ec354d22d126914d0e0e8",
+    "scripts/skill_factory/transactions/model.py": "1e608d0a2949661b8e61067ac66c03ef53f942d95c0cb3a40907db7a7c158bcb",
+    "scripts/skill_factory/transactions/plantuml.py": "44a623543de5d245cbe75205c335856ca37b151eb3223d51a4c53397cb6c4eca",
+    "scripts/skill_factory/transactions/source.py": "57b26735b244680bb2143a7e6bdb7066a2dc7a55c5ef826b2bfde5555f7d884e",
+    "tests/fixtures/transaction-boundaries/README.md": "8304defaba0b5146ed272497074ac89f13a101e3ef0286172ac5635f4e20e0d1",
+    "tests/fixtures/transaction-boundaries/context-unknown.json": "58cf18f70d5ad61956a2fdf1e8a9ec8235e4b014aadbf46f58922114b716753a",
+    "tests/fixtures/transaction-boundaries/context.json": "75c0b8d353ed8e6f80d35ac3f937c13f4620875bda84300b26c948990b947987",
+    "tests/fixtures/transaction-boundaries/oracles.json": "d5f237a2f928915fb8c5ea5e9ad538914ce23d5bdc3240686048940ef8ba0e01",
+    "tests/fixtures/transaction-boundaries/pom.xml": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347",
+    "tests/fixtures/transaction-boundaries/src/main/java/fixture/Scenario.java": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901",
+    "tests/transaction-boundaries.py": "1daf5968e350fd9aba69e4c6041956a96314b91c285381529f75b3aa4c9aeef8",
+    ".github/workflows/validate-mana.yml": "dccacae82fd370341738f25b3b3370c63c08c4a6e622552b81b520dc18a3d499",
+    "docs/roadmap/TRANSACTION-01.md": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+    "docs/workflow/specialist-skill-factory.md": "70147723f18cd46edbea0c41c6b18c38de2e11f00896d3ef6a6d79fba2acc390",
+    "scripts/skill_factory/java_spring.py": "e3dae3c31729dfab53f467bdb071586960e13f9eacf1df140ecdf655b6def367",
+    "scripts/validate-repo.sh": "eec0a36ccc9fb096a085d7d33705d1a54894b11712c932eebafff7ef77791a7c",
+    "skills/specialist-skill-factory/SKILL.md": "62f9ca6d08c2c04b99ac881804fd11a648f77d8be7f5a022e37a542d8e1ecd31",
+    "templates/skill-factory/java-spring-transaction-analysis.md": "43f72d10e8cef96fdc4b57748816aa73aaf9adb62032cb66b5a4ecb6f56d72cf",
+    "tests/mana-skill-factory.py": "644593a3ff23c5c65e86f87a5459d5c36023ba1db1993197acb46dcb0b92b3c4",
+    "tests/run-zero-token-acceptance.sh": "ff9b45b2b571796052910a57099eb584d0a397376f25387eb753b3cbc90bf20f"
+  },
+  "preservation": {
+    "fileCount": 1190,
+    "allOriginalBytesUnchanged": true,
+    "snapshotSha256": "48db209d20f865e3ff57629bcee2a81e53ae22e15540a80f2f17ee00b8f38532",
+    "newFiles": [
+      "docs/reports/MANA-TRANSACTION-01-T01-R1-results.json",
+      "docs/reports/MANA-TRANSACTION-01-T01-R1.md"
+    ]
+  },
+  "git": {
+    "branch": "feature/mana-transaction-01",
+    "head": "378243883adb101a7a41feef71e2a66b76e7f508",
+    "develop": "378243883adb101a7a41feef71e2a66b76e7f508",
+    "headTree": "d5b7ae2cf2625ab6a788eb31f5fc62cbe0d39ee4",
+    "indexEmpty": true,
+    "statusBeforeReviewArtifacts": "M .github/workflows/validate-mana.yml\n M docs/roadmap/TRANSACTION-01.md\n M docs/workflow/specialist-skill-factory.md\n M scripts/skill_factory/java_spring.py\n M scripts/validate-repo.sh\n M skills/specialist-skill-factory/SKILL.md\n M templates/skill-factory/java-spring-transaction-analysis.md\n M tests/mana-skill-factory.py\n M tests/run-zero-token-acceptance.sh\n?? docs/examples/transaction-01-t01/\n?? docs/reports/MANA-TRANSACTION-01-T01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01.md\n?? docs/roadmap/TRANSACTION-01-T02.md\n?? docs/standards/transaction-model-v1.md\n?? scripts/mana-transaction.py\n?? scripts/skill_factory/transactions/\n?? tests/fixtures/transaction-boundaries/\n?? tests/transaction-boundaries.py",
+    "finalStatus": " M .github/workflows/validate-mana.yml\n M docs/roadmap/TRANSACTION-01.md\n M docs/workflow/specialist-skill-factory.md\n M scripts/skill_factory/java_spring.py\n M scripts/validate-repo.sh\n M skills/specialist-skill-factory/SKILL.md\n M templates/skill-factory/java-spring-transaction-analysis.md\n M tests/mana-skill-factory.py\n M tests/run-zero-token-acceptance.sh\n?? docs/examples/transaction-01-t01/\n?? docs/reports/MANA-TRANSACTION-01-T01-R1-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01-R1.md\n?? docs/reports/MANA-TRANSACTION-01-T01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01.md\n?? docs/roadmap/TRANSACTION-01-T02.md\n?? docs/standards/transaction-model-v1.md\n?? scripts/mana-transaction.py\n?? scripts/skill_factory/transactions/\n?? tests/fixtures/transaction-boundaries/\n?? tests/transaction-boundaries.py\n",
+    "workingTreeClean": false
+  },
+  "notRun": [
+    "signed commit and signature/parent/new-tree verification: positive review prerequisite not met",
+    "ff-only integration and clean integrated working tree: positive review prerequisite not met",
+    "broad zero-token suite",
+    "remote CI",
+    "real Spring/AspectJ runtime",
+    "cross-platform qualification",
+    "T02/T03"
+  ],
+  "reportSha256": "444254540971035a5fbca533f4f54157ef1eccd7acf2412932af1e3075182262"
+}

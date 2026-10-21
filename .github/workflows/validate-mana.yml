@@ -64,6 +64,12 @@ jobs:
         run: tests/verification-skills.sh
       - name: Specialist skill candidates
         run: python3 tests/mana-skill-factory.py
+      - name: Transaction boundary scenarios
+        run: python3 tests/transaction-boundaries.py
+      - name: Transaction transition contract
+        run: python3 tests/transaction-transition-contract.py
+      - name: Transaction AOP and causal ordering
+        run: python3 tests/transaction-aop-causal-order.py
       - name: Provider dispatch
         run: tests/provider-dispatch.sh
       - name: Repair containment

@@ -1,0 +1,432 @@
+--- a/docs/standards/transaction-model-v1.md
++++ b/docs/standards/transaction-model-v1.md
+@@ -238,6 +238,43 @@
+ independent identities, savepoint reuse and symbolic/runtime-unknown identity policy.
+ It does not prove semantic completeness or runtime correctness of the source program.
+ 
++### Physical lifetime invariant (F03)
++
++A physical transaction that has ended cannot be active in a later state on the
++same path. A later active reference must identify a different, demonstrably live
++transaction; a symbolic P identity cannot be reopened or recycled. This applies
++to ordinary callers as well as frames with conditional context composition.
++
++The existing ordered trace is sufficient; no schema fields or event kinds are
++added. `previousState` is checked immediately before `FRAME_ENTER` against the
++initial scenario or the caller's current context. `duringState` describes the
++entry boundary after its opening events: a new identity requires its owning
++`PHYSICAL_BEGIN`; an inherited identity must already be live and current.
++`afterState` is checked at `FRAME_EXIT`, after closing/resume events. A definite
++physical after-state must restore the incoming live, unsuspended context.
++UNKNOWN continuation does not permit a definite reference to an ended P.
++
++| Existing event | Physical lifetime effect |
++|---|---|
++| `PHYSICAL_BEGIN` | Start a fresh, never previously started P owned by this frame |
++| `LOGICAL_BEGIN` / `LOGICAL_END` | Open/close a logical scope; do not start/end its shared P |
++| `SAVEPOINT_CREATE` / `SAVEPOINT_RELEASE_CONDITIONAL` | Open/close a savepoint on the same live P; do not end P |
++| `SUSPEND` | Retain the live old P but exclude it from current physical states before beginning its replacement |
++| `PHYSICAL_END_OUTCOME_UNKNOWN` | End P after its logical scopes/savepoints close; no later state may retain it as active |
++| `RESUME_CONDITIONAL` | Restore the still-live suspended P only after its replacement has started and ended |
++| `FRAME_EXIT` | Check the after-state; method exit alone does not end a physical transaction |
++
++v1 does not distinguish physical commit from physical rollback. Both have the
++same lifetime consequence represented by `PHYSICAL_END_OUTCOME_UNKNOWN`;
++`outcome` remains UNKNOWN. Tests of this terminal marker do not prove either
++runtime outcome. F02 branch-only fresh identities remain alternative descriptors,
++not unconditional P allocations; its partial common identity still requires the
++existing composition witness. The lifetime checks preserve these distinctions.
++
++Run `python3 tests/transaction-physical-lifetime.py -v` for the immutable R3 HIGH
++counterexamples, literal positive lifetime expectations and temporal negative
++controls. These oracles are not inferred from engine/validator output.
++
+ ## PlantUML Notation And Overlap Limit
+ 
+ Groups follow the ordered method stack, with green/shared P, blue/new P,
+--- a/scripts/skill_factory/transactions/model.py
++++ b/scripts/skill_factory/transactions/model.py
+@@ -617,6 +617,18 @@
+     stack = []
+     current_contexts = {}
+     active_physical = set()
++    started_physical = set()
++    suspended_physical = {}
++    suspensions = {s["id"]: s for s in report["suspensions"]}
++    scopes = {s["id"]: s for s in report["logicalScopes"] + report["savepoints"]}
++    open_scopes = set()
++
++    def require_current(identity):
++        if identity and (
++            identity not in active_physical or identity in suspended_physical
++        ):
++            raise ValueError("physical context outside its active lifetime")
++
+     for index, event in enumerate(report["events"], 1):
+         if event["sequence"] != index or event["frame"] not in frames:
+             raise ValueError("invalid event trace")
+@@ -636,30 +648,37 @@
+                     raise ValueError(
+                         "call site outside caller or incorrect caller identity"
+                     )
+-                if (
+-                    "contextComposition" in frame
+-                    and frame["previousState"] != current_contexts[parent["id"]]
+-                ):
+-                    raise ValueError("composition lost caller context provenance")
++                if frame["previousState"] != current_contexts[parent["id"]]:
++                    raise ValueError("frame lost caller context provenance")
+             elif frame["callerMethod"] is not None:
+                 raise ValueError("root frame has caller")
+-            elif "contextComposition" in frame and frame["previousState"] != (
++            elif frame["previousState"] != (
+                 no_transaction()
+                 if report["context"]["initialState"] == "NO_TRANSACTION"
+                 else unknown()
+             ):
+-                raise ValueError("composition contradicts initial scenario context")
++                raise ValueError("frame contradicts initial scenario context")
++            require_current(frame["previousState"]["physicalId"])
++            identity = frame["duringState"]["physicalId"]
++            owned = (
++                identity in physical and physical[identity]["beginFrame"] == frame["id"]
++            )
++            # FRAME_ENTER precedes opening events; owned P is checked at BEGIN.
++            if not owned:
++                require_current(frame["duringState"]["physicalId"])
++                if identity and identity != frame["previousState"]["physicalId"]:
++                    raise ValueError("physical identity changed without a begin event")
+             stack.append(event["frame"])
+             current_contexts[frame["id"]] = frame["duringState"]
+-            if (
+-                "contextComposition" in frame
+-                and frame["previousState"]["physicalId"]
+-                and frame["previousState"]["physicalId"] not in active_physical
++        elif event["kind"] == "FRAME_EXIT":
++            frame = frames[event["frame"]]
++            require_current(frame["afterState"]["physicalId"])
++            if frame["afterState"]["physicalId"] and (
++                frame["afterState"] != frame["previousState"]
+             ):
+                 raise ValueError(
+-                    "composition inherited a physical transaction outside its lifetime"
+-                )
+-        elif event["kind"] == "FRAME_EXIT":
++                    "after-state did not restore incoming physical context"
++                )
+             if not stack or stack.pop() != event["frame"]:
+                 raise ValueError("unbalanced frame trace")
+             if stack:
+@@ -667,11 +686,75 @@
+         elif not stack or stack[-1] != event["frame"]:
+             raise ValueError("event outside active method frame")
+         if event["kind"] == "PHYSICAL_BEGIN":
+-            active_physical.add(event["entity"])
++            identity = event["entity"]
++            frame = frames[event["frame"]]
++            if (
++                identity not in physical
++                or identity in started_physical
++                or physical[identity]["beginFrame"] != frame["id"]
++                or frame["duringState"]["physicalId"] != identity
++            ):
++                raise ValueError("invalid physical begin or reused physical identity")
++            previous = frame["previousState"]["physicalId"]
++            if previous and (
++                previous not in suspended_physical
++                or suspended_physical[previous]["replacementPhysicalId"] != identity
++            ):
++                raise ValueError(
++                    "new physical transaction did not suspend prior context"
++                )
++            started_physical.add(identity)
++            active_physical.add(identity)
+         elif event["kind"] == "PHYSICAL_END_OUTCOME_UNKNOWN":
+-            active_physical.discard(event["entity"])
++            identity = event["entity"]
++            require_current(identity)
++            if any(scopes[s]["physicalId"] == identity for s in open_scopes):
++                raise ValueError(
++                    "physical end precedes logical scope/savepoint closure"
++                )
++            if physical[identity]["endFrame"] != event["frame"]:
++                raise ValueError("physical end attached to wrong frame")
++            active_physical.remove(identity)
++        elif event["kind"] == "SUSPEND":
++            item = suspensions[event["entity"]]
++            require_current(item["physicalId"])
++            if (
++                event["physicalId"] != item["physicalId"]
++                or item["replacementPhysicalId"] in started_physical
++            ):
++                raise ValueError("invalid suspension order or identity")
++            suspended_physical[item["physicalId"]] = item
++        elif event["kind"] == "RESUME_CONDITIONAL":
++            item = suspensions[event["entity"]]
++            if (
++                suspended_physical.get(item["physicalId"]) != item
++                or event["physicalId"] != item["physicalId"]
++                or item["physicalId"] not in active_physical
++                or item["replacementPhysicalId"] not in started_physical
++                or item["replacementPhysicalId"] in active_physical
++            ):
++                raise ValueError(
++                    "resume requires a live suspended context and ended replacement"
++                )
++            del suspended_physical[item["physicalId"]]
++        elif event["kind"] in {
++            "LOGICAL_BEGIN",
++            "LOGICAL_END",
++            "SAVEPOINT_CREATE",
++            "SAVEPOINT_RELEASE_CONDITIONAL",
++        }:
++            item = scopes[event["entity"]]
++            require_current(item["physicalId"])
++            if event["kind"] in {"LOGICAL_BEGIN", "SAVEPOINT_CREATE"}:
++                open_scopes.add(item["id"])
++            else:
++                if item["id"] not in open_scopes:
++                    raise ValueError("scope/savepoint closed before opening")
++                open_scopes.remove(item["id"])
+     if stack:
+         raise ValueError("open frames")
++    if active_physical or suspended_physical or open_scopes:
++        raise ValueError("unfinished physical lifetime, suspension or scope")
+     for frame in frames.values():
+         if "contextComposition" in frame and "interception" not in frame:
+             raise ValueError("composition requires interception observation")
+--- /dev/null
++++ b/tests/transaction-physical-lifetime.py
+@@ -0,0 +1,232 @@
++#!/usr/bin/env python3
++"""Literal lifetime oracles and immutable R3 counterexamples; no runtime outcomes."""
++
++import copy
++import importlib.util
++import json
++from pathlib import Path
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++spec = importlib.util.spec_from_file_location(
++    "transaction_f03", ROOT / "scripts/mana-transaction.py"
++)
++cli = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(cli)
++
++
++def physical(identity):
++    return {"kind": "TRANSACTION_PHYSICAL", "physicalId": identity, "manager": "tx"}
++
++
++def move(report, kind, entity, before_kind, before_entity):
++    events = report["events"]
++    event = next(e for e in events if e["kind"] == kind and e.get("entity") == entity)
++    events.remove(event)
++    index = next(
++        i
++        for i, e in enumerate(events)
++        if e["kind"] == before_kind and e.get("entity") == before_entity
++    )
++    events.insert(index, event)
++    for sequence, item in enumerate(events, 1):
++        item["sequence"] = sequence
++
++
++class PhysicalLifetimeTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.r3 = json.loads(
++            (ROOT / "docs/reports/MANA-TRANSACTION-01-T01-R3-results.json").read_text()
++        )
++
++    def model(self, name):
++        return json.loads(
++            (
++                ROOT
++                / "docs/examples/transaction-01-t01"
++                / name
++                / "transaction-model.json"
++            ).read_text()
++        )
++
++    def reject(self, report, message):
++        with self.assertRaisesRegex(ValueError, message):
++            cli.validate_model(report)
++
++    def test_original_high_r3_and_uncertain_continuation_rejected(self):
++        for name in (
++            "counterexample_root_after_ended_p1.json",
++            "counterexample_nonempty_caller_after.json",
++            "minimal-after-counterexample.json",
++        ):
++            with self.subTest(name=name):
++                model = copy.deepcopy(self.r3["adversarialModels"][name])
++                self.assertEqual(model["frames"][0]["afterState"], physical("P1"))
++                self.reject(model, "outside its active lifetime")
++
++    def test_exact_r3_mutation_on_original_valid_model(self):
++        model = copy.deepcopy(self.r3["matrixArtifacts"]["required_active"]["model"])
++        self.assertTrue(cli.validate_model(model))
++        self.assertEqual(
++            model["events"][6],
++            {
++                "sequence": 7,
++                "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
++                "frame": "F1",
++                "entity": "P1",
++            },
++        )
++        model["frames"][0]["afterState"] = copy.deepcopy(
++            model["frames"][0]["duringState"]
++        )
++        model["frames"][0]["effectiveContext"]["after"] = "ACTIVE"
++        self.reject(model, "outside its active lifetime")
++
++    def test_terminal_event_is_outcome_independent(self):
++        # v1 has one terminal event, shared by either possible physical outcome.
++        # Do not invent COMMIT/ROLLBACK events or claim either happened at runtime.
++        model = self.model("required")
++        self.assertEqual(model["physicalTransactions"][0]["outcome"], "UNKNOWN")
++        self.assertEqual(model["events"][-2]["kind"], "PHYSICAL_END_OUTCOME_UNKNOWN")
++        self.assertEqual(
++            model["frames"][0]["afterState"],
++            {"kind": "NO_TRANSACTION", "physicalId": None, "manager": None},
++        )
++        self.assertTrue(cli.validate_model(model))
++        model["frames"][0]["afterState"] = physical("P1")
++        self.reject(model, "outside its active lifetime")
++
++    def test_required_logical_end_preserves_p1(self):
++        model = self.model("required")
++        self.assertEqual(model["frames"][1]["afterState"], physical("P1"))
++        self.assertEqual(
++            [
++                e["entity"]
++                for e in model["events"]
++                if e["kind"] == "PHYSICAL_END_OUTCOME_UNKNOWN"
++            ],
++            ["P1"],
++        )
++        self.assertTrue(cli.validate_model(model))
++
++    def test_nested_savepoint_release_preserves_p1(self):
++        model = self.model("nested")
++        self.assertEqual(model["savepoints"][0]["physicalId"], "P1")
++        self.assertEqual(model["frames"][1]["afterState"], physical("P1"))
++        self.assertTrue(cli.validate_model(model))
++
++    def test_requires_new_restores_live_p1_after_p2_end(self):
++        model = self.model("requires_new")
++        self.assertEqual(model["frames"][1]["afterState"], physical("P1"))
++        self.assertEqual(
++            [e["kind"] for e in model["events"]][8:11],
++            ["PHYSICAL_END_OUTCOME_UNKNOWN", "RESUME_CONDITIONAL", "FRAME_EXIT"],
++        )
++        self.assertTrue(cli.validate_model(model))
++
++    def test_requires_new_rejects_resume_while_p2_active(self):
++        model = self.model("requires_new")
++        move(model, "RESUME_CONDITIONAL", "S1", "PHYSICAL_END_OUTCOME_UNKNOWN", "P2")
++        self.reject(model, "ended replacement")
++
++    def test_rejects_restore_without_resume(self):
++        model = self.model("requires_new")
++        model["events"] = [
++            e for e in model["events"] if e["kind"] != "RESUME_CONDITIONAL"
++        ]
++        for sequence, event in enumerate(model["events"], 1):
++            event["sequence"] = sequence
++        self.reject(model, "outside its active lifetime")
++
++    def test_rejects_after_state_retaining_ended_p2(self):
++        model = self.model("requires_new")
++        model["frames"][1]["afterState"] = physical("P2")
++        self.reject(model, "outside its active lifetime")
++
++    def test_rejects_begin_before_suspend(self):
++        model = self.model("requires_new")
++        move(model, "PHYSICAL_BEGIN", "P2", "SUSPEND", "S1")
++        self.reject(model, "did not suspend")
++
++    def test_rejects_physical_end_before_logical_closure(self):
++        model = self.model("required")
++        move(model, "PHYSICAL_END_OUTCOME_UNKNOWN", "P1", "LOGICAL_END", "L1")
++        self.reject(model, "precedes logical scope/savepoint closure")
++
++    def test_rejects_savepoint_before_physical_begin(self):
++        model = self.model("nested")
++        move(model, "PHYSICAL_BEGIN", "P1", "LOGICAL_END", "L1")
++        self.reject(model, "outside its active lifetime")
++
++    def test_rejects_identity_without_begin(self):
++        model = self.model("requires_new")
++        model["events"] = [
++            e
++            for e in model["events"]
++            if not (e["kind"] == "PHYSICAL_BEGIN" and e["entity"] == "P2")
++        ]
++        for sequence, event in enumerate(model["events"], 1):
++            event["sequence"] = sequence
++        self.reject(model, "outside its active lifetime")
++
++    def test_rejects_same_symbol_reopened_after_end(self):
++        model = self.model("required")
++        model["events"].insert(
++            -1, {"kind": "PHYSICAL_BEGIN", "frame": "F1", "entity": "P1"}
++        )
++        for sequence, event in enumerate(model["events"], 1):
++            event["sequence"] = sequence
++        self.reject(model, "reused physical identity")
++
++    def test_rejects_ordinary_frame_inventing_previous_identity(self):
++        model = self.model("required")
++        model["frames"][0]["previousState"] = physical("P1")
++        self.reject(model, "initial scenario context")
++
++    def test_rejects_ordinary_child_losing_caller_context(self):
++        model = self.model("required")
++        model["frames"][1]["previousState"] = {
++            "kind": "UNKNOWN",
++            "physicalId": None,
++            "manager": None,
++        }
++        self.reject(model, "caller context provenance")
++
++    def test_rejects_wrong_physical_end_owner(self):
++        model = self.model("required")
++        model["physicalTransactions"][0]["endFrame"] = "F2"
++        self.reject(model, "physical end attached to wrong frame")
++
++    def test_f02_conditional_properties_preserved(self):
++        for name, identity in (
++            ("required_active", "P1"),
++            ("nested_active", "P1"),
++            ("new_active", None),
++        ):
++            with self.subTest(name=name):
++                model = copy.deepcopy(self.r3["matrixArtifacts"][name]["model"])
++                child = model["frames"][1]
++                self.assertEqual(child["duringState"], physical(identity))
++                self.assertEqual(child["interception"]["status"], "UNKNOWN")
++                self.assertEqual(child["afterState"], physical("P1"))
++                self.assertTrue(cli.validate_model(model))
++
++    def test_renderer_does_not_label_activity_beyond_terminal_event(self):
++        for name in ("required", "nested", "requires_new"):
++            model = self.model(name)
++            self.assertTrue(cli.validate_model(model))
++            diagram = cli.render(model)
++            suffix = diagram.split("PHYSICAL_END_OUTCOME_UNKNOWN P1", 1)[1]
++            self.assertNotIn("context=ACTIVE", suffix)
++            self.assertNotIn("INHERITED P1", suffix)
++            self.assertNotIn("INDEPENDENT P1", suffix)
++            if name == "requires_new":
++                self.assertLess(
++                    diagram.index("PHYSICAL_END_OUTCOME_UNKNOWN P2"),
++                    diagram.index("RESUME_CONDITIONAL S1 P1"),
++                )
++
++
++if __name__ == "__main__":
++    unittest.main()
