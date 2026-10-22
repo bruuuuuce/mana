@@ -1,0 +1,2489 @@
+{
+  "task": "MANA-TRANSACTION-01-T02-S01-D02-R2",
+  "recordedAt": "2026-10-22T17:30:09.906845+00:00",
+  "verdict": "NEEDS_FIX",
+  "semanticReview": "NEEDS_FIX",
+  "reviewMethod": {
+    "freshSourceAndValidatorInspection": true,
+    "freshRuns": true,
+    "engineIndependentLiteralOracles": true,
+    "independentJavaBindingControl": true,
+    "delegation": false,
+    "externalReviewerAttestation": false,
+    "contextNote": "Conversation includes implementation history; no independent external-reviewer claim. Finding rests on new literal-source oracles and separate Java compiler binding evidence."
+  },
+  "baseline": {
+    "branch": "feature/mana-transaction-02",
+    "head": "e3537e3f8c8329a71615fe59d496757d5392c6a8",
+    "develop": "e3537e3f8c8329a71615fe59d496757d5392c6a8",
+    "indexEmpty": true
+  },
+  "inputs": [
+    {
+      "path": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R1.md",
+      "sha256": "39b841416325e8f24f17c476c463268cea6cc36864a314c06a59472ae4ee4eb0"
+    },
+    {
+      "path": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R1-results.json",
+      "sha256": "8ac7ca5b35211e69d46b6d0afaa6f60305fb3eb757b19bc9494c91953674dbb2"
+    },
+    {
+      "path": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F01.md",
+      "sha256": "6a227b6ac0116a2210cf0f21c2484994500fcd30e6697b8c524473d29642d423"
+    },
+    {
+      "path": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F01-results.json",
+      "sha256": "9b61507ba798083f3093758eb264f21aa6e321750b3b7098256f813219acbed1"
+    },
+    {
+      "path": "docs/standards/resource-leaf-extension-v1.md",
+      "sha256": "5a5b693dfa0d0bb8f6fa973c049b5283c21764c65fedee1f07d384001e7e8537"
+    },
+    {
+      "path": "docs/standards/resource-timeline-model-v1.md",
+      "sha256": "e76b06565775fb64eed45d0a30e22e2c99c5d5f9c8a186e2b093cf7f94be4c83"
+    },
+    {
+      "path": "docs/standards/transaction-model-v1.md",
+      "sha256": "0edd6e9073a6d90649426dbbbd534f4721bb2f03278cd2c6cd4edf7d3fbf8fb6"
+    }
+  ],
+  "F01DeliveredHashesMatch": true,
+  "findings": [
+    {
+      "id": "D02-R2-A",
+      "severity": "HIGH",
+      "blocking": true,
+      "title": "Type-variable shadow of JdbcTemplate is certified as standard library dispatch",
+      "requirement": "Resolved receiver type and possible target must be compatible with catalog implementation; incomplete type binding cannot certify leaf or continuation.",
+      "sourceReferences": [
+        "scripts/skill_factory/transactions/JavaFacts.java:22",
+        "scripts/skill_factory/transactions/JavaFacts.java:78",
+        "scripts/skill_factory/transactions/JavaFacts.java:135",
+        "scripts/skill_factory/transactions/resource_leaf.py:53",
+        "scripts/skill_factory/transactions/resource_leaf.py:166",
+        "scripts/skill_factory/transactions/resource_leaf.py:297",
+        "scripts/skill_factory/transactions/resources.py:94"
+      ],
+      "actualStaticReceiver": {
+        "kind": "TYPE_VARIABLE",
+        "name": "JdbcTemplate",
+        "bound": "fixture.ApplicationJdbc",
+        "erasure": "fixture.ApplicationJdbc"
+      },
+      "actualDeclaredMethods": [
+        "fixture.ApplicationJdbc#execute(java.lang.String):void",
+        "fixture.ApplicationJdbc#update(java.lang.String):int"
+      ],
+      "possibleDynamicTargets": "ApplicationJdbc implementations or overrides in its application subtypes; not authorized Spring standard dispatch",
+      "incorrectExtractedReceiverType": "org.springframework.jdbc.core.JdbcTemplate",
+      "omittedSourceRelationship": "Class type parameter and its bound; getTypeParameters scope not represented in facts",
+      "misleadingFacts": {
+        "parents": [],
+        "dispatchHazards": []
+      },
+      "chain": [
+        "qualify prioritizes imports without type-variable scope",
+        "field type is incorrectly expanded to Spring FQN",
+        "type-parameter/bound omission produces no dispatch hazard",
+        "catalog screen accepts incomplete type binding",
+        "T01 validator reclassifies with same wrong binding and accepts generated witness",
+        "T02 validates that T01 authority and positions both operations on P1"
+      ],
+      "expected": {
+        "leaves": 0,
+        "firstCall": "UNRESOLVED_CALL",
+        "firstObservation": "T01_FRONTIER/P1",
+        "secondObservation": "UNPLACED/UNKNOWN",
+        "physicalIds": [
+          "P1",
+          null
+        ]
+      },
+      "actual": {
+        "leaves": 2,
+        "leafSequences": [
+          4,
+          5
+        ],
+        "physicalIds": [
+          "P1",
+          "P1"
+        ],
+        "placements": [
+          "T01_RESOURCE_LEAF",
+          "T01_RESOURCE_LEAF"
+        ],
+        "T01ValidatorAccepts": true,
+        "T02ValidatorAccepts": true
+      },
+      "notAnExceptionReturnFinding": true,
+      "notImportedJsonForgery": true,
+      "notJustOpenWorldExternalRisk": true,
+      "independentOracle": {
+        "literalExpectedZeroLeaves": true,
+        "languageBindingProof": {
+          "verdict": "PASS",
+          "meaning": "Java type variable shadows imported Spring type; field erasure and both invocation owners are application ApplicationJdbc. Independent of Mana classifier.",
+          "scope": "Two fixed synthetic Java sources, no annotations/processors/target project build, no runtime execution; Spring-shaped stub proves only lexical binding, not Spring behavior.",
+          "sources": [
+            {
+              "path": "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof/src/fixture/TypeBinding.java",
+              "source": "package fixture;\nimport org.springframework.jdbc.core.JdbcTemplate;\nclass ApplicationJdbc {\n    public void execute(String sql) {}\n    public int update(String sql) { return 0; }\n}\nclass Operations<JdbcTemplate extends ApplicationJdbc> {\n    JdbcTemplate jdbc;\n    public void sequence() {\n        jdbc.execute(\"SELECT * FROM accounts\");\n        jdbc.update(\"DELETE FROM ledger\");\n    }\n}\n",
+              "sha256": "9f3d61de21ce6515c8a5be488b275858878c68c251a21c1d98d09de9130fc70c"
+            },
+            {
+              "path": "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof/src/org/springframework/jdbc/core/JdbcTemplate.java",
+              "source": "package org.springframework.jdbc.core;\npublic class JdbcTemplate {\n    public void execute(String sql) {}\n    public int update(String sql) { return 0; }\n}\n",
+              "sha256": "45ddc63325743c6ed00bbe7ce57e27bff2dc88164a697e14c24ad45a72bc7f0d"
+            }
+          ],
+          "checks": [
+            {
+              "command": [
+                "/Users/zel/.sdkman/candidates/java/8.0.442-amzn/bin/javac",
+                "-J-XX:-UsePerfData",
+                "-J-Djava.io.tmpdir=/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof",
+                "-proc:none",
+                "-d",
+                "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof/classes",
+                "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof/src/fixture/TypeBinding.java",
+                "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof/src/org/springframework/jdbc/core/JdbcTemplate.java"
+              ],
+              "exit": 0,
+              "log": "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-1.log",
+              "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "command": [
+                "/Users/zel/.sdkman/candidates/java/8.0.442-amzn/bin/javap",
+                "-J-XX:-UsePerfData",
+                "-J-Djava.io.tmpdir=/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof",
+                "-classpath",
+                "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof/classes",
+                "-c",
+                "-p",
+                "-s",
+                "fixture.Operations"
+              ],
+              "exit": 0,
+              "log": "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-2.log",
+              "logSha256": "16b90c937feab1fd100e47e1e9101888817528c1646d4e3bab582ac489f47620"
+            }
+          ],
+          "javap": "Compiled from \"TypeBinding.java\"\nclass fixture.Operations<JdbcTemplate extends fixture.ApplicationJdbc> {\n  JdbcTemplate jdbc;\n    descriptor: Lfixture/ApplicationJdbc;\n\n  fixture.Operations();\n    descriptor: ()V\n    Code:\n       0: aload_0\n       1: invokespecial #1                  // Method java/lang/Object.\"<init>\":()V\n       4: return\n\n  public void sequence();\n    descriptor: ()V\n    Code:\n       0: aload_0\n       1: getfield      #2                  // Field jdbc:Lfixture/ApplicationJdbc;\n       4: ldc           #3                  // String SELECT * FROM accounts\n       6: invokevirtual #4                  // Method fixture/ApplicationJdbc.execute:(Ljava/lang/String;)V\n       9: aload_0\n      10: getfield      #2                  // Field jdbc:Lfixture/ApplicationJdbc;\n      13: ldc           #5                  // String DELETE FROM ledger\n      15: invokevirtual #6                  // Method fixture/ApplicationJdbc.update:(Ljava/lang/String;)I\n      18: pop\n      19: return\n}\n",
+          "classesExecuted": false
+        }
+      },
+      "disposition": "NEEDS_FIX; no automatic correction. Resolve or conservatively reject the unsupported lexical binding before leaf certification."
+    }
+  ],
+  "counterexample": {
+    "entry": "fixture.Operations#sequence()",
+    "sourcePath": "src/main/java/fixture/Resources.java",
+    "sourceSha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7",
+    "source": "package fixture;\nimport org.springframework.stereotype.Service;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.transaction.annotation.Transactional;\nimport org.springframework.transaction.annotation.EnableTransactionManagement;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.jdbc.datasource.DataSourceTransactionManager;\nimport org.springframework.jdbc.core.JdbcTemplate;\n\n@Configuration\n@EnableTransactionManagement(proxyTargetClass = true)\nclass Config {\n    @Bean public DataSourceTransactionManager tx() { return new DataSourceTransactionManager(); }\n}\n@Service\nclass Operations<JdbcTemplate extends ApplicationJdbc> {\n    @Autowired JdbcTemplate jdbc;\n    @Transactional public void sequence() {\n        jdbc.execute(\"SELECT * FROM accounts\");\n        jdbc.update(\"DELETE FROM ledger\");\n    }\n}\n\n@Service\nclass ApplicationJdbc {\n    public void execute(String sql) { throw new IllegalStateException(\"application implementation\"); }\n    public int update(String sql) { return 0; }\n}\n",
+    "context": {
+      "schema": "mana.transaction-context/v1",
+      "initialState": "NO_TRANSACTION",
+      "entryThroughProxy": true,
+      "managerCapabilities": {
+        "tx": {
+          "suspend": true,
+          "savepoints": true
+        }
+      },
+      "resourceLeafPolicy": "JDBC_LITERAL_V1"
+    },
+    "sourceUnchanged": true,
+    "fullReport": {
+      "schema": "mana.resource-timeline/v1",
+      "status": "CONDITIONAL_STATIC_SCENARIO",
+      "transactionModel": {
+        "schema": "mana.transaction-model/v1",
+        "entry": "fixture.Operations#sequence()",
+        "status": "CONDITIONAL_STATIC_SCENARIO",
+        "proxyMode": "CLASS",
+        "interceptionMode": "PROXY",
+        "aspectjWeaving": {
+          "application": "UNKNOWN",
+          "runtimeApplication": "UNKNOWN"
+        },
+        "assumptions": [
+          "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+          "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+          "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+          "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+          "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven.",
+          "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+          "The bounded source dispatch screen is complete and has no unresolved implementation provider or application subtype.",
+          "Normal synchronous return is assumed only for continuation of this path.",
+          "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+          "The catalogued overload has no application callback argument."
+        ],
+        "context": {
+          "schema": "mana.transaction-context/v1",
+          "initialState": "NO_TRANSACTION",
+          "entryThroughProxy": true,
+          "managerCapabilities": {
+            "tx": {
+              "suspend": true,
+              "savepoints": true
+            }
+          },
+          "resourceLeafPolicy": "JDBC_LITERAL_V1"
+        },
+        "managers": [
+          {
+            "id": "tx",
+            "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 597,
+              "end": 690,
+              "line": 14,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            },
+            "capabilities": {
+              "suspend": true,
+              "savepoints": true
+            },
+            "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+          }
+        ],
+        "frames": [
+          {
+            "id": "F1",
+            "callerMethod": null,
+            "calleeMethod": "fixture.Operations#sequence()",
+            "callSite": null,
+            "bean": "fixture.Operations",
+            "proxy": {
+              "mode": "CLASS",
+              "crossed": true,
+              "configurationEvidence": [
+                {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 524,
+                  "end": 577,
+                  "line": 12,
+                  "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                }
+              ],
+              "reason": "SCENARIO_PROXY_CALL"
+            },
+            "manager": "tx",
+            "configuration": {
+              "propagation": "REQUIRED",
+              "managerQualifier": "",
+              "attributes": {},
+              "evidence": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 797,
+                "end": 811,
+                "line": 19,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "origin": "method",
+              "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+              "unmodeledAttributes": []
+            },
+            "logicalScope": "L1",
+            "previousState": {
+              "kind": "NO_TRANSACTION",
+              "physicalId": null,
+              "manager": null
+            },
+            "duringState": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "afterState": {
+              "kind": "NO_TRANSACTION",
+              "physicalId": null,
+              "manager": null
+            },
+            "certainty": "CONDITIONAL",
+            "bodyTraversal": "STRAIGHT_LINE",
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 797,
+              "end": 933,
+              "line": 19,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            },
+            "depth": 0,
+            "beanEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 693,
+              "end": 935,
+              "line": 16,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            },
+            "beanName": "operations",
+            "interception": {
+              "status": "APPLIED",
+              "reason": "SCENARIO_PROXY_CALL"
+            },
+            "effectiveContext": {
+              "before": "INACTIVE",
+              "during": "ACTIVE",
+              "after": "INACTIVE"
+            }
+          }
+        ],
+        "logicalScopes": [
+          {
+            "id": "L1",
+            "kind": "TRANSACTION_LOGICAL_SCOPE",
+            "frame": "F1",
+            "certainty": "CONDITIONAL",
+            "physicalId": "P1"
+          }
+        ],
+        "physicalTransactions": [
+          {
+            "id": "P1",
+            "kind": "TRANSACTION_PHYSICAL",
+            "manager": "tx",
+            "beginFrame": "F1",
+            "endFrame": "F1",
+            "identity": "SYMBOLIC_SCENARIO",
+            "runtimeIdentity": "UNKNOWN",
+            "certainty": "CONDITIONAL",
+            "outcome": "UNKNOWN"
+          }
+        ],
+        "suspensions": [],
+        "savepoints": [],
+        "events": [
+          {
+            "sequence": 1,
+            "kind": "FRAME_ENTER",
+            "frame": "F1"
+          },
+          {
+            "sequence": 2,
+            "kind": "PHYSICAL_BEGIN",
+            "frame": "F1",
+            "entity": "P1"
+          },
+          {
+            "sequence": 3,
+            "kind": "LOGICAL_BEGIN",
+            "frame": "F1",
+            "entity": "L1"
+          },
+          {
+            "sequence": 4,
+            "kind": "RESOURCE_LEAF_CALL",
+            "frame": "F1",
+            "callSite": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 845,
+              "end": 883,
+              "line": 20,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            },
+            "receiver": "jdbc",
+            "method": "execute",
+            "witness": {
+              "schema": "mana.resource-leaf-witness/v1",
+              "rule": {
+                "id": "spring-jdbc-template-literal",
+                "version": 1
+              },
+              "signature": "org.springframework.jdbc.core.JdbcTemplate#execute(java.lang.String):void",
+              "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+              "callSite": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 845,
+                "end": 883,
+                "line": 20,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "methodEvidence": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 797,
+                "end": 933,
+                "line": 19,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "bindingEvidence": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 763,
+                "end": 792,
+                "line": 18,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "argumentEvidence": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 858,
+                "end": 882,
+                "line": 20,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "sourceCallOrdinal": 1,
+              "t01Sequence": 4,
+              "normalReturnDependencies": [],
+              "transactionContext": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "premises": [
+                "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+                "The bounded source dispatch screen is complete and has no unresolved implementation provider or application subtype.",
+                "Normal synchronous return is assumed only for continuation of this path.",
+                "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+                "The catalogued overload has no application callback argument."
+              ],
+              "limits": [
+                "Runtime execution, successful SQL completion and normal return are not proved.",
+                "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+                "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+                "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+              ]
+            }
+          },
+          {
+            "sequence": 5,
+            "kind": "RESOURCE_LEAF_CALL",
+            "frame": "F1",
+            "callSite": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 893,
+              "end": 926,
+              "line": 21,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            },
+            "receiver": "jdbc",
+            "method": "update",
+            "witness": {
+              "schema": "mana.resource-leaf-witness/v1",
+              "rule": {
+                "id": "spring-jdbc-template-literal",
+                "version": 1
+              },
+              "signature": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+              "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+              "callSite": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 893,
+                "end": 926,
+                "line": 21,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "methodEvidence": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 797,
+                "end": 933,
+                "line": 19,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "bindingEvidence": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 763,
+                "end": 792,
+                "line": 18,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "argumentEvidence": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 905,
+                "end": 925,
+                "line": 21,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "sourceCallOrdinal": 2,
+              "t01Sequence": 5,
+              "normalReturnDependencies": [
+                4
+              ],
+              "transactionContext": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "premises": [
+                "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+                "The bounded source dispatch screen is complete and has no unresolved implementation provider or application subtype.",
+                "Normal synchronous return is assumed only for continuation of this path.",
+                "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+                "The catalogued overload has no application callback argument."
+              ],
+              "limits": [
+                "Runtime execution, successful SQL completion and normal return are not proved.",
+                "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+                "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+                "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+              ]
+            }
+          },
+          {
+            "sequence": 6,
+            "kind": "LOGICAL_END",
+            "frame": "F1",
+            "entity": "L1"
+          },
+          {
+            "sequence": 7,
+            "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+            "frame": "F1",
+            "entity": "P1"
+          },
+          {
+            "sequence": 8,
+            "kind": "FRAME_EXIT",
+            "frame": "F1"
+          }
+        ],
+        "uncertainties": [],
+        "resourceLeafExtension": {
+          "schema": "mana.transaction-resource-leaves/v1",
+          "sourceFacts": {
+            "classes": [
+              {
+                "name": "fixture.Config",
+                "simpleName": "Config",
+                "kind": "CLASS",
+                "flags": [],
+                "parents": [],
+                "dispatchHazards": [],
+                "annotations": [
+                  {
+                    "type": "org.springframework.context.annotation.Configuration",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 509,
+                      "end": 523,
+                      "line": 11,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  },
+                  {
+                    "type": "org.springframework.transaction.annotation.EnableTransactionManagement",
+                    "args": {
+                      "proxyTargetClass": {
+                        "kind": "BOOLEAN_LITERAL",
+                        "literal": true,
+                        "text": "true"
+                      }
+                    },
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 524,
+                      "end": 577,
+                      "line": 12,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  }
+                ],
+                "fields": [],
+                "methods": [
+                  {
+                    "name": "tx",
+                    "arity": 0,
+                    "returnType": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+                    "annotations": [
+                      {
+                        "type": "org.springframework.context.annotation.Bean",
+                        "args": {},
+                        "evidence": {
+                          "file": "src/main/java/fixture/Resources.java",
+                          "start": 597,
+                          "end": 602,
+                          "line": 14,
+                          "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                        }
+                      }
+                    ],
+                    "flags": [
+                      "public"
+                    ],
+                    "hazards": [
+                      "unsupported-control-or-expression"
+                    ],
+                    "calls": [],
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 597,
+                      "end": 690,
+                      "line": 14,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 509,
+                  "end": 692,
+                  "line": 11,
+                  "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                }
+              },
+              {
+                "name": "fixture.Operations",
+                "simpleName": "Operations",
+                "kind": "CLASS",
+                "flags": [],
+                "parents": [],
+                "dispatchHazards": [],
+                "annotations": [
+                  {
+                    "type": "org.springframework.stereotype.Service",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 693,
+                      "end": 701,
+                      "line": 16,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  }
+                ],
+                "fields": [
+                  {
+                    "name": "jdbc",
+                    "type": "org.springframework.jdbc.core.JdbcTemplate",
+                    "annotations": [
+                      {
+                        "type": "org.springframework.beans.factory.annotation.Autowired",
+                        "args": {},
+                        "evidence": {
+                          "file": "src/main/java/fixture/Resources.java",
+                          "start": 763,
+                          "end": 773,
+                          "line": 18,
+                          "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                        }
+                      }
+                    ],
+                    "initialized": false,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 763,
+                      "end": 792,
+                      "line": 18,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  }
+                ],
+                "methods": [
+                  {
+                    "name": "sequence",
+                    "arity": 0,
+                    "returnType": "void",
+                    "annotations": [
+                      {
+                        "type": "org.springframework.transaction.annotation.Transactional",
+                        "args": {},
+                        "evidence": {
+                          "file": "src/main/java/fixture/Resources.java",
+                          "start": 797,
+                          "end": 811,
+                          "line": 19,
+                          "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                        }
+                      }
+                    ],
+                    "flags": [
+                      "public"
+                    ],
+                    "hazards": [],
+                    "calls": [
+                      {
+                        "receiver": "jdbc",
+                        "name": "execute",
+                        "arity": 1,
+                        "arguments": [
+                          {
+                            "kind": "STRING_LITERAL",
+                            "literal": "SELECT * FROM accounts",
+                            "evidence": {
+                              "file": "src/main/java/fixture/Resources.java",
+                              "start": 858,
+                              "end": 882,
+                              "line": 20,
+                              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                            }
+                          }
+                        ],
+                        "statementCall": true,
+                        "evidence": {
+                          "file": "src/main/java/fixture/Resources.java",
+                          "start": 845,
+                          "end": 883,
+                          "line": 20,
+                          "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                        }
+                      },
+                      {
+                        "receiver": "jdbc",
+                        "name": "update",
+                        "arity": 1,
+                        "arguments": [
+                          {
+                            "kind": "STRING_LITERAL",
+                            "literal": "DELETE FROM ledger",
+                            "evidence": {
+                              "file": "src/main/java/fixture/Resources.java",
+                              "start": 905,
+                              "end": 925,
+                              "line": 21,
+                              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                            }
+                          }
+                        ],
+                        "statementCall": true,
+                        "evidence": {
+                          "file": "src/main/java/fixture/Resources.java",
+                          "start": 893,
+                          "end": 926,
+                          "line": 21,
+                          "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                        }
+                      }
+                    ],
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 797,
+                      "end": 933,
+                      "line": 19,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 693,
+                  "end": 935,
+                  "line": 16,
+                  "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                }
+              },
+              {
+                "name": "fixture.ApplicationJdbc",
+                "simpleName": "ApplicationJdbc",
+                "kind": "CLASS",
+                "flags": [],
+                "parents": [],
+                "dispatchHazards": [],
+                "annotations": [
+                  {
+                    "type": "org.springframework.stereotype.Service",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 937,
+                      "end": 945,
+                      "line": 25,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  }
+                ],
+                "fields": [],
+                "methods": [
+                  {
+                    "name": "execute",
+                    "arity": 1,
+                    "returnType": "void",
+                    "annotations": [],
+                    "flags": [
+                      "public"
+                    ],
+                    "hazards": [
+                      "unsupported-control-or-expression"
+                    ],
+                    "calls": [],
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 974,
+                      "end": 1072,
+                      "line": 27,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  },
+                  {
+                    "name": "update",
+                    "arity": 1,
+                    "returnType": "int",
+                    "annotations": [],
+                    "flags": [
+                      "public"
+                    ],
+                    "hazards": [
+                      "unsupported-control-or-expression"
+                    ],
+                    "calls": [],
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 1077,
+                      "end": 1120,
+                      "line": 28,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 937,
+                  "end": 1122,
+                  "line": 25,
+                  "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                }
+              }
+            ],
+            "errors": []
+          }
+        },
+        "evidence": [
+          {
+            "path": "pom.xml",
+            "sha256": "510f95a04359d1faabb9e6d9874e8b2c6e476a06aa9112d19d9a50df007f1d17"
+          },
+          {
+            "path": "src/main/java/fixture/Resources.java",
+            "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+          }
+        ],
+        "contextEvidence": {
+          "sha256": "cd935669877c7ae88e8ae69fafa75ea9d3a3a3083f2a56862395aa007bc9974a",
+          "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+          "path": "context.json"
+        }
+      },
+      "sourceFacts": {
+        "classes": [
+          {
+            "name": "fixture.Config",
+            "simpleName": "Config",
+            "kind": "CLASS",
+            "flags": [],
+            "parents": [],
+            "dispatchHazards": [],
+            "annotations": [
+              {
+                "type": "org.springframework.context.annotation.Configuration",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 509,
+                  "end": 523,
+                  "line": 11,
+                  "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                }
+              },
+              {
+                "type": "org.springframework.transaction.annotation.EnableTransactionManagement",
+                "args": {
+                  "proxyTargetClass": {
+                    "kind": "BOOLEAN_LITERAL",
+                    "literal": true,
+                    "text": "true"
+                  }
+                },
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 524,
+                  "end": 577,
+                  "line": 12,
+                  "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                }
+              }
+            ],
+            "fields": [],
+            "methods": [
+              {
+                "name": "tx",
+                "arity": 0,
+                "returnType": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+                "annotations": [
+                  {
+                    "type": "org.springframework.context.annotation.Bean",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 597,
+                      "end": 602,
+                      "line": 14,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [
+                  "unsupported-control-or-expression"
+                ],
+                "calls": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 597,
+                  "end": 690,
+                  "line": 14,
+                  "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 509,
+              "end": 692,
+              "line": 11,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            }
+          },
+          {
+            "name": "fixture.Operations",
+            "simpleName": "Operations",
+            "kind": "CLASS",
+            "flags": [],
+            "parents": [],
+            "dispatchHazards": [],
+            "annotations": [
+              {
+                "type": "org.springframework.stereotype.Service",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 693,
+                  "end": 701,
+                  "line": 16,
+                  "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                }
+              }
+            ],
+            "fields": [
+              {
+                "name": "jdbc",
+                "type": "org.springframework.jdbc.core.JdbcTemplate",
+                "annotations": [
+                  {
+                    "type": "org.springframework.beans.factory.annotation.Autowired",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 763,
+                      "end": 773,
+                      "line": 18,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  }
+                ],
+                "initialized": false,
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 763,
+                  "end": 792,
+                  "line": 18,
+                  "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                }
+              }
+            ],
+            "methods": [
+              {
+                "name": "sequence",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 797,
+                      "end": 811,
+                      "line": 19,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "jdbc",
+                    "name": "execute",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "SELECT * FROM accounts",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Resources.java",
+                          "start": 858,
+                          "end": 882,
+                          "line": 20,
+                          "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 845,
+                      "end": 883,
+                      "line": 20,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  },
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM ledger",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Resources.java",
+                          "start": 905,
+                          "end": 925,
+                          "line": 21,
+                          "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 893,
+                      "end": 926,
+                      "line": 21,
+                      "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 797,
+                  "end": 933,
+                  "line": 19,
+                  "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 693,
+              "end": 935,
+              "line": 16,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            }
+          },
+          {
+            "name": "fixture.ApplicationJdbc",
+            "simpleName": "ApplicationJdbc",
+            "kind": "CLASS",
+            "flags": [],
+            "parents": [],
+            "dispatchHazards": [],
+            "annotations": [
+              {
+                "type": "org.springframework.stereotype.Service",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 937,
+                  "end": 945,
+                  "line": 25,
+                  "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                }
+              }
+            ],
+            "fields": [],
+            "methods": [
+              {
+                "name": "execute",
+                "arity": 1,
+                "returnType": "void",
+                "annotations": [],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [
+                  "unsupported-control-or-expression"
+                ],
+                "calls": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 974,
+                  "end": 1072,
+                  "line": 27,
+                  "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                }
+              },
+              {
+                "name": "update",
+                "arity": 1,
+                "returnType": "int",
+                "annotations": [],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [
+                  "unsupported-control-or-expression"
+                ],
+                "calls": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1077,
+                  "end": 1120,
+                  "line": 28,
+                  "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 937,
+              "end": 1122,
+              "line": 25,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            }
+          }
+        ],
+        "errors": []
+      },
+      "observations": [
+        {
+          "frame": "F1",
+          "method": "fixture.Operations#sequence()",
+          "applicationOperation": {
+            "receiver": "jdbc",
+            "method": "execute"
+          },
+          "callSite": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 845,
+            "end": 883,
+            "line": 20,
+            "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+          },
+          "operationType": "READ",
+          "sqlLiteral": "SELECT * FROM accounts",
+          "resource": {
+            "status": "LEXICAL_SQL_IDENTIFIER",
+            "name": "accounts",
+            "runtimeIdentity": "UNKNOWN",
+            "lockGranularity": "UNKNOWN"
+          },
+          "transactionContext": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "datasource": {
+            "status": "UNKNOWN",
+            "id": null
+          },
+          "enlistment": "UNKNOWN",
+          "lockAcquired": "UNKNOWN",
+          "certainty": "CONDITIONAL",
+          "placement": {
+            "status": "T01_RESOURCE_LEAF",
+            "beforeT01Sequence": 4
+          },
+          "evidence": [
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 845,
+              "end": 883,
+              "line": 20,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            },
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 763,
+              "end": 792,
+              "line": 18,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            },
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 858,
+              "end": 882,
+              "line": 20,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            }
+          ],
+          "premises": [
+            "T01 conditional path reaches this invocation syntax.",
+            "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+            "The bounded source dispatch screen is complete and has no unresolved implementation provider or application subtype.",
+            "Normal synchronous return is assumed only for continuation of this path.",
+            "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+            "The catalogued overload has no application callback argument."
+          ],
+          "limits": [
+            "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+            "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+          ],
+          "id": "O1"
+        },
+        {
+          "frame": "F1",
+          "method": "fixture.Operations#sequence()",
+          "applicationOperation": {
+            "receiver": "jdbc",
+            "method": "update"
+          },
+          "callSite": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 893,
+            "end": 926,
+            "line": 21,
+            "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+          },
+          "operationType": "WRITE",
+          "sqlLiteral": "DELETE FROM ledger",
+          "resource": {
+            "status": "LEXICAL_SQL_IDENTIFIER",
+            "name": "ledger",
+            "runtimeIdentity": "UNKNOWN",
+            "lockGranularity": "UNKNOWN"
+          },
+          "transactionContext": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "datasource": {
+            "status": "UNKNOWN",
+            "id": null
+          },
+          "enlistment": "UNKNOWN",
+          "lockAcquired": "UNKNOWN",
+          "certainty": "CONDITIONAL",
+          "placement": {
+            "status": "T01_RESOURCE_LEAF",
+            "beforeT01Sequence": 5
+          },
+          "evidence": [
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 893,
+              "end": 926,
+              "line": 21,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            },
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 763,
+              "end": 792,
+              "line": 18,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            },
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 905,
+              "end": 925,
+              "line": 21,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            }
+          ],
+          "premises": [
+            "T01 conditional path reaches this invocation syntax.",
+            "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+            "The bounded source dispatch screen is complete and has no unresolved implementation provider or application subtype.",
+            "Normal synchronous return is assumed only for continuation of this path.",
+            "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+            "The catalogued overload has no application callback argument.",
+            "Normal returns required from prior T01 resource leaf calls: [4]"
+          ],
+          "limits": [
+            "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+            "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+          ],
+          "id": "O2"
+        }
+      ],
+      "timeline": [
+        {
+          "kind": "T01_EVENT",
+          "event": {
+            "sequence": 1,
+            "kind": "FRAME_ENTER",
+            "frame": "F1"
+          },
+          "sequence": 1
+        },
+        {
+          "kind": "T01_EVENT",
+          "event": {
+            "sequence": 2,
+            "kind": "PHYSICAL_BEGIN",
+            "frame": "F1",
+            "entity": "P1"
+          },
+          "sequence": 2
+        },
+        {
+          "kind": "T01_EVENT",
+          "event": {
+            "sequence": 3,
+            "kind": "LOGICAL_BEGIN",
+            "frame": "F1",
+            "entity": "L1"
+          },
+          "sequence": 3
+        },
+        {
+          "kind": "RESOURCE_OPERATION",
+          "observation": "O1",
+          "sequence": 4
+        },
+        {
+          "kind": "T01_EVENT",
+          "event": {
+            "sequence": 4,
+            "kind": "RESOURCE_LEAF_CALL",
+            "frame": "F1",
+            "callSite": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 845,
+              "end": 883,
+              "line": 20,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            },
+            "receiver": "jdbc",
+            "method": "execute",
+            "witness": {
+              "schema": "mana.resource-leaf-witness/v1",
+              "rule": {
+                "id": "spring-jdbc-template-literal",
+                "version": 1
+              },
+              "signature": "org.springframework.jdbc.core.JdbcTemplate#execute(java.lang.String):void",
+              "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+              "callSite": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 845,
+                "end": 883,
+                "line": 20,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "methodEvidence": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 797,
+                "end": 933,
+                "line": 19,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "bindingEvidence": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 763,
+                "end": 792,
+                "line": 18,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "argumentEvidence": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 858,
+                "end": 882,
+                "line": 20,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "sourceCallOrdinal": 1,
+              "t01Sequence": 4,
+              "normalReturnDependencies": [],
+              "transactionContext": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "premises": [
+                "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+                "The bounded source dispatch screen is complete and has no unresolved implementation provider or application subtype.",
+                "Normal synchronous return is assumed only for continuation of this path.",
+                "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+                "The catalogued overload has no application callback argument."
+              ],
+              "limits": [
+                "Runtime execution, successful SQL completion and normal return are not proved.",
+                "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+                "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+                "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+              ]
+            }
+          },
+          "sequence": 5
+        },
+        {
+          "kind": "RESOURCE_OPERATION",
+          "observation": "O2",
+          "sequence": 6
+        },
+        {
+          "kind": "T01_EVENT",
+          "event": {
+            "sequence": 5,
+            "kind": "RESOURCE_LEAF_CALL",
+            "frame": "F1",
+            "callSite": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 893,
+              "end": 926,
+              "line": 21,
+              "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+            },
+            "receiver": "jdbc",
+            "method": "update",
+            "witness": {
+              "schema": "mana.resource-leaf-witness/v1",
+              "rule": {
+                "id": "spring-jdbc-template-literal",
+                "version": 1
+              },
+              "signature": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+              "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+              "callSite": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 893,
+                "end": 926,
+                "line": 21,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "methodEvidence": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 797,
+                "end": 933,
+                "line": 19,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "bindingEvidence": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 763,
+                "end": 792,
+                "line": 18,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "argumentEvidence": {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 905,
+                "end": 925,
+                "line": 21,
+                "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+              },
+              "sourceCallOrdinal": 2,
+              "t01Sequence": 5,
+              "normalReturnDependencies": [
+                4
+              ],
+              "transactionContext": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "premises": [
+                "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+                "The bounded source dispatch screen is complete and has no unresolved implementation provider or application subtype.",
+                "Normal synchronous return is assumed only for continuation of this path.",
+                "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+                "The catalogued overload has no application callback argument."
+              ],
+              "limits": [
+                "Runtime execution, successful SQL completion and normal return are not proved.",
+                "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+                "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+                "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+              ]
+            }
+          },
+          "sequence": 7
+        },
+        {
+          "kind": "T01_EVENT",
+          "event": {
+            "sequence": 6,
+            "kind": "LOGICAL_END",
+            "frame": "F1",
+            "entity": "L1"
+          },
+          "sequence": 8
+        },
+        {
+          "kind": "T01_EVENT",
+          "event": {
+            "sequence": 7,
+            "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+            "frame": "F1",
+            "entity": "P1"
+          },
+          "sequence": 9
+        },
+        {
+          "kind": "T01_EVENT",
+          "event": {
+            "sequence": 8,
+            "kind": "FRAME_EXIT",
+            "frame": "F1"
+          },
+          "sequence": 10
+        }
+      ],
+      "limits": [
+        "Observed syntax is not proof of execution, enlistment or an acquired lock.",
+        "T01 scenario premises and unresolved continuations are preserved unchanged.",
+        "Datasource, runtime resource identity and row/table lock granularity are UNKNOWN.",
+        "No database query, runtime capture, commit/rollback or lock release is inferred.",
+        "Only a direct unqualified Autowired JdbcTemplate field and one SQL literal argument are supported."
+      ]
+    },
+    "callSites": [
+      {
+        "file": "src/main/java/fixture/Resources.java",
+        "start": 845,
+        "end": 883,
+        "line": 20,
+        "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+      },
+      {
+        "file": "src/main/java/fixture/Resources.java",
+        "start": 893,
+        "end": 926,
+        "line": 21,
+        "sha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7"
+      }
+    ],
+    "controls": [
+      {
+        "case": "standard",
+        "expectedLeaves": 2,
+        "actualLeaves": 2,
+        "expectedIds": [
+          "P1",
+          "P1"
+        ],
+        "actualIds": [
+          "P1",
+          "P1"
+        ],
+        "sourceSha256": "d4fd61d45deb67da87ecbbaf1d7d632d8f126ddcf364c065ccc75d2b13a47177",
+        "verdict": "PASS",
+        "sourceUnchanged": true
+      },
+      {
+        "case": "explicit-application-type",
+        "expectedLeaves": 0,
+        "actualLeaves": 0,
+        "expectedIds": [
+          "P1"
+        ],
+        "actualIds": [
+          "P1"
+        ],
+        "sourceSha256": "9346f45547d5848ac4d06f879f72c837c176562cee181ffa171cbf758fbab507",
+        "verdict": "PASS",
+        "sourceUnchanged": true
+      },
+      {
+        "case": "type-variable-shadow",
+        "expectedLeaves": 0,
+        "actualLeaves": 2,
+        "expectedIds": [
+          "P1",
+          null
+        ],
+        "actualIds": [
+          "P1",
+          "P1"
+        ],
+        "sourceSha256": "3b86e740a4459ddd87d4612be73b457e3477a53d126e4b1e16da2c53074e6ea7",
+        "verdict": "FAIL",
+        "sourceUnchanged": true
+      }
+    ],
+    "probe": {
+      "path": "/private/tmp/mana-d02-r2-w8zxcm_k/probe-type-shadow.py",
+      "source": "\"\"\"Independent literal Java type-binding oracle; review only, no engine changes.\"\"\"\nimport copy\nimport hashlib\nimport importlib.util\nimport json\nfrom pathlib import Path\nimport shutil\nimport sys\n\nsys.dont_write_bytecode=True\nROOT=Path('/Users/zel/projects/mana'); OUT=Path(__file__).resolve().parent\nspec=importlib.util.spec_from_file_location('review_cli',ROOT/'scripts/mana-resource-timeline.py')\ncli=importlib.util.module_from_spec(spec); spec.loader.exec_module(cli)\nBASE='''package fixture;\nimport org.springframework.stereotype.Service;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.transaction.annotation.Transactional;\nimport org.springframework.transaction.annotation.EnableTransactionManagement;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.jdbc.datasource.DataSourceTransactionManager;\nimport org.springframework.jdbc.core.JdbcTemplate;\n\n@Configuration\n@EnableTransactionManagement(proxyTargetClass = true)\nclass Config {\n    @Bean public DataSourceTransactionManager tx() { return new DataSourceTransactionManager(); }\n}\n@Service\nclass Operations {\n    @Autowired JdbcTemplate jdbc;\n    @Transactional public void sequence() {\n        jdbc.execute(\"SELECT * FROM accounts\");\n        jdbc.update(\"DELETE FROM ledger\");\n    }\n}\n'''\nAPP='''\\n@Service\nclass ApplicationJdbc {\n    public void execute(String sql) { throw new IllegalStateException(\"application implementation\"); }\n    public int update(String sql) { return 0; }\n}\n'''\n# Expected independently: the type variable shadows the imported class; its\n# erasure/bound is ApplicationJdbc, which is not a Spring JdbcTemplate subtype.\nvariants={\n 'standard':(BASE,2,['P1','P1']),\n 'explicit-application-type':(BASE.replace('@Autowired JdbcTemplate jdbc;','@Autowired ApplicationJdbc jdbc;')+APP,0,['P1']),\n 'type-variable-shadow':(BASE.replace('class Operations {','class Operations<JdbcTemplate extends ApplicationJdbc> {')+APP,0,['P1',None]),\n}\n\ndef snapshot(project):\n return {str(p.relative_to(project)):hashlib.sha256(p.read_bytes()).hexdigest() for p in project.rglob('*') if p.is_file()}\n\nresults=[]\nfor name,(text,expected_leaves,expected_ids) in variants.items():\n project=OUT/name\n source=project/'src/main/java/fixture/Resources.java'; source.parent.mkdir(parents=True)\n shutil.copyfile(ROOT/'tests/fixtures/resource-timeline/pom.xml',project/'pom.xml')\n source.write_text(text)\n context={'schema':'mana.transaction-context/v1','initialState':'NO_TRANSACTION','entryThroughProxy':True,'managerCapabilities':{'tx':{'suspend':True,'savepoints':True}},'resourceLeafPolicy':'JDBC_LITERAL_V1'}\n (project/'context.json').write_text(json.dumps(context,indent=2)+'\\n')\n before=snapshot(project)\n report=cli.analyze(project,project/'context.json','fixture.Operations#sequence()')\n serialized=json.loads(json.dumps(report))\n cli.t01.validate_model(serialized['transactionModel']); cli.validate_timeline(serialized)\n assert before==snapshot(project)\n artifact=OUT/(name+'-report.json'); artifact.write_text(json.dumps(report,indent=2)+'\\n')\n leaves=[e for e in report['transactionModel']['events'] if e['kind']=='RESOURCE_LEAF_CALL']\n ids=[o['transactionContext']['physicalId'] for o in report['observations']]\n # Explicit application receiver is not JDBC; T02 can retain only the first\n # generic frontier. It must never label that call as a standard resource leaf.\n result={'case':name,'expectedLeaves':expected_leaves,'actualLeaves':len(leaves),'expectedIds':expected_ids,'actualIds':ids,'T01ValidatorAccepts':True,'T02ValidatorAccepts':True,'sourceUnchanged':True,'sourcePath':'src/main/java/fixture/Resources.java','sourceSha256':hashlib.sha256(source.read_bytes()).hexdigest(),'source':text,'context':context,'entry':'fixture.Operations#sequence()','artifact':str(artifact),'artifactSha256':hashlib.sha256(artifact.read_bytes()).hexdigest(),'leaves':leaves,'facts':report['sourceFacts'],'report':report,'verdict':'PASS' if len(leaves)==expected_leaves and ids==expected_ids else 'FAIL'}\n results.append(result)\n(OUT/'type-shadow-results.json').write_text(json.dumps(results,indent=2)+'\\n')\nprint(json.dumps([{k:r[k] for k in ['case','expectedLeaves','actualLeaves','expectedIds','actualIds','T01ValidatorAccepts','T02ValidatorAccepts','verdict']} for r in results],indent=2))\nraise SystemExit(int(any(r['verdict']=='FAIL' for r in results)))\n",
+      "sha256": "48cbf1cf150df28d73ebdffb6ef4d067feba8fe9ee206b87688f9811f629c04c",
+      "exit": 1,
+      "reproduction": "PYTHONDONTWRITEBYTECODE=1 python3 probe-type-shadow.py in a fresh external directory; assertion failure is the expected review finding."
+    },
+    "independentBindingProof": {
+      "verdict": "PASS",
+      "meaning": "Java type variable shadows imported Spring type; field erasure and both invocation owners are application ApplicationJdbc. Independent of Mana classifier.",
+      "scope": "Two fixed synthetic Java sources, no annotations/processors/target project build, no runtime execution; Spring-shaped stub proves only lexical binding, not Spring behavior.",
+      "sources": [
+        {
+          "path": "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof/src/fixture/TypeBinding.java",
+          "source": "package fixture;\nimport org.springframework.jdbc.core.JdbcTemplate;\nclass ApplicationJdbc {\n    public void execute(String sql) {}\n    public int update(String sql) { return 0; }\n}\nclass Operations<JdbcTemplate extends ApplicationJdbc> {\n    JdbcTemplate jdbc;\n    public void sequence() {\n        jdbc.execute(\"SELECT * FROM accounts\");\n        jdbc.update(\"DELETE FROM ledger\");\n    }\n}\n",
+          "sha256": "9f3d61de21ce6515c8a5be488b275858878c68c251a21c1d98d09de9130fc70c"
+        },
+        {
+          "path": "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof/src/org/springframework/jdbc/core/JdbcTemplate.java",
+          "source": "package org.springframework.jdbc.core;\npublic class JdbcTemplate {\n    public void execute(String sql) {}\n    public int update(String sql) { return 0; }\n}\n",
+          "sha256": "45ddc63325743c6ed00bbe7ce57e27bff2dc88164a697e14c24ad45a72bc7f0d"
+        }
+      ],
+      "checks": [
+        {
+          "command": [
+            "/Users/zel/.sdkman/candidates/java/8.0.442-amzn/bin/javac",
+            "-J-XX:-UsePerfData",
+            "-J-Djava.io.tmpdir=/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof",
+            "-proc:none",
+            "-d",
+            "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof/classes",
+            "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof/src/fixture/TypeBinding.java",
+            "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof/src/org/springframework/jdbc/core/JdbcTemplate.java"
+          ],
+          "exit": 0,
+          "log": "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-1.log",
+          "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "command": [
+            "/Users/zel/.sdkman/candidates/java/8.0.442-amzn/bin/javap",
+            "-J-XX:-UsePerfData",
+            "-J-Djava.io.tmpdir=/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof",
+            "-classpath",
+            "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-proof/classes",
+            "-c",
+            "-p",
+            "-s",
+            "fixture.Operations"
+          ],
+          "exit": 0,
+          "log": "/private/tmp/mana-d02-r2-w8zxcm_k/java-binding-2.log",
+          "logSha256": "16b90c937feab1fd100e47e1e9101888817528c1646d4e3bab582ac489f47620"
+        }
+      ],
+      "javap": "Compiled from \"TypeBinding.java\"\nclass fixture.Operations<JdbcTemplate extends fixture.ApplicationJdbc> {\n  JdbcTemplate jdbc;\n    descriptor: Lfixture/ApplicationJdbc;\n\n  fixture.Operations();\n    descriptor: ()V\n    Code:\n       0: aload_0\n       1: invokespecial #1                  // Method java/lang/Object.\"<init>\":()V\n       4: return\n\n  public void sequence();\n    descriptor: ()V\n    Code:\n       0: aload_0\n       1: getfield      #2                  // Field jdbc:Lfixture/ApplicationJdbc;\n       4: ldc           #3                  // String SELECT * FROM accounts\n       6: invokevirtual #4                  // Method fixture/ApplicationJdbc.execute:(Ljava/lang/String;)V\n       9: aload_0\n      10: getfield      #2                  // Field jdbc:Lfixture/ApplicationJdbc;\n      13: ldc           #5                  // String DELETE FROM ledger\n      15: invokevirtual #6                  // Method fixture/ApplicationJdbc.update:(Ljava/lang/String;)I\n      18: pop\n      19: return\n}\n",
+      "classesExecuted": false
+    },
+    "proofDriver": {
+      "path": "/private/tmp/mana-d02-r2-w8zxcm_k/prove-java-binding.py",
+      "source": "\"\"\"Reduced, fixed Java language control. No Spring/runtime or target build.\"\"\"\nimport hashlib\nimport json\nimport os\nfrom pathlib import Path\nimport shutil\nimport subprocess\n\nOUT=Path(__file__).resolve().parent\nstage=OUT/'java-binding-proof'; source=stage/'src/fixture/TypeBinding.java'; source.parent.mkdir(parents=True)\nsource.write_text('''package fixture;\nimport org.springframework.jdbc.core.JdbcTemplate;\nclass ApplicationJdbc {\n    public void execute(String sql) {}\n    public int update(String sql) { return 0; }\n}\nclass Operations<JdbcTemplate extends ApplicationJdbc> {\n    JdbcTemplate jdbc;\n    public void sequence() {\n        jdbc.execute(\"SELECT * FROM accounts\");\n        jdbc.update(\"DELETE FROM ledger\");\n    }\n}\n''')\nstub=stage/'src/org/springframework/jdbc/core/JdbcTemplate.java'; stub.parent.mkdir(parents=True)\nstub.write_text('''package org.springframework.jdbc.core;\npublic class JdbcTemplate {\n    public void execute(String sql) {}\n    public int update(String sql) { return 0; }\n}\n''')\nclasses=stage/'classes'; classes.mkdir()\nenv={k:v for k,v in os.environ.items() if k not in {'BASH_ENV','ENV','JAVA_TOOL_OPTIONS','_JAVA_OPTIONS','JDK_JAVA_OPTIONS','JDK_JAVAC_OPTIONS','CLASSPATH'}}\nenv.update({k:str(stage) for k in ['TMPDIR','TEMP','TMP']})\ncommands=[\n [shutil.which('javac'),'-J-XX:-UsePerfData','-J-Djava.io.tmpdir='+str(stage),'-proc:none','-d',str(classes),str(source),str(stub)],\n [shutil.which('javap'),'-J-XX:-UsePerfData','-J-Djava.io.tmpdir='+str(stage),'-classpath',str(classes),'-c','-p','-s','fixture.Operations'],\n]\nresults=[]\nfor i,cmd in enumerate(commands,1):\n p=subprocess.run(cmd,cwd=stage,env=env,capture_output=True,text=True,timeout=30)\n log=OUT/f'java-binding-{i}.log';log.write_text(p.stdout+p.stderr)\n results.append({'command':cmd,'exit':p.returncode,'log':str(log),'logSha256':hashlib.sha256(log.read_bytes()).hexdigest()})\n assert p.returncode==0,p.stderr\nbytecode=(OUT/'java-binding-2.log').read_text()\nassert 'fixture/ApplicationJdbc.execute:(Ljava/lang/String;)V' in bytecode\nassert 'fixture/ApplicationJdbc.update:(Ljava/lang/String;)I' in bytecode\nassert 'descriptor: Lfixture/ApplicationJdbc;' in bytecode\nassert 'org/springframework/jdbc/core/JdbcTemplate.execute' not in bytecode\nproof={'verdict':'PASS','meaning':'Java type variable shadows imported Spring type; field erasure and both invocation owners are application ApplicationJdbc. Independent of Mana classifier.','scope':'Two fixed synthetic Java sources, no annotations/processors/target project build, no runtime execution; Spring-shaped stub proves only lexical binding, not Spring behavior.','sources':[{'path':str(f),'source':f.read_text(),'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in [source,stub]],'checks':results,'javap':bytecode,'classesExecuted':False}\n(OUT/'java-binding-proof.json').write_text(json.dumps(proof,indent=2)+'\\n')\nprint(bytecode)\n",
+      "sha256": "b77ee96d847ce739df6022c64b4ca82ec6c9514331e853fe6afd0a2fde15aa54"
+    },
+    "artifact": "/private/tmp/mana-d02-r2-w8zxcm_k/type-variable-shadow-report.json",
+    "artifactSha256": "e7cb441495a8016d071edf130b1691c42deddcfc2031b090ce5f297333115c21"
+  },
+  "openWorldAssessment": {
+    "standardDispatchPremiseExplicit": true,
+    "references": [
+      "docs/standards/resource-leaf-extension-v1.md:154",
+      "docs/standards/transaction-model-v1.md:185"
+    ],
+    "positiveClaims": "Only conditional standard-implementation scenario, not runtime bean determination or universe of runtime implementations",
+    "sourceContradictionCannotBeAssumedAway": true,
+    "findingIsObservableStaticBindingError": true,
+    "allRuntimeImplementationsPresentAssumedByReview": false
+  },
+  "originalHighD02R1A": {
+    "verdict": "PASS",
+    "sourceSha256": "2bbb425bb082f9dc4d326942099b1257ab93698115fd45dde961452428811f49",
+    "leafCount": 0,
+    "placements": [
+      "T01_FRONTIER",
+      "UNPLACED"
+    ],
+    "physicalIds": [
+      "P1",
+      null
+    ],
+    "historicalWitnessRejections": {
+      "T01": "resource leaf dispatch not demonstrated: RESOURCE_LEAF_SOURCE_DISPATCH_INCOMPLETE",
+      "T02": "resource leaf dispatch not demonstrated: RESOURCE_LEAF_SOURCE_DISPATCH_INCOMPLETE"
+    },
+    "artifact": "/private/tmp/mana-d02-r2-w8zxcm_k/original-high-after.json"
+  },
+  "checks": [
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "tests/transaction-boundaries.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 5.08,
+      "testsRun": 16,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-1.log",
+      "logSha256": "bec27da235852c0fd33ac1d3f31967cbe113d927bb8906919270791e26f0cac6"
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "tests/transaction-self-invocation.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 7.78,
+      "testsRun": 16,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-2.log",
+      "logSha256": "fa6db0b8171739faa2d03df7402051c7fedbe4476f2ea5ba5eb61436e9113b10"
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "tests/transaction-context-alternatives.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 4.3,
+      "testsRun": 21,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-3.log",
+      "logSha256": "2bc4f5bead78549c813ea72fea881e671fd8e5fefdef6cab11ac29ecf57e9ed5"
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "tests/transaction-physical-lifetime.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 0.24,
+      "testsRun": 19,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-4.log",
+      "logSha256": "1ad94dc3bb460042357210f521d3ddf6b88141c65e2008e611b63943a103fb52"
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "tests/transaction-transition-contract.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 0.24,
+      "testsRun": 64,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-5.log",
+      "logSha256": "360ca22031ffb3c5df9580ea6e158abf6813bce33fea268384b60e3d6fa0c6ec"
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "tests/transaction-aop-causal-order.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 0.23,
+      "testsRun": 26,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-6.log",
+      "logSha256": "858c77b5ba8fc6eb6ad721b26c277e94d8f8dd423b0805b388c54403cd8b26cf"
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "tests/mana-skill-factory.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 14.6,
+      "testsRun": 23,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-7.log",
+      "logSha256": "74ccef728f04c0ec4c458fa4f10877ec9a12a90b0cdaf0711c94c3fee85215a4"
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "tests/resource-timeline.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 3.05,
+      "testsRun": 22,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-8.log",
+      "logSha256": "413aa8208537c2c027c56318a8f01eb2614586fe13e04c320ee1d1fc6faad59a"
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "tests/transaction-resource-leaves.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 3.57,
+      "testsRun": 31,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-9.log",
+      "logSha256": "dd01371d3819944fa5d3db19eb22ba6b854acd631f720e66e7c1b0cb7cf3451f"
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "tests/transaction-resource-dispatch.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 9.33,
+      "testsRun": 22,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-10.log",
+      "logSha256": "1e35a87c9c46629ebc618f94056dd556fcf21dc1bc5eec4e14aa0a5d102d8234"
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/validate-repo.sh"
+      ],
+      "exit": 0,
+      "seconds": 15.78,
+      "testsRun": null,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-11.log",
+      "logSha256": "c55823da7a8e805733bd2e661697ca28c99922c321f39527f078f9486cc7b968"
+    },
+    {
+      "command": [
+        "ruff",
+        "check",
+        "scripts/mana-transaction.py",
+        "scripts/mana-resource-timeline.py",
+        "scripts/skill_factory/transactions/model.py",
+        "scripts/skill_factory/transactions/resource_leaf.py",
+        "scripts/skill_factory/transactions/resources.py",
+        "scripts/skill_factory/transactions/plantuml.py",
+        "tests/resource-timeline.py",
+        "tests/transaction-resource-leaves.py",
+        "tests/transaction-resource-dispatch.py"
+      ],
+      "exit": 0,
+      "seconds": 0.17,
+      "testsRun": null,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-12.log",
+      "logSha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "command": [
+        "ruff",
+        "format",
+        "--check",
+        "scripts/mana-transaction.py",
+        "scripts/mana-resource-timeline.py",
+        "scripts/skill_factory/transactions/model.py",
+        "scripts/skill_factory/transactions/resource_leaf.py",
+        "scripts/skill_factory/transactions/resources.py",
+        "scripts/skill_factory/transactions/plantuml.py",
+        "tests/resource-timeline.py",
+        "tests/transaction-resource-leaves.py",
+        "tests/transaction-resource-dispatch.py"
+      ],
+      "exit": 0,
+      "seconds": 0.12,
+      "testsRun": null,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-13.log",
+      "logSha256": "2ce9758b9f8abd876ec3e76c589e099e8b05377b1e7ea2331e81ee80f07bdff8"
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/private/tmp/mana-d02-r2-w8zxcm_k/replay.py"
+      ],
+      "exit": 0,
+      "seconds": 5.18,
+      "testsRun": null,
+      "skipped": 0,
+      "log": "/private/tmp/mana-d02-r2-w8zxcm_k/check-14.log",
+      "logSha256": "a062672fd200743f9bbcf83d203167aef49fdee15245f931244b5b98bcf00ff8"
+    }
+  ],
+  "testSummary": {
+    "originalPassed": 238,
+    "F01Passed": 22,
+    "suiteTotalPassed": 260,
+    "suiteFailed": 0,
+    "suiteSkipped": 0,
+    "previousReplaysPassed": 12,
+    "originalHighRegression": "PASS",
+    "reviewControlsPassed": 2,
+    "newReviewAcceptanceFailures": 1,
+    "javaLanguageBindingProof": "PASS",
+    "repositoryValidation": "PASS",
+    "ruffCheck": "PASS",
+    "ruffFormat": "PASS",
+    "overallSemanticGate": "FAIL: D02-R2-A"
+  },
+  "replays": [
+    {
+      "case": "required-two",
+      "entry": "fixture.Operations#sequence()",
+      "project": "/private/tmp/mana-d02-f01-6_cchm7t/replay-sources/required-two",
+      "expectedIds": [
+        "P1",
+        "P1"
+      ],
+      "actualIds": [
+        "P1",
+        "P1"
+      ],
+      "expectedLeaves": 2,
+      "leafSequences": [
+        4,
+        5
+      ],
+      "placement": [
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 4
+        },
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 5
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-d02-r2-w8zxcm_k/required-two-after.json",
+      "sha256": "ee2b06b4bdbba8bc1b8afa468b80e49db0e7c876412d992038ca2df76e53c078"
+    },
+    {
+      "case": "required-three",
+      "entry": "fixture.Operations#sequence()",
+      "project": "/private/tmp/mana-d02-f01-6_cchm7t/replay-sources/required-three",
+      "expectedIds": [
+        "P1",
+        "P1",
+        "P1"
+      ],
+      "actualIds": [
+        "P1",
+        "P1",
+        "P1"
+      ],
+      "expectedLeaves": 3,
+      "leafSequences": [
+        4,
+        5,
+        6
+      ],
+      "placement": [
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 4
+        },
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 5
+        },
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 6
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-d02-r2-w8zxcm_k/required-three-after.json",
+      "sha256": "f90b29a27a1d6766dbeb1f0b90dd2bfad2bcbe5d056bc25c908b37aa3a6a702b"
+    },
+    {
+      "case": "requires-new",
+      "entry": "fixture.Entry#independent()",
+      "project": "/private/tmp/mana-d02-f01-6_cchm7t/replay-sources/requires-new",
+      "expectedIds": [
+        "P2"
+      ],
+      "actualIds": [
+        "P2"
+      ],
+      "expectedLeaves": 1,
+      "leafSequences": [
+        8
+      ],
+      "placement": [
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 8
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-d02-r2-w8zxcm_k/requires-new-after.json",
+      "sha256": "32448dff1a29df74c1f88ebe8dffc0b30a8e561c9034d9cfd4a6d43e34fd499c"
+    },
+    {
+      "case": "nested",
+      "entry": "fixture.Entry#nested()",
+      "project": "/private/tmp/mana-d02-f01-6_cchm7t/replay-sources/nested",
+      "expectedIds": [
+        "P1"
+      ],
+      "actualIds": [
+        "P1"
+      ],
+      "expectedLeaves": 1,
+      "leafSequences": [
+        7
+      ],
+      "placement": [
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 7
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-d02-r2-w8zxcm_k/nested-after.json",
+      "sha256": "466cd9132f2ce1fde01049c4a86d3ec8fade674e4e34a87d89fe901e29d2dfb1"
+    },
+    {
+      "case": "restored",
+      "entry": "fixture.Entry#afterIndependent()",
+      "project": "/private/tmp/mana-d02-f01-6_cchm7t/replay-sources/restored",
+      "expectedIds": [
+        "P1"
+      ],
+      "actualIds": [
+        "P1"
+      ],
+      "expectedLeaves": 1,
+      "leafSequences": [
+        13
+      ],
+      "placement": [
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 13
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-d02-r2-w8zxcm_k/restored-after.json",
+      "sha256": "3324f718884a98c19b20a172ad2d5b1955212ff54082f7247fcb677c755db711"
+    },
+    {
+      "case": "terminated",
+      "entry": "fixture.Entry#afterTerminated()",
+      "project": "/private/tmp/mana-d02-f01-6_cchm7t/replay-sources/terminated",
+      "expectedIds": [
+        null
+      ],
+      "actualIds": [
+        null
+      ],
+      "expectedLeaves": 1,
+      "leafSequences": [
+        9
+      ],
+      "placement": [
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 9
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-d02-r2-w8zxcm_k/terminated-after.json",
+      "sha256": "cd626e52bac507da2c8e034201982475ba07ee9dc04e1a68c3e57bef256b74ad"
+    },
+    {
+      "case": "unresolved-order",
+      "entry": "fixture.Operations#sequence()",
+      "project": "/private/tmp/mana-d02-f01-6_cchm7t/replay-sources/unresolved-order",
+      "expectedIds": [
+        null,
+        null
+      ],
+      "actualIds": [
+        null,
+        null
+      ],
+      "expectedLeaves": 0,
+      "leafSequences": [],
+      "placement": [
+        {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        },
+        {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-d02-r2-w8zxcm_k/unresolved-order-after.json",
+      "sha256": "bd09fec129b661d0a57d98b580820a769a819c08187ee77bd99acd8cc698ae29"
+    },
+    {
+      "case": "unknown-context",
+      "entry": "fixture.Operations#required()",
+      "project": "/private/tmp/mana-d02-f01-6_cchm7t/replay-sources/unknown-context",
+      "expectedIds": [
+        null
+      ],
+      "actualIds": [
+        null
+      ],
+      "expectedLeaves": 0,
+      "leafSequences": [],
+      "placement": [
+        {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-d02-r2-w8zxcm_k/unknown-context-after.json",
+      "sha256": "28c36b17c740174119e8b56298f0efef4b45421afac4feed3b065b5e8f68aa97"
+    },
+    {
+      "case": "async",
+      "entry": "fixture.Entry#async()",
+      "project": "/private/tmp/mana-d02-f01-6_cchm7t/replay-sources/async",
+      "expectedIds": [
+        null
+      ],
+      "actualIds": [
+        null
+      ],
+      "expectedLeaves": 0,
+      "leafSequences": [],
+      "placement": [
+        {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-d02-r2-w8zxcm_k/async-after.json",
+      "sha256": "2ea073374a31561ea43f145224edc0b394cc46060a938f1119d0f2a9726f4d04"
+    },
+    {
+      "case": "programmatic-fixture",
+      "entry": "fixture.Operations#sequence()",
+      "project": "/private/tmp/mana-d02-f01-6_cchm7t/replay-sources/programmatic-fixture",
+      "expectedIds": [
+        null,
+        null
+      ],
+      "actualIds": [
+        null,
+        null
+      ],
+      "expectedLeaves": 0,
+      "leafSequences": [],
+      "placement": [
+        {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        },
+        {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-d02-r2-w8zxcm_k/programmatic-fixture-after.json",
+      "sha256": "edebebcd17cd9d7f4c1c976185ddc82dc1b989a1768bed67f9bb65c2079bdc65"
+    },
+    {
+      "case": "R1 legacy replay and immutable historical report",
+      "verdict": "PASS",
+      "transactionModelAndObservationsAndTimelineIdentical": true,
+      "newSourceFactsMetadata": "statementCall and dispatchHazards; legacy transaction/observations/timeline unchanged"
+    },
+    {
+      "case": "Actual pre-D02 T01 validator rejects new event",
+      "verdict": "PASS",
+      "reason": "unrecognized transaction event"
+    }
+  ],
+  "replayDriver": {
+    "path": "/private/tmp/mana-d02-r2-w8zxcm_k/replay.py",
+    "source": "\"\"\"Fresh D01-source replay; literal acceptance expectations are independent of build.\"\"\"\nimport copy\nimport hashlib\nimport importlib.util\nimport json\nfrom pathlib import Path\nimport sys\n\nsys.dont_write_bytecode = True\nROOT = Path('/Users/zel/projects/mana')\nOUT = Path(__file__).resolve().parent\nspec = importlib.util.spec_from_file_location('resource_cli', ROOT / 'scripts/mana-resource-timeline.py')\ncli = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(cli)\nOLD = Path('/private/tmp/mana-d02-f01-6_cchm7t/replay-sources')\ncases = [\n    ('required-two', 'fixture.Operations#sequence()', ['P1', 'P1'], 2),\n    ('required-three', 'fixture.Operations#sequence()', ['P1', 'P1', 'P1'], 3),\n    ('requires-new', 'fixture.Entry#independent()', ['P2'], 1),\n    ('nested', 'fixture.Entry#nested()', ['P1'], 1),\n    ('restored', 'fixture.Entry#afterIndependent()', ['P1'], 1),\n    ('terminated', 'fixture.Entry#afterTerminated()', [None], 1),\n    ('unresolved-order', 'fixture.Operations#sequence()', [None, None], 0),\n    ('unknown-context', 'fixture.Operations#required()', [None], 0),\n    ('async', 'fixture.Entry#async()', [None], 0),\n    ('programmatic-fixture', 'fixture.Operations#sequence()', [None, None], 0),\n]\n\n\ndef snapshot(project):\n    return {str(p.relative_to(project)): hashlib.sha256(p.read_bytes()).hexdigest()\n            for p in project.rglob('*') if p.is_file()}\n\n\nresults = []\nfor name, entry, expected_ids, expected_leaves in cases:\n    project = (Path('/private/tmp/mana-d02-f01-6_cchm7t/replay-sources') if name == 'programmatic-fixture' else OLD) / name\n    before = snapshot(project)\n    context = json.loads((project / 'context.json').read_text())\n    context['resourceLeafPolicy'] = 'JDBC_LITERAL_V1'\n    path = OUT / (name + '-context.json')\n    path.write_text(json.dumps(context))\n    report = cli.analyze(project, path, entry)\n    ops = [o for o in report['observations'] if o['applicationOperation']['receiver'] == 'jdbc']\n    actual_ids = [o['transactionContext']['physicalId'] for o in ops]\n    leaves = [e for e in report['transactionModel']['events'] if e['kind'] == 'RESOURCE_LEAF_CALL']\n    assert before == snapshot(project)\n    assert actual_ids == expected_ids, (name, actual_ids)\n    assert len(leaves) == expected_leaves, (name, leaves)\n    assert all(o['enlistment'] == o['lockAcquired'] == 'UNKNOWN' and o['datasource'] == {'status': 'UNKNOWN', 'id': None} for o in report['observations'])\n    artifact = OUT / (name + '-after.json')\n    artifact.write_text(json.dumps(report, indent=2) + '\\n')\n    results.append({'case': name, 'entry': entry, 'project': str(project), 'expectedIds': expected_ids,\n                    'actualIds': actual_ids, 'expectedLeaves': expected_leaves, 'leafSequences': [e['sequence'] for e in leaves],\n                    'placement': [o['placement'] for o in ops], 'verdict': 'PASS', 'sourceUnchanged': True,\n                    'artifact': str(artifact), 'sha256': hashlib.sha256(artifact.read_bytes()).hexdigest()})\n\nr1 = json.loads((ROOT / 'docs/reports/MANA-TRANSACTION-01-T02-S01-R1-results.json').read_text())['counterexampleFullReport']\noriginal = copy.deepcopy(r1)\ncli.validate_timeline(r1)\nassert r1 == original\nlegacy = cli.analyze(OLD / 'required-two', OLD / 'required-two/context.json', 'fixture.Operations#sequence()')\nassert legacy['transactionModel'] == r1['transactionModel']\nassert legacy['observations'] == r1['observations'] and legacy['timeline'] == r1['timeline']\nresults.append({'case': 'R1 legacy replay and immutable historical report', 'verdict': 'PASS',\n                'transactionModelAndObservationsAndTimelineIdentical': True,\n                'newSourceFactsMetadata': 'statementCall and dispatchHazards; legacy transaction/observations/timeline unchanged'})\n\n# An actual pre-D02 validator must fail closed on the new event.\nlegacy_module = {'__name__': 'skill_factory.transactions.legacy_model', '__package__': 'skill_factory.transactions'}\nexec(compile((Path('/private/tmp/mana-d02-f01-6_cchm7t/legacy/scripts/skill_factory/transactions/model.py')).read_text(), 'legacy_model.py', 'exec'), legacy_module)\nextended = json.loads((OUT / 'required-two-after.json').read_text())['transactionModel']\ntry:\n    legacy_module['validate_model'](extended)\n    raise AssertionError('legacy consumer silently accepted a new leaf')\nexcept ValueError as exc:\n    assert str(exc) == 'unrecognized transaction event', exc\nresults.append({'case': 'Actual pre-D02 T01 validator rejects new event', 'verdict': 'PASS', 'reason': 'unrecognized transaction event'})\n\n(OUT / 'replay-results.json').write_text(json.dumps(results, indent=2) + '\\n')\nprint(json.dumps({'replays': len(results), 'passed': len(results)}))\n",
+    "sha256": "db63f443a5f32d309b9fd122f0b6b2cb606bfe4d3e6e7ef568bb56ae3ccdc280",
+    "preexistingSourceProjectsReadOnly": true,
+    "allOutputsRedirectedToR2": true,
+    "legacyValidatorSha256": "1246568a9a0c73db5f0686794454b9af41440e7688e122453addddfe13034c99"
+  },
+  "temporalAudit": [
+    {
+      "case": "required-two",
+      "expected": {
+        "physicalCount": 1,
+        "physicalIds": [
+          "P1",
+          "P1"
+        ],
+        "dependencies": [
+          [],
+          [
+            4
+          ]
+        ],
+        "savepoints": 0,
+        "suspensions": 0
+      },
+      "actual": {
+        "physicalCount": 1,
+        "physicalIds": [
+          "P1",
+          "P1"
+        ],
+        "dependencies": [
+          [],
+          [
+            4
+          ]
+        ],
+        "savepoints": 0,
+        "suspensions": 0
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "required-three",
+      "expected": {
+        "physicalCount": 1,
+        "physicalIds": [
+          "P1",
+          "P1",
+          "P1"
+        ],
+        "dependencies": [
+          [],
+          [
+            4
+          ],
+          [
+            4,
+            5
+          ]
+        ],
+        "savepoints": 0,
+        "suspensions": 0
+      },
+      "actual": {
+        "physicalCount": 1,
+        "physicalIds": [
+          "P1",
+          "P1",
+          "P1"
+        ],
+        "dependencies": [
+          [],
+          [
+            4
+          ],
+          [
+            4,
+            5
+          ]
+        ],
+        "savepoints": 0,
+        "suspensions": 0
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "requires-new",
+      "expected": {
+        "physicalCount": 2,
+        "physicalIds": [
+          "P2"
+        ],
+        "dependencies": [
+          []
+        ],
+        "savepoints": 0,
+        "suspensions": 1
+      },
+      "actual": {
+        "physicalCount": 2,
+        "physicalIds": [
+          "P2"
+        ],
+        "dependencies": [
+          []
+        ],
+        "savepoints": 0,
+        "suspensions": 1
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "nested",
+      "expected": {
+        "physicalCount": 1,
+        "physicalIds": [
+          "P1"
+        ],
+        "dependencies": [
+          []
+        ],
+        "savepoints": 1,
+        "suspensions": 0
+      },
+      "actual": {
+        "physicalCount": 1,
+        "physicalIds": [
+          "P1"
+        ],
+        "dependencies": [
+          []
+        ],
+        "savepoints": 1,
+        "suspensions": 0
+      },
+      "verdict": "PASS"
+    }
+  ],
+  "validatorAssessment": {
+    "originalHighRejectedByBoth": true,
+    "forgedAndIncompleteWitnessControls": "PASS in fresh F01 22-test suite; arbitrary explicit receiver and missing dispatch screen rejected",
+    "freshSourceTypeShadowReportAcceptedByBoth": true,
+    "sameIncompleteBindingReusedForReclassification": true,
+    "T02ConsumesT01Authority": true,
+    "UNRESOLVED_CALLSemantics": "Existing genuine frontiers remain causal cuts; finding bypasses frontier by incorrect leaf eligibility"
+  },
+  "mandatoryUnknowns": {
+    "datasource": "UNKNOWN/id null",
+    "JDBCEnlistment": "UNKNOWN",
+    "acquiredLock": "UNKNOWN",
+    "granularity": "UNKNOWN",
+    "runtimeResourceIdentity": "UNKNOWN",
+    "deadlockDiagnosis": "Not emitted"
+  },
+  "governance": {
+    "status": "PASS in fresh 23-test factory suite and parser/resource suites",
+    "candidateActivated": false,
+    "explicitControls": [
+      "test_candidate_not_discovered_or_accepted_by_profile_compiler",
+      "test_evidence_native_contract_read_only_and_no_activation",
+      "test_no_approval_activation_or_analysis_cli",
+      "test_reject_target_and_discovery_output_and_symlink_alias",
+      "test_parser_temporary_isolation_and_no_target_build"
+    ],
+    "syntheticJavaControl": "Only two fixed language-proof sources compiled with -proc:none in external directory; analyzed target never built; no classes executed"
+  },
+  "integrity": {
+    "initialFileCount": 1300,
+    "initialInventory": "/private/tmp/mana-d02-r2-w8zxcm_k/initial-inventory.json",
+    "initialInventorySha256": "98422d2a373a867aac5c708980cacb228768a8610f64c9b320a6016120e673a5",
+    "changedInitialFiles": [],
+    "allInitialBytesAndModesUnchanged": true,
+    "protected": [
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv",
+        "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+        "bytes": 59758,
+        "mode": "0o644",
+        "matchesInitialAndHistoricalReceipt": true,
+        "crlf": 69,
+        "bareLf": 0
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json",
+        "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+        "bytes": 402294,
+        "mode": "0o644",
+        "matchesInitialAndHistoricalReceipt": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md",
+        "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+        "bytes": 9130,
+        "mode": "0o644",
+        "matchesInitialAndHistoricalReceipt": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv",
+        "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+        "bytes": 19414,
+        "mode": "0o644",
+        "matchesInitialAndHistoricalReceipt": true,
+        "crlf": 92,
+        "bareLf": 0
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01-T02.md",
+        "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+        "bytes": 1274,
+        "mode": "0o644",
+        "matchesInitialAndHistoricalReceipt": true
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01.md",
+        "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+        "bytes": 3593,
+        "mode": "0o644",
+        "matchesInitialAndHistoricalReceipt": true
+      }
+    ],
+    "historicalOraclesAndReceiptsUnchanged": true,
+    "onlyTwoReviewDeliverablesAdded": true,
+    "repositoryCopies": 0,
+    "newWorktrees": 0,
+    "largeBackups": 0,
+    "externalEvidenceDirectory": "/private/tmp/mana-d02-r2-w8zxcm_k"
+  },
+  "integration": {
+    "status": "NOT RUN",
+    "reason": "Blocking semantic finding D02-R2-A; positive review precondition failed. No Git switch obstruction is asserted.",
+    "definitiveConsolidationInventory": "NOT RUN",
+    "staging": false,
+    "signedCommit": "NOT RUN",
+    "commitSha": null,
+    "newCommitSignatureParentTreeVerification": "NOT RUN",
+    "concurrentWritersIntegrationGate": "NOT RUN",
+    "branchSwitch": "NOT RUN",
+    "fastForward": "NOT RUN"
+  },
+  "git": {
+    "branch": "feature/mana-transaction-02",
+    "head": "e3537e3f8c8329a71615fe59d496757d5392c6a8",
+    "develop": "e3537e3f8c8329a71615fe59d496757d5392c6a8",
+    "headCommitTree": "eab3046bed8a9c1f1470d2ec6b602f406fb9ed6e",
+    "indexDiff": "",
+    "initialStatus": " M docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv\n M docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv\n M docs/roadmap/TRANSACTION-01.md\n M docs/standards/transaction-model-v1.md\n M scripts/mana-transaction.py\n M scripts/skill_factory/transactions/JavaFacts.java\n M scripts/skill_factory/transactions/model.py\n M scripts/skill_factory/transactions/plantuml.py\n M scripts/validate-repo.sh\n?? docs/architecture/MANA-EXEC-CONTRACT-001.md\n?? docs/examples/transaction-01-t02-s01/README.md\n?? docs/examples/transaction-01-t02-s01/nested/resource-timeline.json\n?? docs/examples/transaction-01-t02-s01/outside/resource-timeline.json\n?? docs/examples/transaction-01-t02-s01/requires_new/resource-timeline.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D01.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F01.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F01.patch\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R1-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R1.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02.patch\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-F01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-F01.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-R1-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-R1.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01.md\n?? docs/roadmap/TRANSACTION-01-T02-S02.md\n?? docs/roadmap/TRANSACTION-01-T02.md\n?? docs/standards/resource-leaf-extension-v1.md\n?? docs/standards/resource-timeline-model-v1.md\n?? scripts/mana-resource-timeline.py\n?? scripts/skill_factory/transactions/resource_leaf.py\n?? scripts/skill_factory/transactions/resources.py\n?? tests/fixtures/resource-timeline/README.md\n?? tests/fixtures/resource-timeline/context.json\n?? tests/fixtures/resource-timeline/oracles.json\n?? tests/fixtures/resource-timeline/pom.xml\n?? tests/fixtures/resource-timeline/resource-leaf-oracles.json\n?? tests/fixtures/resource-timeline/src/main/java/fixture/Resources.java\n?? tests/resource-timeline.py\n?? tests/transaction-resource-dispatch.py\n?? tests/transaction-resource-leaves.py\n",
+    "finalStatus": " M docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv\n M docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv\n M docs/roadmap/TRANSACTION-01.md\n M docs/standards/transaction-model-v1.md\n M scripts/mana-transaction.py\n M scripts/skill_factory/transactions/JavaFacts.java\n M scripts/skill_factory/transactions/model.py\n M scripts/skill_factory/transactions/plantuml.py\n M scripts/validate-repo.sh\n?? docs/architecture/MANA-EXEC-CONTRACT-001.md\n?? docs/examples/transaction-01-t02-s01/README.md\n?? docs/examples/transaction-01-t02-s01/nested/resource-timeline.json\n?? docs/examples/transaction-01-t02-s01/outside/resource-timeline.json\n?? docs/examples/transaction-01-t02-s01/requires_new/resource-timeline.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D01.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F01.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F01.patch\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R1-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R1.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R2-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R2.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02.patch\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-F01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-F01.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-R1-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-R1.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01.md\n?? docs/roadmap/TRANSACTION-01-T02-S02.md\n?? docs/roadmap/TRANSACTION-01-T02.md\n?? docs/standards/resource-leaf-extension-v1.md\n?? docs/standards/resource-timeline-model-v1.md\n?? scripts/mana-resource-timeline.py\n?? scripts/skill_factory/transactions/resource_leaf.py\n?? scripts/skill_factory/transactions/resources.py\n?? tests/fixtures/resource-timeline/README.md\n?? tests/fixtures/resource-timeline/context.json\n?? tests/fixtures/resource-timeline/oracles.json\n?? tests/fixtures/resource-timeline/pom.xml\n?? tests/fixtures/resource-timeline/resource-leaf-oracles.json\n?? tests/fixtures/resource-timeline/src/main/java/fixture/Resources.java\n?? tests/resource-timeline.py\n?? tests/transaction-resource-dispatch.py\n?? tests/transaction-resource-leaves.py\n",
+    "worktreeListUnchanged": true
+  },
+  "scope": {
+    "implementationChanged": false,
+    "historicalOraclesChanged": false,
+    "commits": [],
+    "staging": false,
+    "merge": false,
+    "push": false,
+    "reset": false,
+    "stash": false,
+    "clean": false,
+    "force": false,
+    "cleanup": false,
+    "FamiliarChanged": false,
+    "skillActivated": false,
+    "S02": false
+  },
+  "notRun": [
+    "Conditional commit and integration: semantic gate failed",
+    "External independent-reviewer attestation",
+    "Spring/JDBC/database runtime",
+    "Remote CI",
+    "Release acceptance",
+    "T02-S02"
+  ],
+  "remainingS02Limits": [
+    "Datasource/resource identity and aliases",
+    "Connection enlistment",
+    "Lock acquisition/retention/compatibility",
+    "Concurrency and wait evidence",
+    "No deadlock or absence-of-deadlock proof"
+  ],
+  "deliverables": [
+    "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R2-results.json",
+    "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R2.md"
+  ],
+  "reportSha256": "3c329db2ecc59b061ff23df04554e8654f93d6132995cba1376e4d8042b0cf30"
+}

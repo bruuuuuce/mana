@@ -1,0 +1,15 @@
+{
+  "origin": "Hand-authored from literal source variants, MR00 and the D02 normal-path contract; never generated from build output",
+  "cases": [
+    {"fixture": "r1", "entry": "fixture.Operations#sequence()", "physicalIds": ["P1", "P1"], "resources": ["accounts", "ledger"], "leafSequences": [4, 5], "dependencies": [[], [4]], "physicalCount": 1, "savepoints": 0, "suspensions": 0},
+    {"fixture": "variants", "entry": "fixture.Operations#three()", "physicalIds": ["P1", "P1", "P1"], "resources": ["accounts", "ledger", "audit"], "leafSequences": [4, 5, 6], "dependencies": [[], [4], [4, 5]], "physicalCount": 1, "savepoints": 0, "suspensions": 0},
+    {"fixture": "original", "entry": "fixture.Entry#independent()", "physicalIds": ["P2"], "resources": ["ledger"], "leafSequences": [8], "dependencies": [[]], "physicalCount": 2, "savepoints": 0, "suspensions": 1},
+    {"fixture": "original", "entry": "fixture.Entry#nested()", "physicalIds": ["P1"], "resources": ["accounts"], "leafSequences": [7], "dependencies": [[]], "physicalCount": 1, "savepoints": 1, "suspensions": 0},
+    {"fixture": "variants", "entry": "fixture.Operations#followed()", "physicalIds": ["P1", "P1"], "resources": ["accounts", "ledger"], "leafSequences": [4, 7], "dependencies": [[], [4]], "physicalCount": 1, "savepoints": 0, "suspensions": 0}
+  ],
+  "signatures": {
+    "execute": "org.springframework.jdbc.core.JdbcTemplate#execute(java.lang.String):void",
+    "update": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+    "queryForList": "org.springframework.jdbc.core.JdbcTemplate#queryForList(java.lang.String):java.util.List"
+  }
+}

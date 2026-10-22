@@ -1,0 +1,1754 @@
+{
+  "schema": "mana.resource-timeline/v1",
+  "status": "CONDITIONAL_STATIC_SCENARIO",
+  "transactionModel": {
+    "schema": "mana.transaction-model/v1",
+    "entry": "fixture.Entry#outside()",
+    "status": "CONDITIONAL_STATIC_SCENARIO",
+    "proxyMode": "CLASS",
+    "interceptionMode": "PROXY",
+    "aspectjWeaving": {
+      "application": "UNKNOWN",
+      "runtimeApplication": "UNKNOWN"
+    },
+    "assumptions": [
+      "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+      "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+      "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+      "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+      "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven."
+    ],
+    "context": {
+      "schema": "mana.transaction-context/v1",
+      "initialState": "NO_TRANSACTION",
+      "entryThroughProxy": true,
+      "managerCapabilities": {
+        "tx": {
+          "suspend": true,
+          "savepoints": true
+        }
+      }
+    },
+    "managers": [
+      {
+        "id": "tx",
+        "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+        "evidence": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 779,
+          "end": 872,
+          "line": 17,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        },
+        "capabilities": {
+          "suspend": true,
+          "savepoints": true
+        },
+        "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+      }
+    ],
+    "frames": [
+      {
+        "id": "F1",
+        "callerMethod": null,
+        "calleeMethod": "fixture.Entry#outside()",
+        "callSite": null,
+        "bean": "fixture.Entry",
+        "proxy": {
+          "mode": "CLASS",
+          "crossed": true,
+          "configurationEvidence": [
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 706,
+              "end": 759,
+              "line": 15,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          ],
+          "reason": "NO_TRANSACTIONAL_ANNOTATION"
+        },
+        "manager": null,
+        "configuration": null,
+        "logicalScope": null,
+        "previousState": {
+          "kind": "NO_TRANSACTION",
+          "physicalId": null,
+          "manager": null
+        },
+        "duringState": {
+          "kind": "NO_TRANSACTION",
+          "physicalId": null,
+          "manager": null
+        },
+        "afterState": {
+          "kind": "UNKNOWN",
+          "physicalId": null,
+          "manager": null
+        },
+        "certainty": "CONDITIONAL",
+        "bodyTraversal": "STRAIGHT_LINE",
+        "evidence": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 1149,
+          "end": 1193,
+          "line": 25,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        },
+        "depth": 0,
+        "beanEvidence": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 875,
+          "end": 1563,
+          "line": 19,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        },
+        "beanName": "entry",
+        "interception": {
+          "status": "BYPASSED",
+          "reason": "NO_TRANSACTIONAL_ANNOTATION"
+        },
+        "continuation": "UNKNOWN",
+        "effectiveContext": {
+          "before": "INACTIVE",
+          "during": "INACTIVE",
+          "after": "UNKNOWN"
+        }
+      },
+      {
+        "id": "F2",
+        "callerMethod": "fixture.Entry#outside()",
+        "calleeMethod": "fixture.Operations#read()",
+        "callSite": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 1173,
+          "end": 1190,
+          "line": 25,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        },
+        "bean": "fixture.Operations",
+        "proxy": {
+          "mode": "CLASS",
+          "crossed": true,
+          "configurationEvidence": [
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 706,
+              "end": 759,
+              "line": 15,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          ],
+          "reason": "NO_TRANSACTIONAL_ANNOTATION"
+        },
+        "manager": null,
+        "configuration": null,
+        "logicalScope": null,
+        "previousState": {
+          "kind": "NO_TRANSACTION",
+          "physicalId": null,
+          "manager": null
+        },
+        "duringState": {
+          "kind": "NO_TRANSACTION",
+          "physicalId": null,
+          "manager": null
+        },
+        "afterState": {
+          "kind": "UNKNOWN",
+          "physicalId": null,
+          "manager": null
+        },
+        "certainty": "CONDITIONAL",
+        "bodyTraversal": "STRAIGHT_LINE",
+        "evidence": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 2067,
+          "end": 2134,
+          "line": 41,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        },
+        "depth": 1,
+        "beanEvidence": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 1564,
+          "end": 3030,
+          "line": 32,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        },
+        "beanName": "operations",
+        "interception": {
+          "status": "BYPASSED",
+          "reason": "NO_TRANSACTIONAL_ANNOTATION"
+        },
+        "continuation": "UNKNOWN",
+        "effectiveContext": {
+          "before": "INACTIVE",
+          "during": "INACTIVE",
+          "after": "UNKNOWN"
+        },
+        "receiverBindingEvidence": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 902,
+          "end": 935,
+          "line": 21,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        }
+      }
+    ],
+    "logicalScopes": [],
+    "physicalTransactions": [],
+    "suspensions": [],
+    "savepoints": [],
+    "events": [
+      {
+        "sequence": 1,
+        "kind": "FRAME_ENTER",
+        "frame": "F1"
+      },
+      {
+        "sequence": 2,
+        "kind": "FRAME_ENTER",
+        "frame": "F2"
+      },
+      {
+        "sequence": 3,
+        "kind": "UNRESOLVED_CALL",
+        "frame": "F2",
+        "callSite": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 2088,
+          "end": 2131,
+          "line": 41,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        },
+        "receiver": "jdbc",
+        "method": "queryForList"
+      },
+      {
+        "sequence": 4,
+        "kind": "FRAME_EXIT",
+        "frame": "F2"
+      },
+      {
+        "sequence": 5,
+        "kind": "FRAME_EXIT",
+        "frame": "F1"
+      }
+    ],
+    "uncertainties": [
+      {
+        "frame": "F2",
+        "reason": "AMBIGUOUS_OR_DYNAMIC_DISPATCH",
+        "classification": "UNKNOWN",
+        "evidence": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 2088,
+          "end": 2131,
+          "line": 41,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        }
+      }
+    ],
+    "evidence": [
+      {
+        "path": "pom.xml",
+        "sha256": "510f95a04359d1faabb9e6d9874e8b2c6e476a06aa9112d19d9a50df007f1d17"
+      },
+      {
+        "path": "src/main/java/fixture/Resources.java",
+        "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+      }
+    ],
+    "contextEvidence": {
+      "sha256": "75c0b8d353ed8e6f80d35ac3f937c13f4620875bda84300b26c948990b947987",
+      "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+      "path": "context.json"
+    }
+  },
+  "sourceFacts": {
+    "classes": [
+      {
+        "name": "fixture.Config",
+        "simpleName": "Config",
+        "kind": "CLASS",
+        "flags": [],
+        "parents": [],
+        "annotations": [
+          {
+            "type": "org.springframework.context.annotation.Configuration",
+            "args": {},
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 691,
+              "end": 705,
+              "line": 14,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "type": "org.springframework.transaction.annotation.EnableTransactionManagement",
+            "args": {
+              "proxyTargetClass": {
+                "kind": "BOOLEAN_LITERAL",
+                "literal": true,
+                "text": "true"
+              }
+            },
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 706,
+              "end": 759,
+              "line": 15,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          }
+        ],
+        "fields": [],
+        "methods": [
+          {
+            "name": "tx",
+            "arity": 0,
+            "returnType": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+            "annotations": [
+              {
+                "type": "org.springframework.context.annotation.Bean",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 779,
+                  "end": 784,
+                  "line": 17,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [
+              "unsupported-control-or-expression"
+            ],
+            "calls": [],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 779,
+              "end": 872,
+              "line": 17,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          }
+        ],
+        "evidence": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 691,
+          "end": 874,
+          "line": 14,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        }
+      },
+      {
+        "name": "fixture.Entry",
+        "simpleName": "Entry",
+        "kind": "CLASS",
+        "flags": [],
+        "parents": [],
+        "annotations": [
+          {
+            "type": "org.springframework.stereotype.Service",
+            "args": {},
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 875,
+              "end": 883,
+              "line": 19,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          }
+        ],
+        "fields": [
+          {
+            "name": "operations",
+            "type": "Operations",
+            "annotations": [
+              {
+                "type": "org.springframework.beans.factory.annotation.Autowired",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 902,
+                  "end": 912,
+                  "line": 21,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "initialized": false,
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 902,
+              "end": 935,
+              "line": 21,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          }
+        ],
+        "methods": [
+          {
+            "name": "required",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 940,
+                  "end": 954,
+                  "line": 22,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "operations",
+                "name": "required",
+                "arity": 0,
+                "arguments": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 980,
+                  "end": 1001,
+                  "line": 22,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 940,
+              "end": 1004,
+              "line": 22,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "independent",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1009,
+                  "end": 1023,
+                  "line": 23,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "operations",
+                "name": "independent",
+                "arity": 0,
+                "arguments": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1052,
+                  "end": 1076,
+                  "line": 23,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1009,
+              "end": 1079,
+              "line": 23,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "nested",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1084,
+                  "end": 1098,
+                  "line": 24,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "operations",
+                "name": "nested",
+                "arity": 0,
+                "arguments": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1122,
+                  "end": 1141,
+                  "line": 24,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1084,
+              "end": 1144,
+              "line": 24,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "outside",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "operations",
+                "name": "read",
+                "arity": 0,
+                "arguments": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1173,
+                  "end": 1190,
+                  "line": 25,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                },
+                "bindingEvidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 902,
+                  "end": 935,
+                  "line": 21,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1149,
+              "end": 1193,
+              "line": 25,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "unknown",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "operations",
+                "name": "read",
+                "arity": 0,
+                "arguments": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1222,
+                  "end": 1239,
+                  "line": 26,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1198,
+              "end": 1242,
+              "line": 26,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "async",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "operations",
+                "name": "async",
+                "arity": 0,
+                "arguments": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1269,
+                  "end": 1287,
+                  "line": 27,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1247,
+              "end": 1290,
+              "line": 27,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "ambiguousManager",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1295,
+                  "end": 1309,
+                  "line": 28,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "operations",
+                "name": "read",
+                "arity": 0,
+                "arguments": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1343,
+                  "end": 1360,
+                  "line": 28,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1295,
+              "end": 1363,
+              "line": 28,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "afterIndependent",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1368,
+                  "end": 1382,
+                  "line": 29,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "operations",
+                "name": "emptyIndependent",
+                "arity": 0,
+                "arguments": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1416,
+                  "end": 1445,
+                  "line": 29,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              },
+              {
+                "receiver": "operations",
+                "name": "write",
+                "arity": 0,
+                "arguments": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1447,
+                  "end": 1465,
+                  "line": 29,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1368,
+              "end": 1468,
+              "line": 29,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "unresolved",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1473,
+                  "end": 1487,
+                  "line": 30,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "operations",
+                "name": "unresolved",
+                "arity": 0,
+                "arguments": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1515,
+                  "end": 1538,
+                  "line": 30,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              },
+              {
+                "receiver": "operations",
+                "name": "write",
+                "arity": 0,
+                "arguments": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1540,
+                  "end": 1558,
+                  "line": 30,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1473,
+              "end": 1561,
+              "line": 30,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          }
+        ],
+        "evidence": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 875,
+          "end": 1563,
+          "line": 19,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        }
+      },
+      {
+        "name": "fixture.Operations",
+        "simpleName": "Operations",
+        "kind": "CLASS",
+        "flags": [],
+        "parents": [],
+        "annotations": [
+          {
+            "type": "org.springframework.stereotype.Service",
+            "args": {},
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1564,
+              "end": 1572,
+              "line": 32,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          }
+        ],
+        "fields": [
+          {
+            "name": "jdbc",
+            "type": "org.springframework.jdbc.core.JdbcTemplate",
+            "annotations": [
+              {
+                "type": "org.springframework.beans.factory.annotation.Autowired",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1596,
+                  "end": 1606,
+                  "line": 34,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "initialized": false,
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1596,
+              "end": 1625,
+              "line": 34,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "ambiguousJdbc",
+            "type": "org.springframework.jdbc.core.JdbcTemplate",
+            "annotations": [
+              {
+                "type": "org.springframework.beans.factory.annotation.Autowired",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1630,
+                  "end": 1640,
+                  "line": 35,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              },
+              {
+                "type": "org.springframework.beans.factory.annotation.Qualifier",
+                "args": {
+                  "value": {
+                    "kind": "STRING_LITERAL",
+                    "literal": "unresolvedJdbc",
+                    "text": "\"unresolvedJdbc\""
+                  }
+                },
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1641,
+                  "end": 1669,
+                  "line": 35,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "initialized": false,
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1630,
+              "end": 1697,
+              "line": 35,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          }
+        ],
+        "methods": [
+          {
+            "name": "required",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1702,
+                  "end": 1716,
+                  "line": 36,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "UPDATE accounts SET balance = 1",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 1754,
+                      "end": 1787,
+                      "line": 36,
+                      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1742,
+                  "end": 1788,
+                  "line": 36,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1702,
+              "end": 1791,
+              "line": 36,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "independent",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {
+                  "propagation": {
+                    "kind": "MEMBER_SELECT",
+                    "literal": null,
+                    "text": "org.springframework.transaction.annotation.Propagation.REQUIRES_NEW"
+                  }
+                },
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1796,
+                  "end": 1850,
+                  "line": 37,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "UPDATE ledger SET amount = 2",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 1895,
+                      "end": 1925,
+                      "line": 38,
+                      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1883,
+                  "end": 1926,
+                  "line": 38,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1796,
+              "end": 1929,
+              "line": 37,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "nested",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {
+                  "propagation": {
+                    "kind": "MEMBER_SELECT",
+                    "literal": null,
+                    "text": "org.springframework.transaction.annotation.Propagation.NESTED"
+                  }
+                },
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 1934,
+                  "end": 1982,
+                  "line": 39,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "execute",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "SELECT * FROM accounts FOR UPDATE",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 2023,
+                      "end": 2058,
+                      "line": 40,
+                      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2010,
+                  "end": 2059,
+                  "line": 40,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1934,
+              "end": 2062,
+              "line": 39,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "read",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "queryForList",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "SELECT * FROM accounts",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 2106,
+                      "end": 2130,
+                      "line": 41,
+                      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2088,
+                  "end": 2131,
+                  "line": 41,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2067,
+              "end": 2134,
+              "line": 41,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "write",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM accounts",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 2173,
+                      "end": 2195,
+                      "line": 42,
+                      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2161,
+                  "end": 2196,
+                  "line": 42,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2139,
+              "end": 2199,
+              "line": 42,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "dynamic",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "",
+                "name": "sql",
+                "arity": 0,
+                "arguments": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2241,
+                  "end": 2246,
+                  "line": 43,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              },
+              {
+                "receiver": "jdbc",
+                "name": "execute",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "METHOD_INVOCATION",
+                    "literal": null,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 2241,
+                      "end": 2246,
+                      "line": 43,
+                      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2228,
+                  "end": 2247,
+                  "line": 43,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2204,
+              "end": 2250,
+              "line": 43,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "sql",
+            "arity": 0,
+            "returnType": "String",
+            "annotations": [],
+            "flags": [
+              "public"
+            ],
+            "hazards": [
+              "unsupported-control-or-expression"
+            ],
+            "calls": [],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2255,
+              "end": 2311,
+              "line": 44,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "unsupportedSql",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "execute",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "SELECT a FROM accounts JOIN ledger ON accounts.id = ledger.id",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 2360,
+                      "end": 2423,
+                      "line": 45,
+                      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2347,
+                  "end": 2424,
+                  "line": 45,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2316,
+              "end": 2427,
+              "line": 45,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "unknownApi",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "call",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "SELECT * FROM accounts",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 2469,
+                      "end": 2493,
+                      "line": 46,
+                      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2459,
+                  "end": 2494,
+                  "line": 46,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2432,
+              "end": 2497,
+              "line": 46,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "ambiguousDatasource",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "ambiguousJdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM accounts",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 2559,
+                      "end": 2581,
+                      "line": 47,
+                      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2538,
+                  "end": 2582,
+                  "line": 47,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2502,
+              "end": 2585,
+              "line": 47,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "sequence",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "execute",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "SELECT * FROM accounts",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 2628,
+                      "end": 2652,
+                      "line": 48,
+                      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2615,
+                  "end": 2653,
+                  "line": 48,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              },
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM ledger",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 2667,
+                      "end": 2687,
+                      "line": 48,
+                      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2655,
+                  "end": 2688,
+                  "line": 48,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2590,
+              "end": 2691,
+              "line": 48,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "commented",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "execute",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "SELECT * FROM accounts",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 2779,
+                      "end": 2803,
+                      "line": 49,
+                      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2766,
+                  "end": 2804,
+                  "line": 49,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2696,
+              "end": 2807,
+              "line": 49,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "async",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.scheduling.annotation.Async",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2812,
+                  "end": 2818,
+                  "line": 50,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM accounts",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Resources.java",
+                      "start": 2853,
+                      "end": 2875,
+                      "line": 50,
+                      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2841,
+                  "end": 2876,
+                  "line": 50,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2812,
+              "end": 2879,
+              "line": 50,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "unresolved",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "unknownReceiver",
+                "name": "run",
+                "arity": 0,
+                "arguments": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2911,
+                  "end": 2932,
+                  "line": 51,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2884,
+              "end": 2935,
+              "line": 51,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          },
+          {
+            "name": "emptyIndependent",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {
+                  "propagation": {
+                    "kind": "MEMBER_SELECT",
+                    "literal": null,
+                    "text": "org.springframework.transaction.annotation.Propagation.REQUIRES_NEW"
+                  }
+                },
+                "evidence": {
+                  "file": "src/main/java/fixture/Resources.java",
+                  "start": 2940,
+                  "end": 2994,
+                  "line": 52,
+                  "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [],
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2940,
+              "end": 3028,
+              "line": 52,
+              "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+            }
+          }
+        ],
+        "evidence": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 1564,
+          "end": 3030,
+          "line": 32,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        }
+      }
+    ],
+    "errors": []
+  },
+  "observations": [
+    {
+      "frame": "F2",
+      "method": "fixture.Operations#read()",
+      "applicationOperation": {
+        "receiver": "jdbc",
+        "method": "queryForList"
+      },
+      "callSite": {
+        "file": "src/main/java/fixture/Resources.java",
+        "start": 2088,
+        "end": 2131,
+        "line": 41,
+        "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+      },
+      "operationType": "READ",
+      "sqlLiteral": "SELECT * FROM accounts",
+      "resource": {
+        "status": "LEXICAL_SQL_IDENTIFIER",
+        "name": "accounts",
+        "runtimeIdentity": "UNKNOWN",
+        "lockGranularity": "UNKNOWN"
+      },
+      "transactionContext": {
+        "kind": "NO_TRANSACTION",
+        "physicalId": null,
+        "manager": null
+      },
+      "datasource": {
+        "status": "UNKNOWN",
+        "id": null
+      },
+      "enlistment": "UNKNOWN",
+      "lockAcquired": "UNKNOWN",
+      "certainty": "CONDITIONAL",
+      "placement": {
+        "status": "T01_FRONTIER",
+        "beforeT01Sequence": 3
+      },
+      "evidence": [
+        {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 2088,
+          "end": 2131,
+          "line": 41,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        },
+        {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 1596,
+          "end": 1625,
+          "line": 34,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        },
+        {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 2106,
+          "end": 2130,
+          "line": 41,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        }
+      ],
+      "premises": [
+        "T01 conditional path reaches this invocation syntax."
+      ],
+      "limits": [
+        "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+        "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+      ],
+      "id": "O1"
+    }
+  ],
+  "timeline": [
+    {
+      "kind": "T01_EVENT",
+      "event": {
+        "sequence": 1,
+        "kind": "FRAME_ENTER",
+        "frame": "F1"
+      },
+      "sequence": 1
+    },
+    {
+      "kind": "T01_EVENT",
+      "event": {
+        "sequence": 2,
+        "kind": "FRAME_ENTER",
+        "frame": "F2"
+      },
+      "sequence": 2
+    },
+    {
+      "kind": "RESOURCE_OPERATION",
+      "observation": "O1",
+      "sequence": 3
+    },
+    {
+      "kind": "T01_EVENT",
+      "event": {
+        "sequence": 3,
+        "kind": "UNRESOLVED_CALL",
+        "frame": "F2",
+        "callSite": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 2088,
+          "end": 2131,
+          "line": 41,
+          "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3"
+        },
+        "receiver": "jdbc",
+        "method": "queryForList"
+      },
+      "sequence": 4
+    },
+    {
+      "kind": "T01_EVENT",
+      "event": {
+        "sequence": 4,
+        "kind": "FRAME_EXIT",
+        "frame": "F2"
+      },
+      "sequence": 5
+    },
+    {
+      "kind": "T01_EVENT",
+      "event": {
+        "sequence": 5,
+        "kind": "FRAME_EXIT",
+        "frame": "F1"
+      },
+      "sequence": 6
+    }
+  ],
+  "limits": [
+    "Observed syntax is not proof of execution, enlistment or an acquired lock.",
+    "T01 scenario premises and unresolved continuations are preserved unchanged.",
+    "Datasource, runtime resource identity and row/table lock granularity are UNKNOWN.",
+    "No database query, runtime capture, commit/rollback or lock release is inferred.",
+    "Only a direct unqualified Autowired JdbcTemplate field and one SQL literal argument are supported."
+  ]
+}

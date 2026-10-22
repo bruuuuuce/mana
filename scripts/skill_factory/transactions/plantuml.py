@@ -2,7 +2,7 @@
 
 import re
 
-from .model import _interception_status
+from .model import _interception_status, validate_model
 
 
 def label(value):
@@ -10,6 +10,31 @@ def label(value):
 
 
 def render(report):
+    if (
+        "resourceLeafExtension" in report
+        or report.get("context", {}).get("resourceLeafPolicy", "DISABLED") != "DISABLED"
+        or any(e["kind"] == "RESOURCE_LEAF_CALL" for e in report["events"])
+    ):
+        validate_model(report)
+    if any(
+        e["kind"]
+        not in {
+            "FRAME_ENTER",
+            "FRAME_EXIT",
+            "PHYSICAL_BEGIN",
+            "PHYSICAL_END_OUTCOME_UNKNOWN",
+            "LOGICAL_BEGIN",
+            "LOGICAL_END",
+            "SUSPEND",
+            "RESUME_CONDITIONAL",
+            "SAVEPOINT_CREATE",
+            "SAVEPOINT_RELEASE_CONDITIONAL",
+            "UNRESOLVED_CALL",
+            "RESOURCE_LEAF_CALL",
+        }
+        for e in report["events"]
+    ):
+        raise ValueError("renderer does not support transaction event")
     participants = sorted(
         {
             name.split("#")[0]
@@ -174,6 +199,10 @@ def render(report):
                 else "scope exit / outcome UNKNOWN"
             )
             lines.append(f"{callee} --> {caller}: {text}")
+        elif event["kind"] == "RESOURCE_LEAF_CALL":
+            lines.append(
+                f"note right of {callee} #CCE5FF: RESOURCE_LEAF_CALL {label(event['witness']['signature'])}; continuation IF normal return; context preserved under catalog premises; runtime execution UNKNOWN"
+            )
         elif event["kind"] == "UNRESOLVED_CALL":
             lines.append(
                 f"note right of {callee} #FFCCCC: UNKNOWN call {label(event['receiver'])}.{label(event['method'])}; remaining order NOT ASSERTED"

@@ -2,6 +2,8 @@
 
 import copy
 
+from . import resource_leaf
+
 from .alternatives import (
     ADVICE_REASONS,
     compose,
@@ -69,6 +71,9 @@ def effective_context(state):
 
 
 def build(facts, context, entry):
+    leaf_policy = context.get("resourceLeafPolicy", "DISABLED")
+    if leaf_policy not in ("DISABLED", resource_leaf.POLICY):
+        raise ValueError("unsupported resource leaf policy")
     classes = {c["name"]: c for c in facts["classes"]}
     if len(classes) != len(facts["classes"]):
         raise ValueError("duplicate class identity; source binding is ambiguous")
@@ -169,6 +174,22 @@ def build(facts, context, entry):
         report["assumptions"].append(
             "AspectJ weaving application is an explicit conditional scenario assumption, not statically demonstrated or runtime-proven."
         )
+    if leaf_policy == resource_leaf.POLICY:
+        report["resourceLeafExtension"] = {
+            "schema": resource_leaf.EXTENSION,
+            "sourceFacts": copy.deepcopy(facts),
+        }
+        # Pure build users also receive source hashes; the CLI adds the full inventory.
+        report["evidence"] = [
+            {"path": path, "sha256": digest}
+            for path, digest in sorted(
+                {
+                    c["evidence"]["file"]: c["evidence"]["sha256"]
+                    for c in facts["classes"]
+                }.items()
+            )
+        ]
+        report["assumptions"].extend(resource_leaf.PREMISES)
 
     def emit(kind, frame, **extra):
         report["events"].append(
@@ -528,7 +549,48 @@ def build(facts, context, entry):
         if frame["certainty"] != "UNKNOWN":
             current = copy.deepcopy(frame["duringState"])
             for call in method["calls"]:
+                witness = (
+                    resource_leaf.classify(
+                        facts,
+                        cls,
+                        method,
+                        call,
+                        current,
+                        len(report["events"]) + 1,
+                        [
+                            e["sequence"]
+                            for e in report["events"]
+                            if e["kind"] == "RESOURCE_LEAF_CALL"
+                        ],
+                    )
+                    if leaf_policy == resource_leaf.POLICY
+                    else None
+                )
+                leaf_budget_exceeded = (
+                    witness is not None
+                    and len(witness["normalReturnDependencies"])
+                    >= resource_leaf.MAX_LEAVES
+                )
+                if witness is not None and not leaf_budget_exceeded:
+                    emit(
+                        "RESOURCE_LEAF_CALL",
+                        frame,
+                        callSite=copy.deepcopy(call["evidence"]),
+                        receiver=call["receiver"],
+                        method=call["name"],
+                        witness=witness,
+                    )
+                    continue
                 target, proxy, reason = resolve_call(cls, call)
+                if leaf_budget_exceeded:
+                    reason = "RESOURCE_LEAF_BUDGET_EXCEEDED"
+                elif (
+                    leaf_policy == resource_leaf.POLICY
+                    and call["name"] in resource_leaf.SIGNATURES
+                    and (blocker := resource_leaf.call_blocker(facts, cls, call))
+                    is not None
+                ):
+                    reason = blocker
                 target_key = (
                     target["name"] + "#" + call["name"] + "()" if target else None
                 )
@@ -567,6 +629,7 @@ def build(facts, context, entry):
                 ):
                     frame["continuation"] = "UNKNOWN"
                     break
+                current = copy.deepcopy(child["afterState"])
         for item in reversed(saves):
             emit(
                 "SAVEPOINT_RELEASE_CONDITIONAL",
@@ -606,6 +669,8 @@ def build(facts, context, entry):
         no_transaction() if context["initialState"] == "NO_TRANSACTION" else unknown()
     )
     visit(entry, previous, context["entryThroughProxy"])
+    if leaf_policy == resource_leaf.POLICY:
+        report["resourceLeafExtension"]["sourceFacts"] = copy.deepcopy(facts)
     return report
 
 
@@ -796,7 +861,10 @@ def _validate_transition(frame, report, children):
         if [e["kind"] for e in trace] != ["FRAME_ENTER", "FRAME_EXIT"] or children:
             raise ValueError("branch-only boundary cannot assert body execution/events")
         return
-    if frame["bodyTraversal"] == "NOT_ASSERTED" and (children or unresolved_call):
+    leaf_calls = any(e["kind"] == "RESOURCE_LEAF_CALL" for e in trace)
+    if frame["bodyTraversal"] == "NOT_ASSERTED" and (
+        children or unresolved_call or leaf_calls
+    ):
         raise ValueError("unasserted body contains asserted child execution")
 
     opening, closing = [], []
@@ -961,7 +1029,8 @@ def _validate_transition(frame, report, children):
     boundary = [
         (e["kind"], e.get("entity"))
         for e in trace
-        if e["kind"] not in {"FRAME_ENTER", "FRAME_EXIT", "UNRESOLVED_CALL"}
+        if e["kind"]
+        not in {"FRAME_ENTER", "FRAME_EXIT", "UNRESOLVED_CALL", "RESOURCE_LEAF_CALL"}
     ]
     if boundary != opening + closing:
         raise ValueError("boundary effects missing or out of order")
@@ -974,7 +1043,8 @@ def _validate_transition(frame, report, children):
                 "child execution outside completed boundary opening/closing"
             )
     if any(
-        e["kind"] == "UNRESOLVED_CALL" and not start < e["sequence"] < finish
+        e["kind"] in {"UNRESOLVED_CALL", "RESOURCE_LEAF_CALL"}
+        and not start < e["sequence"] < finish
         for e in trace
     ):
         raise ValueError("unresolved body call outside boundary opening/closing")
@@ -988,9 +1058,10 @@ def _validate_causal_order(report, frames, children):
     for identity in reversed(entries):
         frame = frames[identity]
         steps = [
-            (e["sequence"], False)
+            (e["sequence"], e["kind"] == "RESOURCE_LEAF_CALL")
             for e in report["events"]
-            if e["frame"] == identity and e["kind"] == "UNRESOLVED_CALL"
+            if e["frame"] == identity
+            and e["kind"] in {"UNRESOLVED_CALL", "RESOURCE_LEAF_CALL"}
         ]
         for child in children[identity]:
             entry = next(
@@ -1017,6 +1088,8 @@ def validate_model(report):
     """Referential/temporal checks independent of diagram text."""
     if report["schema"] != "mana.transaction-model/v1":
         raise ValueError("wrong model schema")
+    leaf_facts = resource_leaf.validate_extension(report)
+    leaf_dependencies = []
     frames = {f["id"]: f for f in report["frames"]}
     if len(frames) != len(report["frames"]):
         raise ValueError("duplicate frame identity")
@@ -1085,6 +1158,7 @@ def validate_model(report):
             "SAVEPOINT_CREATE",
             "SAVEPOINT_RELEASE_CONDITIONAL",
             "UNRESOLVED_CALL",
+            "RESOURCE_LEAF_CALL",
         }:
             raise ValueError("unrecognized transaction event")
         if event["kind"] == "FRAME_ENTER":
@@ -1148,6 +1222,18 @@ def validate_model(report):
                 current_contexts[stack[-1]] = frames[event["frame"]]["afterState"]
         elif not stack or stack[-1] != event["frame"]:
             raise ValueError("event outside active method frame")
+        if event["kind"] == "RESOURCE_LEAF_CALL":
+            current = current_contexts[event["frame"]]
+            require_current(current["physicalId"])
+            resource_leaf.validate_call(
+                report,
+                leaf_facts,
+                frames[event["frame"]],
+                event,
+                current,
+                leaf_dependencies,
+            )
+            leaf_dependencies.append(event["sequence"])
         if event["kind"] == "PHYSICAL_BEGIN":
             identity = event["entity"]
             frame = frames[event["frame"]]

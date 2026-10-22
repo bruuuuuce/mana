@@ -12,6 +12,7 @@ public final class JavaFacts {
     static Trees trees;
     static CompilationUnitTree unit;
     static Map<String,String> imports;
+    static Set<String> typeParameters = new HashSet<String>();
     static List<Object> classes = new ArrayList<Object>();
     static Object jsonValue(Object value) { return value; }
     static Map<String,Object> obj(Object... args) {
@@ -20,6 +21,7 @@ public final class JavaFacts {
         return m;
     }
     static String qualify(String name) {
+        if (typeParameters.contains(name)) return "UNKNOWN_TYPE_PARAMETER:"+name;
         if (imports.containsKey(name)) return imports.get(name);
         int dot=name.indexOf('.');
         if (dot>0 && imports.containsKey(name.substring(0,dot)))
@@ -57,24 +59,65 @@ public final class JavaFacts {
     }
     static void parseClass(ClassTree cls, String pkg) {
         List<Object> fields=new ArrayList<Object>(), methods=new ArrayList<Object>();
+        final List<String> dispatchHazards=new ArrayList<String>();
+        typeParameters=new HashSet<String>();
+        for (TypeParameterTree parameter:cls.getTypeParameters())
+            typeParameters.add(parameter.getName().toString());
+        if (!typeParameters.isEmpty()) dispatchHazards.add("UNRESOLVED_TYPE_PARAMETERS");
+        if (unit.getImports().stream().anyMatch(im -> im.isStatic()))
+            dispatchHazards.add("UNRESOLVED_STATIC_IMPORT");
+        Set<String> importedNames=new HashSet<String>();
+        for (ImportTree im:unit.getImports()) {
+            String name=im.getQualifiedIdentifier().toString();
+            if (!name.endsWith(".*") && !importedNames.add(name.substring(name.lastIndexOf('.')+1)))
+                dispatchHazards.add("AMBIGUOUS_IMPORT");
+        }
+        // Do not resolve nested/local/anonymous types. Record their omission even
+        // in field initializers and method bodies, where parseClass never visits.
+        new TreeScanner<Void,Void>() {
+            @Override public Void visitClass(ClassTree nested,Void unused) {
+                if (nested!=cls) {
+                    if (dispatchHazards.isEmpty()) dispatchHazards.add("UNEXTRACTED_APPLICATION_TYPE");
+                    return null;
+                }
+                return super.visitClass(nested,unused);
+            }
+        }.scan(cls,null);
         List<String> parents=new ArrayList<String>();
         if (cls.getExtendsClause()!=null) parents.add(qualify(cls.getExtendsClause().toString()));
         for (Tree p:cls.getImplementsClause()) parents.add(qualify(p.toString()));
         for (Tree member:cls.getMembers()) {
             if (member instanceof VariableTree) {
                 VariableTree f=(VariableTree)member;
-                fields.add(obj("name",f.getName().toString(),"type",qualify(f.getType().toString()),
+                NewClassTree allocation=f.getInitializer() instanceof NewClassTree?(NewClassTree)f.getInitializer():null;
+                String spelling=f.getType().toString();
+                // Only a single-type import has priority independent of unobserved
+                // same-package classpath types. Qualified package/type prefixes
+                // require attribution; do not guess their namespace here.
+                boolean explicit=spelling.equals("JdbcTemplate") &&
+                    "org.springframework.jdbc.core.JdbcTemplate".equals(imports.get(spelling));
+                fields.add(obj("name",f.getName().toString(),"type",qualify(spelling),
+                    "flags",flags(f.getModifiers()),
+                    "allocation",allocation==null?null:obj("type",qualify(allocation.getIdentifier().toString()),
+                        "explicitType",explicit && allocation.getIdentifier().toString().equals(spelling),
+                        "arity",allocation.getArguments().size(),"anonymous",allocation.getClassBody()!=null,
+                        "evidence",position(allocation)),
                     "annotations",annotations(f.getModifiers()),"initialized",f.getInitializer()!=null,
                     "evidence",position(f)));
             } else if (member instanceof MethodTree) {
                 MethodTree m=(MethodTree)member;
+                if (!m.getTypeParameters().isEmpty()) dispatchHazards.add("UNRESOLVED_TYPE_PARAMETERS");
                 final List<Object> calls=new ArrayList<Object>();
+                final Set<MethodInvocationTree> statementCalls=Collections.newSetFromMap(new IdentityHashMap<MethodInvocationTree,Boolean>());
                 List<String> hazards=new ArrayList<String>();
                 if (m.getBody()==null) hazards.add("missing-body");
                 else {
                     List<? extends StatementTree> statements=m.getBody().getStatements();
                     for (int i=0;i<statements.size();i++) {
                         StatementTree statement=statements.get(i);
+                        if (statement instanceof ExpressionStatementTree &&
+                            ((ExpressionStatementTree)statement).getExpression() instanceof MethodInvocationTree)
+                            statementCalls.add((MethodInvocationTree)((ExpressionStatementTree)statement).getExpression());
                         if (statement instanceof ReturnTree && ((ReturnTree)statement).getExpression()==null && i==statements.size()-1) continue;
                         if (!(statement instanceof ExpressionStatementTree) ||
                             !(((ExpressionStatementTree)statement).getExpression() instanceof MethodInvocationTree))
@@ -95,7 +138,14 @@ public final class JavaFacts {
                                 MemberSelectTree select=(MemberSelectTree)call.getMethodSelect();
                                 receiver=select.getExpression().toString();name=select.getIdentifier().toString();
                             }
-                            calls.add(obj("receiver",receiver,"name",name,"arity",call.getArguments().size(),"evidence",position(call)));
+                            List<Object> arguments=new ArrayList<Object>();
+                            for (ExpressionTree argument:call.getArguments()) {
+                                arguments.add(obj("kind",argument.getKind().toString(),
+                                    "literal",argument instanceof LiteralTree?((LiteralTree)argument).getValue():null,
+                                    "evidence",position(argument)));
+                            }
+                            calls.add(obj("receiver",receiver,"name",name,"arity",call.getArguments().size(),
+                                "arguments",arguments,"statementCall",statementCalls.contains(call),"evidence",position(call)));
                             return null;
                         }
                         @Override public Void visitClass(ClassTree nested,Void unused) { return null; }
@@ -111,6 +161,7 @@ public final class JavaFacts {
         }
         classes.add(obj("name",pkg+cls.getSimpleName(),"simpleName",cls.getSimpleName().toString(),
             "kind",cls.getKind().toString(),"flags",flags(cls.getModifiers()),"parents",parents,
+            "dispatchHazards",dispatchHazards,
             "annotations",annotations(cls.getModifiers()),"fields",fields,"methods",methods,"evidence",position(cls)));
     }
     static String json(Object value) {

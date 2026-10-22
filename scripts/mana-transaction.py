@@ -30,9 +30,16 @@ def context_input(path, raw=None):
     if (
         not isinstance(context, dict)
         or not required <= set(context)
-        or set(context) - required - {"aspectjWeaving"}
+        or set(context) - required - {"aspectjWeaving", "resourceLeafPolicy"}
     ):
         raise factory.FactoryError("invalid transaction context fields")
+    if context.get("resourceLeafPolicy", "DISABLED") not in (
+        "DISABLED",
+        "JDBC_LITERAL_V1",
+    ):
+        raise factory.FactoryError(
+            "resourceLeafPolicy must be DISABLED or JDBC_LITERAL_V1"
+        )
     if context.get("aspectjWeaving", "UNKNOWN") not in (
         "UNKNOWN",
         "ASSUMED_APPLIED",
@@ -60,7 +67,7 @@ def context_input(path, raw=None):
     return context
 
 
-def analyze(project, context_path, entry):
+def analyze(project, context_path, entry, *, include_facts=False):
     project = factory.canonical_project(project)
     context_raw = factory.read_file(context_path)
     context = context_input(context_path, context_raw)
@@ -90,7 +97,7 @@ def analyze(project, context_path, entry):
         raise factory.FactoryError(
             "source changed during analysis; result not published"
         )
-    return report
+    return (report, facts) if include_facts else report
 
 
 def main():

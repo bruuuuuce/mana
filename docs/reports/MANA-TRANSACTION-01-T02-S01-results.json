@@ -1,0 +1,403 @@
+{
+  "task": "MANA-TRANSACTION-01-T02-S01",
+  "verdict": "IMPLEMENTED_READY_FOR_REVIEW",
+  "recordedAt": "2026-10-21T17:31:35.164527+00:00",
+  "preflight": {
+    "head": "e3537e3f8c8329a71615fe59d496757d5392c6a8",
+    "branch": "develop",
+    "index": "empty",
+    "files": [
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv",
+        "category": "CSV CRLF only",
+        "bytes": 59758,
+        "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+        "mode": "0o644"
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json",
+        "category": "R2 deliverable excluded from S01",
+        "bytes": 402294,
+        "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+        "mode": "0o644"
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md",
+        "category": "R2 deliverable excluded from S01",
+        "bytes": 9130,
+        "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+        "mode": "0o644"
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv",
+        "category": "CSV CRLF only",
+        "bytes": 19414,
+        "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+        "mode": "0o644"
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01-T02.md",
+        "category": "T02 proposal",
+        "bytes": 1274,
+        "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+        "mode": "0o644"
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01.md",
+        "category": "T02 proposal",
+        "bytes": 3593,
+        "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+        "mode": "0o644"
+      }
+    ]
+  },
+  "backupDirectory": "/Users/zel/mana-evidence/MANA-TRANSACTION-01-T02-S01-preflight-20261021T172507Z",
+  "backupManifestSha256": "f93d950fea5ba28ed2215e90f69013b48515386acdcf83d68bf16fc058174af8",
+  "preservation": [
+    {
+      "path": "docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv",
+      "category": "CSV CRLF only",
+      "bytes": 59758,
+      "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+      "mode": "0o644",
+      "currentSha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+      "backupSha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+      "result": "PASS"
+    },
+    {
+      "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json",
+      "category": "R2 deliverable excluded from S01",
+      "bytes": 402294,
+      "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+      "mode": "0o644",
+      "currentSha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+      "backupSha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+      "result": "PASS"
+    },
+    {
+      "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md",
+      "category": "R2 deliverable excluded from S01",
+      "bytes": 9130,
+      "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+      "mode": "0o644",
+      "currentSha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+      "backupSha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+      "result": "PASS"
+    },
+    {
+      "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv",
+      "category": "CSV CRLF only",
+      "bytes": 19414,
+      "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+      "mode": "0o644",
+      "currentSha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+      "backupSha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+      "result": "PASS"
+    },
+    {
+      "path": "docs/roadmap/TRANSACTION-01-T02.md",
+      "category": "T02 proposal",
+      "bytes": 1274,
+      "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+      "mode": "0o644",
+      "currentSha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+      "backupSha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+      "result": "PASS"
+    },
+    {
+      "path": "docs/roadmap/TRANSACTION-01.md",
+      "category": "T02 proposal",
+      "bytes": 3593,
+      "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+      "mode": "0o644",
+      "currentSha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+      "backupSha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+      "result": "PASS"
+    }
+  ],
+  "branch": "feature/mana-transaction-02",
+  "head": "e3537e3f8c8329a71615fe59d496757d5392c6a8",
+  "index": "empty",
+  "initialMaterialsDisposition": "All six original files unchanged. R2 excluded; CSV CRLF preserved. Preexisting T02 proposal/reference preserved.",
+  "implementationFiles": [
+    {
+      "path": "docs/examples/transaction-01-t02-s01/README.md",
+      "bytes": 1542,
+      "sha256": "b0f77c0b8cdb67d7774a0480a6e7577e24ec94ccf68aebc0350b86584888cf13",
+      "mode": "0o644"
+    },
+    {
+      "path": "docs/examples/transaction-01-t02-s01/nested/resource-timeline.json",
+      "bytes": 62216,
+      "sha256": "8e9553264c3308d2d4add584fd47eef1b1508d043641a643f4ab2c8898fdead0",
+      "mode": "0o644"
+    },
+    {
+      "path": "docs/examples/transaction-01-t02-s01/outside/resource-timeline.json",
+      "bytes": 57578,
+      "sha256": "48c0a058ebca06f093d51d0d87fecb73b8688f7980501986b0cd9c3967cee890",
+      "mode": "0o644"
+    },
+    {
+      "path": "docs/examples/transaction-01-t02-s01/requires_new/resource-timeline.json",
+      "bytes": 63173,
+      "sha256": "ff37f114c851e9c36abf304f8f79b9867bbf0cf4edfec39d0e561f671c6ffc66",
+      "mode": "0o644"
+    },
+    {
+      "path": "docs/reports/MANA-TRANSACTION-01-T02-S01.md",
+      "bytes": 8002,
+      "sha256": "96d9c160cc33a5c65fbcc44b09f45ea4d054173113f840261a71b6629923af5d",
+      "mode": "0o644"
+    },
+    {
+      "path": "docs/roadmap/TRANSACTION-01-T02-S02.md",
+      "bytes": 2068,
+      "sha256": "245b9c47f57ac38f13fec9ff0d9552f48680c963f239568a640919e010633b46",
+      "mode": "0o644"
+    },
+    {
+      "path": "docs/standards/resource-timeline-model-v1.md",
+      "bytes": 8612,
+      "sha256": "b144842012ab06f63c6fe038a54e7a372d39771929cd46421f86afefad712b97",
+      "mode": "0o644"
+    },
+    {
+      "path": "scripts/mana-resource-timeline.py",
+      "bytes": 2343,
+      "sha256": "b30c658eab9fee130f13d8742bbd10d7fbd0af1bf6692ec029265e996c63c34d",
+      "mode": "0o755"
+    },
+    {
+      "path": "scripts/mana-transaction.py",
+      "bytes": 5592,
+      "sha256": "2fa35a3151e3495cb6d166d0dc2d74f05d193628e370ba42e90a7e9025d8011a",
+      "mode": "0o755"
+    },
+    {
+      "path": "scripts/skill_factory/transactions/JavaFacts.java",
+      "bytes": 10174,
+      "sha256": "4361f67b85a07eaac4b483c0fc357361731798c85b5a9e8f0e2019cc8ab0ab20",
+      "mode": "0o644"
+    },
+    {
+      "path": "scripts/skill_factory/transactions/resources.py",
+      "bytes": 9739,
+      "sha256": "d230b0a033207873ee4a567631cbe2adb6638c7f9ea9feb32012ff77191ef1f3",
+      "mode": "0o644"
+    },
+    {
+      "path": "scripts/validate-repo.sh",
+      "bytes": 22385,
+      "sha256": "2cdc3b28a9f75b757951eeca94e728fdd8c10a2960d267fe47530f206d3777ca",
+      "mode": "0o755"
+    },
+    {
+      "path": "tests/fixtures/resource-timeline/README.md",
+      "bytes": 1423,
+      "sha256": "827a57a6e88a9c83fd369519b917ed0fb83a44e29d3abd0c6c8b8b9170b97e98",
+      "mode": "0o644"
+    },
+    {
+      "path": "tests/fixtures/resource-timeline/context.json",
+      "bytes": 183,
+      "sha256": "75c0b8d353ed8e6f80d35ac3f937c13f4620875bda84300b26c948990b947987",
+      "mode": "0o644"
+    },
+    {
+      "path": "tests/fixtures/resource-timeline/oracles.json",
+      "bytes": 2024,
+      "sha256": "acfe4a053603efa6f222f229d91010b231cafeb11b5571c53b89be25a31d9f8f",
+      "mode": "0o644"
+    },
+    {
+      "path": "tests/fixtures/resource-timeline/pom.xml",
+      "bytes": 487,
+      "sha256": "510f95a04359d1faabb9e6d9874e8b2c6e476a06aa9112d19d9a50df007f1d17",
+      "mode": "0o644"
+    },
+    {
+      "path": "tests/fixtures/resource-timeline/src/main/java/fixture/Resources.java",
+      "bytes": 3031,
+      "sha256": "a196747adbb0145deb3ba6f187ec7896a28a65719fff730b97d3cd667890bfa3",
+      "mode": "0o644"
+    },
+    {
+      "path": "tests/resource-timeline.py",
+      "bytes": 15818,
+      "sha256": "8ae019a4789f2da5371d53f4989b3ff0c86ea6ec4bccf117ac1c436717fb31e7",
+      "mode": "0o755"
+    }
+  ],
+  "examples": [
+    {
+      "path": "docs/examples/transaction-01-t02-s01/nested/resource-timeline.json",
+      "bytes": 62216,
+      "sha256": "8e9553264c3308d2d4add584fd47eef1b1508d043641a643f4ab2c8898fdead0",
+      "result": "PASS"
+    },
+    {
+      "path": "docs/examples/transaction-01-t02-s01/outside/resource-timeline.json",
+      "bytes": 57578,
+      "sha256": "48c0a058ebca06f093d51d0d87fecb73b8688f7980501986b0cd9c3967cee890",
+      "result": "PASS"
+    },
+    {
+      "path": "docs/examples/transaction-01-t02-s01/requires_new/resource-timeline.json",
+      "bytes": 63173,
+      "sha256": "ff37f114c851e9c36abf304f8f79b9867bbf0cf4edfec39d0e561f671c6ffc66",
+      "result": "PASS"
+    }
+  ],
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "tests/transaction-boundaries.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 4.92,
+      "stdout": "",
+      "stderr": "test_ambiguous_managers_visibility_async_and_control_flow_are_unknown (__main__.TransactionTests) ... ok\ntest_annotation_is_not_interception_and_direct_entry_bypasses (__main__.TransactionTests) ... ok\ntest_eight_independent_oracles (__main__.TransactionTests) ... ok\ntest_evidence_is_exact_and_call_site_is_in_caller (__main__.TransactionTests) ... ok\ntest_intermediate_unannotated_call_and_class_annotation (__main__.TransactionTests) ... ok\ntest_java_parser_does_not_treat_comments_or_strings_as_calls (__main__.TransactionTests) ... ok\ntest_jdk_proxy_dynamic_dispatch_and_unresolved_call_do_not_invent_edges (__main__.TransactionTests) ... ok\ntest_missing_prior_context_never_creates_certain_physical_identity (__main__.TransactionTests) ... ok\ntest_nested_reuses_physical_and_false_capability_is_unsupported (__main__.TransactionTests) ... ok\ntest_parser_temporary_isolation_and_no_target_build (__main__.TransactionTests) ... ok\ntest_pipeline_write_observation_and_jdk_arguments (__main__.TransactionTests) ... ok\ntest_plantuml_syntax_and_svg_for_all_oracles (__main__.TransactionTests) ... ok\ntest_reflection_unknown_continuation_and_suspension_capability (__main__.TransactionTests) ... ok\ntest_renderer_contains_explicit_identity_and_no_injected_directive (__main__.TransactionTests) ... ok\ntest_requires_new_suspends_before_begin_and_resumes_after_end (__main__.TransactionTests) ... ok\ntest_validator_rejects_wrong_identity_and_unbalanced_trace (__main__.TransactionTests) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 4.809s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-self-invocation.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 7.79,
+      "stdout": "",
+      "stderr": "test_01_proxy_required_inactive (__main__.SelfInvocationTests) ... ok\ntest_02_proxy_required_active (__main__.SelfInvocationTests) ... ok\ntest_03_proxy_requires_new_active (__main__.SelfInvocationTests) ... ok\ntest_04_aspectj_required_conditional (__main__.SelfInvocationTests) ... ok\ntest_05_aspectj_requires_new_conditional (__main__.SelfInvocationTests) ... ok\ntest_06_aspectj_nested_conditional (__main__.SelfInvocationTests) ... ok\ntest_07_aspectj_weaving_unproven (__main__.SelfInvocationTests) ... ok\ntest_08_unknown_mode (__main__.SelfInvocationTests) ... ok\ntest_aspectj_required_joins_active_context (__main__.SelfInvocationTests) ... ok\ntest_cli_does_not_change_analyzed_projects (__main__.SelfInvocationTests) ... ok\ntest_context_rejects_weaving_truth_claims_and_unknown_fields (__main__.SelfInvocationTests) ... ok\ntest_missing_capabilities_do_not_invent_aspectj_boundaries (__main__.SelfInvocationTests) ... ok\ntest_original_r1_counterexample_stays_unknown (__main__.SelfInvocationTests) ... ok\ntest_plantuml_syntax_and_svg_for_f01_and_historical_models (__main__.SelfInvocationTests) ... ok\ntest_unknown_prior_context_is_not_inactive_after_bypass (__main__.SelfInvocationTests) ... ok\ntest_validator_rejects_conflated_context_and_interception (__main__.SelfInvocationTests) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 7.740s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-context-alternatives.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 3.92,
+      "stdout": "",
+      "stderr": "test_01_required_preserves_active_p1 (__main__.ContextAlternativeTests) ... ok\ntest_02_required_without_initial_transaction (__main__.ContextAlternativeTests) ... ok\ntest_03_requires_new_has_no_common_identity (__main__.ContextAlternativeTests) ... ok\ntest_04_nested_has_conditional_savepoint_on_same_p1 (__main__.ContextAlternativeTests) ... ok\ntest_05_nested_unknown_and_false_capability (__main__.ContextAlternativeTests) ... ok\ntest_06_ambiguous_manager_does_not_preserve_false_identity (__main__.ContextAlternativeTests) ... ok\ntest_07_caller_context_and_following_call_preserved (__main__.ContextAlternativeTests) ... ok\ntest_08_rejects_falsely_deterministic_physical_identity (__main__.ContextAlternativeTests) ... ok\ntest_09_validator_accepts_unknown_advice_active_p1 (__main__.ContextAlternativeTests) ... ok\ntest_10_diagram_separates_known_context_conditional_scope_and_savepoint (__main__.ContextAlternativeTests) ... ok\ntest_async_and_programmatic_hazards_cannot_use_composition (__main__.ContextAlternativeTests) ... ok\ntest_composition_labels_reject_directive_injection (__main__.ContextAlternativeTests) ... ok\ntest_historical_models_remain_valid (__main__.ContextAlternativeTests) ... ok\ntest_nonempty_body_does_not_claim_return_context_or_follow_calls (__main__.ContextAlternativeTests) ... ok\ntest_original_r2_source_and_context_exact_cli_regression (__main__.ContextAlternativeTests) ... ok\ntest_plantuml_syntax_and_svg (__main__.ContextAlternativeTests) ... ok\ntest_requires_new_unknown_capability_is_unresolved (__main__.ContextAlternativeTests) ... ok\ntest_validator_rejects_conditional_scope_materialized_unconditionally (__main__.ContextAlternativeTests) ... ok\ntest_validator_rejects_false_capability_and_premises (__main__.ContextAlternativeTests) ... ok\ntest_validator_rejects_forged_applied_branch_and_missing_bypass (__main__.ContextAlternativeTests) ... ok\ntest_validator_rejects_wrong_caller_identity_and_manager (__main__.ContextAlternativeTests) ... ok\n\n----------------------------------------------------------------------\nRan 21 tests in 3.870s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-physical-lifetime.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 0.06,
+      "stdout": "",
+      "stderr": "test_exact_r3_mutation_on_original_valid_model (__main__.PhysicalLifetimeTests) ... ok\ntest_f02_conditional_properties_preserved (__main__.PhysicalLifetimeTests) ... ok\ntest_nested_savepoint_release_preserves_p1 (__main__.PhysicalLifetimeTests) ... ok\ntest_original_high_r3_and_uncertain_continuation_rejected (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_after_state_retaining_ended_p2 (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_begin_before_suspend (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_identity_without_begin (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_ordinary_child_losing_caller_context (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_ordinary_frame_inventing_previous_identity (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_physical_end_before_logical_closure (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_restore_without_resume (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_same_symbol_reopened_after_end (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_savepoint_before_physical_begin (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_wrong_physical_end_owner (__main__.PhysicalLifetimeTests) ... ok\ntest_renderer_does_not_label_activity_beyond_terminal_event (__main__.PhysicalLifetimeTests) ... ok\ntest_required_logical_end_preserves_p1 (__main__.PhysicalLifetimeTests) ... ok\ntest_requires_new_rejects_resume_while_p2_active (__main__.PhysicalLifetimeTests) ... ok\ntest_requires_new_restores_live_p1_after_p2_end (__main__.PhysicalLifetimeTests) ... ok\ntest_terminal_event_is_outcome_independent (__main__.PhysicalLifetimeTests) ... ok\n\n----------------------------------------------------------------------\nRan 19 tests in 0.006s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-transition-contract.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 0.08,
+      "stdout": "",
+      "stderr": "test_O01 (__main__.TransitionContractTests)\nIR completo manuale N -> P2/L -> N; una P, un L; SP/S zero ... ok\ntest_O02 (__main__.TransitionContractTests)\nP1 aperta da antenato F1; F2 apre/chiude solo L2; after P1 ... ok\ntest_O03 (__main__.TransitionContractTests)\nIR completo N -> P2 indipendente -> END P2 -> N senza sospensione ... ok\ntest_O04 (__main__.TransitionContractTests)\nP1 viva; S1; P2 distinta; END P2 prima di RESUME P1; after P1 ... ok\ntest_O05 (__main__.TransitionContractTests)\nPrior N; savepoints=false; apre/termina P2; nessuno SP ... ok\ntest_O06 (__main__.TransitionContractTests)\nP1; L2 e SP1 su P1; RELEASE SP1; END L2; after P1 ... ok\ntest_O07 (__main__.TransitionContractTests)\nConservare SP1 e tutti eventi; impostare savepoints=false in context E managers ... ok\ntest_O08 (__main__.TransitionContractTests)\nCome O07 con savepoints=null in entrambe copie ... ok\ntest_O09 (__main__.TransitionContractTests)\nConservare S1/P2; suspend=false concorde in context e managers ... ok\ntest_O10 (__main__.TransitionContractTests)\nConservare S1/P2; suspend=null concorde in context e managers ... ok\ntest_O11 (__main__.TransitionContractTests)\nMantenere effetti NEW completi; dichiarare NESTED in configuration con annotazione sintetica coerente; capability entrambe true ... ok\ntest_O12 (__main__.TransitionContractTests)\nMantenere effetti SP/P1 completi; dichiarare REQUIRES_NEW con annotazione sintetica coerente; entrambe capability true ... ok\ntest_O13 (__main__.TransitionContractTests)\nF2 after=N; effectiveContext.after=INACTIVE se presente; solo LOGICAL_END L2; P1/L1 antenato vive. Variante legacy senza campi F01 e moderna coerente ... ok\ntest_O14 (__main__.TransitionContractTests)\nRimuovere PHYSICAL_END_OUTCOME_UNKNOWN P2; mantenere after N e L chiuso; nessun altro evento giustifica termine P2 ... ok\ntest_O15 (__main__.TransitionContractTests)\nAggiungere END P1 a F2 e chiusura/mapping coerenti quanto possibile: F2 non ha aperto P1; chiudere L2 non conferisce ownership ... ok\ntest_O16 (__main__.TransitionContractTests)\nSpostare RESUME_CONDITIONAL S1 prima di PHYSICAL_END_OUTCOME_UNKNOWN P2; ID e campi invariati; rinumerare sequenze ... ok\ntest_O17 (__main__.TransitionContractTests)\nDopo END P2 inserire nuovo PHYSICAL_BEGIN della stessa P2 e un frame successivo che la usa; stesso simbolo non riapribile ... ok\ntest_O18 (__main__.TransitionContractTests)\nRami corretti REQUIRED/P1; degradare during comune/frame a U e after U senza nuova premessa; aggiornare effectiveContext; corpo EMPTY e continuazione risolta non giustificano after U secondo D4 ... ok\ntest_O19 (__main__.TransitionContractTests)\nRami corretti NEW/P1; degradare during a U perdendo ACTIVE e tx; effectiveContext.during=UNKNOWN ... ok\ntest_O20 (__main__.TransitionContractTests)\nAffermare P1 corrente comune nel during; APPLIED deve usare P fresca distinta ... ok\ntest_O21 (__main__.TransitionContractTests)\nAggiungere SP1 concreto e suoi CREATE/RELEASE al frame UNKNOWN con SP solo IF_APPLIED nel witness ... ok\ntest_O22 (__main__.TransitionContractTests)\nEliminare alternativa BYPASSED mantenendo APPLIED e stati comuni ... ok\ntest_O23 (__main__.TransitionContractTests)\nCapability savepoints=false concorde; ramo APPLIED ancora SUPPORTED con SP IF_APPLIED ... ok\ntest_O24 (__main__.TransitionContractTests)\nPROXY self-call REQUIRES_NEW con P1; eredita P1, nessun L/P/SP/S nuovo ... ok\ntest_O25 (__main__.TransitionContractTests)\nPROXY self-call REQUIRED senza P; N durante/dopo; nessun confine aggiunto ... ok\ntest_O26 (__main__.TransitionContractTests)\nPROXY self-call con prior U; conserva U, nessun N inventato ... ok\ntest_O27 (__main__.TransitionContractTests)\nRami manuali REQUIRED/P1: P1 comune; solo L IF_APPLIED; dopo P1 a corpo EMPTY ... ok\ntest_O28 (__main__.TransitionContractTests)\nRami manuali NEW/P1: during ACTIVE/tx/null; after P1; nessuna P2 globale ... ok\ntest_O29 (__main__.TransitionContractTests)\nRami manuali NESTED/P1: during/after P1; L/SP IF_APPLIED; nessuna entita globale di ramo ... ok\ntest_O30 (__main__.TransitionContractTests)\nASPECTJ weaving non stabilito; REQUIRED da N; durante U; dopo N a corpo EMPTY; nessun falso BYPASSED ... ok\ntest_O31 (__main__.TransitionContractTests)\nREQUIRES_NEW da N con suspend=null e savepoints=false; nessuna sospensione; P2 creata/terminata ... ok\ntest_O32 (__main__.TransitionContractTests)\nNESTED da N con savepoints=null e suspend=null; P2 creata/terminata senza SP ... ok\ntest_O33 (__main__.TransitionContractTests)\nAPPLIED NESTED/P1 savepoints=false; U durante/dopo; L2 UNKNOWN/null tentato con BEGIN/END; zero SP/S/P nuove; marcatore mai presentato da renderer/consumer come scope certamente eseguito o fonte certa di effetti; lifetime P1 conservato ... ok\ntest_O34 (__main__.TransitionContractTests)\nAdvice UNKNOWN NESTED/P1; savepoints=null; APPLIED irrisolto, BYPASSED P1; U comune e nessun SP ... ok\ntest_O35 (__main__.TransitionContractTests)\nDue manager default senza qualifier; dichiarare arbitrariamente tx risolto e aprire P2 ... ok\ntest_O36 (__main__.TransitionContractTests)\nDopo END P2 impostare after A(P2,tx) con effectiveContext ACTIVE coerente ... ok\ntest_O37 (__main__.TransitionContractTests)\ncontext.savepoints=false e managers.savepoints=true; SP mantenuto ... ok\ntest_O38 (__main__.TransitionContractTests)\nPrior N; oltre P2/L creare SP del medesimo frame NESTED come se esistesse P precedente ... ok\ntest_O39 (__main__.TransitionContractTests)\nREQUIRED condiviso con capability vere; aggiungere S1/P2 indipendente e relativi eventi ordinati come NEW ... ok\ntest_O40 (__main__.TransitionContractTests)\nAPPLIED REQUIRED/P1 risolto: eliminare L2, frame.logicalScope null e relativi eventi; durante/dopo ancora P1 ... ok\ntest_O41 (__main__.TransitionContractTests)\nNESTED/P1 savepoints=true: rimuovere SP1 e CREATE/RELEASE, lasciando L2 e P1 ... ok\ntest_O42 (__main__.TransitionContractTests)\nAdvice UNKNOWN REQUIRED/P1; corpo non vuoto NOT_ASSERTED; during P1 comune; after U; nessuna chiamata successiva affermata ... ok\ntest_O43 (__main__.TransitionContractTests)\nSenza premessa weaving ASPECTJ sostituire UNKNOWN con BYPASSED perche self-call; affermare durante N ... ok\ntest_O44 (__main__.TransitionContractTests)\nCome O42 ma after=P1 certo senza corpo EMPTY o altra evidenza ammessa; entrambe alternative devono lasciare after U ... ok\ntest_T08 (__main__.TransitionContractTests)\nT08 ... ok\ntest_T09 (__main__.TransitionContractTests)\nT09 ... ok\ntest_T10 (__main__.TransitionContractTests)\nT10 ... ok\ntest_T11 (__main__.TransitionContractTests)\nT11 ... ok\ntest_T12 (__main__.TransitionContractTests)\nT12 ... ok\ntest_T20 (__main__.TransitionContractTests)\nT20 ... ok\ntest_T21 (__main__.TransitionContractTests)\nT21 ... ok\ntest_T23 (__main__.TransitionContractTests)\nT23 ... ok\ntest_body_cannot_run_before_completed_opening (__main__.TransitionContractTests) ... ok\ntest_call_site_hash_must_match_caller_snapshot (__main__.TransitionContractTests) ... ok\ntest_d2_renderer_distinguishes_marker_and_retained_lifetime (__main__.TransitionContractTests) ... ok\ntest_d3_no_positive_certification_from_annotation_or_effects_alone (__main__.TransitionContractTests) ... ok\ntest_d4_bare_unknown_continuation_cannot_erase_known_return (__main__.TransitionContractTests) ... ok\ntest_d4_unknown_cannot_justify_unsupported_effects (__main__.TransitionContractTests) ... ok\ntest_entity_kind_is_not_a_current_context_state (__main__.TransitionContractTests) ... ok\ntest_exact_nine_r4_high_payloads_rejected (__main__.TransitionContractTests) ... ok\ntest_literal_ids_verdicts_transitions_and_envelopes (__main__.TransitionContractTests) ... ok\ntest_manager_and_runtime_outcome_cannot_be_invented (__main__.TransitionContractTests) ... ok\ntest_no_unknown_event_can_supply_a_terminal (__main__.TransitionContractTests) ... ok\ntest_savepoint_event_must_identify_its_own_physical_transaction (__main__.TransitionContractTests) ... ok\n\n----------------------------------------------------------------------\nRan 64 tests in 0.019s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-aop-causal-order.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 0.06,
+      "stdout": "",
+      "stderr": "test_A01 (__main__.AopCausalOrderTests)\noriginal R1 negative: MR00 sections 1,5,6 V1; standard v1 Bounded Resolution ... ok\ntest_A02 (__main__.AopCausalOrderTests)\noriginal R1 negative: MR00 sections 1,5,6 V1; standard v1 Bounded Resolution ... ok\ntest_A03 (__main__.AopCausalOrderTests)\noriginal R1 negative: MR00 sections 1,5,6 V1; standard v1 Bounded Resolution ... ok\ntest_A04 (__main__.AopCausalOrderTests)\nnear valid REQUIRED: MR00 section 5 V11/V12 ... ok\ntest_A05 (__main__.AopCausalOrderTests)\nlegitimate unproven weaving: MR00 section 5 V11/V12 ... ok\ntest_A06 (__main__.AopCausalOrderTests)\nretain common ACTIVE/manager and after P1: MR00 section 5 V11/V12 ... ok\ntest_A07 (__main__.AopCausalOrderTests)\nlegacy legitimate uncertainty without positive certification: MR00 D3/D4; missing advice fields do not infer APPLIED ... ok\ntest_A08 (__main__.AopCausalOrderTests)\nlegacy cannot bypass AOP consistency: MR00 D3/V1; standard v1 AspectJ proxy premise ... ok\ntest_A09 (__main__.AopCausalOrderTests)\nmode UNKNOWN remains uncertain without PROXY default: MR00 D3/section 5; no positive advice from unknown mode ... ok\ntest_A10 (__main__.AopCausalOrderTests)\nexplicit UNKNOWN cannot inherit CLASS legacy PROXY premise: MR00 D3; no APPLIED with unresolved mode ... ok\ntest_A11 (__main__.AopCausalOrderTests)\noriginal v1 CLASS proxy and hashed configuration evidence: MR00 D3; original v1 compatibility with reliable evidence ... ok\ntest_A12 (__main__.AopCausalOrderTests)\ndefinite final-method proxy bypass cannot admit APPLIED alternative: MR00 section 5: alternatives must both be semantically admissible ... ok\ntest_A13 (__main__.AopCausalOrderTests)\nnear valid definite final-method proxy bypass retains P1: MR00 section 5: known bypass inherits the physical context ... ok\ntest_C01 (__main__.AopCausalOrderTests)\noriginal R1 negative: MR00 sections 2,4 D4,6 V4/V10 ... ok\ntest_C02 (__main__.AopCausalOrderTests)\nnear valid resolved child order: MR00 V4: completed prefix and justified synchronous child ... ok\ntest_C03 (__main__.AopCausalOrderTests)\nlegitimate unresolved suffix with demonstrated opening/unwind: MR00 D4: unresolved suffix preserves P1 BEGIN/END and scope ... ok\ntest_C04 (__main__.AopCausalOrderTests)\nno second arbitrary unresolved call after lost order: MR00 V4/D4: no later body event after unresolved order ... ok\ntest_C05 (__main__.AopCausalOrderTests)\npreserve earlier known F2 and lifetime before unresolved suffix: MR00 D4/V4/V5: preserve prefix and conditional boundary closure ... ok\ntest_C06 (__main__.AopCausalOrderTests)\nUNKNOWN transaction context but proven empty synchronous child order: MR00 V4/D4/section 5: body EMPTY proves order; NOT_ASSERTED nonempty does not ... ok\ntest_C07 (__main__.AopCausalOrderTests)\nnonempty NOT_ASSERTED child cuts parent subsequent order: MR00 V4/D4/section 5: body EMPTY proves order; NOT_ASSERTED nonempty does not ... ok\ntest_aop_unknown_preserves_common_physical_properties (__main__.AopCausalOrderTests) ... ok\ntest_each_finding_has_negative_near_positive_uncertainty_and_retention (__main__.AopCausalOrderTests) ... ok\ntest_known_prefix_and_physical_unwind_survive_unresolved_suffix (__main__.AopCausalOrderTests) ... ok\ntest_original_r1_witnesses_are_exact (__main__.AopCausalOrderTests) ... ok\ntest_synthetic_sources_hashes_spans_and_call_sites_are_consistent (__main__.AopCausalOrderTests) ... ok\ntest_unknown_context_does_not_itself_cut_proven_order (__main__.AopCausalOrderTests) ... ok\n\n----------------------------------------------------------------------\nRan 26 tests in 0.006s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/mana-skill-factory.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 6.47,
+      "stdout": "",
+      "stderr": "test_adapter_boundary_extends_same_technology_without_core_changes (__main__.FactoryTests) ... ok\ntest_candidate_not_discovered_or_accepted_by_profile_compiler (__main__.FactoryTests) ... ok\ntest_duplicate_json_keys_rejected (__main__.FactoryTests) ... ok\ntest_evidence_native_contract_read_only_and_no_activation (__main__.FactoryTests) ... ok\ntest_external_temporary_paths_spaces_symlinks_and_child_writes (__main__.FactoryTests) ... ok\ntest_internal_temp_cli_returns_diagnostic_without_output (__main__.FactoryTests) ... ok\ntest_json_malformed_and_deep_cli_block_without_writes (__main__.FactoryTests) ... ok\ntest_json_size_depth_and_token_boundaries (__main__.FactoryTests) ... ok\ntest_malformed_unsafe_and_oversized_evidence (__main__.FactoryTests) ... ok\ntest_module_locality_and_multimodule_support (__main__.FactoryTests) ... ok\ntest_native_validation_failure_precedes_output_writes (__main__.FactoryTests) ... ok\ntest_no_approval_activation_or_analysis_cli (__main__.FactoryTests) ... ok\ntest_no_java_or_symlink_or_generated_evidence (__main__.FactoryTests) ... ok\ntest_overcomplex_generated_manifest_rejected_before_output (__main__.FactoryTests) ... ok\ntest_project_wrappers_are_never_run (__main__.FactoryTests) ... ok\ntest_quoted_brackets_and_escapes_do_not_consume_depth_budget (__main__.FactoryTests) ... ok\ntest_reject_target_and_discovery_output_and_symlink_alias (__main__.FactoryTests) ... ok\ntest_stale_evidence_and_overwrite_rejected (__main__.FactoryTests) ... ok\ntest_tampering_cannot_create_trust_or_executable_tools (__main__.FactoryTests) ... ok\ntest_temporary_environment_fallbacks_without_host_changes (__main__.FactoryTests) ... ok\ntest_unsafe_or_missing_temporary_parent_blocks_before_any_write (__main__.FactoryTests) ... ok\ntest_unsupported_and_false_positive_technologies (__main__.FactoryTests) ... ok\ntest_unsupported_requests_and_adapter_governance_override_block (__main__.FactoryTests) ... ok\n\n----------------------------------------------------------------------\nRan 23 tests in 6.413s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/resource-timeline.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 2.42,
+      "stdout": "",
+      "stderr": "test_acquired_lock_and_granularity_claims_rejected (__main__.ResourceTests) ... ok\ntest_cli_external_output_and_overwrite_rejection (__main__.ResourceTests) ... ok\ntest_closed_sql_grammar_literal_positive_and_negative_controls (__main__.ResourceTests) ... ok\ntest_comments_are_not_operations (__main__.ResourceTests) ... ok\ntest_dynamic_sql_nested_expression_unknown (__main__.ResourceTests) ... ok\ntest_ended_p2_cannot_receive_restored_p1_operation (__main__.ResourceTests) ... ok\ntest_ended_transaction_operation_rejected (__main__.ResourceTests) ... ok\ntest_independent_fixture_oracles (__main__.ResourceTests) ... ok\ntest_literal_requires_new_timeline (__main__.ResourceTests) ... ok\ntest_manager_ambiguity_does_not_assign_physical_context (__main__.ResourceTests) ... ok\ntest_nested_savepoint_does_not_end_p1 (__main__.ResourceTests) ... ok\ntest_no_continuation_after_jdbc_frontier (__main__.ResourceTests) ... ok\ntest_no_continuation_after_unresolved_child (__main__.ResourceTests) ... ok\ntest_real_pipeline_preserves_target_and_t01_model (__main__.ResourceTests) ... ok\ntest_resource_annotation_does_not_override_unknown_context (__main__.ResourceTests) ... ok\ntest_restore_uses_live_p1_after_p2_ends (__main__.ResourceTests) ... ok\ntest_source_hash_mismatch_rejected (__main__.ResourceTests) ... ok\ntest_source_positions_match_actual_invocation_and_literal (__main__.ResourceTests) ... ok\ntest_suspended_p1_cannot_receive_p2_operation (__main__.ResourceTests) ... ok\ntest_t01_events_must_remain_intact (__main__.ResourceTests) ... ok\ntest_unknown_interception_does_not_traverse_body (__main__.ResourceTests) ... ok\ntest_unplaced_observation_cannot_be_inserted_in_timeline (__main__.ResourceTests) ... ok\n\n----------------------------------------------------------------------\nRan 22 tests in 2.373s\n\nOK\n"
+    },
+    {
+      "command": [
+        "ruff",
+        "check",
+        "scripts/mana-resource-timeline.py",
+        "scripts/skill_factory/transactions/resources.py",
+        "scripts/mana-transaction.py",
+        "tests/resource-timeline.py"
+      ],
+      "exit": 0,
+      "seconds": 0.01,
+      "stdout": "All checks passed!\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "ruff",
+        "format",
+        "--check",
+        "scripts/mana-resource-timeline.py",
+        "scripts/skill_factory/transactions/resources.py",
+        "scripts/mana-transaction.py",
+        "tests/resource-timeline.py"
+      ],
+      "exit": 0,
+      "seconds": 0.01,
+      "stdout": "4 files already formatted\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/validate-repo.sh"
+      ],
+      "exit": 0,
+      "seconds": 12.43,
+      "stdout": "Verification skills validation passed\nSkills validation passed\nAgents validation passed\nDivination metadata validation passed\nOutput standard validation passed\nStory trace validation passed\nDeveloper choice log validation passed\nRepository validation passed\n",
+      "stderr": ""
+    }
+  ],
+  "testCount": 207,
+  "skipped": 0,
+  "whitespace": {
+    "trackedImplementationDiffExit": 0,
+    "allNewDeliverableLines": "PASS"
+  },
+  "notRun": [
+    "Independent semantic review",
+    "Remote CI",
+    "Spring/database runtime",
+    "Database lock acquisition",
+    "Concurrency/wait/deadlock analysis"
+  ],
+  "scope": {
+    "commits": 0,
+    "merges": 0,
+    "pushes": 0,
+    "newWorktrees": 0,
+    "targetQueries": 0,
+    "candidateActivation": false
+  },
+  "receiptHashPolicy": "This receipt is excluded from its own implementationFiles to avoid a recursive hash."
+}

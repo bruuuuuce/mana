@@ -1,5 +1,8 @@
 """Framework-only JDK parse adapter; target bytes never reach a build or processor."""
 
+import copy
+import hashlib
+from functools import lru_cache
 import json
 import os
 from pathlib import Path
@@ -120,4 +123,68 @@ def java_facts(factory, project, files):
                     attach(item)
 
         attach(facts)
+        facts["sources"] = {p: raw.decode("utf-8") for p, raw in sources.items()}
         return facts
+
+
+class _SnapshotHost:
+    """Only the parse adapter's host operations; never accesses the original target."""
+
+    FactoryError = ValueError
+
+    @staticmethod
+    def digest(raw):
+        return hashlib.sha256(raw).hexdigest()
+
+    @staticmethod
+    def temporary_parent(project):
+        return Path("/tmp").resolve()
+
+
+@lru_cache(maxsize=8)
+def _reparse_snapshot(sources):
+    return java_facts(
+        _SnapshotHost, None, {p: raw.encode("utf-8") for p, raw in sources}
+    )
+
+
+def verify_leaf_snapshot(facts, hashes):
+    """Reparse supplied source bytes, not producer-authored proof booleans.
+
+    Cached by source content, never by a claimed hash or mutable facts. This is
+    parse-only, with the same source budgets and no target build/classpath.
+    """
+    sources = facts.get("sources")
+    if (
+        not isinstance(sources, dict)
+        or not sources
+        or any(
+            not isinstance(p, str)
+            or not isinstance(raw, str)
+            or hashes.get(p) != hashlib.sha256(raw.encode("utf-8")).hexdigest()
+            for p, raw in sources.items()
+        )
+    ):
+        raise ValueError("resource leaf lacks hash-linked source bytes")
+    # T01 decorates traversed injected calls with an evidence pointer. It is
+    # derived metadata, not a parser fact; verify that pointer before removing it.
+    parsed = _reparse_snapshot(tuple(sorted(sources.items())))
+    supplied = copy.deepcopy(facts)
+    for cls in supplied.get("classes", []):
+        for method in cls["methods"]:
+            for call in method["calls"]:
+                if "bindingEvidence" in call:
+                    fields = [
+                        f
+                        for f in cls["fields"]
+                        if f["name"] == call["receiver"].removeprefix("this.")
+                    ]
+                    if (
+                        len(fields) != 1
+                        or call.pop("bindingEvidence") != fields[0]["evidence"]
+                    ):
+                        raise ValueError(
+                            "resource leaf invalid derived binding evidence"
+                        )
+    if parsed != supplied:
+        raise ValueError("resource leaf source facts contradict reparsed source bytes")

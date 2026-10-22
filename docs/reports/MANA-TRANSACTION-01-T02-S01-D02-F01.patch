@@ -1,0 +1,598 @@
+diff --git a/scripts/skill_factory/transactions/JavaFacts.java b/scripts/skill_factory/transactions/JavaFacts.java
+--- a/scripts/skill_factory/transactions/JavaFacts.java
++++ b/scripts/skill_factory/transactions/JavaFacts.java
+@@ -57,6 +57,18 @@
+     }
+     static void parseClass(ClassTree cls, String pkg) {
+         List<Object> fields=new ArrayList<Object>(), methods=new ArrayList<Object>();
++        final List<String> dispatchHazards=new ArrayList<String>();
++        // Do not resolve nested/local/anonymous types. Record their omission even
++        // in field initializers and method bodies, where parseClass never visits.
++        new TreeScanner<Void,Void>() {
++            @Override public Void visitClass(ClassTree nested,Void unused) {
++                if (nested!=cls) {
++                    if (dispatchHazards.isEmpty()) dispatchHazards.add("UNEXTRACTED_APPLICATION_TYPE");
++                    return null;
++                }
++                return super.visitClass(nested,unused);
++            }
++        }.scan(cls,null);
+         List<String> parents=new ArrayList<String>();
+         if (cls.getExtendsClause()!=null) parents.add(qualify(cls.getExtendsClause().toString()));
+         for (Tree p:cls.getImplementsClause()) parents.add(qualify(p.toString()));
+@@ -122,6 +134,7 @@
+         }
+         classes.add(obj("name",pkg+cls.getSimpleName(),"simpleName",cls.getSimpleName().toString(),
+             "kind",cls.getKind().toString(),"flags",flags(cls.getModifiers()),"parents",parents,
++            "dispatchHazards",dispatchHazards,
+             "annotations",annotations(cls.getModifiers()),"fields",fields,"methods",methods,"evidence",position(cls)));
+     }
+     static String json(Object value) {
+diff --git a/scripts/skill_factory/transactions/resource_leaf.py b/scripts/skill_factory/transactions/resource_leaf.py
+--- a/scripts/skill_factory/transactions/resource_leaf.py
++++ b/scripts/skill_factory/transactions/resource_leaf.py
+@@ -26,6 +26,7 @@
+ }
+ PREMISES = [
+     "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
++    "The bounded source dispatch screen is complete and has no unresolved implementation provider or application subtype.",
+     "Normal synchronous return is assumed only for continuation of this path.",
+     "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+     "The catalogued overload has no application callback argument.",
+@@ -37,6 +38,59 @@
+     "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled.",
+ ]
+ IDENTIFIER = r"[A-Za-z_][A-Za-z_0-9]*"
++BEAN = "org.springframework.context.annotation.Bean"
++MANAGER = "org.springframework.jdbc.datasource.DataSourceTransactionManager"
++DISPATCH_ANNOTATIONS = CALLER_ANNOTATIONS | {
++    AUTOWIRED,
++    BEAN,
++    "org.springframework.beans.factory.annotation.Qualifier",
++    "org.springframework.context.annotation.Configuration",
++    "org.springframework.transaction.annotation.EnableTransactionManagement",
++    "org.springframework.scheduling.annotation.Async",
++}
++
++
++def dispatch_blocker(facts):
++    """Fail closed over the bounded source inventory, not just the declared API.
++
++    No subtype search is complete through an omitted type or an unresolved parent.
++    A library method can itself dispatch to application overrides (including hooks
++    with no callback argument), so even an inherited catalog overload is unsafe.
++    External substitution remains an explicit conditional scenario premise.
++    """
++    if facts.get("errors"):
++        return "RESOURCE_LEAF_SOURCE_DISPATCH_INCOMPLETE"
++    for cls in facts["classes"]:
++        if any(
++            a["type"] not in DISPATCH_ANNOTATIONS
++            for owner in [cls, *cls["methods"], *cls["fields"]]
++            for a in owner["annotations"]
++        ):
++            # Imports, registrars, composed bean annotations and source advisors
++            # can supply implementations without a directly observed @Bean.
++            return "RESOURCE_LEAF_UNRESOLVED_WIRING_ANNOTATION"
++        if cls.get("dispatchHazards") != [] or any(
++            p.startswith("UNKNOWN_") for p in cls["parents"]
++        ):
++            return "RESOURCE_LEAF_SOURCE_DISPATCH_INCOMPLETE"
++        if cls["name"] == JDBC or cls["simpleName"] == "JdbcTemplate":
++            return "RESOURCE_LEAF_APPLICATION_TYPE_SHADOW"
++        if any(p in {JDBC, "JdbcTemplate"} for p in cls["parents"]):
++            return "RESOURCE_LEAF_APPLICATION_SUBTYPE"
++        if any(p not in {"Object", "java.lang.Object"} for p in cls["parents"]):
++            return "RESOURCE_LEAF_UNRESOLVED_SOURCE_SUPERTYPE"
++        for method in cls["methods"]:
++            if method["returnType"] in {JDBC, "JdbcTemplate"}:
++                return "RESOURCE_LEAF_UNRESOLVED_IMPLEMENTATION_FACTORY"
++            if (
++                any(a["type"] == BEAN for a in method["annotations"])
++                and method["returnType"] != MANAGER
++            ):
++                # Object/interface/subtype/factory/proxy/decorator returns are not
++                # resolved here. The existing manager declaration is disjoint
++                # from JdbcTemplate; no new bean resolver is introduced.
++                return "RESOURCE_LEAF_UNRESOLVED_BEAN_IMPLEMENTATION"
++    return None
+ 
+ 
+ def sql_operation(sql, api):
+@@ -133,15 +187,7 @@
+         and inside(args[0]["evidence"], call["evidence"])
+     ):
+         return None
+-    # Observed subclassing, local shadows and factories invalidate standard dispatch.
+-    # Unobserved runtime substitution is explicitly outside the scenario premise.
+-    if any(
+-        c["name"] == JDBC
+-        or c["simpleName"] == "JdbcTemplate"
+-        or any(p in {JDBC, "JdbcTemplate"} for p in c["parents"])
+-        or any(m["returnType"] == JDBC for m in c["methods"])
+-        for c in facts["classes"]
+-    ):
++    if dispatch_blocker(facts) is not None:
+         return None
+     index = next(i for i, c in enumerate(method["calls"], 1) if c == call)
+     return {
+@@ -268,6 +314,9 @@
+         calls[0]["name"],
+     ):
+         raise ValueError("resource leaf call site differs from source")
++    blocker = dispatch_blocker(facts)
++    if blocker is not None:
++        raise ValueError("resource leaf dispatch not demonstrated: " + blocker)
+     expected = classify(
+         facts, cls, method, calls[0], current, event["sequence"], dependencies
+     )
+diff --git a/scripts/skill_factory/transactions/model.py b/scripts/skill_factory/transactions/model.py
+--- a/scripts/skill_factory/transactions/model.py
++++ b/scripts/skill_factory/transactions/model.py
+@@ -584,6 +584,12 @@
+                 target, proxy, reason = resolve_call(cls, call)
+                 if leaf_budget_exceeded:
+                     reason = "RESOURCE_LEAF_BUDGET_EXCEEDED"
++                elif (
++                    leaf_policy == resource_leaf.POLICY
++                    and call["name"] in resource_leaf.SIGNATURES
++                    and (blocker := resource_leaf.dispatch_blocker(facts)) is not None
++                ):
++                    reason = blocker
+                 target_key = (
+                     target["name"] + "#" + call["name"] + "()" if target else None
+                 )
+diff --git a/docs/standards/resource-leaf-extension-v1.md b/docs/standards/resource-leaf-extension-v1.md
+--- a/docs/standards/resource-leaf-extension-v1.md
++++ b/docs/standards/resource-leaf-extension-v1.md
+@@ -113,7 +113,36 @@
+ database objects, triggers and driver behavior are not resolved by a text match.
+ 
+ An observed JdbcTemplate subclass, local type shadow or source factory returning
+-JdbcTemplate invalidates standard-dispatch classification. Interface/alias/optional
++JdbcTemplate invalidates standard-dispatch classification. Identity of the
++catalog declaration, the receiver's static type and the possible dynamic target
++are distinct: a matching signature or imported field type alone is insufficient.
++The authoritative bounded dispatch screen must also succeed on the same source
++snapshot. Each newly parsed class records `dispatchHazards`; only an explicitly
++empty list can support a leaf. Member, static member, local, anonymous and more
++deeply nested classes are not resolved: their omission is recorded as
++`UNEXTRACTED_APPLICATION_TYPE`, and existing
++`UNKNOWN_NESTED_CLASS_OR_INITIALIZER` markers also prevent certification. Older
++facts lacking this screen cannot justify a new leaf; ordinary legacy IR without
++the enabled extension remains valid.
++
++The screen rejects any source JdbcTemplate subtype, including subtypes that
++inherit the catalog overload but override a virtual library hook. Absence of a
++callback argument does not exclude such application dispatch. Unknown source
++supertypes also prevent certification, since their compatibility cannot be
++excluded by this parse-only adapter. Source `@Bean` implementations are not
++dynamically resolved: any return type except the existing, disjoint
++DataSourceTransactionManager declaration stops leaf classification. This includes
++Object/interface/subtype returns, factories, proxies and decorators. These are
++deliberately conservative whole-inventory exclusions; an unrelated nested type,
++supertype or bean can also prevent a leaf. They do not implement general Java
++dispatch or Spring bean resolution. A missing or contradictory screen leaves
++`UNRESOLVED_CALL`, a motivated dispatch uncertainty and an unplaced suffix.
++Unmodeled class/method/field annotations also prevent certification: imports,
++registrars, composed bean annotations and source advisors may introduce a provider
++without a direct source `@Bean`. Only the existing catalog/Spring annotation
++vocabulary is accepted by this screen; no meta-annotation resolver is introduced.
++
++Interface/alias/optional
+ or qualified binding, initialized fields, unknown receiver types, callback
+ overloads and arbitrary methods named `execute` or `update` are not leaf proofs.
+ Nested calls in arguments and conditional expressions cannot form a standalone
+@@ -126,6 +155,9 @@
+ dispatch, absence of external overriding advisors, normal synchronous return for
+ continuation, and no unmodeled transaction-context changes by library, driver or
+ database along that path. Observable contradictory source shapes are rejected.
++This closed scenario assumption cannot override an incomplete or contradictory
++source dispatch screen. A positive leaf remains conditional on the selected
++standard library behavior; it is not an observed concrete Spring bean identity.
+ This closed scenario assumption is not runtime dispatch resolution. If external
+ implementation/advisor/driver behavior cannot be assumed for the intended
+ scenario, leave the capability disabled; source presence alone does not prove it.
+@@ -135,6 +167,9 @@
+ `validate_model` verifies the capability/version, source snapshot hash linkage,
+ unique owning methods, call-site prefix order and completeness until a justified
+ frontier, and exact witness equality after authoritative catalog reclassification.
++Both validators use this same dispatch screen and catalog. An authentic source
++dispatch blocker rejects even a structurally valid, source-linked standard
++witness; the producer's claim cannot authorize itself.
+ It replays the current T01 context and physical lifetime; it does not use a
+ project-supplied safety bit. Missing, modified, mismatched or unsupported witnesses
+ are rejected, as are omitted/reordered calls, leaf events after unresolved order,
+diff --git a/tests/transaction-resource-dispatch.py b/tests/transaction-resource-dispatch.py
+new file mode 100644
+--- /dev/null
++++ b/tests/transaction-resource-dispatch.py
+@@ -0,0 +1,388 @@
++#!/usr/bin/env python3
++"""Literal F01 dispatch oracles, separate from the classifier and historical oracles."""
++
++import copy
++import hashlib
++import importlib.util
++import json
++from pathlib import Path
++import shutil
++import tempfile
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++FIXTURE = ROOT / "tests/fixtures/resource-timeline"
++REVIEW = json.loads(
++    (ROOT / "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R1-results.json").read_text()
++)
++SOURCE = (
++    (FIXTURE / "src/main/java/fixture/Resources.java")
++    .read_text()
++    .replace("public void sequence()", "@Transactional public void sequence()")
++)
++OVERRIDE = """class CustomJdbc extends JdbcTemplate {
++    @Override public void execute(String sql) {
++        throw new IllegalStateException("custom override");
++    }
++}"""
++# Fixed source/dispatch expectations, not inferred from engine output.
++NEGATIVES = {
++    "original": (
++        REVIEW["counterexample"]["source"],
++        "RESOURCE_LEAF_SOURCE_DISPATCH_INCOMPLETE",
++    ),
++    "top_level": (SOURCE + "\n" + OVERRIDE, "RESOURCE_LEAF_APPLICATION_SUBTYPE"),
++    "static_member": (
++        SOURCE + "\n@Configuration class CustomConfig { static " + OVERRIDE + " }",
++        "RESOURCE_LEAF_SOURCE_DISPATCH_INCOMPLETE",
++    ),
++    "inner_member": (
++        SOURCE + "\n@Configuration class CustomConfig { " + OVERRIDE + " }",
++        "RESOURCE_LEAF_SOURCE_DISPATCH_INCOMPLETE",
++    ),
++    "concrete_bean": (
++        SOURCE + "\n" + OVERRIDE + "\n@Configuration class CustomConfig { "
++        "@Bean public CustomJdbc customJdbc() { return new CustomJdbc(); } }",
++        "RESOURCE_LEAF_APPLICATION_SUBTYPE",
++    ),
++    "unknown_bean": (
++        SOURCE + "\n@Configuration class CustomConfig { "
++        "@Bean public Object opaqueBean() { return externalFactory.create(); } }",
++        "RESOURCE_LEAF_UNRESOLVED_BEAN_IMPLEMENTATION",
++    ),
++    "proxy_factory": (
++        SOURCE + "\n@Configuration class CustomConfig { "
++        "@Bean public JdbcTemplate proxy() { return externalProxy.create(); } }",
++        "RESOURCE_LEAF_UNRESOLVED_IMPLEMENTATION_FACTORY",
++    ),
++    "decorator": (
++        SOURCE + "\nclass Decorator extends external.JdbcDecorator {}",
++        "RESOURCE_LEAF_UNRESOLVED_SOURCE_SUPERTYPE",
++    ),
++    "virtual_hook": (
++        SOURCE + "\nclass HookJdbc extends JdbcTemplate { "
++        "@Override public javax.sql.DataSource getDataSource() { "
++        'throw new IllegalStateException("application hook"); } }',
++        "RESOURCE_LEAF_APPLICATION_SUBTYPE",
++    ),
++    "local_class": (
++        SOURCE
++        + "\nclass Provider { public Object create() { "
++        + OVERRIDE
++        + " return new CustomJdbc(); } }",
++        "RESOURCE_LEAF_SOURCE_DISPATCH_INCOMPLETE",
++    ),
++    "anonymous_class": (
++        SOURCE + "\nclass Provider { Object jdbc = new JdbcTemplate() { "
++        "@Override public void execute(String sql) {} }; }",
++        "RESOURCE_LEAF_SOURCE_DISPATCH_INCOMPLETE",
++    ),
++    "initializer": (
++        SOURCE + "\nclass Provider { static { externalRegistry.configure(); } }",
++        "RESOURCE_LEAF_SOURCE_DISPATCH_INCOMPLETE",
++    ),
++    "nested_nested": (
++        SOURCE + "\nclass Outer { static class Middle { static " + OVERRIDE + " } }",
++        "RESOURCE_LEAF_SOURCE_DISPATCH_INCOMPLETE",
++    ),
++    "imported_config": (
++        SOURCE
++        + "\n@Configuration @org.springframework.context.annotation.Import(ExternalConfig.class) "
++        "class ImportedConfig {}",
++        "RESOURCE_LEAF_UNRESOLVED_WIRING_ANNOTATION",
++    ),
++    "composed_provider": (
++        SOURCE + "\n@Configuration class CustomConfig { "
++        "@CustomBean public Object jdbcProvider() { return externalFactory.create(); } }",
++        "RESOURCE_LEAF_UNRESOLVED_WIRING_ANNOTATION",
++    ),
++    "source_advisor": (
++        SOURCE + "\n@org.aspectj.lang.annotation.Aspect class CustomAdvisor {}",
++        "RESOURCE_LEAF_UNRESOLVED_WIRING_ANNOTATION",
++    ),
++}
++
++
++def snapshot(project):
++    return {
++        str(p.relative_to(project)): hashlib.sha256(p.read_bytes()).hexdigest()
++        for p in project.rglob("*")
++        if p.is_file()
++    }
++
++
++class DispatchTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.tmp = tempfile.TemporaryDirectory()
++        cls.stage = Path(cls.tmp.name).resolve()
++        spec = importlib.util.spec_from_file_location(
++            "dispatch_cli", ROOT / "scripts/mana-resource-timeline.py"
++        )
++        cls.cli = importlib.util.module_from_spec(spec)
++        spec.loader.exec_module(cls.cli)
++        cls.reports, cls.projects = {}, {}
++        sources = {name: text for name, (text, _) in NEGATIVES.items()}
++        sources.update(
++            standard=SOURCE,
++            three=SOURCE.replace(
++                'jdbc.update("DELETE FROM ledger"); }',
++                'jdbc.update("DELETE FROM ledger"); '
++                'jdbc.update("INSERT INTO audit (id) VALUES (1)"); }',
++            ),
++            overload=SOURCE.replace(
++                'jdbc.execute("SELECT * FROM accounts")',
++                'jdbc.execute("SELECT * FROM accounts", callback)',
++            ),
++        )
++        for name, text in sources.items():
++            project = cls.stage / name
++            shutil.copytree(FIXTURE, project)
++            (project / "src/main/java/fixture/Resources.java").write_text(text)
++            context = json.loads((project / "context.json").read_text())
++            context["resourceLeafPolicy"] = "JDBC_LITERAL_V1"
++            (project / "context.json").write_text(json.dumps(context))
++            before = snapshot(project)
++            cls.reports[name] = cls.cli.analyze(
++                project, project / "context.json", "fixture.Operations#sequence()"
++            )
++            if before != snapshot(project):
++                raise AssertionError("analysis modified source project")
++            cls.projects[name] = project
++
++    @classmethod
++    def tearDownClass(cls):
++        cls.tmp.cleanup()
++
++    def leaves(self, report):
++        return [
++            e
++            for e in report["transactionModel"]["events"]
++            if e["kind"] == "RESOURCE_LEAF_CALL"
++        ]
++
++    def negative(self, name):
++        report = self.reports[name]
++        self.cli.t01.validate_model(report["transactionModel"])
++        self.cli.validate_timeline(report)
++        self.assertEqual(self.leaves(report), [])
++        tx = report["transactionModel"]
++        self.assertEqual(tx["frames"][0]["continuation"], "UNKNOWN")
++        self.assertEqual(
++            [e["kind"] for e in tx["events"] if e["kind"].endswith("CALL")],
++            ["UNRESOLVED_CALL"],
++        )
++        self.assertEqual(
++            [o["placement"]["status"] for o in report["observations"]],
++            ["T01_FRONTIER", "UNPLACED"],
++        )
++        self.assertEqual(
++            [o["transactionContext"]["physicalId"] for o in report["observations"]],
++            ["P1", None],
++        )
++        if name in NEGATIVES:
++            self.assertIn(
++                NEGATIVES[name][1], [u["reason"] for u in tx["uncertainties"]]
++            )
++
++    def reject_both(self, report, message):
++        # T02 must reject through the authoritative semantic policy too, before
++        # a mismatched resource projection could hide a permissive T01 validator.
++        with self.assertRaisesRegex(ValueError, message):
++            self.cli.t01.validate_model(report["transactionModel"])
++        with self.assertRaisesRegex(ValueError, message):
++            self.cli.validate_timeline(report)
++
++    def test_original_d02_r1_a_exact_source(self):
++        raw = (
++            self.projects["original"] / REVIEW["counterexample"]["sourcePath"]
++        ).read_bytes()
++        self.assertEqual(
++            hashlib.sha256(raw).hexdigest(), REVIEW["counterexample"]["sourceSha256"]
++        )
++        self.negative("original")
++
++    def test_top_level_override(self):
++        self.negative("top_level")
++
++    def test_static_member_override(self):
++        self.negative("static_member")
++
++    def test_nonstatic_member_override(self):
++        self.negative("inner_member")
++
++    def test_declared_jdbc_with_application_concrete_bean(self):
++        self.negative("concrete_bean")
++        classes = self.reports["concrete_bean"]["sourceFacts"]["classes"]
++        operations = next(c for c in classes if c["simpleName"] == "Operations")
++        self.assertEqual(
++            next(f for f in operations["fields"] if f["name"] == "jdbc")["type"],
++            "org.springframework.jdbc.core.JdbcTemplate",
++        )
++
++    def test_bean_implementation_unresolved(self):
++        self.negative("unknown_bean")
++
++    def test_unresolved_wiring_annotations_cannot_hide_providers(self):
++        for name in ["imported_config", "composed_provider", "source_advisor"]:
++            with self.subTest(name=name):
++                self.negative(name)
++
++    def test_proxy_and_factory_unresolved(self):
++        self.negative("proxy_factory")
++
++    def test_decorator_and_indirect_supertype_unresolved(self):
++        self.negative("decorator")
++
++    def test_library_virtual_application_hook_without_callback_argument(self):
++        # execute(String) is inherited, yet may dispatch getDataSource() to app code.
++        self.negative("virtual_hook")
++
++    def test_local_anonymous_and_deeply_nested_types(self):
++        for name in ["local_class", "anonymous_class", "nested_nested", "initializer"]:
++            with self.subTest(name=name):
++                self.negative(name)
++
++    def test_uncatalogued_overload(self):
++        self.negative("overload")
++
++    def test_standard_target_and_two_required_operations(self):
++        report = self.reports["standard"]
++        first, second = self.leaves(report)
++        self.assertEqual([e["method"] for e in [first, second]], ["execute", "update"])
++        self.assertEqual(
++            first["witness"]["signature"],
++            "org.springframework.jdbc.core.JdbcTemplate#execute(java.lang.String):void",
++        )
++        self.assertEqual(
++            second["witness"]["signature"],
++            "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
++        )
++        self.assertEqual(
++            [e["witness"]["transactionContext"]["physicalId"] for e in [first, second]],
++            ["P1", "P1"],
++        )
++        self.assertEqual(second["witness"]["normalReturnDependencies"], [4])
++        self.assertEqual(first["witness"]["normalReturnDependencies"], [])
++
++    def test_three_required_operations(self):
++        leaves = self.leaves(self.reports["three"])
++        self.assertEqual([e["sequence"] for e in leaves], [4, 5, 6])
++        self.assertEqual(
++            [e["witness"]["transactionContext"]["physicalId"] for e in leaves],
++            ["P1", "P1", "P1"],
++        )
++        self.assertEqual(
++            [e["witness"]["normalReturnDependencies"] for e in leaves],
++            [[], [4], [4, 5]],
++        )
++
++    def test_override_has_no_false_continuation(self):
++        self.negative("original")
++        self.assertEqual(
++            self.reports["original"]["observations"][1]["transactionContext"],
++            {"kind": "UNKNOWN", "physicalId": None, "manager": None},
++        )
++
++    def test_forged_standard_witness_rejected_on_authentic_negative_facts(self):
++        for name in NEGATIVES:
++            with self.subTest(name=name):
++                forged = copy.deepcopy(self.reports["standard"])
++                new_facts = copy.deepcopy(self.reports[name]["sourceFacts"])
++                new_hash = next(c["evidence"]["sha256"] for c in new_facts["classes"])
++
++                def rehash(value):
++                    if isinstance(value, dict):
++                        if "sha256" in value:
++                            value["sha256"] = new_hash
++                        for child in value.values():
++                            rehash(child)
++                    elif isinstance(value, list):
++                        for child in value:
++                            rehash(child)
++
++                rehash(forged)
++                forged["sourceFacts"] = new_facts
++                forged["transactionModel"]["resourceLeafExtension"]["sourceFacts"] = (
++                    copy.deepcopy(new_facts)
++                )
++                self.reject_both(forged, "resource leaf dispatch not demonstrated")
++
++    def test_witness_missing_altered_incompatible_and_unjustified_certainty(self):
++        for mutation in ["missing", "signature", "receiver", "premises", "certainty"]:
++            with self.subTest(mutation=mutation):
++                report = copy.deepcopy(self.reports["standard"])
++                leaf = self.leaves(report)[0]
++                if mutation == "missing":
++                    del leaf["witness"]
++                elif mutation == "signature":
++                    leaf["witness"]["signature"] = (
++                        "app.Arbitrary#execute(java.lang.String):void"
++                    )
++                elif mutation == "receiver":
++                    leaf["witness"]["receiverType"] = "app.Arbitrary"
++                elif mutation == "premises":
++                    leaf["witness"]["premises"] = [
++                        "Actual dynamic target is proven standard."
++                    ]
++                else:
++                    leaf["witness"]["certainty"] = "PROVEN"
++                self.reject_both(report, "resource leaf (event requires|witness fails)")
++
++    def test_arbitrary_application_call_cannot_be_laundered_by_witness(self):
++        report = copy.deepcopy(self.reports["standard"])
++        for facts in [
++            report["sourceFacts"],
++            report["transactionModel"]["resourceLeafExtension"]["sourceFacts"],
++        ]:
++            cls = next(c for c in facts["classes"] if c["simpleName"] == "Operations")
++            next(f for f in cls["fields"] if f["name"] == "jdbc")["type"] = (
++                "app.Arbitrary"
++            )
++        self.reject_both(report, "authoritative classification")
++
++    def test_older_incomplete_dispatch_facts_cannot_certify_new_leaf(self):
++        report = copy.deepcopy(self.reports["standard"])
++        for facts in [
++            report["sourceFacts"],
++            report["transactionModel"]["resourceLeafExtension"]["sourceFacts"],
++        ]:
++            for cls in facts["classes"]:
++                del cls["dispatchHazards"]
++        self.reject_both(report, "resource leaf dispatch not demonstrated")
++
++    def test_historical_bad_witness_rejected_by_both_validators(self):
++        self.reject_both(
++            copy.deepcopy(REVIEW["counterexample"]["fullReport"]),
++            "resource leaf dispatch not demonstrated",
++        )
++
++    def test_provenance_and_resolved_signature_cannot_be_changed(self):
++        for mutation in ["hash", "site", "signature"]:
++            with self.subTest(mutation=mutation):
++                report = copy.deepcopy(self.reports["standard"])
++                leaf = self.leaves(report)[0]
++                if mutation == "hash":
++                    report["transactionModel"]["resourceLeafExtension"]["sourceFacts"][
++                        "classes"
++                    ][0]["evidence"]["sha256"] = "0" * 64
++                elif mutation == "site":
++                    leaf["callSite"]["start"] += 1
++                else:
++                    leaf["witness"]["signature"] = (
++                        "JdbcTemplate#execute(java.lang.Object):void"
++                    )
++                self.reject_both(report, "resource leaf")
++
++    def test_enlistment_lock_and_runtime_identity_always_unknown(self):
++        for report in self.reports.values():
++            for op in report["observations"]:
++                self.assertEqual(op["datasource"], {"status": "UNKNOWN", "id": None})
++                self.assertEqual(op["enlistment"], "UNKNOWN")
++                self.assertEqual(op["lockAcquired"], "UNKNOWN")
++                self.assertEqual(op["resource"]["runtimeIdentity"], "UNKNOWN")
++                self.assertEqual(op["resource"]["lockGranularity"], "UNKNOWN")
++
++
++if __name__ == "__main__":
++    unittest.main()

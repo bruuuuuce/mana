@@ -1,0 +1,1587 @@
+diff --git a/docs/standards/resource-timeline-model-v1.md b/docs/standards/resource-timeline-model-v1.md
+--- a/docs/standards/resource-timeline-model-v1.md
++++ b/docs/standards/resource-timeline-model-v1.md
+@@ -51,7 +51,7 @@
+ | `transactionContext` | Copied current T01 `{kind, physicalId, manager}` at the frontier, or wholly UNKNOWN for unplaced syntax |
+ | `datasource` | `{status: UNKNOWN, id: null}` in S01; no connection/datasource binding resolver is qualified |
+ | `enlistment`, `lockAcquired` | Always UNKNOWN; enclosing P is causal context, not proof that JDBC joins that transaction |
+-| `certainty`, `placement` | CONDITIONAL/T01_FRONTIER with `beforeT01Sequence`, or UNKNOWN/UNPLACED with null position |
++| `certainty`, `placement` | CONDITIONAL/T01_FRONTIER or opt-in T01_RESOURCE_LEAF with `beforeT01Sequence`, or UNKNOWN/UNPLACED with null position |
+ | `premises`, `limits` | Conditional reachability and explicit unresolved API, datasource or traversal restrictions |
+ 
+ `timeline` entries have `sequence`, `kind: T01_EVENT`, and the original `event`,
+@@ -95,7 +95,7 @@
+ 
+ ## Causality, physical lifetime and uncertainty
+ 
+-T01 does not resolve JDBC bodies. S01 can observe the invocation syntax at the
++Without the opt-in leaf extension, T01 does not resolve JDBC bodies. S01 can observe the invocation syntax at the
+ first T01 `UNRESOLVED_CALL` frontier and insert an observation immediately before
+ that event. It preserves the frontier and UNKNOWN continuation. It does not
+ declare the JDBC call resolved or resume traversal past it. Any unresolved
+@@ -123,6 +123,24 @@
+ Nested calls in dynamic SQL arguments can stop T01 before the outer JDBC call;
+ the JDBC syntax then remains UNPLACED/UNKNOWN.
+ 
++### Opt-in resource leaves (D02)
++
++The [Resource Leaf Extension v1](resource-leaf-extension-v1.md) defines the explicit
++`resourceLeafPolicy: JDBC_LITERAL_V1` scenario input, closed catalog, source witness,
++validation and consumer compatibility. T02 uses the identical context input and
++T01 model. A qualified `RESOURCE_LEAF_CALL` supplies the authoritative current
++context and causal position; T02 places syntax immediately before that event with
++`T01_RESOURCE_LEAF`, retaining the witness premises and prior normal-return
++dependencies. It does not infer context for an unplaced suffix or reconstruct
++propagation. A later genuine UNRESOLVED_CALL still stops the path.
++
++Only a conditional normal path is represented. Prior leaves must return normally
++for later operations to be reached; exceptional paths and runtime success are not
++asserted. The extension snapshot must equal T02's source facts. Datasource,
++enlistment, acquired locks and granularity remain UNKNOWN for every leaf. Existing
++legacy JSON/examples remain valid and unchanged; fresh parser facts additionally
++include `statementCall`, which is required to qualify a new leaf.
++
+ ## Verification and trust boundary
+ 
+ Run `python3 tests/resource-timeline.py -v`. Literal fixture expectations and
+diff --git a/docs/standards/transaction-model-v1.md b/docs/standards/transaction-model-v1.md
+--- a/docs/standards/transaction-model-v1.md
++++ b/docs/standards/transaction-model-v1.md
+@@ -52,6 +52,14 @@
+ introduced. Inputs cannot claim a `PROVEN` or runtime `APPLIED` status.
+ 
+ ## Architecture And Budgets
++
++D02 adds the opt-in [Resource Leaf Extension v1](resource-leaf-extension-v1.md):
++`resourceLeafPolicy: JDBC_LITERAL_V1` selects a closed conditional JDBC catalog.
++Its versioned `RESOURCE_LEAF_CALL` witness permits normal-path caller continuation
++without exploring the library. Omission/`DISABLED` preserves legacy behavior.
++`UNRESOLVED_CALL` keeps its original causal-cut semantics; propagation, MR00 and
++legacy IR remain unchanged. Enabled reports include source facts and require
++extension-aware validation before consumption.
+ 
+ - `mana-transaction.py` reuses factory canonical paths, bounded JSON reads,
+   technology adapter, file inventory and external temporary isolation.
+diff --git a/scripts/mana-transaction.py b/scripts/mana-transaction.py
+--- a/scripts/mana-transaction.py
++++ b/scripts/mana-transaction.py
+@@ -30,9 +30,16 @@
+     if (
+         not isinstance(context, dict)
+         or not required <= set(context)
+-        or set(context) - required - {"aspectjWeaving"}
++        or set(context) - required - {"aspectjWeaving", "resourceLeafPolicy"}
+     ):
+         raise factory.FactoryError("invalid transaction context fields")
++    if context.get("resourceLeafPolicy", "DISABLED") not in (
++        "DISABLED",
++        "JDBC_LITERAL_V1",
++    ):
++        raise factory.FactoryError(
++            "resourceLeafPolicy must be DISABLED or JDBC_LITERAL_V1"
++        )
+     if context.get("aspectjWeaving", "UNKNOWN") not in (
+         "UNKNOWN",
+         "ASSUMED_APPLIED",
+diff --git a/scripts/skill_factory/transactions/JavaFacts.java b/scripts/skill_factory/transactions/JavaFacts.java
+--- a/scripts/skill_factory/transactions/JavaFacts.java
++++ b/scripts/skill_factory/transactions/JavaFacts.java
+@@ -69,12 +69,16 @@
+             } else if (member instanceof MethodTree) {
+                 MethodTree m=(MethodTree)member;
+                 final List<Object> calls=new ArrayList<Object>();
++                final Set<MethodInvocationTree> statementCalls=Collections.newSetFromMap(new IdentityHashMap<MethodInvocationTree,Boolean>());
+                 List<String> hazards=new ArrayList<String>();
+                 if (m.getBody()==null) hazards.add("missing-body");
+                 else {
+                     List<? extends StatementTree> statements=m.getBody().getStatements();
+                     for (int i=0;i<statements.size();i++) {
+                         StatementTree statement=statements.get(i);
++                        if (statement instanceof ExpressionStatementTree &&
++                            ((ExpressionStatementTree)statement).getExpression() instanceof MethodInvocationTree)
++                            statementCalls.add((MethodInvocationTree)((ExpressionStatementTree)statement).getExpression());
+                         if (statement instanceof ReturnTree && ((ReturnTree)statement).getExpression()==null && i==statements.size()-1) continue;
+                         if (!(statement instanceof ExpressionStatementTree) ||
+                             !(((ExpressionStatementTree)statement).getExpression() instanceof MethodInvocationTree))
+@@ -102,7 +106,7 @@
+                                     "evidence",position(argument)));
+                             }
+                             calls.add(obj("receiver",receiver,"name",name,"arity",call.getArguments().size(),
+-                                "arguments",arguments,"evidence",position(call)));
++                                "arguments",arguments,"statementCall",statementCalls.contains(call),"evidence",position(call)));
+                             return null;
+                         }
+                         @Override public Void visitClass(ClassTree nested,Void unused) { return null; }
+diff --git a/scripts/skill_factory/transactions/model.py b/scripts/skill_factory/transactions/model.py
+--- a/scripts/skill_factory/transactions/model.py
++++ b/scripts/skill_factory/transactions/model.py
+@@ -1,6 +1,8 @@
+ """Conditional static transaction boundaries over a deliberately bounded Java AST."""
+ 
+ import copy
++
++from . import resource_leaf
+ 
+ from .alternatives import (
+     ADVICE_REASONS,
+@@ -69,6 +71,9 @@
+ 
+ 
+ def build(facts, context, entry):
++    leaf_policy = context.get("resourceLeafPolicy", "DISABLED")
++    if leaf_policy not in ("DISABLED", resource_leaf.POLICY):
++        raise ValueError("unsupported resource leaf policy")
+     classes = {c["name"]: c for c in facts["classes"]}
+     if len(classes) != len(facts["classes"]):
+         raise ValueError("duplicate class identity; source binding is ambiguous")
+@@ -169,6 +174,22 @@
+         report["assumptions"].append(
+             "AspectJ weaving application is an explicit conditional scenario assumption, not statically demonstrated or runtime-proven."
+         )
++    if leaf_policy == resource_leaf.POLICY:
++        report["resourceLeafExtension"] = {
++            "schema": resource_leaf.EXTENSION,
++            "sourceFacts": copy.deepcopy(facts),
++        }
++        # Pure build users also receive source hashes; the CLI adds the full inventory.
++        report["evidence"] = [
++            {"path": path, "sha256": digest}
++            for path, digest in sorted(
++                {
++                    c["evidence"]["file"]: c["evidence"]["sha256"]
++                    for c in facts["classes"]
++                }.items()
++            )
++        ]
++        report["assumptions"].extend(resource_leaf.PREMISES)
+ 
+     def emit(kind, frame, **extra):
+         report["events"].append(
+@@ -528,7 +549,41 @@
+         if frame["certainty"] != "UNKNOWN":
+             current = copy.deepcopy(frame["duringState"])
+             for call in method["calls"]:
++                witness = (
++                    resource_leaf.classify(
++                        facts,
++                        cls,
++                        method,
++                        call,
++                        current,
++                        len(report["events"]) + 1,
++                        [
++                            e["sequence"]
++                            for e in report["events"]
++                            if e["kind"] == "RESOURCE_LEAF_CALL"
++                        ],
++                    )
++                    if leaf_policy == resource_leaf.POLICY
++                    else None
++                )
++                leaf_budget_exceeded = (
++                    witness is not None
++                    and len(witness["normalReturnDependencies"])
++                    >= resource_leaf.MAX_LEAVES
++                )
++                if witness is not None and not leaf_budget_exceeded:
++                    emit(
++                        "RESOURCE_LEAF_CALL",
++                        frame,
++                        callSite=copy.deepcopy(call["evidence"]),
++                        receiver=call["receiver"],
++                        method=call["name"],
++                        witness=witness,
++                    )
++                    continue
+                 target, proxy, reason = resolve_call(cls, call)
++                if leaf_budget_exceeded:
++                    reason = "RESOURCE_LEAF_BUDGET_EXCEEDED"
+                 target_key = (
+                     target["name"] + "#" + call["name"] + "()" if target else None
+                 )
+@@ -567,6 +622,7 @@
+                 ):
+                     frame["continuation"] = "UNKNOWN"
+                     break
++                current = copy.deepcopy(child["afterState"])
+         for item in reversed(saves):
+             emit(
+                 "SAVEPOINT_RELEASE_CONDITIONAL",
+@@ -606,6 +662,8 @@
+         no_transaction() if context["initialState"] == "NO_TRANSACTION" else unknown()
+     )
+     visit(entry, previous, context["entryThroughProxy"])
++    if leaf_policy == resource_leaf.POLICY:
++        report["resourceLeafExtension"]["sourceFacts"] = copy.deepcopy(facts)
+     return report
+ 
+ 
+@@ -796,7 +854,10 @@
+         if [e["kind"] for e in trace] != ["FRAME_ENTER", "FRAME_EXIT"] or children:
+             raise ValueError("branch-only boundary cannot assert body execution/events")
+         return
+-    if frame["bodyTraversal"] == "NOT_ASSERTED" and (children or unresolved_call):
++    leaf_calls = any(e["kind"] == "RESOURCE_LEAF_CALL" for e in trace)
++    if frame["bodyTraversal"] == "NOT_ASSERTED" and (
++        children or unresolved_call or leaf_calls
++    ):
+         raise ValueError("unasserted body contains asserted child execution")
+ 
+     opening, closing = [], []
+@@ -961,7 +1022,8 @@
+     boundary = [
+         (e["kind"], e.get("entity"))
+         for e in trace
+-        if e["kind"] not in {"FRAME_ENTER", "FRAME_EXIT", "UNRESOLVED_CALL"}
++        if e["kind"]
++        not in {"FRAME_ENTER", "FRAME_EXIT", "UNRESOLVED_CALL", "RESOURCE_LEAF_CALL"}
+     ]
+     if boundary != opening + closing:
+         raise ValueError("boundary effects missing or out of order")
+@@ -974,7 +1036,8 @@
+                 "child execution outside completed boundary opening/closing"
+             )
+     if any(
+-        e["kind"] == "UNRESOLVED_CALL" and not start < e["sequence"] < finish
++        e["kind"] in {"UNRESOLVED_CALL", "RESOURCE_LEAF_CALL"}
++        and not start < e["sequence"] < finish
+         for e in trace
+     ):
+         raise ValueError("unresolved body call outside boundary opening/closing")
+@@ -988,9 +1051,10 @@
+     for identity in reversed(entries):
+         frame = frames[identity]
+         steps = [
+-            (e["sequence"], False)
++            (e["sequence"], e["kind"] == "RESOURCE_LEAF_CALL")
+             for e in report["events"]
+-            if e["frame"] == identity and e["kind"] == "UNRESOLVED_CALL"
++            if e["frame"] == identity
++            and e["kind"] in {"UNRESOLVED_CALL", "RESOURCE_LEAF_CALL"}
+         ]
+         for child in children[identity]:
+             entry = next(
+@@ -1017,6 +1081,8 @@
+     """Referential/temporal checks independent of diagram text."""
+     if report["schema"] != "mana.transaction-model/v1":
+         raise ValueError("wrong model schema")
++    leaf_facts = resource_leaf.validate_extension(report)
++    leaf_dependencies = []
+     frames = {f["id"]: f for f in report["frames"]}
+     if len(frames) != len(report["frames"]):
+         raise ValueError("duplicate frame identity")
+@@ -1085,6 +1151,7 @@
+             "SAVEPOINT_CREATE",
+             "SAVEPOINT_RELEASE_CONDITIONAL",
+             "UNRESOLVED_CALL",
++            "RESOURCE_LEAF_CALL",
+         }:
+             raise ValueError("unrecognized transaction event")
+         if event["kind"] == "FRAME_ENTER":
+@@ -1148,6 +1215,18 @@
+                 current_contexts[stack[-1]] = frames[event["frame"]]["afterState"]
+         elif not stack or stack[-1] != event["frame"]:
+             raise ValueError("event outside active method frame")
++        if event["kind"] == "RESOURCE_LEAF_CALL":
++            current = current_contexts[event["frame"]]
++            require_current(current["physicalId"])
++            resource_leaf.validate_call(
++                report,
++                leaf_facts,
++                frames[event["frame"]],
++                event,
++                current,
++                leaf_dependencies,
++            )
++            leaf_dependencies.append(event["sequence"])
+         if event["kind"] == "PHYSICAL_BEGIN":
+             identity = event["entity"]
+             frame = frames[event["frame"]]
+diff --git a/scripts/skill_factory/transactions/plantuml.py b/scripts/skill_factory/transactions/plantuml.py
+--- a/scripts/skill_factory/transactions/plantuml.py
++++ b/scripts/skill_factory/transactions/plantuml.py
+@@ -2,7 +2,7 @@
+ 
+ import re
+ 
+-from .model import _interception_status
++from .model import _interception_status, validate_model
+ 
+ 
+ def label(value):
+@@ -10,6 +10,31 @@
+ 
+ 
+ def render(report):
++    if (
++        "resourceLeafExtension" in report
++        or report.get("context", {}).get("resourceLeafPolicy", "DISABLED") != "DISABLED"
++        or any(e["kind"] == "RESOURCE_LEAF_CALL" for e in report["events"])
++    ):
++        validate_model(report)
++    if any(
++        e["kind"]
++        not in {
++            "FRAME_ENTER",
++            "FRAME_EXIT",
++            "PHYSICAL_BEGIN",
++            "PHYSICAL_END_OUTCOME_UNKNOWN",
++            "LOGICAL_BEGIN",
++            "LOGICAL_END",
++            "SUSPEND",
++            "RESUME_CONDITIONAL",
++            "SAVEPOINT_CREATE",
++            "SAVEPOINT_RELEASE_CONDITIONAL",
++            "UNRESOLVED_CALL",
++            "RESOURCE_LEAF_CALL",
++        }
++        for e in report["events"]
++    ):
++        raise ValueError("renderer does not support transaction event")
+     participants = sorted(
+         {
+             name.split("#")[0]
+@@ -174,6 +199,10 @@
+                 else "scope exit / outcome UNKNOWN"
+             )
+             lines.append(f"{callee} --> {caller}: {text}")
++        elif event["kind"] == "RESOURCE_LEAF_CALL":
++            lines.append(
++                f"note right of {callee} #CCE5FF: RESOURCE_LEAF_CALL {label(event['witness']['signature'])}; continuation IF normal return; context preserved under catalog premises; runtime execution UNKNOWN"
++            )
+         elif event["kind"] == "UNRESOLVED_CALL":
+             lines.append(
+                 f"note right of {callee} #FFCCCC: UNKNOWN call {label(event['receiver'])}.{label(event['method'])}; remaining order NOT ASSERTED"
+diff --git a/scripts/skill_factory/transactions/resources.py b/scripts/skill_factory/transactions/resources.py
+--- a/scripts/skill_factory/transactions/resources.py
++++ b/scripts/skill_factory/transactions/resources.py
+@@ -1,13 +1,10 @@
+ """Source observations at T01 frontiers; no transaction or lock state machine."""
+ 
+ import copy
+-import re
+ 
+ from .model import validate_model
+-
+-JDBC = "org.springframework.jdbc.core.JdbcTemplate"
+-AUTOWIRED = "org.springframework.beans.factory.annotation.Autowired"
+-IDENTIFIER = r"[A-Za-z_][A-Za-z_0-9]*"
++from .resource_leaf import AUTOWIRED, JDBC, sql_operation
++
+ LIMITS = [
+     "Observed syntax is not proof of execution, enlistment or an acquired lock.",
+     "T01 scenario premises and unresolved continuations are preserved unchanged.",
+@@ -15,30 +12,6 @@
+     "No database query, runtime capture, commit/rollback or lock release is inferred.",
+     "Only a direct unqualified Autowired JdbcTemplate field and one SQL literal argument are supported.",
+ ]
+-
+-
+-def sql_operation(sql, api):
+-    """A deliberately closed SQL grammar; identifiers denote syntax, not DB objects."""
+-    if not isinstance(sql, str):
+-        return "UNKNOWN", None
+-    patterns = [
+-        (rf"SELECT \* FROM ({IDENTIFIER}) FOR UPDATE", "EXPLICIT_LOCK_REQUEST"),
+-        (rf"SELECT \* FROM ({IDENTIFIER})", "READ"),
+-        (rf"UPDATE ({IDENTIFIER}) SET {IDENTIFIER} = [0-9]+", "WRITE"),
+-        (rf"DELETE FROM ({IDENTIFIER})", "WRITE"),
+-        (rf"INSERT INTO ({IDENTIFIER}) \({IDENTIFIER}\) VALUES \([0-9]+\)", "WRITE"),
+-    ]
+-    for pattern, kind in patterns:
+-        match = re.fullmatch(pattern, sql.strip(), re.IGNORECASE | re.ASCII)
+-        if match and (
+-            api == "execute"
+-            or api == "update"
+-            and kind == "WRITE"
+-            or api == "queryForList"
+-            and kind in {"READ", "EXPLICIT_LOCK_REQUEST"}
+-        ):
+-            return kind, match.group(1)
+-    return "UNKNOWN", None
+ 
+ 
+ def _method(facts, frame):
+@@ -136,6 +109,12 @@
+     frames = {f["id"]: f for f in transaction["frames"]}
+     observations, timeline, stack = [], [], []
+     live, suspended = set(), set()
++    leaf_dependencies = []
++    if (
++        "resourceLeafExtension" in transaction
++        and transaction["resourceLeafExtension"]["sourceFacts"] != facts
++    ):
++        raise ValueError("resource source facts differ from T01 leaf snapshot")
+     for event in transaction["events"]:
+         frame = frames[event["frame"]]
+         kind = event["kind"]
+@@ -149,7 +128,7 @@
+             suspended.add(event["physicalId"])
+         elif kind == "RESUME_CONDITIONAL":
+             suspended.remove(event["physicalId"])
+-        elif kind == "UNRESOLVED_CALL":
++        elif kind in {"UNRESOLVED_CALL", "RESOURCE_LEAF_CALL"}:
+             cls, method = _method(facts, frame)
+             calls = [c for c in method["calls"] if c["evidence"] == event["callSite"]]
+             if len(calls) != 1:
+@@ -168,6 +147,16 @@
+             observation = _observation(
+                 cls, method, calls[0], frame, state, event["sequence"]
+             )
++            if kind == "RESOURCE_LEAF_CALL":
++                observation["placement"]["status"] = "T01_RESOURCE_LEAF"
++                observation["premises"].extend(event["witness"]["premises"])
++            if leaf_dependencies:
++                observation["premises"].append(
++                    "Normal returns required from prior T01 resource leaf calls: "
++                    + str(leaf_dependencies)
++                )
++            if kind == "RESOURCE_LEAF_CALL":
++                leaf_dependencies.append(event["sequence"])
+             observation["id"] = "O" + str(len(observations) + 1)
+             observations.append(observation)
+             timeline.append(
+diff --git a/scripts/skill_factory/transactions/resource_leaf.py b/scripts/skill_factory/transactions/resource_leaf.py
+new file mode 100644
+--- /dev/null
++++ b/scripts/skill_factory/transactions/resource_leaf.py
+@@ -0,0 +1,283 @@
++"""Authoritative, opt-in JDBC literal leaf catalog; no propagation or runtime proof."""
++
++import copy
++import re
++
++JDBC = "org.springframework.jdbc.core.JdbcTemplate"
++AUTOWIRED = "org.springframework.beans.factory.annotation.Autowired"
++POLICY = "JDBC_LITERAL_V1"
++MAX_LEAVES = 128
++EXTENSION = "mana.transaction-resource-leaves/v1"
++RULE = {"id": "spring-jdbc-template-literal", "version": 1}
++SIGNATURES = {
++    "execute": JDBC + "#execute(java.lang.String):void",
++    "update": JDBC + "#update(java.lang.String):int",
++    "queryForList": JDBC + "#queryForList(java.lang.String):java.util.List",
++}
++CALLER_ANNOTATIONS = {
++    "org.springframework.stereotype." + name
++    for name in ("Service", "Component", "Repository", "Controller")
++} | {
++    "org.springframework.transaction.annotation.Transactional",
++    "Override",
++    "java.lang.Override",
++    "Deprecated",
++    "java.lang.Deprecated",
++}
++PREMISES = [
++    "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
++    "Normal synchronous return is assumed only for continuation of this path.",
++    "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
++    "The catalogued overload has no application callback argument.",
++]
++LIMITS = [
++    "Runtime execution, successful SQL completion and normal return are not proved.",
++    "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
++    "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
++    "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled.",
++]
++IDENTIFIER = r"[A-Za-z_][A-Za-z_0-9]*"
++
++
++def sql_operation(sql, api):
++    """Closed syntax grammar excludes SQL demarcation, calls and compound statements."""
++    if not isinstance(sql, str):
++        return "UNKNOWN", None
++    patterns = [
++        (rf"SELECT \* FROM ({IDENTIFIER}) FOR UPDATE", "EXPLICIT_LOCK_REQUEST"),
++        (rf"SELECT \* FROM ({IDENTIFIER})", "READ"),
++        (rf"UPDATE ({IDENTIFIER}) SET {IDENTIFIER} = [0-9]+", "WRITE"),
++        (rf"DELETE FROM ({IDENTIFIER})", "WRITE"),
++        (rf"INSERT INTO ({IDENTIFIER}) \({IDENTIFIER}\) VALUES \([0-9]+\)", "WRITE"),
++    ]
++    for pattern, kind in patterns:
++        match = re.fullmatch(pattern, sql.strip(), re.IGNORECASE | re.ASCII)
++        if match and (
++            api == "execute"
++            or api == "update"
++            and kind == "WRITE"
++            or api == "queryForList"
++            and kind in {"READ", "EXPLICIT_LOCK_REQUEST"}
++        ):
++            return kind, match.group(1)
++    return "UNKNOWN", None
++
++
++def source_method(facts, frame):
++    matches = [
++        (cls, method)
++        for cls in facts["classes"]
++        for method in cls["methods"]
++        if cls["name"] + "#" + method["name"] + "()" == frame["calleeMethod"]
++        and method["arity"] == 0
++        and method["evidence"] == frame["evidence"]
++    ]
++    if len(matches) != 1:
++        raise ValueError("resource leaf has no unique source method")
++    return matches[0]
++
++
++def classify(facts, cls, method, call, state, sequence, dependencies):
++    """Recompute the whole witness from facts and the fixed catalog, never safe=true."""
++    receiver = call["receiver"]
++    field_name = receiver.removeprefix("this.")
++    fields = [f for f in cls["fields"] if f["name"] == field_name]
++    args = call.get("arguments", [])
++    if (
++        state["kind"] not in {"NO_TRANSACTION", "TRANSACTION_PHYSICAL"}
++        or state["kind"] == "TRANSACTION_PHYSICAL"
++        and not state["physicalId"]
++        or len(fields) != 1
++        or receiver not in {field_name, "this." + field_name}
++        or cls["parents"]
++        or cls["kind"] != "CLASS"
++        or "abstract" in cls["flags"]
++        or "public" not in method["flags"]
++        or bool(set(method["flags"]) & {"static", "abstract"})
++        or any(
++            a["type"] not in CALLER_ANNOTATIONS
++            for a in cls["annotations"] + method["annotations"]
++        )
++        or method["hazards"]
++        or call.get("statementCall") is not True
++        or call["name"] not in SIGNATURES
++        or call["arity"] != 1
++        or len(args) != 1
++        or args[0]["kind"] != "STRING_LITERAL"
++        or sql_operation(args[0]["literal"], call["name"])[0] == "UNKNOWN"
++    ):
++        return None
++    field = fields[0]
++    if (
++        field["type"] != JDBC
++        or field["initialized"]
++        or len(field["annotations"]) != 1
++        or field["annotations"][0]["type"] != AUTOWIRED
++        or field["annotations"][0]["args"]
++    ):
++        return None
++
++    def inside(child, parent):
++        return (
++            child["file"] == parent["file"]
++            and child["sha256"] == parent["sha256"]
++            and type(child["start"]) is int
++            and type(child["end"]) is int
++            and parent["start"] <= child["start"] < child["end"] <= parent["end"]
++        )
++
++    if not (
++        inside(method["evidence"], cls["evidence"])
++        and inside(field["evidence"], cls["evidence"])
++        and inside(call["evidence"], method["evidence"])
++        and inside(args[0]["evidence"], call["evidence"])
++    ):
++        return None
++    # Observed subclassing, local shadows and factories invalidate standard dispatch.
++    # Unobserved runtime substitution is explicitly outside the scenario premise.
++    if any(
++        c["name"] == JDBC
++        or c["simpleName"] == "JdbcTemplate"
++        or any(p in {JDBC, "JdbcTemplate"} for p in c["parents"])
++        or any(m["returnType"] == JDBC for m in c["methods"])
++        for c in facts["classes"]
++    ):
++        return None
++    index = next(i for i, c in enumerate(method["calls"], 1) if c == call)
++    return {
++        "schema": "mana.resource-leaf-witness/v1",
++        "rule": dict(RULE),
++        "signature": SIGNATURES[call["name"]],
++        "receiverType": JDBC,
++        "callSite": copy.deepcopy(call["evidence"]),
++        "methodEvidence": copy.deepcopy(method["evidence"]),
++        "bindingEvidence": copy.deepcopy(field["evidence"]),
++        "argumentEvidence": copy.deepcopy(args[0]["evidence"]),
++        "sourceCallOrdinal": index,
++        "t01Sequence": sequence,
++        "normalReturnDependencies": list(dependencies),
++        "transactionContext": copy.deepcopy(state),
++        "premises": list(PREMISES),
++        "limits": list(LIMITS),
++    }
++
++
++def validate_extension(report):
++    """Check capability/version, fact provenance and source prefix independently of build."""
++    policy = report["context"].get("resourceLeafPolicy", "DISABLED")
++    if policy not in ("DISABLED", POLICY):
++        raise ValueError("unsupported resource leaf policy")
++    extension = report.get("resourceLeafExtension")
++    leaves = [e for e in report["events"] if e["kind"] == "RESOURCE_LEAF_CALL"]
++    if len(leaves) > MAX_LEAVES:
++        raise ValueError("resource leaf budget exceeded")
++    if policy == "DISABLED":
++        if extension is not None or leaves:
++            raise ValueError("resource leaf requires explicit versioned capability")
++        return None
++    if (
++        not isinstance(extension, dict)
++        or set(extension) != {"schema", "sourceFacts"}
++        or extension["schema"] != EXTENSION
++    ):
++        raise ValueError("missing or unsupported resource leaf extension")
++    facts = extension["sourceFacts"]
++    if not isinstance(facts, dict) or not isinstance(facts.get("classes"), list):
++        raise ValueError("invalid resource leaf source facts")
++    if facts.get("errors") or len({c["name"] for c in facts["classes"]}) != len(
++        facts["classes"]
++    ):
++        raise ValueError("invalid resource leaf source facts")
++    hashes = {e["path"]: e["sha256"] for e in report.get("evidence", [])}
++
++    def verify(value):
++        if isinstance(value, dict):
++            if {"file", "sha256", "start", "end", "line"} <= value.keys():
++                if hashes.get(value["file"]) != value["sha256"]:
++                    raise ValueError("resource leaf source hash mismatch")
++            for item in value.values():
++                verify(item)
++        elif isinstance(value, list):
++            for item in value:
++                verify(item)
++
++    verify(facts)
++    stack, parent_of = [], {}
++    for event in report["events"]:
++        if event["kind"] == "FRAME_ENTER":
++            parent_of[event["frame"]] = stack[-1] if stack else None
++            stack.append(event["frame"])
++        elif event["kind"] == "FRAME_EXIT":
++            if not stack or stack.pop() != event["frame"]:
++                raise ValueError("unbalanced resource leaf frame trace")
++    for frame in report["frames"]:
++        _, method = source_method(facts, frame)
++        statement_sites = [
++            c["evidence"] for c in method["calls"] if c.get("statementCall") is True
++        ]
++        if any(
++            b["start"] < a["end"] for a, b in zip(statement_sites, statement_sites[1:])
++        ):
++            raise ValueError("resource leaf statement order contradicts source spans")
++        steps = []
++        for event in report["events"]:
++            if event["frame"] == frame["id"] and event["kind"] in {
++                "RESOURCE_LEAF_CALL",
++                "UNRESOLVED_CALL",
++            }:
++                steps.append((event["sequence"], event["callSite"], event))
++            elif event["kind"] == "FRAME_ENTER":
++                child = next(f for f in report["frames"] if f["id"] == event["frame"])
++                if parent_of[child["id"]] == frame["id"]:
++                    steps.append((event["sequence"], child["callSite"], child))
++        steps.sort(key=lambda s: s[0])
++        if [s[1] for s in steps] != [
++            c["evidence"] for c in method["calls"][: len(steps)]
++        ]:
++            raise ValueError("resource leaf source call order/provenance mismatch")
++        if frame["bodyTraversal"] == "STRAIGHT_LINE" and len(steps) < len(
++            method["calls"]
++        ):
++            last = steps[-1][2] if steps else {}
++            if not (
++                last.get("kind") == "UNRESOLVED_CALL"
++                or last.get("continuation") == "UNKNOWN"
++                or last.get("bodyTraversal") == "NOT_ASSERTED"
++            ):
++                raise ValueError("resource leaf source suffix missing without frontier")
++    return facts
++
++
++def validate_call(report, facts, frame, event, current, dependencies):
++    if facts is None:
++        raise ValueError("resource leaf lacks source capability")
++    if set(event) != {
++        "sequence",
++        "kind",
++        "frame",
++        "callSite",
++        "receiver",
++        "method",
++        "witness",
++    }:
++        raise ValueError("resource leaf event requires its versioned witness")
++    cls, method = source_method(facts, frame)
++    calls = [c for c in method["calls"] if c["evidence"] == event["callSite"]]
++    if len(calls) != 1 or (event["receiver"], event["method"]) != (
++        calls[0]["receiver"],
++        calls[0]["name"],
++    ):
++        raise ValueError("resource leaf call site differs from source")
++    expected = classify(
++        facts, cls, method, calls[0], current, event["sequence"], dependencies
++    )
++    witness = event.get("witness")
++    if (
++        expected is None
++        or witness != expected
++        or type(witness["rule"]["version"]) is not int
++        or type(witness["sourceCallOrdinal"]) is not int
++        or type(witness["t01Sequence"]) is not int
++        or any(type(i) is not int for i in witness["normalReturnDependencies"])
++    ):
++        raise ValueError("resource leaf witness fails authoritative classification")
+diff --git a/tests/transaction-resource-leaves.py b/tests/transaction-resource-leaves.py
+new file mode 100644
+--- /dev/null
++++ b/tests/transaction-resource-leaves.py
+@@ -0,0 +1,659 @@
++#!/usr/bin/env python3
++"""Independent D02 source/path oracles, legacy compatibility and forged-witness negatives."""
++
++import copy
++import hashlib
++import importlib.util
++import json
++from pathlib import Path
++import shutil
++import subprocess
++import tempfile
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++FIXTURE = ROOT / "tests/fixtures/resource-timeline"
++ORACLES = json.loads((FIXTURE / "resource-leaf-oracles.json").read_text())
++spec = importlib.util.spec_from_file_location(
++    "resource_cli", ROOT / "scripts/mana-resource-timeline.py"
++)
++cli = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(cli)
++
++VARIANTS = """
++    @Autowired org.springframework.transaction.support.TransactionTemplate template;
++    org.springframework.transaction.support.TransactionCallback callback;
++    @Transactional public void three() { jdbc.execute("SELECT * FROM accounts"); jdbc.update("DELETE FROM ledger"); jdbc.update("INSERT INTO audit (id) VALUES (1)"); }
++    @Transactional public void followed() { jdbc.update("DELETE FROM accounts"); empty(); jdbc.update("DELETE FROM ledger"); }
++    public void empty() {}
++    @Transactional public void opaque() { jdbc.update("DELETE FROM accounts"); unknownReceiver.run(); jdbc.update("DELETE FROM ledger"); }
++    @Transactional public void programmatic() { jdbc.update("DELETE FROM accounts"); template.execute(callback); jdbc.update("DELETE FROM ledger"); }
++    @Transactional public void callbackArgument() { jdbc.execute(callback); jdbc.update("DELETE FROM ledger"); }
++    @Transactional public void callbackLambda() { jdbc.execute(con -> { return null; }); jdbc.update("DELETE FROM ledger"); }
++    @Transactional public void manual() { jdbc.update("DELETE FROM accounts"); connection.commit(); jdbc.update("DELETE FROM ledger"); }
++    @Transactional public void autoCommit() { connection.setAutoCommit(false); jdbc.update("DELETE FROM ledger"); }
++    @Transactional public void sqlCommit() { jdbc.execute("COMMIT"); jdbc.update("DELETE FROM ledger"); }
++    @Transactional public void uncatalogued() { jdbc.batchUpdate("DELETE FROM accounts"); jdbc.update("DELETE FROM ledger"); }
++    @Transactional public void unordered() { if (flag) { jdbc.update("DELETE FROM accounts"); } jdbc.update("DELETE FROM ledger"); }
++    @Transactional public void conditionalArgument() { opaqueReceiver.run(flag ? jdbc.update("DELETE FROM accounts") : jdbc.update("DELETE FROM ledger")); }
++    @Transactional public void mayThrow() { jdbc.execute("SELECT * FROM missing_table"); jdbc.update("DELETE FROM ledger"); }
++    @Transactional public void explicitThis() { this.jdbc.update("DELETE FROM accounts"); }
++    @Transactional public void variableSql() { jdbc.update(sqlA); jdbc.update("DELETE FROM ledger"); }
++    @Transactional public void emptyRequired() {}
++"""
++
++
++def snapshot(project):
++    return {
++        str(p.relative_to(project)): hashlib.sha256(p.read_bytes()).hexdigest()
++        for p in project.rglob("*")
++        if p.is_file()
++    }
++
++
++class LeafTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.tmp = tempfile.TemporaryDirectory()
++        cls.stage = Path(cls.tmp.name).resolve()
++        cls.context = json.loads((FIXTURE / "context.json").read_text())
++        cls.projects = {"original": FIXTURE}
++        for name in ["r1", "variants"]:
++            project = cls.stage / name
++            shutil.copytree(FIXTURE, project)
++            source = project / "src/main/java/fixture/Resources.java"
++            text = source.read_text()
++            if name == "r1":
++                text = text.replace(
++                    "public void sequence()", "@Transactional public void sequence()"
++                )
++            else:
++                text = text.replace(
++                    "class Operations {", "class Operations {" + VARIANTS
++                )
++                text = text.replace(
++                    "class Entry {",
++                    "class Entry {\n    public void afterTerminated() { operations.emptyRequired(); operations.write(); }",
++                )
++            source.write_text(text)
++            if name == "variants":
++                text = text.replace(
++                    "class Operations {",
++                    "class Operations {\n    @Transactional public void longSequence() { "
++                    + 'jdbc.update("DELETE FROM accounts"); ' * 129
++                    + 'jdbc.update("DELETE FROM ledger"); }\n',
++                )
++                source.write_text(text)
++            cls.projects[name] = project
++        cls.facts = {}
++        cls.snapshots = {}
++        for name, project in cls.projects.items():
++            cls.snapshots[name] = snapshot(project)
++            files = cli.t01.factory.project_files(
++                project, cli.t01.factory.adapter_for("transaction-analysis")
++            )
++            cls.facts[name] = cli.t01.java_facts(cli.t01.factory, project, files)
++
++    @classmethod
++    def tearDownClass(cls):
++        cls.tmp.cleanup()
++
++    def model(
++        self,
++        entry="fixture.Operations#sequence()",
++        fixture="r1",
++        context=None,
++        facts=None,
++    ):
++        source_facts = copy.deepcopy(
++            facts if facts is not None else self.facts[fixture]
++        )
++        scenario = (
++            {**self.context, "resourceLeafPolicy": "JDBC_LITERAL_V1"}
++            if context is None
++            else context
++        )
++        tx = cli.t01.build(source_facts, scenario, entry)
++        if "evidence" not in tx:
++            tx["evidence"] = [
++                {"path": c["evidence"]["file"], "sha256": c["evidence"]["sha256"]}
++                for c in source_facts["classes"]
++            ]
++        cli.t01.validate_model(tx)
++        report = cli.build_timeline(tx, source_facts)
++        cli.validate_timeline(report)
++        return report
++
++    def leaves(self, report):
++        return [
++            e
++            for e in report["transactionModel"]["events"]
++            if e["kind"] == "RESOURCE_LEAF_CALL"
++        ]
++
++    def test_literal_independent_path_oracles(self):
++        for oracle in ORACLES["cases"]:
++            with self.subTest(entry=oracle["entry"]):
++                report = self.model(oracle["entry"], oracle["fixture"])
++                tx, ops, leaves = (
++                    report["transactionModel"],
++                    report["observations"],
++                    self.leaves(report),
++                )
++                self.assertEqual(
++                    [o["transactionContext"]["physicalId"] for o in ops],
++                    oracle["physicalIds"],
++                )
++                self.assertEqual(
++                    [o["resource"]["name"] for o in ops], oracle["resources"]
++                )
++                self.assertEqual(
++                    [e["sequence"] for e in leaves], oracle["leafSequences"]
++                )
++                self.assertEqual(
++                    [e["witness"]["normalReturnDependencies"] for e in leaves],
++                    oracle["dependencies"],
++                )
++                self.assertEqual(
++                    len(tx["physicalTransactions"]), oracle["physicalCount"]
++                )
++                self.assertEqual(len(tx["savepoints"]), oracle["savepoints"])
++                self.assertEqual(len(tx["suspensions"]), oracle["suspensions"])
++                self.assertTrue(
++                    all(o["placement"]["status"] == "T01_RESOURCE_LEAF" for o in ops)
++                )
++                for leaf in leaves:
++                    self.assertEqual(
++                        leaf["witness"]["signature"],
++                        ORACLES["signatures"][leaf["method"]],
++                    )
++
++    def test_call_sites_match_exact_r1_source_and_owner(self):
++        report = self.model()
++        self.assertEqual(len(report["transactionModel"]["frames"]), 1)
++        for leaf, expected in zip(
++            self.leaves(report),
++            [
++                'jdbc.execute("SELECT * FROM accounts")',
++                'jdbc.update("DELETE FROM ledger")',
++            ],
++        ):
++            site = leaf["callSite"]
++            self.assertEqual(
++                (site["start"], site["end"]),
++                (2630, 2668) if leaf["method"] == "execute" else (2670, 2703),
++            )
++            raw = (self.projects["r1"] / site["file"]).read_bytes()
++            self.assertEqual(site["sha256"], hashlib.sha256(raw).hexdigest())
++            utf16 = raw.decode().encode("utf-16-le")
++            self.assertEqual(
++                utf16[site["start"] * 2 : site["end"] * 2].decode("utf-16-le"), expected
++            )
++            self.assertEqual(leaf["frame"], "F1")
++
++    def test_may_throw_only_conditions_suffix_on_normal_return(self):
++        report = self.model("fixture.Operations#mayThrow()", "variants")
++        first, second = self.leaves(report)
++        self.assertEqual(
++            second["witness"]["normalReturnDependencies"], [first["sequence"]]
++        )
++        self.assertIn(
++            "Normal synchronous return is assumed only for continuation of this path.",
++            first["witness"]["premises"],
++        )
++        self.assertIn(
++            "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled.",
++            first["witness"]["limits"],
++        )
++        self.assertTrue(
++            any(
++                "Normal returns required" in p
++                for p in report["observations"][1]["premises"]
++            )
++        )
++        self.assertEqual(
++            report["transactionModel"]["physicalTransactions"][0]["outcome"], "UNKNOWN"
++        )
++        self.assertEqual(report["status"], "CONDITIONAL_STATIC_SCENARIO")
++
++    def test_real_unresolved_frontiers_still_cut_the_suffix(self):
++        for method in ["opaque", "programmatic", "manual"]:
++            with self.subTest(method=method):
++                report = self.model(f"fixture.Operations#{method}()", "variants")
++                self.assertEqual(len(self.leaves(report)), 1)
++                self.assertEqual(
++                    report["observations"][-1]["placement"]["status"], "UNPLACED"
++                )
++                self.assertIsNone(
++                    report["observations"][-1]["transactionContext"]["physicalId"]
++                )
++                self.assertEqual(
++                    report["transactionModel"]["frames"][0]["continuation"], "UNKNOWN"
++                )
++                self.assertEqual(
++                    [
++                        e["kind"]
++                        for e in report["transactionModel"]["events"]
++                        if e["kind"].endswith("CALL")
++                    ],
++                    ["RESOURCE_LEAF_CALL", "UNRESOLVED_CALL"],
++                )
++
++    def test_callback_nonliteral_uncatalogued_and_demarcation_are_not_leaves(self):
++        for method in [
++            "callbackArgument",
++            "autoCommit",
++            "sqlCommit",
++            "uncatalogued",
++            "variableSql",
++        ]:
++            with self.subTest(method=method):
++                report = self.model(f"fixture.Operations#{method}()", "variants")
++                self.assertFalse(self.leaves(report))
++                self.assertTrue(
++                    any(
++                        e["kind"] == "UNRESOLVED_CALL"
++                        for e in report["transactionModel"]["events"]
++                    )
++                )
++                self.assertEqual(
++                    report["observations"][-1]["placement"]["status"], "UNPLACED"
++                )
++
++    def test_unknown_control_flow_async_and_lambda_bodies_not_traversed(self):
++        for method in ["unordered", "callbackLambda", "async"]:
++            with self.subTest(method=method):
++                report = self.model(f"fixture.Operations#{method}()", "variants")
++                self.assertFalse(self.leaves(report))
++                self.assertTrue(
++                    all(
++                        o["placement"]["status"] == "UNPLACED"
++                        for o in report["observations"]
++                    )
++                )
++
++    def test_unknown_context_cannot_acquire_leaf_continuation(self):
++        report = self.model(
++            context={
++                **self.context,
++                "resourceLeafPolicy": "JDBC_LITERAL_V1",
++                "initialState": "UNKNOWN",
++            }
++        )
++        self.assertFalse(self.leaves(report))
++        self.assertTrue(
++            all(
++                o["transactionContext"]["kind"] == "UNKNOWN"
++                for o in report["observations"]
++            )
++        )
++
++    def test_leaf_budget_preserves_prefix_and_cuts_remaining_suffix(self):
++        report = self.model("fixture.Operations#longSequence()", "variants")
++        self.assertEqual(len(self.leaves(report)), 128)
++        self.assertEqual(
++            report["transactionModel"]["frames"][0]["continuation"], "UNKNOWN"
++        )
++        self.assertIn(
++            "RESOURCE_LEAF_BUDGET_EXCEEDED",
++            [u["reason"] for u in report["transactionModel"]["uncertainties"]],
++        )
++        self.assertEqual(report["observations"][-1]["placement"]["status"], "UNPLACED")
++
++    def test_nested_conditional_arguments_cannot_become_a_linear_leaf_path(self):
++        report = self.model("fixture.Operations#conditionalArgument()", "variants")
++        self.assertFalse(self.leaves(report))
++        self.assertEqual(
++            report["transactionModel"]["frames"][0]["continuation"], "UNKNOWN"
++        )
++
++    def test_observed_override_or_shadow_blocks_standard_dispatch(self):
++        for declaration in [
++            "class Derived extends JdbcTemplate {}",
++            "class JdbcTemplate {}",
++        ]:
++            with (
++                self.subTest(declaration=declaration),
++                tempfile.TemporaryDirectory() as tmp,
++            ):
++                project = Path(tmp).resolve() / "fixture"
++                shutil.copytree(self.projects["r1"], project)
++                source = project / "src/main/java/fixture/Resources.java"
++                source.write_text(source.read_text() + "\n" + declaration)
++                files = cli.t01.factory.project_files(
++                    project, cli.t01.factory.adapter_for("transaction-analysis")
++                )
++                facts = cli.t01.java_facts(cli.t01.factory, project, files)
++                self.assertFalse(self.leaves(self.model(facts=facts)))
++
++    def test_qualified_or_initialized_receiver_and_wrong_type_not_catalogued(self):
++        for change in ["qualifier", "initialized", "type"]:
++            with self.subTest(change=change):
++                facts = copy.deepcopy(self.facts["r1"])
++                field = next(
++                    f
++                    for c in facts["classes"]
++                    if c["simpleName"] == "Operations"
++                    for f in c["fields"]
++                    if f["name"] == "jdbc"
++                )
++                if change == "qualifier":
++                    field["annotations"].append(
++                        {
++                            "type": "org.springframework.beans.factory.annotation.Qualifier",
++                            "args": {},
++                        }
++                    )
++                elif change == "initialized":
++                    field["initialized"] = True
++                else:
++                    field["type"] = "opaque.JdbcTemplate"
++                self.assertFalse(self.leaves(self.model(facts=facts)))
++
++    def test_explicit_this_receiver_is_supported(self):
++        self.assertEqual(
++            len(
++                self.leaves(self.model("fixture.Operations#explicitThis()", "variants"))
++            ),
++            1,
++        )
++
++    def test_enlistment_datasource_and_acquired_lock_stay_unknown(self):
++        for oracle in ORACLES["cases"]:
++            report = self.model(oracle["entry"], oracle["fixture"])
++            for op in report["observations"]:
++                self.assertEqual(op["enlistment"], "UNKNOWN")
++                self.assertEqual(op["datasource"], {"status": "UNKNOWN", "id": None})
++                self.assertEqual(op["lockAcquired"], "UNKNOWN")
++                self.assertEqual(op["resource"]["lockGranularity"], "UNKNOWN")
++
++    def test_after_real_termination_no_p1_is_reused(self):
++        report = self.model("fixture.Entry#afterTerminated()", "variants")
++        leaf = self.leaves(report)[0]
++        self.assertEqual(
++            leaf["witness"]["transactionContext"],
++            {"kind": "NO_TRANSACTION", "physicalId": None, "manager": None},
++        )
++        self.assertLess(
++            next(
++                e["sequence"]
++                for e in report["transactionModel"]["events"]
++                if e["kind"] == "PHYSICAL_END_OUTCOME_UNKNOWN"
++            ),
++            leaf["sequence"],
++        )
++
++    def test_witness_missing_incompatible_or_forged_is_rejected(self):
++        for change in [
++            "missing",
++            "rule",
++            "signature",
++            "safe",
++            "premises",
++            "dependency",
++            "context",
++            "source",
++            "ordinal",
++        ]:
++            with self.subTest(change=change):
++                tx = copy.deepcopy(self.model()["transactionModel"])
++                leaf = next(
++                    e for e in tx["events"] if e["kind"] == "RESOURCE_LEAF_CALL"
++                )
++                witness = leaf["witness"]
++                if change == "missing":
++                    del leaf["witness"]
++                elif change == "rule":
++                    witness["rule"]["version"] = 999
++                elif change == "signature":
++                    witness["signature"] = "java.sql.Connection#commit():void"
++                elif change == "safe":
++                    witness["safe"] = True
++                elif change == "premises":
++                    witness["premises"] = []
++                elif change == "dependency":
++                    witness["normalReturnDependencies"] = [999]
++                elif change == "context":
++                    witness["transactionContext"]["physicalId"] = "P2"
++                elif change == "source":
++                    witness["bindingEvidence"]["sha256"] = "0" * 64
++                elif change == "ordinal":
++                    witness["sourceCallOrdinal"] = 3
++                with self.assertRaises(ValueError):
++                    cli.t01.validate_model(tx)
++
++    def test_reclassification_checks_facts_instead_of_trusting_safe_flag(self):
++        tx = copy.deepcopy(self.model()["transactionModel"])
++        facts = tx["resourceLeafExtension"]["sourceFacts"]
++        call = next(
++            m for c in facts["classes"] for m in c["methods"] if m["name"] == "sequence"
++        )["calls"][0]
++        call["arguments"][0]["kind"] = "IDENTIFIER"
++        call["safe"] = True
++        with self.assertRaisesRegex(ValueError, "authoritative classification"):
++            cli.t01.validate_model(tx)
++
++    def test_coordinated_call_span_outside_owner_is_rejected(self):
++        tx = self.model()["transactionModel"]
++        leaf = next(e for e in tx["events"] if e["kind"] == "RESOURCE_LEAF_CALL")
++        call = next(
++            m
++            for c in tx["resourceLeafExtension"]["sourceFacts"]["classes"]
++            for m in c["methods"]
++            if m["name"] == "sequence"
++        )["calls"][0]
++        for site in [call["evidence"], leaf["callSite"], leaf["witness"]["callSite"]]:
++            site["start"] = 0
++            site["end"] = 10
++        with self.assertRaises(ValueError):
++            cli.t01.validate_model(tx)
++
++    def test_source_facts_hash_and_t02_snapshot_must_agree(self):
++        report = self.model()
++        report["transactionModel"]["resourceLeafExtension"]["sourceFacts"]["classes"][
++            0
++        ]["evidence"]["sha256"] = "0" * 64
++        with self.assertRaises(ValueError):
++            cli.validate_timeline(report)
++        report = self.model()
++        report["sourceFacts"]["classes"][0]["simpleName"] = "Forged"
++        with self.assertRaises(ValueError):
++            cli.validate_timeline(report)
++
++    def test_authoritative_rule_rejects_async_or_unknown_caller_annotations_in_facts(
++        self,
++    ):
++        for ann in [
++            "org.springframework.scheduling.annotation.Async",
++            "unresolved.CustomAdvisor",
++        ]:
++            tx = self.model()["transactionModel"]
++            method = next(
++                m
++                for c in tx["resourceLeafExtension"]["sourceFacts"]["classes"]
++                for m in c["methods"]
++                if m["name"] == "sequence"
++            )
++            method["annotations"].append({"type": ann, "args": {}})
++            with self.subTest(annotation=ann), self.assertRaises(ValueError):
++                cli.t01.validate_model(tx)
++
++    def test_event_reorder_removal_and_past_terminal_rejected(self):
++        for change in ["reorder", "remove", "terminal"]:
++            with self.subTest(change=change):
++                tx = copy.deepcopy(self.model()["transactionModel"])
++                if change == "reorder":
++                    tx["events"][3], tx["events"][4] = tx["events"][4], tx["events"][3]
++                elif change == "remove":
++                    tx["events"].pop(4)
++                else:
++                    tx["events"].insert(-1, tx["events"].pop(4))
++                for i, event in enumerate(tx["events"], 1):
++                    event["sequence"] = i
++                with self.assertRaises(ValueError):
++                    cli.t01.validate_model(tx)
++
++    def test_reordered_facts_and_witnesses_cannot_override_source_statement_order(self):
++        tx = self.model()["transactionModel"]
++        method = next(
++            m
++            for c in tx["resourceLeafExtension"]["sourceFacts"]["classes"]
++            for m in c["methods"]
++            if m["name"] == "sequence"
++        )
++        method["calls"].reverse()
++        tx["events"][3], tx["events"][4] = tx["events"][4], tx["events"][3]
++        for ordinal, event in enumerate(tx["events"][3:5], 1):
++            event["sequence"] = ordinal + 3
++            event["witness"]["t01Sequence"] = ordinal + 3
++            event["witness"]["sourceCallOrdinal"] = ordinal
++            event["witness"]["normalReturnDependencies"] = [] if ordinal == 1 else [4]
++        with self.assertRaisesRegex(
++            ValueError, "statement order contradicts source spans"
++        ):
++            cli.t01.validate_model(tx)
++
++    def test_leaf_after_real_unresolved_call_cannot_restore_order(self):
++        tx = copy.deepcopy(
++            self.model("fixture.Operations#opaque()", "variants")["transactionModel"]
++        )
++        leaf = copy.deepcopy(
++            next(e for e in tx["events"] if e["kind"] == "RESOURCE_LEAF_CALL")
++        )
++        method = next(
++            m
++            for c in tx["resourceLeafExtension"]["sourceFacts"]["classes"]
++            for m in c["methods"]
++            if m["name"] == "opaque"
++        )
++        call = method["calls"][2]
++        leaf["callSite"] = copy.deepcopy(call["evidence"])
++        leaf["witness"]["callSite"] = copy.deepcopy(call["evidence"])
++        leaf["witness"]["argumentEvidence"] = copy.deepcopy(
++            call["arguments"][0]["evidence"]
++        )
++        leaf["witness"]["sourceCallOrdinal"] = 3
++        leaf["witness"]["t01Sequence"] = 6
++        leaf["witness"]["normalReturnDependencies"] = [4]
++        tx["events"].insert(5, leaf)
++        for i, event in enumerate(tx["events"], 1):
++            event["sequence"] = i
++        with self.assertRaisesRegex(ValueError, "unresolved execution order"):
++            cli.t01.validate_model(tx)
++
++    def test_renderer_rejects_unsupported_event_and_extension_versions(self):
++        tx = self.model()["transactionModel"]
++        tx["resourceLeafExtension"]["schema"] = "mana.transaction-resource-leaves/v99"
++        with self.assertRaises(ValueError):
++            cli.t01.render(tx)
++        tx = self.model(context=self.context)["transactionModel"]
++        tx["events"][3]["kind"] = "FUTURE_OPAQUE_CALL"
++        with self.assertRaises(ValueError):
++            cli.t01.render(tx)
++
++    def test_context_cannot_inject_project_defined_safe_rules(self):
++        raw = json.dumps({**self.context, "safe": True}).encode()
++        with self.assertRaises(ValueError):
++            cli.t01.context_input(Path("unused"), raw)
++
++    def test_numeric_boolean_rule_version_is_not_a_catalog_version(self):
++        tx = self.model()["transactionModel"]
++        next(e for e in tx["events"] if e["kind"] == "RESOURCE_LEAF_CALL")["witness"][
++            "rule"
++        ]["version"] = True
++        with self.assertRaises(ValueError):
++            cli.t01.validate_model(tx)
++
++    def test_post_terminal_leaf_rejected_even_with_matching_event_sequence(self):
++        tx = copy.deepcopy(self.model()["transactionModel"])
++        leaf = tx["events"].pop(4)
++        tx["events"].insert(-1, leaf)
++        for index, event in enumerate(tx["events"], 1):
++            event["sequence"] = index
++        leaf["witness"]["t01Sequence"] = leaf["sequence"]
++        with self.assertRaisesRegex(ValueError, "active lifetime"):
++            cli.t01.validate_model(tx)
++
++    def test_leaf_on_suspended_p1_cannot_replace_current_p2(self):
++        tx = self.model("fixture.Entry#independent()", "original")["transactionModel"]
++        leaf = next(e for e in tx["events"] if e["kind"] == "RESOURCE_LEAF_CALL")
++        leaf["witness"]["transactionContext"]["physicalId"] = "P1"
++        with self.assertRaises(ValueError):
++            cli.t01.validate_model(tx)
++
++    def test_legacy_ir_remains_identical_and_valid(self):
++        r1 = json.loads(
++            (
++                ROOT / "docs/reports/MANA-TRANSACTION-01-T02-S01-R1-results.json"
++            ).read_text()
++        )["counterexampleFullReport"]
++        before = copy.deepcopy(r1)
++        cli.validate_timeline(r1)
++        self.assertEqual(r1, before)
++        legacy = self.model(context=self.context)
++        self.assertNotIn("resourceLeafExtension", legacy["transactionModel"])
++        self.assertEqual(legacy["observations"][1]["placement"]["status"], "UNPLACED")
++
++    def test_unsupported_capability_version_or_implicit_activation_rejected(self):
++        for change in ["version", "policy", "extension"]:
++            tx = copy.deepcopy(self.model()["transactionModel"])
++            if change == "version":
++                tx["resourceLeafExtension"]["schema"] = (
++                    "mana.transaction-resource-leaves/v99"
++                )
++            elif change == "policy":
++                del tx["context"]["resourceLeafPolicy"]
++            else:
++                del tx["resourceLeafExtension"]
++            with self.subTest(change=change), self.assertRaises(ValueError):
++                cli.t01.validate_model(tx)
++
++    def test_rendering_does_not_hide_conditional_leaf_or_change_unresolved_meaning(
++        self,
++    ):
++        diagram = cli.t01.render(self.model()["transactionModel"])
++        self.assertIn("RESOURCE_LEAF_CALL", diagram)
++        self.assertIn("IF normal return", diagram)
++        self.assertIn("runtime execution UNKNOWN", diagram)
++        diagram = cli.t01.render(
++            self.model("fixture.Operations#opaque()", "variants")["transactionModel"]
++        )
++        self.assertIn("remaining order NOT ASSERTED", diagram)
++
++    def test_real_cli_opt_in_and_source_isolation(self):
++        with tempfile.TemporaryDirectory() as tmp:
++            context = Path(tmp).resolve() / "context.json"
++            context.write_text(
++                json.dumps({**self.context, "resourceLeafPolicy": "JDBC_LITERAL_V1"})
++            )
++            output = Path(tmp).resolve() / "out"
++            result = subprocess.run(
++                [
++                    "python3",
++                    str(ROOT / "scripts/mana-resource-timeline.py"),
++                    "--project-root",
++                    str(self.projects["r1"]),
++                    "--context",
++                    str(context),
++                    "--entry",
++                    "fixture.Operations#sequence()",
++                    "--output-dir",
++                    str(output),
++                ],
++                capture_output=True,
++                text=True,
++                timeout=60,
++            )
++            self.assertEqual(result.returncode, 0, result.stderr)
++            report = json.loads((output / "resource-timeline.json").read_text())
++            cli.validate_timeline(report)
++            self.assertEqual(
++                [o["transactionContext"]["physicalId"] for o in report["observations"]],
++                ["P1", "P1"],
++            )
++        for name, project in self.projects.items():
++            self.assertEqual(snapshot(project), self.snapshots[name])
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/fixtures/resource-timeline/resource-leaf-oracles.json b/tests/fixtures/resource-timeline/resource-leaf-oracles.json
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/resource-timeline/resource-leaf-oracles.json
+@@ -0,0 +1,15 @@
++{
++  "origin": "Hand-authored from literal source variants, MR00 and the D02 normal-path contract; never generated from build output",
++  "cases": [
++    {"fixture": "r1", "entry": "fixture.Operations#sequence()", "physicalIds": ["P1", "P1"], "resources": ["accounts", "ledger"], "leafSequences": [4, 5], "dependencies": [[], [4]], "physicalCount": 1, "savepoints": 0, "suspensions": 0},
++    {"fixture": "variants", "entry": "fixture.Operations#three()", "physicalIds": ["P1", "P1", "P1"], "resources": ["accounts", "ledger", "audit"], "leafSequences": [4, 5, 6], "dependencies": [[], [4], [4, 5]], "physicalCount": 1, "savepoints": 0, "suspensions": 0},
++    {"fixture": "original", "entry": "fixture.Entry#independent()", "physicalIds": ["P2"], "resources": ["ledger"], "leafSequences": [8], "dependencies": [[]], "physicalCount": 2, "savepoints": 0, "suspensions": 1},
++    {"fixture": "original", "entry": "fixture.Entry#nested()", "physicalIds": ["P1"], "resources": ["accounts"], "leafSequences": [7], "dependencies": [[]], "physicalCount": 1, "savepoints": 1, "suspensions": 0},
++    {"fixture": "variants", "entry": "fixture.Operations#followed()", "physicalIds": ["P1", "P1"], "resources": ["accounts", "ledger"], "leafSequences": [4, 7], "dependencies": [[], [4]], "physicalCount": 1, "savepoints": 0, "suspensions": 0}
++  ],
++  "signatures": {
++    "execute": "org.springframework.jdbc.core.JdbcTemplate#execute(java.lang.String):void",
++    "update": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
++    "queryForList": "org.springframework.jdbc.core.JdbcTemplate#queryForList(java.lang.String):java.util.List"
++  }
++}
+diff --git a/docs/standards/resource-leaf-extension-v1.md b/docs/standards/resource-leaf-extension-v1.md
+new file mode 100644
+--- /dev/null
++++ b/docs/standards/resource-leaf-extension-v1.md
+@@ -0,0 +1,167 @@
++# Resource Leaf Extension v1 — T02-S01-D02
++
++Status: implemented, conditional static scenario; pending independent review.
++This additive capability belongs to Transaction Model v1. It does not change
++MR00 boundary effects or the causal cut of `UNRESOLVED_CALL`.
++
++## Explicit activation and compatibility
++
++Add this optional field to the existing transaction scenario JSON:
++
++```json
++"resourceLeafPolicy": "JDBC_LITERAL_V1"
++```
++
++Omission or `DISABLED` retains legacy traversal. The flag selects an authoritative
++catalog and its explicit scenario premises; it cannot supply custom rules,
++signatures or `safe=true` classifications. Unknown policies are rejected.
++Both T01 and T02 CLIs use this same context input. No additional CLI, target
++execution or activation infrastructure is introduced.
++
++An enabled report retains `schema: mana.transaction-model/v1` and adds exactly:
++
++```json
++"resourceLeafExtension": {
++  "schema": "mana.transaction-resource-leaves/v1",
++  "sourceFacts": {"classes": [], "errors": []}
++}
++```
++
++The shown empty facts are illustrative; real reports contain the bounded parser
++snapshot. The extension and facts are required even if no leaf qualifies.
++Existing IR without this capability remains valid. Legacy artifacts and MR00
++oracles are not rewritten. Newly parsed invocation facts additionally record
++`statementCall`, a boolean indicating that the AST invocation is itself a
++top-level expression statement in the enclosing method; old facts without it
++cannot justify a new leaf.
++
++Consumers must validate the extension version and all event kinds before
++interpreting a report. An older T01 validator rejects `RESOURCE_LEAF_CALL` as an
++unknown event; that failure must not be ignored. Older renderers that skip
++validation are unsuitable for this extension. The updated Mana renderer validates
++enabled reports and rejects unsupported event kinds/versions. Unknown events must
++never be silently discarded to infer a normal continuation. Removing leaves
++from a report is not a supported downgrade. Legacy mode is a fresh analysis with
++the policy disabled; it preserves the first unresolved frontier and unplaced suffix.
++
++## Event and witness
++
++The new event is distinct from `UNRESOLVED_CALL`:
++
++| Event field | Contract |
++|---|---|
++| `kind` | `RESOURCE_LEAF_CALL` |
++| `sequence`, `frame` | Existing contiguous T01 event order and owning method frame |
++| `callSite` | Actual invocation source path, SHA-256, line and UTF-16 span |
++| `receiver`, `method` | Exact parsed invocation receiver and method name |
++| `witness` | Required `mana.resource-leaf-witness/v1` object below |
++
++| Witness field | Contract |
++|---|---|
++| `schema` | `mana.resource-leaf-witness/v1` |
++| `rule` | `{id: spring-jdbc-template-literal, version: 1}`; fixed Mana rule |
++| `signature` | Exact catalog owner, name, argument and erased return type |
++| `receiverType` | `org.springframework.jdbc.core.JdbcTemplate` |
++| `callSite`, `methodEvidence`, `bindingEvidence`, `argumentEvidence` | Source-linked invocation, enclosing method, injected field and literal argument |
++| `sourceCallOrdinal` | 1-based ordinal among the enclosing method's parsed calls |
++| `t01Sequence` | Must equal the event's causal sequence |
++| `normalReturnDependencies` | Sequence IDs of all earlier resource leaves on this single modeled path |
++| `transactionContext` | Exact current T01 `{kind, physicalId, manager}` at invocation |
++| `premises`, `limits` | Fixed catalog premises and limitations; not caller-authored assertions |
++
++The library callee is terminal for exploration: no fictional source method frame
++is created. The caller can continue only on the normal synchronous return path.
++Each later leaf depends on all earlier leaves returning normally, including leaves
++in resolved child calls. Subsequent frame/closing events are also on that same
++conditional normal path. There is no prediction that an operation executed,
++returned, completed successfully, committed or rolled back.
++
++An exception does not reach that path's suffix. This increment does not enumerate
++exception branches, catch/finally or physical outcomes; `outcome` remains UNKNOWN.
++Normal-return premises cannot erase a later `UNRESOLVED_CALL` or legalize steps
++after it. Leaf events occur inside completed frame boundary opening/closing and
++require known current context. Known P must be live and unsuspended. Leaves do not
++allocate P/L/SP/S, suspend, resume or terminate anything. Propagation and child
++return context remain owned by the existing T01 engine and MR00 validator.
++
++## Closed recognition catalog
++
++Supported standard implementation overloads:
++
++| Name | Resolved catalog signature |
++|---|---|
++| execute | `JdbcTemplate#execute(java.lang.String):void` |
++| update | `JdbcTemplate#update(java.lang.String):int` |
++| queryForList | `JdbcTemplate#queryForList(java.lang.String):java.util.List` |
++
++These signatures are documented by the [Spring JdbcTemplate API](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jdbc/core/JdbcTemplate.html).
++This is a versioned analysis rule, not identification of the target's installed
++Spring binary or certification of every compatible implementation.
++
++Eligibility requires all of the following: one direct, noninitialized,
++unqualified `@Autowired JdbcTemplate` field with no annotation arguments; no
++declared parents on its owning class; a supported zero-argument method without
++AST hazards; a public, nonstatic/nonabstract caller with only catalogued stereotype,
++transactional or standard Override/Deprecated annotations; receiver exactly `field`
++or `this.field`; a standalone invocation;
++exactly one AST string literal argument; and a whole-string match of the existing
++closed Resource Timeline SQL grammar, compatible with the invoked API.
++
++Only the supported SELECT/UPDATE/INSERT/DELETE forms qualify. SQL demarcation
++(`COMMIT`, `ROLLBACK`, autocommit), DDL, stored procedure calls, compound SQL,
++dynamic expressions and SQL outside that grammar do not qualify. SQL semantics,
++database objects, triggers and driver behavior are not resolved by a text match.
++
++An observed JdbcTemplate subclass, local type shadow or source factory returning
++JdbcTemplate invalidates standard-dispatch classification. Interface/alias/optional
++or qualified binding, initialized fields, unknown receiver types, callback
++overloads and arbitrary methods named `execute` or `update` are not leaf proofs.
++Nested calls in arguments and conditional expressions cannot form a standalone
++leaf sequence. Async, unknown annotations/interception, unknown context and
++unsupported control flow keep the existing T01 traversal limits. Programmatic
++transactions and manual Connection operations retain unresolved frontiers; there
++is no automatic continuation through an opaque call.
++
++The selected scenario explicitly assumes the catalogued standard implementation
++dispatch, absence of external overriding advisors, normal synchronous return for
++continuation, and no unmodeled transaction-context changes by library, driver or
++database along that path. Observable contradictory source shapes are rejected.
++This closed scenario assumption is not runtime dispatch resolution. If external
++implementation/advisor/driver behavior cannot be assumed for the intended
++scenario, leave the capability disabled; source presence alone does not prove it.
++
++## Verification and trust boundary
++
++`validate_model` verifies the capability/version, source snapshot hash linkage,
++unique owning methods, call-site prefix order and completeness until a justified
++frontier, and exact witness equality after authoritative catalog reclassification.
++It replays the current T01 context and physical lifetime; it does not use a
++project-supplied safety bit. Missing, modified, mismatched or unsupported witnesses
++are rejected, as are omitted/reordered calls, leaf events after unresolved order,
++and references to suspended or terminated P identities. The source facts used by
++T02 must equal T01's extension snapshot.
++
++Like the base v1 validator, imported JSON validation checks semantic consistency
++of supplied facts; it does not authenticate a coordinated fabrication of facts,
++hashes and IR against independently retrieved source bytes. The read-only CLI
++provides fresh parse provenance from one source snapshot and checks that source
++and context do not change during analysis. Reanalyze the original project to
++refresh source authenticity. No live Spring or database probe is performed.
++
++Facts are embedded only for the enabled capability. Existing 4 MiB publication
++limits still apply; the larger representation can hit that budget sooner and is
++rejected rather than truncated. A path admits at most 128 resource leaves, bounding
++the explicit dependency lists. The next eligible invocation becomes an unchanged
++UNRESOLVED_CALL frontier with `RESOURCE_LEAF_BUDGET_EXCEEDED`; the known prefix is
++retained and its suffix is not traversed. Validation rejects more than 128 leaves.
++
++T02 places a recognized operation immediately before its authoritative leaf event
++with `placement.status: T01_RESOURCE_LEAF` and the original
++`beforeT01Sequence`. It copies current context and preserves normal-return
++premises/dependencies in `premises`, without inventing T01 events. Datasource,
++runtime resource identity, JDBC enlistment, acquired lock and granularity remain
++UNKNOWN. FOR UPDATE is still request syntax, not a lock acquisition.
++
++Run `python3 tests/transaction-resource-leaves.py -v` plus the existing T01/S01
++suites. The additional fixture oracles are hand-authored in
++`tests/fixtures/resource-timeline/resource-leaf-oracles.json`.

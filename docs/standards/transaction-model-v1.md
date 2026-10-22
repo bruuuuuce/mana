@@ -53,6 +53,14 @@ introduced. Inputs cannot claim a `PROVEN` or runtime `APPLIED` status.
 
 ## Architecture And Budgets
 
+D02 adds the opt-in [Resource Leaf Extension v1](resource-leaf-extension-v1.md):
+`resourceLeafPolicy: JDBC_LITERAL_V1` selects a closed conditional JDBC catalog.
+Its versioned `RESOURCE_LEAF_CALL` witness permits normal-path caller continuation
+without exploring the library. Omission/`DISABLED` preserves legacy behavior.
+`UNRESOLVED_CALL` keeps its original causal-cut semantics; propagation, MR00 and
+legacy IR remain unchanged. Enabled reports include source facts and require
+extension-aware validation before consumption.
+
 - `mana-transaction.py` reuses factory canonical paths, bounded JSON reads,
   technology adapter, file inventory and external temporary isolation.
 - `transactions/JavaFacts.java` uses the JDK compiler AST API in **parse-only** mode.
