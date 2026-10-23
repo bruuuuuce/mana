@@ -1,0 +1,54 @@
+{
+  "docs/architecture/MANA-EXEC-CONTRACT-001.md": {
+    "sha256": "740dafea18c728ead3b017afb61de88d9e16580aacbc2b9d6f684f4624dcf2e7",
+    "mode": "0o644"
+  },
+  "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json": {
+    "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+    "mode": "0o644"
+  },
+  "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md": {
+    "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+    "mode": "0o644"
+  },
+  "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F02-R1-results.json": {
+    "sha256": "fc80a37d38849ee7853ab6ba7960321f2b6f98f6a2fdeac398eb8a821ffaa5ac",
+    "mode": "0o644"
+  },
+  "docs/reports/TRANSACTION-01-T02-S02-I01-F03-R1-results.json": {
+    "sha256": "83fabda71fcbef57b7b9efe16057d5aee9eca25a71fb6277bc48f074d5f1e02b",
+    "mode": "0o644"
+  },
+  "docs/reports/TRANSACTION-01-T02-S02-I01-F03-R1.md": {
+    "sha256": "245efd3d226321d3bae86070ee1a4ac632d0aa1164d972c3cf120f602e017742",
+    "mode": "0o644"
+  },
+  "docs/reports/TRANSACTION-01-T02-S02-contract.md": {
+    "sha256": "d1ce0de6104e5a14b2365d56e85a3528562d73ef6cff6c2c6244194469c08081",
+    "mode": "0o644"
+  },
+  "docs/reports/TRANSACTION-01-T02-S02-implementation-plan.md": {
+    "sha256": "1c0cab9f23825660841d4eeb236ec28931b9bf29b8b5bfdb62eef4e2f461c03e",
+    "mode": "0o644"
+  },
+  "docs/reports/TRANSACTION-01-T02-S02-oracles.csv": {
+    "sha256": "e37d7fd28279afe59cc467beb5cbe906d12904740d89ed6dcf0dcc781eacd832",
+    "mode": "0o644"
+  },
+  "docs/roadmap/TRANSACTION-01-T02.md": {
+    "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+    "mode": "0o644"
+  },
+  "docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv": {
+    "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+    "mode": "0o644"
+  },
+  "docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv": {
+    "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+    "mode": "0o644"
+  },
+  "docs/roadmap/TRANSACTION-01.md": {
+    "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+    "mode": "0o644"
+  }
+}

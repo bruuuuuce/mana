@@ -1,0 +1,101 @@
+{
+  "librsvg": "rsvg-convert version 2.61.3\n\nlibraries used:\n  cairo 1.18.4\n  pango 1.57.0\n  harfbuzz 14.3.1\n  fontconfig 2.18.3\n",
+  "beforeSHA256": "7c199e8586f5c481a94d8d3a82ea989faa4229850d91a6f4c373ed056282a796",
+  "clipPaths": 0,
+  "textMetrics": [
+    {
+      "file": "before.svg",
+      "text": "MIXED / RESUME_REQUIRES_COMPLETION",
+      "attributes": {
+        "fill": "#000000",
+        "font-family": "sans-serif",
+        "font-size": "13",
+        "lengthAdjust": "spacing",
+        "textLength": "260.9331",
+        "x": "607.99",
+        "y": "503.3366"
+      },
+      "relativeInkBBoxAtBaseline0": [
+        0,
+        -10,
+        275,
+        2
+      ],
+      "inkRightInDiagram": 882.99,
+      "viewportWidth": "876px",
+      "textLengthRemovalPixelIdentical": true
+    },
+    {
+      "file": "after.svg",
+      "text": "MIXED / RESUME_REQUIRES_",
+      "attributes": {
+        "fill": "#000000",
+        "font-family": "sans-serif",
+        "font-size": "13",
+        "lengthAdjust": "spacing",
+        "textLength": "177.8105",
+        "x": "630.1592",
+        "y": "495.8366"
+      },
+      "relativeInkBBoxAtBaseline0": [
+        0,
+        -10,
+        190,
+        2
+      ],
+      "inkRightInDiagram": 820.1592,
+      "viewportWidth": "838px",
+      "textLengthRemovalPixelIdentical": true
+    },
+    {
+      "file": "after.svg",
+      "text": "COMPLETION",
+      "attributes": {
+        "fill": "#000000",
+        "font-family": "sans-serif",
+        "font-size": "13",
+        "lengthAdjust": "spacing",
+        "textLength": "83.1226",
+        "x": "677.5032",
+        "y": "511.1472"
+      },
+      "relativeInkBBoxAtBaseline0": [
+        0,
+        -10,
+        85,
+        1
+      ],
+      "inkRightInDiagram": 762.5032,
+      "viewportWidth": "838px",
+      "textLengthRemovalPixelIdentical": true
+    },
+    {
+      "file": "after.svg",
+      "text": "CONDITIONAL / R6 / evidence.json",
+      "attributes": {
+        "fill": "#000000",
+        "font-family": "sans-serif",
+        "font-size": "13",
+        "lengthAdjust": "spacing",
+        "textLength": "222.1489",
+        "x": "607.99",
+        "y": "526.4577"
+      },
+      "relativeInkBBoxAtBaseline0": [
+        0,
+        -10,
+        206,
+        3
+      ],
+      "inkRightInDiagram": 813.99,
+      "viewportWidth": "838px",
+      "textLengthRemovalPixelIdentical": true
+    }
+  ],
+  "pangoProbeFont": {
+    "description": "Helvetica 9.75",
+    "checksum": "8329ee3756730bd2240b2f6403ffcff1595f0e935f13261e268d8f60f47989a3"
+  },
+  "pangoProbeLogicalWidth": 278.0,
+  "browserAttempt": "cua.getBrowser(file:///private/tmp/mana-vis-f01/generated/C/mixed-replacement.svg): No browser is available"
+}

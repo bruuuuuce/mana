@@ -1,0 +1,18 @@
+test_a_inverse_order_and_conditional_cycle (__main__.Visualization) ... ok
+test_b_scoped_exclusion_and_missing_evidence (__main__.Visualization) ... ok
+test_c_suspended_outer_and_independent_inner (__main__.Visualization) ... ok
+test_cli_scenario_mismatch_no_publication (__main__.Visualization) ... ok
+test_complete_evidence_index (__main__.Visualization) ... ok
+test_deterministic_and_inputs_unchanged (__main__.Visualization) ... ok
+test_exact_byte_digest_required (__main__.Visualization) ... ok
+test_nested_savepoint_same_identity (__main__.Visualization) ... ok
+test_plantuml_rendered_certainty_and_all_views (__main__.Visualization) ... ok
+test_scenario_identity_and_claim_tampering_rejected (__main__.Visualization) ... ok
+test_timeline_model_mismatch_rejected (__main__.Visualization) ... ok
+test_unknown_and_unplaced_existing_s01_oracles (__main__.Visualization) ... ok
+test_untrusted_labels_and_premise_text (__main__.Visualization) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 3.384s
+
+OK

@@ -1,0 +1,24 @@
+@startuml
+top to bottom direction
+skinparam shadowing false
+title synthetic_O_C01 / APPLICATION DEPENDENCY
+rectangle "FRAME a / F1" as N1 #D6F5D6
+rectangle "FRAME a / F2" as N2 #D6F5D6
+N1 -[#245A9C]-> N2: APPLICATION DEPENDENCY C8\nCONDITIONAL\nsynchronous FRAME_COMPLETION
+note right of N1
+Claim C8 / evidence.json
+sources: 
+call site: src/main/java/fixture/Waits.java:24
+end note
+legend left
+KNOWN / VERIFIED = validated static structure only; execution CONDITIONAL.
+UNKNOWN is not absence. Runtime NOT_RUN; locks and waits are not observed.
+P IDs are participant-local symbolic identities; no confirmed deadlock claim.
+Coverage: COMPLETE_MODELED_SCOPE
+Assessment: CONDITIONAL_CROSS_LAYER_COMPLETION_RISK
+No universal deadlock freedom. See evidence.json for full source references.
+DB dashed red = candidate wait; app solid blue = synchronous completion.
+Mixed dotted purple = typed relation, not an additional DB wait edge.
+Application/typed links are scenario-wide; only DB edges are filtered by cut.
+endlegend
+@enduml

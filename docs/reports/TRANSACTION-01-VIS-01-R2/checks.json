@@ -1,0 +1,96 @@
+{
+  "transaction-visualization": {
+    "command": [
+      "python3",
+      "tests/transaction-visualization.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "t_scenario_identity_and_claim_tampering_rejected) ... ok\ntest_timeline_model_mismatch_rejected (__main__.Visualization.test_timeline_model_mismatch_rejected) ... ok\ntest_unknown_and_unplaced_existing_s01_oracles (__main__.Visualization.test_unknown_and_unplaced_existing_s01_oracles) ... ok\ntest_untrusted_labels_and_premise_text (__main__.Visualization.test_untrusted_labels_and_premise_text) ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 3.798s\n\nOK\n"
+  },
+  "transaction-boundaries": {
+    "command": [
+      "python3",
+      "tests/transaction-boundaries.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "nsactionTests.test_renderer_contains_explicit_identity_and_no_injected_directive) ... ok\ntest_requires_new_suspends_before_begin_and_resumes_after_end (__main__.TransactionTests.test_requires_new_suspends_before_begin_and_resumes_after_end) ... ok\ntest_validator_rejects_wrong_identity_and_unbalanced_trace (__main__.TransactionTests.test_validator_rejects_wrong_identity_and_unbalanced_trace) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 5.188s\n\nOK\n"
+  },
+  "transaction-physical-lifetime": {
+    "command": [
+      "python3",
+      "tests/transaction-physical-lifetime.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "\ntest_requires_new_rejects_resume_while_p2_active (__main__.PhysicalLifetimeTests.test_requires_new_rejects_resume_while_p2_active) ... ok\ntest_requires_new_restores_live_p1_after_p2_end (__main__.PhysicalLifetimeTests.test_requires_new_restores_live_p1_after_p2_end) ... ok\ntest_terminal_event_is_outcome_independent (__main__.PhysicalLifetimeTests.test_terminal_event_is_outcome_independent) ... ok\n\n----------------------------------------------------------------------\nRan 19 tests in 0.006s\n\nOK\n"
+  },
+  "transaction-context-alternatives": {
+    "command": [
+      "python3",
+      "tests/transaction-context-alternatives.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "ernativeTests.test_validator_rejects_false_capability_and_premises) ... ok\ntest_validator_rejects_forged_applied_branch_and_missing_bypass (__main__.ContextAlternativeTests.test_validator_rejects_forged_applied_branch_and_missing_bypass) ... ok\ntest_validator_rejects_wrong_caller_identity_and_manager (__main__.ContextAlternativeTests.test_validator_rejects_wrong_caller_identity_and_manager) ... ok\n\n----------------------------------------------------------------------\nRan 21 tests in 4.034s\n\nOK\n"
+  },
+  "resource-timeline": {
+    "command": [
+      "python3",
+      "tests/resource-timeline.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "e_p2_operation) ... ok\ntest_t01_events_must_remain_intact (__main__.ResourceTests.test_t01_events_must_remain_intact) ... ok\ntest_unknown_interception_does_not_traverse_body (__main__.ResourceTests.test_unknown_interception_does_not_traverse_body) ... ok\ntest_unplaced_observation_cannot_be_inserted_in_timeline (__main__.ResourceTests.test_unplaced_observation_cannot_be_inserted_in_timeline) ... ok\n\n----------------------------------------------------------------------\nRan 22 tests in 2.944s\n\nOK\n"
+  },
+  "wait-dependencies": {
+    "command": [
+      "python3",
+      "tests/wait-dependencies.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "ntinuation) ... ok\ntest_20_invalid_sidecar_rule_and_premise_cycles (__main__.WaitTests.test_20_invalid_sidecar_rule_and_premise_cycles) ... ok\ntest_21_actual_byte_thresholds_stop_before_publication (__main__.WaitTests.test_21_actual_byte_thresholds_stop_before_publication) ... ok\ntest_22_s02_report_byte_budget_is_checked_too (__main__.WaitTests.test_22_s02_report_byte_budget_is_checked_too) ... ok\n\n----------------------------------------------------------------------\nRan 22 tests in 4.375s\n\nOK\n"
+  },
+  "mana-skill-factory": {
+    "command": [
+      "python3",
+      "tests/mana-skill-factory.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "_before_any_write (__main__.FactoryTests.test_unsafe_or_missing_temporary_parent_blocks_before_any_write) ... ok\ntest_unsupported_and_false_positive_technologies (__main__.FactoryTests.test_unsupported_and_false_positive_technologies) ... ok\ntest_unsupported_requests_and_adapter_governance_override_block (__main__.FactoryTests.test_unsupported_requests_and_adapter_governance_override_block) ... ok\n\n----------------------------------------------------------------------\nRan 23 tests in 6.347s\n\nOK\n"
+  },
+  "repo": {
+    "command": [
+      "bash",
+      "scripts/validate-repo.sh"
+    ],
+    "exit": 0,
+    "tail": "Verification skills validation passed\nSkills validation passed\nAgents validation passed\nDivination metadata validation passed\nOutput standard validation passed\nStory trace validation passed\nDeveloper choice log validation passed\nRepository validation passed\n"
+  },
+  "ruff": {
+    "command": [
+      "ruff",
+      "check",
+      "scripts/skill_factory/transactions/plantuml.py",
+      "scripts/mana-transaction-visualization.py",
+      "tests/transaction-visualization.py"
+    ],
+    "exit": 0,
+    "tail": "All checks passed!\n"
+  },
+  "format": {
+    "command": [
+      "ruff",
+      "format",
+      "--check",
+      "scripts/skill_factory/transactions/plantuml.py",
+      "scripts/mana-transaction-visualization.py",
+      "tests/transaction-visualization.py"
+    ],
+    "exit": 0,
+    "tail": "3 files already formatted\n"
+  }
+}

@@ -1,0 +1,19 @@
+@startuml
+top to bottom direction
+skinparam shadowing false
+title synthetic_O_B01 / APPLICATION DEPENDENCY
+legend left
+KNOWN / VERIFIED = validated static structure only; execution CONDITIONAL.
+UNKNOWN is not absence. Runtime NOT_RUN; locks and waits are not observed.
+P IDs are participant-local symbolic identities; no confirmed deadlock claim.
+Coverage: INCOMPLETE
+Assessment: NO_CYCLE_IN_MODELED_SCENARIO
+INCOMPLETE: UNRESOLVED_DATA_OR_CAUSALITY
+Candidate W1 / cut=one_wait / EXCLUDED
+UNKNOWN obligations: W3, W7; contradicted: W1
+No universal deadlock freedom. See evidence.json for full source references.
+DB dashed red = candidate wait; app solid blue = synchronous completion.
+Mixed dotted purple = typed relation, not an additional DB wait edge.
+Application/typed links are scenario-wide; only DB edges are filtered by cut.
+endlegend
+@enduml

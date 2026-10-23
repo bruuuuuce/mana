@@ -1,0 +1,21 @@
+test_ambiguous_managers_visibility_async_and_control_flow_are_unknown (__main__.TransactionTests.test_ambiguous_managers_visibility_async_and_control_flow_are_unknown) ... ok
+test_annotation_is_not_interception_and_direct_entry_bypasses (__main__.TransactionTests.test_annotation_is_not_interception_and_direct_entry_bypasses) ... ok
+test_eight_independent_oracles (__main__.TransactionTests.test_eight_independent_oracles) ... ok
+test_evidence_is_exact_and_call_site_is_in_caller (__main__.TransactionTests.test_evidence_is_exact_and_call_site_is_in_caller) ... ok
+test_intermediate_unannotated_call_and_class_annotation (__main__.TransactionTests.test_intermediate_unannotated_call_and_class_annotation) ... ok
+test_java_parser_does_not_treat_comments_or_strings_as_calls (__main__.TransactionTests.test_java_parser_does_not_treat_comments_or_strings_as_calls) ... ok
+test_jdk_proxy_dynamic_dispatch_and_unresolved_call_do_not_invent_edges (__main__.TransactionTests.test_jdk_proxy_dynamic_dispatch_and_unresolved_call_do_not_invent_edges) ... ok
+test_missing_prior_context_never_creates_certain_physical_identity (__main__.TransactionTests.test_missing_prior_context_never_creates_certain_physical_identity) ... ok
+test_nested_reuses_physical_and_false_capability_is_unsupported (__main__.TransactionTests.test_nested_reuses_physical_and_false_capability_is_unsupported) ... ok
+test_parser_temporary_isolation_and_no_target_build (__main__.TransactionTests.test_parser_temporary_isolation_and_no_target_build) ... ok
+test_pipeline_write_observation_and_jdk_arguments (__main__.TransactionTests.test_pipeline_write_observation_and_jdk_arguments) ... ok
+test_plantuml_syntax_and_svg_for_all_oracles (__main__.TransactionTests.test_plantuml_syntax_and_svg_for_all_oracles) ... ok
+test_reflection_unknown_continuation_and_suspension_capability (__main__.TransactionTests.test_reflection_unknown_continuation_and_suspension_capability) ... ok
+test_renderer_contains_explicit_identity_and_no_injected_directive (__main__.TransactionTests.test_renderer_contains_explicit_identity_and_no_injected_directive) ... ok
+test_requires_new_suspends_before_begin_and_resumes_after_end (__main__.TransactionTests.test_requires_new_suspends_before_begin_and_resumes_after_end) ... ok
+test_validator_rejects_wrong_identity_and_unbalanced_trace (__main__.TransactionTests.test_validator_rejects_wrong_identity_and_unbalanced_trace) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 5.188s
+
+OK

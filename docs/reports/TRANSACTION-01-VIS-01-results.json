@@ -1,0 +1,259 @@
+{
+  "verdict": "IMPLEMENTED_READY_FOR_REVIEW",
+  "baseline": "a222018fa50a3e1286a01f6da6c224a4dea242ed",
+  "branch": "feature/mana-transaction-visualization",
+  "checks": {
+    "transaction-visualization": {
+      "command": "python3 tests/transaction-visualization.py -v",
+      "exit": 0,
+      "tests": 13,
+      "output": "test_a_inverse_order_and_conditional_cycle (__main__.Visualization) ... ok\ntest_b_scoped_exclusion_and_missing_evidence (__main__.Visualization) ... ok\ntest_c_suspended_outer_and_independent_inner (__main__.Visualization) ... ok\ntest_cli_scenario_mismatch_no_publication (__main__.Visualization) ... ok\ntest_complete_evidence_index (__main__.Visualization) ... ok\ntest_deterministic_and_inputs_unchanged (__main__.Visualization) ... ok\ntest_exact_byte_digest_required (__main__.Visualization) ... ok\ntest_nested_savepoint_same_identity (__main__.Visualization) ... ok\ntest_plantuml_rendered_certainty_and_all_views (__main__.Visualization) ... ok\ntest_scenario_identity_and_claim_tampering_rejected (__main__.Visualization) ... ok\ntest_timeline_model_mismatch_rejected (__main__.Visualization) ... ok\ntest_unknown_and_unplaced_existing_s01_oracles (__main__.Visualization) ... ok\ntest_untrusted_labels_and_premise_text (__main__.Visualization) ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 3.281s\n\nOK\n"
+    },
+    "transaction-boundaries": {
+      "command": "python3 tests/transaction-boundaries.py -v",
+      "exit": 0,
+      "tests": 16,
+      "output": "test_ambiguous_managers_visibility_async_and_control_flow_are_unknown (__main__.TransactionTests) ... ok\ntest_annotation_is_not_interception_and_direct_entry_bypasses (__main__.TransactionTests) ... ok\ntest_eight_independent_oracles (__main__.TransactionTests) ... ok\ntest_evidence_is_exact_and_call_site_is_in_caller (__main__.TransactionTests) ... ok\ntest_intermediate_unannotated_call_and_class_annotation (__main__.TransactionTests) ... ok\ntest_java_parser_does_not_treat_comments_or_strings_as_calls (__main__.TransactionTests) ... ok\ntest_jdk_proxy_dynamic_dispatch_and_unresolved_call_do_not_invent_edges (__main__.TransactionTests) ... ok\ntest_missing_prior_context_never_creates_certain_physical_identity (__main__.TransactionTests) ... ok\ntest_nested_reuses_physical_and_false_capability_is_unsupported (__main__.TransactionTests) ... ok\ntest_parser_temporary_isolation_and_no_target_build (__main__.TransactionTests) ... ok\ntest_pipeline_write_observation_and_jdk_arguments (__main__.TransactionTests) ... ok\ntest_plantuml_syntax_and_svg_for_all_oracles (__main__.TransactionTests) ... ok\ntest_reflection_unknown_continuation_and_suspension_capability (__main__.TransactionTests) ... ok\ntest_renderer_contains_explicit_identity_and_no_injected_directive (__main__.TransactionTests) ... ok\ntest_requires_new_suspends_before_begin_and_resumes_after_end (__main__.TransactionTests) ... ok\ntest_validator_rejects_wrong_identity_and_unbalanced_trace (__main__.TransactionTests) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 4.989s\n\nOK\n"
+    },
+    "transaction-physical-lifetime": {
+      "command": "python3 tests/transaction-physical-lifetime.py -v",
+      "exit": 0,
+      "tests": 19,
+      "output": "test_exact_r3_mutation_on_original_valid_model (__main__.PhysicalLifetimeTests) ... ok\ntest_f02_conditional_properties_preserved (__main__.PhysicalLifetimeTests) ... ok\ntest_nested_savepoint_release_preserves_p1 (__main__.PhysicalLifetimeTests) ... ok\ntest_original_high_r3_and_uncertain_continuation_rejected (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_after_state_retaining_ended_p2 (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_begin_before_suspend (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_identity_without_begin (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_ordinary_child_losing_caller_context (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_ordinary_frame_inventing_previous_identity (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_physical_end_before_logical_closure (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_restore_without_resume (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_same_symbol_reopened_after_end (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_savepoint_before_physical_begin (__main__.PhysicalLifetimeTests) ... ok\ntest_rejects_wrong_physical_end_owner (__main__.PhysicalLifetimeTests) ... ok\ntest_renderer_does_not_label_activity_beyond_terminal_event (__main__.PhysicalLifetimeTests) ... ok\ntest_required_logical_end_preserves_p1 (__main__.PhysicalLifetimeTests) ... ok\ntest_requires_new_rejects_resume_while_p2_active (__main__.PhysicalLifetimeTests) ... ok\ntest_requires_new_restores_live_p1_after_p2_end (__main__.PhysicalLifetimeTests) ... ok\ntest_terminal_event_is_outcome_independent (__main__.PhysicalLifetimeTests) ... ok\n\n----------------------------------------------------------------------\nRan 19 tests in 0.006s\n\nOK\n"
+    },
+    "transaction-context-alternatives": {
+      "command": "python3 tests/transaction-context-alternatives.py -v",
+      "exit": 0,
+      "tests": 21,
+      "output": "test_01_required_preserves_active_p1 (__main__.ContextAlternativeTests) ... ok\ntest_02_required_without_initial_transaction (__main__.ContextAlternativeTests) ... ok\ntest_03_requires_new_has_no_common_identity (__main__.ContextAlternativeTests) ... ok\ntest_04_nested_has_conditional_savepoint_on_same_p1 (__main__.ContextAlternativeTests) ... ok\ntest_05_nested_unknown_and_false_capability (__main__.ContextAlternativeTests) ... ok\ntest_06_ambiguous_manager_does_not_preserve_false_identity (__main__.ContextAlternativeTests) ... ok\ntest_07_caller_context_and_following_call_preserved (__main__.ContextAlternativeTests) ... ok\ntest_08_rejects_falsely_deterministic_physical_identity (__main__.ContextAlternativeTests) ... ok\ntest_09_validator_accepts_unknown_advice_active_p1 (__main__.ContextAlternativeTests) ... ok\ntest_10_diagram_separates_known_context_conditional_scope_and_savepoint (__main__.ContextAlternativeTests) ... ok\ntest_async_and_programmatic_hazards_cannot_use_composition (__main__.ContextAlternativeTests) ... ok\ntest_composition_labels_reject_directive_injection (__main__.ContextAlternativeTests) ... ok\ntest_historical_models_remain_valid (__main__.ContextAlternativeTests) ... ok\ntest_nonempty_body_does_not_claim_return_context_or_follow_calls (__main__.ContextAlternativeTests) ... ok\ntest_original_r2_source_and_context_exact_cli_regression (__main__.ContextAlternativeTests) ... ok\ntest_plantuml_syntax_and_svg (__main__.ContextAlternativeTests) ... ok\ntest_requires_new_unknown_capability_is_unresolved (__main__.ContextAlternativeTests) ... ok\ntest_validator_rejects_conditional_scope_materialized_unconditionally (__main__.ContextAlternativeTests) ... ok\ntest_validator_rejects_false_capability_and_premises (__main__.ContextAlternativeTests) ... ok\ntest_validator_rejects_forged_applied_branch_and_missing_bypass (__main__.ContextAlternativeTests) ... ok\ntest_validator_rejects_wrong_caller_identity_and_manager (__main__.ContextAlternativeTests) ... ok\n\n----------------------------------------------------------------------\nRan 21 tests in 3.667s\n\nOK\n"
+    },
+    "resource-timeline": {
+      "command": "python3 tests/resource-timeline.py -v",
+      "exit": 0,
+      "tests": 22,
+      "output": "test_acquired_lock_and_granularity_claims_rejected (__main__.ResourceTests) ... ok\ntest_cli_external_output_and_overwrite_rejection (__main__.ResourceTests) ... ok\ntest_closed_sql_grammar_literal_positive_and_negative_controls (__main__.ResourceTests) ... ok\ntest_comments_are_not_operations (__main__.ResourceTests) ... ok\ntest_dynamic_sql_nested_expression_unknown (__main__.ResourceTests) ... ok\ntest_ended_p2_cannot_receive_restored_p1_operation (__main__.ResourceTests) ... ok\ntest_ended_transaction_operation_rejected (__main__.ResourceTests) ... ok\ntest_independent_fixture_oracles (__main__.ResourceTests) ... ok\ntest_literal_requires_new_timeline (__main__.ResourceTests) ... ok\ntest_manager_ambiguity_does_not_assign_physical_context (__main__.ResourceTests) ... ok\ntest_nested_savepoint_does_not_end_p1 (__main__.ResourceTests) ... ok\ntest_no_continuation_after_jdbc_frontier (__main__.ResourceTests) ... ok\ntest_no_continuation_after_unresolved_child (__main__.ResourceTests) ... ok\ntest_real_pipeline_preserves_target_and_t01_model (__main__.ResourceTests) ... ok\ntest_resource_annotation_does_not_override_unknown_context (__main__.ResourceTests) ... ok\ntest_restore_uses_live_p1_after_p2_ends (__main__.ResourceTests) ... ok\ntest_source_hash_mismatch_rejected (__main__.ResourceTests) ... ok\ntest_source_positions_match_actual_invocation_and_literal (__main__.ResourceTests) ... ok\ntest_suspended_p1_cannot_receive_p2_operation (__main__.ResourceTests) ... ok\ntest_t01_events_must_remain_intact (__main__.ResourceTests) ... ok\ntest_unknown_interception_does_not_traverse_body (__main__.ResourceTests) ... ok\ntest_unplaced_observation_cannot_be_inserted_in_timeline (__main__.ResourceTests) ... ok\n\n----------------------------------------------------------------------\nRan 22 tests in 2.756s\n\nOK\n"
+    },
+    "wait-dependencies": {
+      "command": "python3 tests/wait-dependencies.py -v",
+      "exit": 0,
+      "tests": 22,
+      "output": "test_01_all_static_manual_oracles (__main__.WaitTests) ... ok\ntest_02_A_literal_directions_namespaces_and_future_end (__main__.WaitTests) ... ok\ntest_03_C_separate_graphs_and_suspended_holder (__main__.WaitTests) ... ok\ntest_04_B_never_unions_cuts_into_feasible_cycle (__main__.WaitTests) ... ok\ntest_05_D_E_logical_and_savepoint_end_do_not_end_P (__main__.WaitTests) ... ok\ntest_06_F_partial_identity_and_distinct_instances (__main__.WaitTests) ... ok\ntest_07_G_prefix_witness_and_async (__main__.WaitTests) ... ok\ntest_08_I_request_syntax_is_not_holding (__main__.WaitTests) ... ok\ntest_09_missing_or_contradicted_premises_cannot_qualify (__main__.WaitTests) ... ok\ntest_10_false_digests_projections_and_witnesses_rejected (__main__.WaitTests) ... ok\ntest_11_output_validator_adversarial_mutations (__main__.WaitTests) ... ok\ntest_12_scope_overflow_preserves_inventory_and_is_incomplete (__main__.WaitTests) ... ok\ntest_13_byte_comparison_and_edge_budgets (__main__.WaitTests) ... ok\ntest_14_cli_publication_validation_and_no_overwrite (__main__.WaitTests) ... ok\ntest_15_diagrams_keep_layers_and_cut_witness_separate (__main__.WaitTests) ... ok\ntest_16_legacy_canonical_inputs_read_only (__main__.WaitTests) ... ok\ntest_17_unknown_sql_not_a_target_and_no_hidden_lock (__main__.WaitTests) ... ok\ntest_18_repeated_methods_use_distinct_frame_instances (__main__.WaitTests) ... ok\ntest_19_frontier_prefix_never_repairs_a_continuation (__main__.WaitTests) ... ok\ntest_20_invalid_sidecar_rule_and_premise_cycles (__main__.WaitTests) ... ok\ntest_21_actual_byte_thresholds_stop_before_publication (__main__.WaitTests) ... ok\ntest_22_s02_report_byte_budget_is_checked_too (__main__.WaitTests) ... ok\n\n----------------------------------------------------------------------\nRan 22 tests in 4.628s\n\nOK\n"
+    }
+  },
+  "testTotal": 113,
+  "preexistingFilesPreserved": {
+    "docs/architecture/MANA-EXEC-CONTRACT-001.md": "740dafea18c728ead3b017afb61de88d9e16580aacbc2b9d6f684f4624dcf2e7",
+    "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+    "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+    "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F02-R1-results.json": "fc80a37d38849ee7853ab6ba7960321f2b6f98f6a2fdeac398eb8a821ffaa5ac",
+    "docs/reports/TRANSACTION-01-T02-S02-I01-F03-R1-results.json": "83fabda71fcbef57b7b9efe16057d5aee9eca25a71fb6277bc48f074d5f1e02b",
+    "docs/reports/TRANSACTION-01-T02-S02-I01-F03-R1.md": "245efd3d226321d3bae86070ee1a4ac632d0aa1164d972c3cf120f602e017742",
+    "docs/reports/TRANSACTION-01-T02-S02-contract.md": "d1ce0de6104e5a14b2365d56e85a3528562d73ef6cff6c2c6244194469c08081",
+    "docs/reports/TRANSACTION-01-T02-S02-implementation-plan.md": "1c0cab9f23825660841d4eeb236ec28931b9bf29b8b5bfdb62eef4e2f461c03e",
+    "docs/reports/TRANSACTION-01-T02-S02-oracles.csv": "e37d7fd28279afe59cc467beb5cbe906d12904740d89ed6dcf0dcc781eacd832",
+    "docs/roadmap/TRANSACTION-01-T02.md": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+    "docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+    "docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+    "docs/roadmap/TRANSACTION-01.md": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c"
+  },
+  "sixHistoricalProtected": [
+    {
+      "path": "docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv",
+      "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+      "mode": "0o644",
+      "matchesHistoricalReceipt": true
+    },
+    {
+      "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json",
+      "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+      "mode": "0o644",
+      "matchesHistoricalReceipt": true
+    },
+    {
+      "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md",
+      "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+      "mode": "0o644",
+      "matchesHistoricalReceipt": true
+    },
+    {
+      "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv",
+      "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+      "mode": "0o644",
+      "matchesHistoricalReceipt": true
+    },
+    {
+      "path": "docs/roadmap/TRANSACTION-01-T02.md",
+      "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+      "mode": "0o644",
+      "matchesHistoricalReceipt": true
+    },
+    {
+      "path": "docs/roadmap/TRANSACTION-01.md",
+      "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+      "mode": "0o644",
+      "matchesHistoricalReceipt": true
+    }
+  ],
+  "engineFilesUnchanged": [
+    "scripts/skill_factory/transactions/model.py",
+    "scripts/skill_factory/transactions/resources.py",
+    "scripts/skill_factory/transactions/resource_leaf.py",
+    "scripts/skill_factory/transactions/wait_dependencies.py",
+    "scripts/skill_factory/transactions/wait_validation.py",
+    "scripts/skill_factory/transactions/alternatives.py"
+  ],
+  "rendering": {
+    "tool": "/Applications/plantuml-1.2024.8.jar",
+    "checkonlyExit": 0,
+    "svgExit": 0,
+    "views": [
+      {
+        "path": "docs/examples/transaction-01-vis-01/A/application.svg",
+        "sha256": "85e4e692aa93a8d04e26d18579bb6f3cf118d9d4ff7db711a565068767f36d84",
+        "width": "588px",
+        "height": "320px"
+      },
+      {
+        "path": "docs/examples/transaction-01-vis-01/A/database-common.svg",
+        "sha256": "c9a678906f414dc894500e2fa57664b981bedb83629f065653f3aab2fe4a6118",
+        "width": "588px",
+        "height": "942px"
+      },
+      {
+        "path": "docs/examples/transaction-01-vis-01/A/mixed-common.svg",
+        "sha256": "a1de1530f3e6acb28c654c57dc608ad81429682a18c2f8d31e9cb989371ff616",
+        "width": "913px",
+        "height": "1071px"
+      },
+      {
+        "path": "docs/examples/transaction-01-vis-01/A/sequence-a.svg",
+        "sha256": "23f1c6d5dd24bad842c6f7229a7b1340f481f3587bacb245e6c511c225d8a945",
+        "width": "1058px",
+        "height": "1128px"
+      },
+      {
+        "path": "docs/examples/transaction-01-vis-01/A/sequence-b.svg",
+        "sha256": "1e8cf11b46b8523a2d2d8c482ef4a4b351d9928fd78ba6d005ddbd0bb4ca93f4",
+        "width": "1058px",
+        "height": "1128px"
+      },
+      {
+        "path": "docs/examples/transaction-01-vis-01/B/application.svg",
+        "sha256": "7a6c9b95b846b3764091d1ca9ca6337d5300ce662f3a89f5e2ae6f070ce1ccf5",
+        "width": "588px",
+        "height": "287px"
+      },
+      {
+        "path": "docs/examples/transaction-01-vis-01/B/database-one_wait.svg",
+        "sha256": "fedec98d45b177146fef454b76ad6d99895bb386a358d4187cfc8a1c711b9204",
+        "width": "588px",
+        "height": "794px"
+      },
+      {
+        "path": "docs/examples/transaction-01-vis-01/B/mixed-one_wait.svg",
+        "sha256": "282f675ea53ddafdea7db9c33c94da611cc42e4c18975c2ba76a0aae14ae94fc",
+        "width": "801px",
+        "height": "923px"
+      },
+      {
+        "path": "docs/examples/transaction-01-vis-01/B/sequence-a.svg",
+        "sha256": "e9e38753bc7bd8f16ea97afd4ee54494156291b965877ca139902a1460ae8f37",
+        "width": "1058px",
+        "height": "1128px"
+      },
+      {
+        "path": "docs/examples/transaction-01-vis-01/B/sequence-b.svg",
+        "sha256": "5e5ce027af146df01403ef0f5486474773338dd4617f03b3a479a3129bba229f",
+        "width": "1058px",
+        "height": "1128px"
+      },
+      {
+        "path": "docs/examples/transaction-01-vis-01/C/application.svg",
+        "sha256": "e30014e5e562907344a8b717fa19817111c77f79c911fc06def31ab50bec50ea",
+        "width": "588px",
+        "height": "438px"
+      },
+      {
+        "path": "docs/examples/transaction-01-vis-01/C/database-replacement.svg",
+        "sha256": "77ddc2a212c70bac2eb081712aab29de09471696f7c14b1ab8c736d570ccdc9d",
+        "width": "588px",
+        "height": "597px"
+      },
+      {
+        "path": "docs/examples/transaction-01-vis-01/C/mixed-replacement.svg",
+        "sha256": "7c199e8586f5c481a94d8d3a82ea989faa4229850d91a6f4c373ed056282a796",
+        "width": "876px",
+        "height": "889px"
+      },
+      {
+        "path": "docs/examples/transaction-01-vis-01/C/sequence-a.svg",
+        "sha256": "de6fc59e56ac5e76b931655e1da2d861e6cdeeed84b77ec5eae0aade3eb3a20b",
+        "width": "1185px",
+        "height": "1602px"
+      }
+    ]
+  },
+  "scope": {
+    "runtime": "NOT_RUN",
+    "independentReview": "NOT_RUN",
+    "generalQA": "NOT_RUN"
+  },
+  "additionalChecks": {
+    "repo": {
+      "exit": 0,
+      "output": "Verification skills validation passed\nSkills validation passed\nAgents validation passed\nDivination metadata validation passed\nOutput standard validation passed\nStory trace validation passed\nDeveloper choice log validation passed\nRepository validation passed\n"
+    },
+    "ruff": {
+      "exit": 0,
+      "output": "All checks passed!\n"
+    },
+    "ruff-format": {
+      "exit": 0,
+      "output": "3 files already formatted\n"
+    },
+    "render": {
+      "exit": 0,
+      "output": "-checkonly exit=0\n-tsvg exit=0\n"
+    }
+  },
+  "indexEmpty": true,
+  "deliveryHashes": {
+    "docs/examples/transaction-01-vis-01/A/application.puml": "1382295cd762b7fcedf309e88894e0288040648394f1cdfde94ab1bed9c66dcb",
+    "docs/examples/transaction-01-vis-01/A/application.svg": "85e4e692aa93a8d04e26d18579bb6f3cf118d9d4ff7db711a565068767f36d84",
+    "docs/examples/transaction-01-vis-01/A/database-common.puml": "44887f2a0e00268ea3ce46375baa1778faab1641e687dc0ffe9486fc9712bce3",
+    "docs/examples/transaction-01-vis-01/A/database-common.svg": "c9a678906f414dc894500e2fa57664b981bedb83629f065653f3aab2fe4a6118",
+    "docs/examples/transaction-01-vis-01/A/evidence.json": "e6f55473ff76b0f79d8dd683ef56f1da7c0c1b3caf1de9b316107e0fbaaa1e04",
+    "docs/examples/transaction-01-vis-01/A/mixed-common.puml": "ce30e4645c22d8827b153cd54aaa2525dd19ff48df95973090de373bb1eba186",
+    "docs/examples/transaction-01-vis-01/A/mixed-common.svg": "a1de1530f3e6acb28c654c57dc608ad81429682a18c2f8d31e9cb989371ff616",
+    "docs/examples/transaction-01-vis-01/A/sequence-a.puml": "b5e07f8bc2e577db567e8e4d75ecab8a2efeb3c1ae6afbdc8833f33d97aa947a",
+    "docs/examples/transaction-01-vis-01/A/sequence-a.svg": "23f1c6d5dd24bad842c6f7229a7b1340f481f3587bacb245e6c511c225d8a945",
+    "docs/examples/transaction-01-vis-01/A/sequence-b.puml": "bca1d570bd1b46ccd5fb06b3acf8763f3e6a23567ecc6850fee08d2a7e2a28e3",
+    "docs/examples/transaction-01-vis-01/A/sequence-b.svg": "1e8cf11b46b8523a2d2d8c482ef4a4b351d9928fd78ba6d005ddbd0bb4ca93f4",
+    "docs/examples/transaction-01-vis-01/B/application.puml": "804ccdf14783cc32864565446c6432e389920f3e42fdd284fd7007f00d5416c5",
+    "docs/examples/transaction-01-vis-01/B/application.svg": "7a6c9b95b846b3764091d1ca9ca6337d5300ce662f3a89f5e2ae6f070ce1ccf5",
+    "docs/examples/transaction-01-vis-01/B/database-one_wait.puml": "a3c125a2e673f19accd98511d4fd93e334e2e88252a16df774a5eb592b724705",
+    "docs/examples/transaction-01-vis-01/B/database-one_wait.svg": "fedec98d45b177146fef454b76ad6d99895bb386a358d4187cfc8a1c711b9204",
+    "docs/examples/transaction-01-vis-01/B/evidence.json": "7e6094a54053cceb4ea909a1696ff3c328fa884cffa6fc02e7838801004048ac",
+    "docs/examples/transaction-01-vis-01/B/mixed-one_wait.puml": "575ee63adea82d4a66db675fdde2462e61b80f326a624687184949b52cd45090",
+    "docs/examples/transaction-01-vis-01/B/mixed-one_wait.svg": "282f675ea53ddafdea7db9c33c94da611cc42e4c18975c2ba76a0aae14ae94fc",
+    "docs/examples/transaction-01-vis-01/B/sequence-a.puml": "95b5f0c41ffdd0e108d503302e789b6fa369fc0c8390ff1e4d0ebe36913b9497",
+    "docs/examples/transaction-01-vis-01/B/sequence-a.svg": "e9e38753bc7bd8f16ea97afd4ee54494156291b965877ca139902a1460ae8f37",
+    "docs/examples/transaction-01-vis-01/B/sequence-b.puml": "038ef511418a22d04037c03b6d4f9b0d95c5f36355cc0aea9fdbebd5d9789657",
+    "docs/examples/transaction-01-vis-01/B/sequence-b.svg": "5e5ce027af146df01403ef0f5486474773338dd4617f03b3a479a3129bba229f",
+    "docs/examples/transaction-01-vis-01/C/application.puml": "471e8020c320988146cdc43cf8e05e8795ba31698b0e8f527c1a5fbc72d1ef09",
+    "docs/examples/transaction-01-vis-01/C/application.svg": "e30014e5e562907344a8b717fa19817111c77f79c911fc06def31ab50bec50ea",
+    "docs/examples/transaction-01-vis-01/C/database-replacement.puml": "7579bd30e2986a5bc35e5aa5956930ccafef7f072629105089a1aa6d4b0fa619",
+    "docs/examples/transaction-01-vis-01/C/database-replacement.svg": "77ddc2a212c70bac2eb081712aab29de09471696f7c14b1ab8c736d570ccdc9d",
+    "docs/examples/transaction-01-vis-01/C/evidence.json": "f38458b46afe55a0aa02083f17aff586aa76ccf7a0cebb46d9428c0cf6f6696b",
+    "docs/examples/transaction-01-vis-01/C/mixed-replacement.puml": "6bf1c01932b55b9b8e91e71ab06c7cdbb16389c623d1164aa1ab7ac3474e77bf",
+    "docs/examples/transaction-01-vis-01/C/mixed-replacement.svg": "7c199e8586f5c481a94d8d3a82ea989faa4229850d91a6f4c373ed056282a796",
+    "docs/examples/transaction-01-vis-01/C/sequence-a.puml": "4e5b0ac105a24fb525d1df02de9c4bde1d52d51d95a5e3f3d3da03fed002d168",
+    "docs/examples/transaction-01-vis-01/C/sequence-a.svg": "de6fc59e56ac5e76b931655e1da2d861e6cdeeed84b77ec5eae0aade3eb3a20b",
+    "docs/examples/transaction-01-vis-01/README.md": "372d4b4019d87698069a27b2608344a010fd7e5b987c2756980479359d64fafe",
+    "scripts/skill_factory/transactions/plantuml.py": "b5a70f6d258e3a8f830085cf079057b3d2a4212e7fd73b7d254ce3cc98d56bc9",
+    "scripts/mana-transaction-visualization.py": "b95949db611ffe9d30455c392bc248d19fac62cd790cbb1624a51486b0ad1882",
+    "tests/transaction-visualization.py": "785a8604800a8b80b8de1188c899656ac7f929faed942893fce696319f98d1a5",
+    "docs/standards/transaction-visualization-v1.md": "d53122ab0c4b083a6c6888493f65ce06870e150d1fe59a5a1db5b10cbd5c3e7a",
+    "docs/reports/TRANSACTION-01-VIS-01.md": "17c0e92acac557d3121ab58aea3babe2fdb6a84818721d6b396c124f719b30d0"
+  }
+}

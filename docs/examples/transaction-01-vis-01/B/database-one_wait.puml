@@ -1,0 +1,44 @@
+@startuml
+top to bottom direction
+skinparam shadowing false
+title synthetic_O_B01 / DATABASE DEPENDENCY
+rectangle "PHYSICAL a / P1" as N1 #CCE5FF
+rectangle "PHYSICAL b / P1" as N2 #CCE5FF
+N2 -[#B03030,dashed]-> N1: DATABASE DEPENDENCY C11\nCONDITIONAL\nresource=X\ncut=one_wait\ncandidate=W2
+note right of N2
+Claim C11 / evidence.json
+sources: b/O1, a/O1
+premises: X_database, X_object, X_overlap
+premises: a1_acquire, a1_binding, a1_request
+premises: a1_retain, b1_binding, b1_request
+premises: blocking, concurrent, independent_a
+premises: independent_b
+end note
+legend left
+KNOWN / VERIFIED = validated static structure only; execution CONDITIONAL.
+UNKNOWN is not absence. Runtime NOT_RUN; locks and waits are not observed.
+P IDs are participant-local symbolic identities; no confirmed deadlock claim.
+Coverage: INCOMPLETE
+Assessment: NO_CYCLE_IN_MODELED_SCENARIO
+INCOMPLETE: UNRESOLVED_DATA_OR_CAUSALITY
+Candidate W1 / cut=one_wait / EXCLUDED
+UNKNOWN obligations: W3, W7; contradicted: W1
+No universal deadlock freedom. See evidence.json for full source references.
+DB dashed red = candidate wait; app solid blue = synchronous completion.
+Mixed dotted purple = typed relation, not an additional DB wait edge.
+Application/typed links are scenario-wide; only DB edges are filtered by cut.
+Cut one_wait
+NO_CYCLE_IN_MODELED_SCENARIO
+Exclusion is scoped; missing evidence remains UNKNOWN.
+Validated S02 structural exclusion in this cut / selected scope only.
+This is distinct from missing acquisition or retention evidence.
+CONFLICT C9 CONDITIONAL / UNORIENTED / holder UNKNOWN
+resource=X sources=a/O1, b/O1
+CONFLICT C10 CONDITIONAL / UNORIENTED / holder UNKNOWN
+resource=Y sources=a/O2, b/O2
+Candidate W1 EXCLUDED
+W1 CONTRADICTED
+W3 UNKNOWN
+W7 UNKNOWN
+endlegend
+@enduml

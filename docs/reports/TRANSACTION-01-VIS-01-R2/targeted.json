@@ -1,0 +1,41 @@
+{
+  "rendering": [
+    {
+      "run": 0,
+      "option": "-checkonly",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "run": 0,
+      "option": "-tsvg",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "run": 1,
+      "option": "-checkonly",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "run": 1,
+      "option": "-tsvg",
+      "exit": 0,
+      "stderr": ""
+    }
+  ],
+  "diagrams": 14,
+  "determinism": "PASS",
+  "inputPreservation": "PASS",
+  "relationIdentity": "PASS",
+  "otherDiagramsUnchangedFromR1": 13,
+  "changedSinceR1": [
+    "docs/examples/transaction-01-vis-01/C/mixed-replacement.puml",
+    "docs/examples/transaction-01-vis-01/C/mixed-replacement.svg",
+    "scripts/skill_factory/transactions/plantuml.py",
+    "tests/transaction-visualization.py"
+  ],
+  "protectedFiles": 13,
+  "browser": "NOT_RUN"
+}

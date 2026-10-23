@@ -1,0 +1,27 @@
+test_01_all_static_manual_oracles (__main__.WaitTests) ... ok
+test_02_A_literal_directions_namespaces_and_future_end (__main__.WaitTests) ... ok
+test_03_C_separate_graphs_and_suspended_holder (__main__.WaitTests) ... ok
+test_04_B_never_unions_cuts_into_feasible_cycle (__main__.WaitTests) ... ok
+test_05_D_E_logical_and_savepoint_end_do_not_end_P (__main__.WaitTests) ... ok
+test_06_F_partial_identity_and_distinct_instances (__main__.WaitTests) ... ok
+test_07_G_prefix_witness_and_async (__main__.WaitTests) ... ok
+test_08_I_request_syntax_is_not_holding (__main__.WaitTests) ... ok
+test_09_missing_or_contradicted_premises_cannot_qualify (__main__.WaitTests) ... ok
+test_10_false_digests_projections_and_witnesses_rejected (__main__.WaitTests) ... ok
+test_11_output_validator_adversarial_mutations (__main__.WaitTests) ... ok
+test_12_scope_overflow_preserves_inventory_and_is_incomplete (__main__.WaitTests) ... ok
+test_13_byte_comparison_and_edge_budgets (__main__.WaitTests) ... ok
+test_14_cli_publication_validation_and_no_overwrite (__main__.WaitTests) ... ok
+test_15_diagrams_keep_layers_and_cut_witness_separate (__main__.WaitTests) ... ok
+test_16_legacy_canonical_inputs_read_only (__main__.WaitTests) ... ok
+test_17_unknown_sql_not_a_target_and_no_hidden_lock (__main__.WaitTests) ... ok
+test_18_repeated_methods_use_distinct_frame_instances (__main__.WaitTests) ... ok
+test_19_frontier_prefix_never_repairs_a_continuation (__main__.WaitTests) ... ok
+test_20_invalid_sidecar_rule_and_premise_cycles (__main__.WaitTests) ... ok
+test_21_actual_byte_thresholds_stop_before_publication (__main__.WaitTests) ... ok
+test_22_s02_report_byte_budget_is_checked_too (__main__.WaitTests) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 4.593s
+
+OK

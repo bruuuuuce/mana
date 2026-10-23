@@ -1,0 +1,27 @@
+test_acquired_lock_and_granularity_claims_rejected (__main__.ResourceTests) ... ok
+test_cli_external_output_and_overwrite_rejection (__main__.ResourceTests) ... ok
+test_closed_sql_grammar_literal_positive_and_negative_controls (__main__.ResourceTests) ... ok
+test_comments_are_not_operations (__main__.ResourceTests) ... ok
+test_dynamic_sql_nested_expression_unknown (__main__.ResourceTests) ... ok
+test_ended_p2_cannot_receive_restored_p1_operation (__main__.ResourceTests) ... ok
+test_ended_transaction_operation_rejected (__main__.ResourceTests) ... ok
+test_independent_fixture_oracles (__main__.ResourceTests) ... ok
+test_literal_requires_new_timeline (__main__.ResourceTests) ... ok
+test_manager_ambiguity_does_not_assign_physical_context (__main__.ResourceTests) ... ok
+test_nested_savepoint_does_not_end_p1 (__main__.ResourceTests) ... ok
+test_no_continuation_after_jdbc_frontier (__main__.ResourceTests) ... ok
+test_no_continuation_after_unresolved_child (__main__.ResourceTests) ... ok
+test_real_pipeline_preserves_target_and_t01_model (__main__.ResourceTests) ... ok
+test_resource_annotation_does_not_override_unknown_context (__main__.ResourceTests) ... ok
+test_restore_uses_live_p1_after_p2_ends (__main__.ResourceTests) ... ok
+test_source_hash_mismatch_rejected (__main__.ResourceTests) ... ok
+test_source_positions_match_actual_invocation_and_literal (__main__.ResourceTests) ... ok
+test_suspended_p1_cannot_receive_p2_operation (__main__.ResourceTests) ... ok
+test_t01_events_must_remain_intact (__main__.ResourceTests) ... ok
+test_unknown_interception_does_not_traverse_body (__main__.ResourceTests) ... ok
+test_unplaced_observation_cannot_be_inserted_in_timeline (__main__.ResourceTests) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 2.900s
+
+OK

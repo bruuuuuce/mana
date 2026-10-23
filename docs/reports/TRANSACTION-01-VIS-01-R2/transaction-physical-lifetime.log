@@ -1,0 +1,24 @@
+test_exact_r3_mutation_on_original_valid_model (__main__.PhysicalLifetimeTests.test_exact_r3_mutation_on_original_valid_model) ... ok
+test_f02_conditional_properties_preserved (__main__.PhysicalLifetimeTests.test_f02_conditional_properties_preserved) ... ok
+test_nested_savepoint_release_preserves_p1 (__main__.PhysicalLifetimeTests.test_nested_savepoint_release_preserves_p1) ... ok
+test_original_high_r3_and_uncertain_continuation_rejected (__main__.PhysicalLifetimeTests.test_original_high_r3_and_uncertain_continuation_rejected) ... ok
+test_rejects_after_state_retaining_ended_p2 (__main__.PhysicalLifetimeTests.test_rejects_after_state_retaining_ended_p2) ... ok
+test_rejects_begin_before_suspend (__main__.PhysicalLifetimeTests.test_rejects_begin_before_suspend) ... ok
+test_rejects_identity_without_begin (__main__.PhysicalLifetimeTests.test_rejects_identity_without_begin) ... ok
+test_rejects_ordinary_child_losing_caller_context (__main__.PhysicalLifetimeTests.test_rejects_ordinary_child_losing_caller_context) ... ok
+test_rejects_ordinary_frame_inventing_previous_identity (__main__.PhysicalLifetimeTests.test_rejects_ordinary_frame_inventing_previous_identity) ... ok
+test_rejects_physical_end_before_logical_closure (__main__.PhysicalLifetimeTests.test_rejects_physical_end_before_logical_closure) ... ok
+test_rejects_restore_without_resume (__main__.PhysicalLifetimeTests.test_rejects_restore_without_resume) ... ok
+test_rejects_same_symbol_reopened_after_end (__main__.PhysicalLifetimeTests.test_rejects_same_symbol_reopened_after_end) ... ok
+test_rejects_savepoint_before_physical_begin (__main__.PhysicalLifetimeTests.test_rejects_savepoint_before_physical_begin) ... ok
+test_rejects_wrong_physical_end_owner (__main__.PhysicalLifetimeTests.test_rejects_wrong_physical_end_owner) ... ok
+test_renderer_does_not_label_activity_beyond_terminal_event (__main__.PhysicalLifetimeTests.test_renderer_does_not_label_activity_beyond_terminal_event) ... ok
+test_required_logical_end_preserves_p1 (__main__.PhysicalLifetimeTests.test_required_logical_end_preserves_p1) ... ok
+test_requires_new_rejects_resume_while_p2_active (__main__.PhysicalLifetimeTests.test_requires_new_rejects_resume_while_p2_active) ... ok
+test_requires_new_restores_live_p1_after_p2_end (__main__.PhysicalLifetimeTests.test_requires_new_restores_live_p1_after_p2_end) ... ok
+test_terminal_event_is_outcome_independent (__main__.PhysicalLifetimeTests.test_terminal_event_is_outcome_independent) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 0.006s
+
+OK
