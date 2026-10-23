@@ -120,12 +120,13 @@ def sql_operation(sql, api):
 
 
 def source_method(facts, frame):
+    from .entry import method_key
+
     matches = [
         (cls, method)
         for cls in facts["classes"]
         for method in cls["methods"]
-        if cls["name"] + "#" + method["name"] + "()" == frame["calleeMethod"]
-        and method["arity"] == 0
+        if method_key(cls, method) == frame["calleeMethod"]
         and method["evidence"] == frame["evidence"]
     ]
     if len(matches) != 1:
@@ -171,6 +172,10 @@ def call_blocker(facts, cls, call):
 def classify(facts, cls, method, call, state, sequence, dependencies):
     """Recompute the whole witness from facts and the fixed catalog, never safe=true."""
     receiver = call["receiver"]
+    from .entry import shadows_receiver
+
+    if shadows_receiver(method, receiver):
+        return None
     field_name = receiver.removeprefix("this.")
     fields = [f for f in cls["fields"] if f["name"] == field_name]
     args = call.get("arguments", [])

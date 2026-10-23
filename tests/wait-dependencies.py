@@ -55,7 +55,9 @@ class WaitTests(unittest.TestCase):
         files = s01.t01.factory.project_files(
             project, s01.t01.factory.adapter_for("transaction-analysis")
         )
-        cls.facts = s01.t01.java_facts(s01.t01.factory, project, files)
+        cls.facts = s01.t01.java_facts(
+            s01.t01.factory, project, files, source_snapshot=True
+        )
         context = json.loads((FIXTURE / "context.json").read_text())
         cls.models = {}
         for name in (
@@ -103,7 +105,9 @@ class WaitTests(unittest.TestCase):
         variant_files = s01.t01.factory.project_files(
             variant, s01.t01.factory.adapter_for("transaction-analysis")
         )
-        facts = s01.t01.java_facts(s01.t01.factory, variant, variant_files)
+        facts = s01.t01.java_facts(
+            s01.t01.factory, variant, variant_files, source_snapshot=True
+        )
         tx = s01.t01.build(
             facts,
             {**context, "aspectjWeaving": "ASSUMED_APPLIED"},

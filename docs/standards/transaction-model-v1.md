@@ -186,12 +186,43 @@ source facts, not independent re-parsing of the source or a runtime qualificatio
 
 Positive paths use explicit Spring imports/fully qualified annotations,
 `@Service`/`@Component`/`@Repository`/`@Controller` declarations, direct non-initialized
-`@Autowired` concrete fields, zero-argument methods and synchronous straight-line
+`@Autowired` concrete fields, zero-argument application call sites and synchronous straight-line
 call statements. Optional/qualified/ambiguous injection is unresolved. Declared
-subtypes, interfaces/inheritance, parameterized methods/overloads, composed or
+subtypes, interfaces/inheritance, argument-bearing application calls, composed or
 unresolved annotations and external/dynamic wiring are not silently resolved.
 The model assumes wiring closed to observed declarations and labels this premise;
 it does not claim that a real Spring context could start from a static fixture.
+
+REAL-01-F01 accepts formal parameters at the root without evaluating or binding
+their runtime values (always UNKNOWN). `Class#method()` retains its exact zero-parameter
+meaning; `Class#method(types)` selects an exact declaration signature and bare
+`Class#method` requires one declaration. Errors enumerate alternatives with source
+references. Parameter names, order, declared type syntax, bounded source namespace,
+UNKNOWN runtime values and UTF-16/hash provenance are AST metadata; v1 transaction
+fields and transition rules are unchanged. S01 finds the same declaration by
+signature **and** source evidence. A parameter hiding a field never proves injected
+receiver identity; explicit `this.field` retains its existing meaning.
+
+The type subset includes primitives, arrays, explicit imports, observed same-package
+types, a closed java.lang set, and concrete parameterized types such as imported
+`List<String>`/`Map<String,List<Integer>>`. Wildcard imports can identify observed
+source types and a closed java.util set (List, Map, Set, Collection, Optional, UUID).
+An unbound simple type under a wildcard import can retain **DECLARED_ONLY** spelling
+for a unique method: its namespace/type binding remains null, never guessed. Any
+overload group containing that unresolved spelling is blocked, even if another
+alternative appears exact. Type variables, generic wildcards, unbound types without
+wildcard imports, and unsupported signatures are blocked with alternatives. This
+is declaration selection, not Java attribution, overload dispatch or classpath proof.
+
+AST inspection through `source.java_facts` now defaults to an allowlisted diagnostic
+projection: symbols, signatures, parameter metadata, counts/hazards and relative
+positions/digests. It omits source snapshots, receivers, argument literals and
+annotation expressions. Internal analysis/revalidation explicitly requests
+`source_snapshot=True`; existing S01 and JDBC leaf source-bearing contracts remain
+intact and historical snapshots remain readable. Such snapshots are local evidence
+for an explicitly requested artifact destination, never provider authorization or
+diagnostic/log content. CLI stdout remains a small summary. JDK failures withhold
+stderr; syntax diagnostics expose only compiler code and line, without source excerpts.
 
 A single explicit `@EnableTransactionManagement(proxyTargetClass=true)` with proxy
 mode supports conditional public class-proxy interception. In known PROXY mode,

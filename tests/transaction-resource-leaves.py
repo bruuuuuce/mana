@@ -98,7 +98,9 @@ class LeafTests(unittest.TestCase):
             files = cli.t01.factory.project_files(
                 project, cli.t01.factory.adapter_for("transaction-analysis")
             )
-            cls.facts[name] = cli.t01.java_facts(cli.t01.factory, project, files)
+            cls.facts[name] = cli.t01.java_facts(
+                cli.t01.factory, project, files, source_snapshot=True
+            )
 
     @classmethod
     def tearDownClass(cls):
@@ -329,7 +331,9 @@ class LeafTests(unittest.TestCase):
                 files = cli.t01.factory.project_files(
                     project, cli.t01.factory.adapter_for("transaction-analysis")
                 )
-                facts = cli.t01.java_facts(cli.t01.factory, project, files)
+                facts = cli.t01.java_facts(
+                    cli.t01.factory, project, files, source_snapshot=True
+                )
                 self.assertFalse(self.leaves(self.model(facts=facts)))
 
     def test_qualified_or_initialized_receiver_and_wrong_type_not_catalogued(self):

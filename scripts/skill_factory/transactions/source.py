@@ -12,7 +12,8 @@ import subprocess
 import tempfile
 
 
-def java_facts(factory, project, files):
+def java_facts(factory, project, files, *, source_snapshot=False):
+    """Return safe diagnostics unless an internal analysis snapshot is explicit."""
     sources = {p: b for p, b in files.items() if p.endswith(".java")}
     if (
         not sources
@@ -57,8 +58,9 @@ def java_facts(factory, project, files):
                 raise factory.FactoryError("JDK parser timeout") from exc
             if result.returncode:
                 raise factory.FactoryError(
-                    "JDK parser failed: "
-                    + result.stderr.decode("utf-8", "replace")[:2000]
+                    "JDK parser failed (exit "
+                    + str(result.returncode)
+                    + "); diagnostics withheld"
                 )
             return result.stdout, result.stderr
 
@@ -124,7 +126,46 @@ def java_facts(factory, project, files):
 
         attach(facts)
         facts["sources"] = {p: raw.decode("utf-8") for p, raw in sources.items()}
-        return facts
+        return facts if source_snapshot else diagnostic_facts(facts)
+
+
+def diagnostic_facts(facts):
+    """Allowlisted inspection output. Internal snapshots are never diagnostics.
+
+    Full sourceFacts/sources remain required by the existing local S01/leaf
+    contracts. Do not print them: publish only to an explicitly selected local
+    analysis output, or use this projection for diagnostics/reports.
+    """
+    from .entry import method_key
+
+    return {
+        "classes": [
+            {
+                "symbol": cls["name"],
+                "evidence": copy.deepcopy(cls["evidence"]),
+                "methods": [
+                    {
+                        "symbol": method["name"],
+                        "signature": method_key(cls, method),
+                        "arity": method["arity"],
+                        "parameters": copy.deepcopy(method.get("parameters", [])),
+                        "evidence": copy.deepcopy(method["evidence"]),
+                        "calls": [
+                            {
+                                "symbol": call["name"],
+                                "arity": call["arity"],
+                                "evidence": copy.deepcopy(call["evidence"]),
+                            }
+                            for call in method["calls"]
+                        ],
+                        "hazards": list(method["hazards"]),
+                    }
+                    for method in cls["methods"]
+                ],
+            }
+            for cls in facts["classes"]
+        ]
+    }
 
 
 class _SnapshotHost:
@@ -144,7 +185,10 @@ class _SnapshotHost:
 @lru_cache(maxsize=8)
 def _reparse_snapshot(sources):
     return java_facts(
-        _SnapshotHost, None, {p: raw.encode("utf-8") for p, raw in sources}
+        _SnapshotHost,
+        None,
+        {p: raw.encode("utf-8") for p, raw in sources},
+        source_snapshot=True,
     )
 
 
@@ -168,8 +212,16 @@ def verify_leaf_snapshot(facts, hashes):
         raise ValueError("resource leaf lacks hash-linked source bytes")
     # T01 decorates traversed injected calls with an evidence pointer. It is
     # derived metadata, not a parser fact; verify that pointer before removing it.
-    parsed = _reparse_snapshot(tuple(sorted(sources.items())))
+    parsed = copy.deepcopy(_reparse_snapshot(tuple(sorted(sources.items()))))
     supplied = copy.deepcopy(facts)
+    # Parameter metadata is additive. Historical snapshots remain verifiable;
+    # omit only this new derived field when the original snapshot lacks it.
+    for parsed_cls, supplied_cls in zip(parsed["classes"], supplied.get("classes", [])):
+        for parsed_method, supplied_method in zip(
+            parsed_cls["methods"], supplied_cls["methods"]
+        ):
+            if "parameters" not in supplied_method:
+                parsed_method.pop("parameters", None)
     for cls in supplied.get("classes", []):
         for method in cls["methods"]:
             for call in method["calls"]:

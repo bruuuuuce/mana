@@ -37,7 +37,7 @@ class TransactionTests(unittest.TestCase):
         files = cli.factory.project_files(
             FIXTURE, cli.factory.adapter_for("transaction-analysis")
         )
-        cls.facts = cli.java_facts(cli.factory, FIXTURE, files)
+        cls.facts = cli.java_facts(cli.factory, FIXTURE, files, source_snapshot=True)
         cls.oracles = json.loads((FIXTURE / "oracles.json").read_text())
 
     def model(self, name="required", context=None, facts=None):

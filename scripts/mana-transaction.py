@@ -76,7 +76,7 @@ def analyze(project, context_path, entry, *, include_facts=False):
     adapter.specialize(
         files
     )  # Same technology/applicability gate; generation is separate.
-    facts = java_facts(factory, project, files)
+    facts = java_facts(factory, project, files, source_snapshot=True)
     report = build(facts, context, entry)
     report["evidence"] = [
         {"path": p, "sha256": factory.digest(raw)} for p, raw in sorted(files.items())
@@ -104,7 +104,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, required=True)
     parser.add_argument("--context", type=Path, required=True)
-    parser.add_argument("--entry", required=True, help="Fully qualified Class#method()")
+    parser.add_argument(
+        "--entry",
+        required=True,
+        help="Class#method(qualified,types) or unique Class#method; values remain UNKNOWN",
+    )
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     try:

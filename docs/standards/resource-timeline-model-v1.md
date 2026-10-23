@@ -67,10 +67,14 @@ no timeline entry and must never supply an edge to a future wait graph.
 The qualified source pattern is a direct, noninitialized, unqualified
 `@Autowired JdbcTemplate` field, explicitly imported as
 `org.springframework.jdbc.core.JdbcTemplate`, in a class without declared parents,
-inside a T01 zero-argument method without parser hazards. `jdbc` and `this.jdbc`
+inside a T01-selected method without parser hazards (including bounded formal
+parameters; see REAL-01-F01 in Transaction Model v1). `jdbc` and `this.jdbc`
 receivers are supported. Optional/qualified injection, inherited members, local
 aliases, other resource APIs and runtime wiring remain unresolved. Even the
 qualified source field does not prove Spring can start or bind a datasource.
+Formal runtime values remain UNKNOWN; a parameter named `jdbc` does not bind the
+field's resource API. `sourceFacts` remains source-bearing local evidence at the
+explicit output destination; default AST diagnostics exclude source expressions.
 
 Recognized invocation APIs are `execute`, `update`, and `queryForList`, each with
 exactly one AST string literal argument. A deliberately closed, case-insensitive

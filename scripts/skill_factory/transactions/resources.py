@@ -2,6 +2,7 @@
 
 import copy
 
+from .entry import method_key, shadows_receiver
 from .model import validate_model
 from .resource_leaf import AUTOWIRED, JDBC, binding_blocker, sql_operation
 
@@ -28,8 +29,7 @@ def _method(facts, frame):
         (cls, method)
         for cls in facts["classes"]
         for method in cls["methods"]
-        if cls["name"] + "#" + method["name"] + "()" == frame["calleeMethod"]
-        and method["arity"] == 0
+        if method_key(cls, method) == frame["calleeMethod"]
     ]
     if len(matches) != 1 or matches[0][1]["evidence"] != frame["evidence"]:
         raise ValueError("resource facts do not match T01 method evidence")
@@ -44,6 +44,7 @@ def _observation(cls, method, call, frame, state, before):
     annotations = field["annotations"] if field else []
     binding = bool(
         field
+        and not shadows_receiver(method, receiver)
         and field["type"] == JDBC
         and not cls["parents"]
         and (

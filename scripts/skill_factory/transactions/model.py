@@ -71,24 +71,15 @@ def effective_context(state):
 
 
 def build(facts, context, entry):
+    from .entry import select_methods, shadows_receiver
+
     leaf_policy = context.get("resourceLeafPolicy", "DISABLED")
     if leaf_policy not in ("DISABLED", resource_leaf.POLICY):
         raise ValueError("unsupported resource leaf policy")
     classes = {c["name"]: c for c in facts["classes"]}
     if len(classes) != len(facts["classes"]):
         raise ValueError("duplicate class identity; source binding is ambiguous")
-    methods = {}
-    for cls in classes.values():
-        for method in cls["methods"]:
-            key = cls["name"] + "#" + method["name"] + "()"
-            if method["arity"] == 0:
-                if key in methods:
-                    raise ValueError("duplicate/ambiguous zero-argument method: " + key)
-                methods[key] = (cls, method)
-    if entry not in methods:
-        raise ValueError(
-            "entry must name an existing zero-argument method: Class#method()"
-        )
+    methods, entry = select_methods(classes, entry)
     configs = [
         (c, a)
         for c in classes.values()
@@ -251,8 +242,10 @@ def build(facts, context, entry):
             ),
         }
 
-    def resolve_call(cls, call):
+    def resolve_call(cls, method, call):
         receiver = call["receiver"]
+        if shadows_receiver(method, receiver):
+            return None, None, "PARAMETER_RECEIVER_RUNTIME_VALUE_UNKNOWN"
         if receiver in ("", "this"):
             return cls, False, "SELF_INVOCATION"
         field_name = receiver[5:] if receiver.startswith("this.") else receiver
@@ -581,7 +574,7 @@ def build(facts, context, entry):
                         witness=witness,
                     )
                     continue
-                target, proxy, reason = resolve_call(cls, call)
+                target, proxy, reason = resolve_call(cls, method, call)
                 if leaf_budget_exceeded:
                     reason = "RESOURCE_LEAF_BUDGET_EXCEEDED"
                 elif (

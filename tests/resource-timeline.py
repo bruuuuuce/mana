@@ -36,7 +36,9 @@ class ResourceTests(unittest.TestCase):
         cls.files = cli.t01.factory.project_files(
             FIXTURE, cli.t01.factory.adapter_for("transaction-analysis")
         )
-        cls.facts = cli.t01.java_facts(cli.t01.factory, FIXTURE, cls.files)
+        cls.facts = cli.t01.java_facts(
+            cli.t01.factory, FIXTURE, cls.files, source_snapshot=True
+        )
 
     def model(self, entry="fixture.Entry#required()", context=None, facts=None):
         facts = copy.deepcopy(facts or self.facts)

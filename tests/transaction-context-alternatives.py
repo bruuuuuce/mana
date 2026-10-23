@@ -39,7 +39,9 @@ class ContextAlternativeTests(unittest.TestCase):
             files = cli.factory.project_files(
                 project, cli.factory.adapter_for("transaction-analysis")
             )
-            cls.facts[name] = cli.java_facts(cli.factory, project, files)
+            cls.facts[name] = cli.java_facts(
+                cli.factory, project, files, source_snapshot=True
+            )
 
     @classmethod
     def tearDownClass(cls):
