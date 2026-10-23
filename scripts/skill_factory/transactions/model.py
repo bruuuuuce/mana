@@ -248,6 +248,11 @@ def build(facts, context, entry):
             return None, None, "PARAMETER_RECEIVER_RUNTIME_VALUE_UNKNOWN"
         if receiver in ("", "this"):
             return cls, False, "SELF_INVOCATION"
+        if any(
+            "UNEXTRACTED_TYPE_HIERARCHY_OR_WIRING" in c.get("dispatchHazards", [])
+            for c in classes.values()
+        ):
+            return None, None, "OMITTED_TYPE_DISPATCH_NOT_MODELED"
         field_name = receiver[5:] if receiver.startswith("this.") else receiver
         fields = [f for f in cls["fields"] if f["name"] == field_name]
         if (
@@ -364,6 +369,18 @@ def build(facts, context, entry):
             uncertain(frame, "ASYNC_EXECUTION_CONTEXT")
         elif cls["parents"]:
             uncertain(frame, "INHERITANCE_OR_INTERFACE_RESOLUTION_NOT_MODELED")
+        elif any(
+            h in method["hazards"]
+            for h in (
+                "omitted-member-type-dependency",
+                "omitted-local-or-anonymous-type-dependency",
+            )
+        ):
+            uncertain(frame, "OMITTED_TYPE_EXECUTION_DEPENDENCY_NOT_MODELED")
+        elif "unextracted-class-initializer" in method["hazards"]:
+            uncertain(frame, "CLASS_INITIALIZER_EXECUTION_NOT_MODELED")
+        elif "UNEXTRACTED_TYPE_HIERARCHY_OR_WIRING" in cls.get("dispatchHazards", []):
+            uncertain(frame, "OMITTED_TYPE_DISPATCH_NOT_MODELED")
         elif cls["kind"] != "CLASS" or "abstract" in cls["flags"]:
             uncertain(frame, "NON_CONCRETE_BEAN_TYPE")
         elif (
@@ -806,6 +823,9 @@ def _validate_transition(frame, report, children):
         "RECURSION_OR_TRACE_BUDGET",
         "ASYNC_EXECUTION_CONTEXT",
         "INHERITANCE_OR_INTERFACE_RESOLUTION_NOT_MODELED",
+        "OMITTED_TYPE_EXECUTION_DEPENDENCY_NOT_MODELED",
+        "CLASS_INITIALIZER_EXECUTION_NOT_MODELED",
+        "OMITTED_TYPE_DISPATCH_NOT_MODELED",
         "NON_CONCRETE_BEAN_TYPE",
         "FINAL_CLASS_PROXY_NOT_ESTABLISHED",
         "BEAN_IDENTITY_NOT_ESTABLISHED",

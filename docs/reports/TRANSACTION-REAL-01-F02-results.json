@@ -1,0 +1,484 @@
+{
+  "task": "MANA-TRANSACTION-REAL-01-F02",
+  "verdict": "PARTIAL",
+  "classificationFix": "IMPLEMENTED_AND_VERIFIED",
+  "realPath": "UNKNOWN_NOT_ASSERTED",
+  "baseline": {
+    "head": "a27ae0f3fcc732c064a834aae3d11886a44c8f0d",
+    "branch": "develop",
+    "status": "M docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv\n M docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv\n M docs/roadmap/TRANSACTION-01.md\n?? docs/architecture/MANA-EXEC-CONTRACT-001.md\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F02-R1-results.json\n?? docs/reports/TRANSACTION-01-T02-S02-I01-F03-R1-results.json\n?? docs/reports/TRANSACTION-01-T02-S02-I01-F03-R1.md\n?? docs/reports/TRANSACTION-01-T02-S02-contract.md\n?? docs/reports/TRANSACTION-01-T02-S02-implementation-plan.md\n?? docs/reports/TRANSACTION-01-T02-S02-oracles.csv\n?? docs/reports/TRANSACTION-REAL-01-F01-R1.md\n?? docs/roadmap/TRANSACTION-01-T02.md",
+    "index": ""
+  },
+  "evidenceDirectory": "/private/tmp/mana-real-01-f02-evidence",
+  "regressions": [
+    {
+      "check": "transaction-type-dependencies",
+      "argv": [
+        "python3",
+        "tests/transaction-type-dependencies.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "tests": 17,
+      "skipped": 0,
+      "seconds": 7.921,
+      "log": "transaction-type-dependencies.log"
+    },
+    {
+      "check": "transaction-entry-parameters",
+      "argv": [
+        "python3",
+        "tests/transaction-entry-parameters.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "tests": 12,
+      "skipped": 0,
+      "seconds": 3.998,
+      "log": "transaction-entry-parameters.log"
+    },
+    {
+      "check": "transaction-boundaries",
+      "argv": [
+        "python3",
+        "tests/transaction-boundaries.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "tests": 16,
+      "skipped": 0,
+      "seconds": 5.155,
+      "log": "transaction-boundaries.log"
+    },
+    {
+      "check": "transaction-self-invocation",
+      "argv": [
+        "python3",
+        "tests/transaction-self-invocation.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "tests": 16,
+      "skipped": 0,
+      "seconds": 8.14,
+      "log": "transaction-self-invocation.log"
+    },
+    {
+      "check": "transaction-context-alternatives",
+      "argv": [
+        "python3",
+        "tests/transaction-context-alternatives.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "tests": 21,
+      "skipped": 0,
+      "seconds": 3.799,
+      "log": "transaction-context-alternatives.log"
+    },
+    {
+      "check": "transaction-aop-causal-order",
+      "argv": [
+        "python3",
+        "tests/transaction-aop-causal-order.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "tests": 26,
+      "skipped": 0,
+      "seconds": 0.052,
+      "log": "transaction-aop-causal-order.log"
+    },
+    {
+      "check": "transaction-transition-contract",
+      "argv": [
+        "python3",
+        "tests/transaction-transition-contract.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "tests": 64,
+      "skipped": 0,
+      "seconds": 0.065,
+      "log": "transaction-transition-contract.log"
+    },
+    {
+      "check": "transaction-physical-lifetime",
+      "argv": [
+        "python3",
+        "tests/transaction-physical-lifetime.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "tests": 19,
+      "skipped": 0,
+      "seconds": 0.05,
+      "log": "transaction-physical-lifetime.log"
+    },
+    {
+      "check": "resource-timeline",
+      "argv": [
+        "python3",
+        "tests/resource-timeline.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "tests": 22,
+      "skipped": 0,
+      "seconds": 2.854,
+      "log": "resource-timeline.log"
+    },
+    {
+      "check": "transaction-resource-leaves",
+      "argv": [
+        "python3",
+        "tests/transaction-resource-leaves.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "tests": 31,
+      "skipped": 0,
+      "seconds": 6.36,
+      "log": "transaction-resource-leaves.log"
+    },
+    {
+      "check": "transaction-resource-binding",
+      "argv": [
+        "python3",
+        "tests/transaction-resource-binding.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "tests": 10,
+      "skipped": 0,
+      "seconds": 14.79,
+      "log": "transaction-resource-binding.log"
+    },
+    {
+      "check": "transaction-resource-dispatch",
+      "argv": [
+        "python3",
+        "tests/transaction-resource-dispatch.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "tests": 22,
+      "skipped": 0,
+      "seconds": 11.682,
+      "log": "transaction-resource-dispatch.log"
+    }
+  ],
+  "validation": [
+    {
+      "check": "repository-validation",
+      "argv": [
+        "bash",
+        "scripts/validate-repo.sh"
+      ],
+      "exitCode": 0,
+      "tests": null,
+      "skipped": 0,
+      "seconds": 11.717,
+      "log": "repository-validation.log"
+    },
+    {
+      "check": "ruff",
+      "argv": [
+        "ruff",
+        "check",
+        "scripts/skill_factory/transactions",
+        "scripts/mana-transaction.py",
+        "scripts/mana-resource-timeline.py",
+        "tests/resource-timeline.py",
+        "tests/wait-dependencies.py",
+        "tests/transaction-aop-causal-order.py",
+        "tests/transaction-boundaries.py",
+        "tests/transaction-context-alternatives.py",
+        "tests/transaction-entry-parameters.py",
+        "tests/transaction-physical-lifetime.py",
+        "tests/transaction-resource-binding.py",
+        "tests/transaction-resource-dispatch.py",
+        "tests/transaction-resource-leaves.py",
+        "tests/transaction-self-invocation.py",
+        "tests/transaction-transition-contract.py",
+        "tests/transaction-type-dependencies.py",
+        "tests/transaction-visualization.py"
+      ],
+      "exitCode": 0,
+      "tests": null,
+      "skipped": 0,
+      "seconds": 0.01,
+      "log": "ruff.log"
+    },
+    {
+      "check": "ruff-format",
+      "argv": [
+        "ruff",
+        "format",
+        "--check",
+        "scripts/skill_factory/transactions/__init__.py",
+        "scripts/skill_factory/transactions/alternatives.py",
+        "scripts/skill_factory/transactions/entry.py",
+        "scripts/skill_factory/transactions/model.py",
+        "scripts/skill_factory/transactions/plantuml.py",
+        "scripts/skill_factory/transactions/resource_leaf.py",
+        "scripts/skill_factory/transactions/resources.py",
+        "scripts/skill_factory/transactions/source.py",
+        "scripts/skill_factory/transactions/wait_dependencies.py",
+        "scripts/skill_factory/transactions/wait_validation.py",
+        "scripts/mana-transaction.py",
+        "tests/transaction-entry-parameters.py",
+        "tests/transaction-type-dependencies.py"
+      ],
+      "exitCode": 0,
+      "tests": null,
+      "skipped": 0,
+      "seconds": 0.008,
+      "log": "ruff-format.log"
+    }
+  ],
+  "independentJavaFixtureOracles": {
+    "scope": "Synthetic fixtures only, Java 8 bytecode, explicit test-only stubs; unresolved analyzer dependencies supplied only to independent compiler. No execution. Literal predicates do not import Mana.",
+    "results": [
+      {
+        "fixture": "Ambiguous.java",
+        "sourceSha256": "2f2adc437c2e1d784194536a1c6c9897a4f72d895647e61f15852d1ffa300eb7",
+        "javacExit": 0,
+        "independentRelationshipOracle": "PASS"
+      },
+      {
+        "fixture": "ConstructorUse.java",
+        "sourceSha256": "572ec03d7240274f4b825102d4eead539e93b30aa61bb76927cebff0b0dfb407",
+        "javacExit": 0,
+        "independentRelationshipOracle": "PASS"
+      },
+      {
+        "fixture": "ExternalBase.java",
+        "sourceSha256": "4d67019bb77f2277819a525002fb15458738e36d7e2ba065651059d1ddf5946e",
+        "javacExit": 0,
+        "independentRelationshipOracle": "PASS"
+      },
+      {
+        "fixture": "ForeignSubtype.java",
+        "sourceSha256": "25c718451805541169bb308aea4d8ba4937899ffb4b5c28a3a501940efcab2e7",
+        "javacExit": 0,
+        "independentRelationshipOracle": "PASS"
+      },
+      {
+        "fixture": "Initializer.java",
+        "sourceSha256": "231fcb1b5b64e8d1f8b8a661b3ac3c2b48cd9feb1f18d5e3f88b0a8ea47ca542",
+        "javacExit": 0,
+        "independentRelationshipOracle": "PASS"
+      },
+      {
+        "fixture": "InnerUse.java",
+        "sourceSha256": "bc4cd8f7bfa4102180780c2bed3d81ec69016748f010ad35cebfa79459520aeb",
+        "javacExit": 0,
+        "independentRelationshipOracle": "PASS"
+      },
+      {
+        "fixture": "InterfaceUse.java",
+        "sourceSha256": "c915943f8841d8438f01ee03977d28797d81515f12c1f1569036d532686b0197",
+        "javacExit": 0,
+        "independentRelationshipOracle": "PASS"
+      },
+      {
+        "fixture": "LocalAnonymous.java",
+        "sourceSha256": "9528449c5df9f161072749d7615341709be5dc682740c39854e4b06c11e9c304",
+        "javacExit": 0,
+        "independentRelationshipOracle": "PASS"
+      },
+      {
+        "fixture": "NestedExtends.java",
+        "sourceSha256": "caa6bc9a9daeb073e085ad1027e0d7456002efa413345055670a834bb3d72d72",
+        "javacExit": 0,
+        "independentRelationshipOracle": "PASS"
+      },
+      {
+        "fixture": "Positive.java",
+        "sourceSha256": "f0d7b0bcb029ba8718c7a0e4666ce79e71f076010960da38e513b15d6910195d",
+        "javacExit": 0,
+        "independentRelationshipOracle": "PASS"
+      },
+      {
+        "fixture": "Relevant.java",
+        "sourceSha256": "53134df58c7cd429b468565a250ff726502fbf772e4cdd46c3a4f290eff1d297",
+        "javacExit": 0,
+        "independentRelationshipOracle": "PASS"
+      },
+      {
+        "fixture": "SelfSubtype.java",
+        "sourceSha256": "afcf6e76f1d4961d7c9bf1433a795a789b094c66912bbb780835bf548908abbd",
+        "javacExit": 0,
+        "independentRelationshipOracle": "PASS"
+      },
+      {
+        "fixture": "StaticUse.java",
+        "sourceSha256": "f94a34e3efabadac95e49ab82cae61e595bf9c517e423fefcd7fcb55f80eefe6",
+        "javacExit": 0,
+        "independentRelationshipOracle": "PASS"
+      }
+    ]
+  },
+  "real": {
+    "sameMethodAsPilot": true,
+    "arity": 6,
+    "source": {
+      "file": "src/main/java/com/nexi/npg/phoenixkafkaservices/services/NotificationService.java",
+      "start": 3516,
+      "end": 4318,
+      "line": 77,
+      "sha256": "7fb36e5da7cc1b459ca3eee63b367c1681283e17f8bdc80481d36048334bfc2a"
+    },
+    "before": {
+      "parents": [
+        "UNKNOWN_NESTED_CLASS_OR_INITIALIZER",
+        "UNKNOWN_NESTED_CLASS_OR_INITIALIZER",
+        "UNKNOWN_NESTED_CLASS_OR_INITIALIZER"
+      ],
+      "bodyHazards": [
+        "unsupported-control-or-expression",
+        "unsupported-control-or-expression",
+        "unsupported-control-or-expression"
+      ],
+      "bodyTraversal": "NOT_ASSERTED",
+      "status": "VALIDATED_CONDITIONAL_STATIC_SCENARIO",
+      "previousZeroArgumentBlock": "CLEARED",
+      "frames": 1,
+      "logicalScopes": 0,
+      "physicalTransactions": 0,
+      "uncertainties": [
+        {
+          "reason": "INHERITANCE_OR_INTERFACE_RESOLUTION_NOT_MODELED",
+          "classification": "UNKNOWN",
+          "evidence": {
+            "file": "src/main/java/com/nexi/npg/phoenixkafkaservices/services/NotificationService.java",
+            "start": 3516,
+            "end": 4318,
+            "line": 77,
+            "sha256": "7fb36e5da7cc1b459ca3eee63b367c1681283e17f8bdc80481d36048334bfc2a"
+          }
+        }
+      ],
+      "modelSha256": "97195e1896e76b4afa51e2922510b6b2b57344f25fe553340c3b361e02f79ee9",
+      "S01": {
+        "status": "VALIDATED_CONDITIONAL_STATIC_SCENARIO",
+        "observations": 0,
+        "placements": [],
+        "unchangedT01": true,
+        "timelineSha256": "061587e4cbeb56d27631566a68ac11648977f7664520d2b1e29dffe1b1ce89a8"
+      },
+      "callSitesTraversed": 0
+    },
+    "after": {
+      "parents": [],
+      "bodyHazards": [
+        "omitted-member-type-dependency",
+        "unsupported-control-or-expression",
+        "unsupported-control-or-expression",
+        "unsupported-control-or-expression"
+      ],
+      "bodyTraversal": "NOT_ASSERTED",
+      "status": "VALIDATED_CONDITIONAL_STATIC_SCENARIO",
+      "previousZeroArgumentBlock": "CLEARED",
+      "frames": 1,
+      "logicalScopes": 0,
+      "physicalTransactions": 0,
+      "uncertainties": [
+        {
+          "reason": "OMITTED_TYPE_EXECUTION_DEPENDENCY_NOT_MODELED",
+          "classification": "UNKNOWN",
+          "evidence": {
+            "file": "src/main/java/com/nexi/npg/phoenixkafkaservices/services/NotificationService.java",
+            "start": 3516,
+            "end": 4318,
+            "line": 77,
+            "sha256": "7fb36e5da7cc1b459ca3eee63b367c1681283e17f8bdc80481d36048334bfc2a"
+          }
+        }
+      ],
+      "modelSha256": "b450846aaa01a4ed4aef630f37fb4a89ba664e38fb1caf24e54c8ba43a43346c",
+      "S01": {
+        "status": "VALIDATED_CONDITIONAL_STATIC_SCENARIO",
+        "observations": 0,
+        "placements": [],
+        "unchangedT01": true,
+        "timelineSha256": "e7a282c2adfe91bbdd6f12b44cb56d89ab3bf81838d5ee0067cfe16d7c28c040"
+      },
+      "callSitesTraversed": 0
+    },
+    "S02": "NOT_RUN",
+    "VIS01": "NOT_RUN",
+    "targetRuntime": "NOT_RUN",
+    "database": "NOT_RUN"
+  },
+  "originalOmissions": [
+    {
+      "id": "O1",
+      "line": 532,
+      "start": 21126,
+      "end": 22823,
+      "kind": "STATIC_MEMBER_CLASS",
+      "declaredExtends": null,
+      "declaredImplements": [],
+      "entryReferenceLines": [
+        86
+      ],
+      "classification": "EXECUTION_DEPENDENCY"
+    },
+    {
+      "id": "O2",
+      "line": 584,
+      "start": 22833,
+      "end": 23207,
+      "kind": "STATIC_MEMBER_CLASS",
+      "declaredExtends": "RuntimeException",
+      "declaredImplements": [],
+      "entryReferenceLines": [
+        97
+      ],
+      "classification": "EXECUTION_DEPENDENCY"
+    },
+    {
+      "id": "O3",
+      "line": 597,
+      "start": 23217,
+      "end": 23390,
+      "kind": "STATIC_MEMBER_CLASS",
+      "declaredExtends": "RuntimeException",
+      "declaredImplements": [],
+      "entryReferenceLines": [],
+      "otherReferenceLines": [
+        312
+      ],
+      "classification": "TYPE_CONTAINMENT_WITH_CONSERVATIVE_HIERARCHY_DISPATCH_LIMIT"
+    }
+  ],
+  "preservation": {
+    "preexisting13": "PASS",
+    "f01R1Report": "PASS",
+    "baselineManaFiles": 1510,
+    "allowedExistingChanges": [
+      "docs/standards/transaction-model-v1.md",
+      "scripts/skill_factory/transactions/JavaFacts.java",
+      "scripts/skill_factory/transactions/model.py"
+    ],
+    "targetFiles": 109,
+    "pilotFiles": 20,
+    "f01EvidenceFiles": 25,
+    "r1EvidenceFiles": 38,
+    "targetContentModeFileSetHeadStatus": "PASS",
+    "previousEvidenceContentMode": "PASS",
+    "governanceInventoriedSurfaces": "UNCHANGED",
+    "headBranchIndex": "UNCHANGED",
+    "excludedFromInventory": "Ignored files and Git internals"
+  },
+  "limits": [
+    "No real call-site traversal",
+    "Syntactic matches may conservatively overblock",
+    "No nested behavior, classpath attribution or general Java resolution",
+    "JDBC leaf inventory omission guard retained",
+    "No silent upgrade of historical omission snapshots",
+    "No independent second-agent review or runtime qualification"
+  ]
+}

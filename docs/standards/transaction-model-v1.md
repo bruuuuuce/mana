@@ -224,6 +224,27 @@ for an explicitly requested artifact destination, never provider authorization o
 diagnostic/log content. CLI stdout remains a small summary. JDK failures withhold
 stderr; syntax diagnostics expose only compiler code and line, without source excerpts.
 
+REAL-01-F02 separates type containment from inheritance without changing v1 fields.
+`parents` contains only the owner's declared extends/implements clauses. Omitted
+member declarations alone are not owner supertypes. Before discarding their bodies,
+the JDK AST is inspected for references to their names in the complete selected
+method (including signatures and unsupported statements), class modifiers, fields
+and constructors. Positive or ambiguous name matches retain an execution-dependency
+hazard; they never prove Java binding. Initializer blocks and local/anonymous types
+remain explicit execution limits. No absence in the extracted call list proves
+irrelevance, and no nested behavior is resolved or executed.
+
+Omitted types with their own supertypes or annotations retain conservative dispatch
+limits, including deeper declarations and potential subtypes in another owner.
+Their inheritance is not assigned to the containing class. Such owners remain
+NOT_ASSERTED; injected dispatch elsewhere remains UNKNOWN. JDBC leaf dispatch keeps
+its inventory-wide omission guard, even for a member irrelevant to an ordinary T01
+path. These bounds can reject harmless hierarchies, constructors, fields or name
+collisions; they do not constitute a Java resolver. Historical source-bearing
+snapshots with changed omission facts fail revalidation rather than being silently
+upgraded. Run `python3 tests/transaction-type-dependencies.py -v` for literal path
+expectations and an independent synthetic Java 8 javac/javap type oracle.
+
 A single explicit `@EnableTransactionManagement(proxyTargetClass=true)` with proxy
 mode supports conditional public class-proxy interception. In known PROXY mode,
 self/direct invocation bypasses transaction annotations and retains caller context.

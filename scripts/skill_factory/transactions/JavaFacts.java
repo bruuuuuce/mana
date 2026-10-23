@@ -13,6 +13,7 @@ public final class JavaFacts {
     static CompilationUnitTree unit;
     static Map<String,String> imports;
     static Set<String> typeParameters = new HashSet<String>();
+    static Set<String> memberTypeNames = new HashSet<String>();
     static Set<String> declaredTypes = new HashSet<String>();
     static String packageName;
     static List<Object> classes = new ArrayList<Object>();
@@ -53,7 +54,7 @@ public final class JavaFacts {
         if (type instanceof PrimitiveTypeTree) return type.toString();
         if (type instanceof IdentifierTree) {
             String name=((IdentifierTree)type).getName().toString();
-            if (variables.contains(name)) return null;
+            if (variables.contains(name) || memberTypeNames.contains(name)) return null;
             if (imports.containsKey(name)) return imports.get(name);
             if (declaredTypes.contains(packageName+name)) return packageName+name;
             Set<String> candidates=new HashSet<String>();
@@ -128,9 +129,43 @@ public final class JavaFacts {
         for (javax.lang.model.element.Modifier m:modifiers.getFlags()) f.add(m.toString());
         return f;
     }
+    // A positive syntactic reference is enough to refuse resolution. Absence is
+    // used only over the complete outer declaration, never over extracted calls.
+    static boolean referencesOmitted(Tree tree, final Set<String> names) {
+        final boolean[] found={false};
+        new TreeScanner<Void,Void>() {
+            @Override public Void visitIdentifier(IdentifierTree id,Void unused) {
+                if (names.contains(id.getName().toString())) found[0]=true;
+                return super.visitIdentifier(id,unused);
+            }
+            @Override public Void visitMemberSelect(MemberSelectTree select,Void unused) {
+                if (names.contains(select.getIdentifier().toString())) found[0]=true;
+                return super.visitMemberSelect(select,unused);
+            }
+        }.scan(tree,null);
+        return found[0];
+    }
     static void parseClass(ClassTree cls, String pkg) {
         List<Object> fields=new ArrayList<Object>(), methods=new ArrayList<Object>();
         final List<String> dispatchHazards=new ArrayList<String>();
+        final Set<String> omittedNames=new HashSet<String>();
+        boolean initializer=false;
+        for (Tree member:cls.getMembers()) {
+            if (member instanceof ClassTree) {
+                ClassTree nested=(ClassTree)member;
+                omittedNames.add(nested.getSimpleName().toString());
+            } else if (member instanceof BlockTree) initializer=true;
+        }
+        boolean structuralDependency=referencesOmitted(cls.getModifiers(),omittedNames);
+        memberTypeNames=omittedNames;
+        for (Tree member:cls.getMembers()) {
+            // Fields and constructors can establish receiver identity before the
+            // selected method; absence from that method's calls is insufficient.
+            if (member instanceof VariableTree || member instanceof MethodTree &&
+                    ((MethodTree)member).getReturnType()==null)
+                structuralDependency |= referencesOmitted(member,omittedNames);
+        }
+        if (initializer) dispatchHazards.add("UNEXTRACTED_CLASS_INITIALIZER");
         typeParameters=new HashSet<String>();
         for (TypeParameterTree parameter:cls.getTypeParameters())
             typeParameters.add(parameter.getName().toString());
@@ -149,7 +184,12 @@ public final class JavaFacts {
             @Override public Void visitClass(ClassTree nested,Void unused) {
                 if (nested!=cls) {
                     if (dispatchHazards.isEmpty()) dispatchHazards.add("UNEXTRACTED_APPLICATION_TYPE");
-                    return null;
+                    // These supertypes belong to the omitted type, not its owner.
+                    // Even deep omitted types may affect subtype/wiring dispatch.
+                    if (nested.getExtendsClause()!=null || !nested.getImplementsClause().isEmpty() ||
+                            !nested.getModifiers().getAnnotations().isEmpty())
+                        if (!dispatchHazards.contains("UNEXTRACTED_TYPE_HIERARCHY_OR_WIRING"))
+                            dispatchHazards.add("UNEXTRACTED_TYPE_HIERARCHY_OR_WIRING");
                 }
                 return super.visitClass(nested,unused);
             }
@@ -196,6 +236,9 @@ public final class JavaFacts {
                 final List<Object> calls=new ArrayList<Object>();
                 final Set<MethodInvocationTree> statementCalls=Collections.newSetFromMap(new IdentityHashMap<MethodInvocationTree,Boolean>());
                 List<String> hazards=new ArrayList<String>();
+                if (structuralDependency || referencesOmitted(m,omittedNames))
+                    hazards.add("omitted-member-type-dependency");
+                if (initializer) hazards.add("unextracted-class-initializer");
                 if (m.getBody()==null) hazards.add("missing-body");
                 else {
                     List<? extends StatementTree> statements=m.getBody().getStatements();
@@ -234,7 +277,10 @@ public final class JavaFacts {
                                 "arguments",arguments,"statementCall",statementCalls.contains(call),"evidence",position(call)));
                             return null;
                         }
-                        @Override public Void visitClass(ClassTree nested,Void unused) { return null; }
+                        @Override public Void visitClass(ClassTree nested,Void unused) {
+                            hazards.add("omitted-local-or-anonymous-type-dependency");
+                            return null;
+                        }
                     }.scan(m.getBody(),null);
                 }
                 methods.add(obj("name",m.getName().toString(),"arity",m.getParameters().size(),
@@ -242,8 +288,6 @@ public final class JavaFacts {
                     "returnType",m.getReturnType()==null?"":qualify(m.getReturnType().toString()),
                     "annotations",annotations(m.getModifiers()),"flags",flags(m.getModifiers()),
                     "hazards",hazards,"calls",calls,"evidence",position(m)));
-            } else if (member instanceof ClassTree || member instanceof BlockTree) {
-                parents.add("UNKNOWN_NESTED_CLASS_OR_INITIALIZER");
             }
         }
         classes.add(obj("name",pkg+cls.getSimpleName(),"simpleName",cls.getSimpleName().toString(),
