@@ -1,0 +1,3373 @@
+{
+  "schema": "mana.resource-timeline/v1",
+  "status": "CONDITIONAL_STATIC_SCENARIO",
+  "transactionModel": {
+    "schema": "mana.transaction-model/v1",
+    "entry": "fixture.Paths#yx()",
+    "status": "CONDITIONAL_STATIC_SCENARIO",
+    "proxyMode": "CLASS",
+    "interceptionMode": "PROXY",
+    "aspectjWeaving": {
+      "application": "UNKNOWN",
+      "runtimeApplication": "UNKNOWN"
+    },
+    "assumptions": [
+      "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+      "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+      "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+      "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+      "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven.",
+      "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+      "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+      "Normal synchronous return is assumed only for continuation of this path.",
+      "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+      "The catalogued overload has no application callback argument."
+    ],
+    "context": {
+      "schema": "mana.transaction-context/v1",
+      "initialState": "NO_TRANSACTION",
+      "entryThroughProxy": true,
+      "managerCapabilities": {
+        "tx": {
+          "suspend": true,
+          "savepoints": true
+        }
+      },
+      "resourceLeafPolicy": "JDBC_LITERAL_V1"
+    },
+    "managers": [
+      {
+        "id": "tx",
+        "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+        "evidence": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 716,
+          "end": 809,
+          "line": 16,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "capabilities": {
+          "suspend": true,
+          "savepoints": true
+        },
+        "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+      }
+    ],
+    "frames": [
+      {
+        "id": "F1",
+        "callerMethod": null,
+        "calleeMethod": "fixture.Paths#yx()",
+        "callSite": null,
+        "bean": "fixture.Paths",
+        "proxy": {
+          "mode": "CLASS",
+          "crossed": true,
+          "configurationEvidence": [
+            {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 643,
+              "end": 696,
+              "line": 14,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          ],
+          "reason": "SCENARIO_PROXY_CALL"
+        },
+        "manager": "tx",
+        "configuration": {
+          "propagation": "REQUIRED",
+          "managerQualifier": "",
+          "attributes": {},
+          "evidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1025,
+            "end": 1039,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "origin": "method",
+          "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+          "unmodeledAttributes": []
+        },
+        "logicalScope": "L1",
+        "previousState": {
+          "kind": "NO_TRANSACTION",
+          "physicalId": null,
+          "manager": null
+        },
+        "duringState": {
+          "kind": "TRANSACTION_PHYSICAL",
+          "physicalId": "P1",
+          "manager": "tx"
+        },
+        "afterState": {
+          "kind": "NO_TRANSACTION",
+          "physicalId": null,
+          "manager": null
+        },
+        "certainty": "CONDITIONAL",
+        "bodyTraversal": "STRAIGHT_LINE",
+        "evidence": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 1025,
+          "end": 1120,
+          "line": 23,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "depth": 0,
+        "beanEvidence": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 812,
+          "end": 2053,
+          "line": 18,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "beanName": "paths",
+        "interception": {
+          "status": "APPLIED",
+          "reason": "SCENARIO_PROXY_CALL"
+        },
+        "effectiveContext": {
+          "before": "INACTIVE",
+          "during": "ACTIVE",
+          "after": "INACTIVE"
+        }
+      }
+    ],
+    "logicalScopes": [
+      {
+        "id": "L1",
+        "kind": "TRANSACTION_LOGICAL_SCOPE",
+        "frame": "F1",
+        "certainty": "CONDITIONAL",
+        "physicalId": "P1"
+      }
+    ],
+    "physicalTransactions": [
+      {
+        "id": "P1",
+        "kind": "TRANSACTION_PHYSICAL",
+        "manager": "tx",
+        "beginFrame": "F1",
+        "endFrame": "F1",
+        "identity": "SYMBOLIC_SCENARIO",
+        "runtimeIdentity": "UNKNOWN",
+        "certainty": "CONDITIONAL",
+        "outcome": "UNKNOWN"
+      }
+    ],
+    "suspensions": [],
+    "savepoints": [],
+    "events": [
+      {
+        "sequence": 1,
+        "kind": "FRAME_ENTER",
+        "frame": "F1"
+      },
+      {
+        "sequence": 2,
+        "kind": "PHYSICAL_BEGIN",
+        "frame": "F1",
+        "entity": "P1"
+      },
+      {
+        "sequence": 3,
+        "kind": "LOGICAL_BEGIN",
+        "frame": "F1",
+        "entity": "L1"
+      },
+      {
+        "sequence": 4,
+        "kind": "RESOURCE_LEAF_CALL",
+        "frame": "F1",
+        "callSite": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 1059,
+          "end": 1087,
+          "line": 23,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "receiver": "jdbc",
+        "method": "update",
+        "witness": {
+          "schema": "mana.resource-leaf-witness/v1",
+          "rule": {
+            "id": "spring-jdbc-template-literal",
+            "version": 2
+          },
+          "signature": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+          "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+          "callSite": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1059,
+            "end": 1087,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "methodEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1025,
+            "end": 1120,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "bindingEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 839,
+            "end": 892,
+            "line": 20,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "argumentEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1071,
+            "end": 1086,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "sourceCallOrdinal": 1,
+          "t01Sequence": 4,
+          "normalReturnDependencies": [],
+          "transactionContext": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "premises": [
+            "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+            "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+            "Normal synchronous return is assumed only for continuation of this path.",
+            "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+            "The catalogued overload has no application callback argument."
+          ],
+          "limits": [
+            "Runtime execution, successful SQL completion and normal return are not proved.",
+            "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+            "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+            "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+          ]
+        }
+      },
+      {
+        "sequence": 5,
+        "kind": "RESOURCE_LEAF_CALL",
+        "frame": "F1",
+        "callSite": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 1089,
+          "end": 1117,
+          "line": 23,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "receiver": "jdbc",
+        "method": "update",
+        "witness": {
+          "schema": "mana.resource-leaf-witness/v1",
+          "rule": {
+            "id": "spring-jdbc-template-literal",
+            "version": 2
+          },
+          "signature": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+          "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+          "callSite": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1089,
+            "end": 1117,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "methodEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1025,
+            "end": 1120,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "bindingEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 839,
+            "end": 892,
+            "line": 20,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "argumentEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1101,
+            "end": 1116,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "sourceCallOrdinal": 2,
+          "t01Sequence": 5,
+          "normalReturnDependencies": [
+            4
+          ],
+          "transactionContext": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "premises": [
+            "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+            "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+            "Normal synchronous return is assumed only for continuation of this path.",
+            "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+            "The catalogued overload has no application callback argument."
+          ],
+          "limits": [
+            "Runtime execution, successful SQL completion and normal return are not proved.",
+            "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+            "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+            "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+          ]
+        }
+      },
+      {
+        "sequence": 6,
+        "kind": "LOGICAL_END",
+        "frame": "F1",
+        "entity": "L1"
+      },
+      {
+        "sequence": 7,
+        "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+        "frame": "F1",
+        "entity": "P1"
+      },
+      {
+        "sequence": 8,
+        "kind": "FRAME_EXIT",
+        "frame": "F1"
+      }
+    ],
+    "uncertainties": [],
+    "resourceLeafExtension": {
+      "schema": "mana.transaction-resource-leaves/v1",
+      "sourceFacts": {
+        "classes": [
+          {
+            "name": "fixture.Config",
+            "simpleName": "Config",
+            "kind": "CLASS",
+            "flags": [],
+            "parents": [],
+            "dispatchHazards": [],
+            "annotations": [
+              {
+                "type": "org.springframework.context.annotation.Configuration",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 628,
+                  "end": 642,
+                  "line": 13,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "type": "org.springframework.transaction.annotation.EnableTransactionManagement",
+                "args": {
+                  "proxyTargetClass": {
+                    "kind": "BOOLEAN_LITERAL",
+                    "literal": true,
+                    "text": "true"
+                  }
+                },
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 643,
+                  "end": 696,
+                  "line": 14,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "fields": [],
+            "methods": [
+              {
+                "name": "tx",
+                "arity": 0,
+                "returnType": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+                "annotations": [
+                  {
+                    "type": "org.springframework.context.annotation.Bean",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 716,
+                      "end": 721,
+                      "line": 16,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [
+                  "unsupported-control-or-expression"
+                ],
+                "calls": [],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 716,
+                  "end": 809,
+                  "line": 16,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 628,
+              "end": 811,
+              "line": 13,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "fixture.Paths",
+            "simpleName": "Paths",
+            "kind": "CLASS",
+            "flags": [],
+            "parents": [],
+            "dispatchHazards": [],
+            "annotations": [
+              {
+                "type": "org.springframework.stereotype.Service",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 812,
+                  "end": 820,
+                  "line": 18,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "fields": [
+              {
+                "name": "jdbc",
+                "type": "org.springframework.jdbc.core.JdbcTemplate",
+                "flags": [
+                  "private",
+                  "final"
+                ],
+                "allocation": {
+                  "type": "org.springframework.jdbc.core.JdbcTemplate",
+                  "explicitType": true,
+                  "arity": 0,
+                  "anonymous": false,
+                  "evidence": {
+                    "file": "src/main/java/fixture/Waits.java",
+                    "start": 873,
+                    "end": 891,
+                    "line": 20,
+                    "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                  }
+                },
+                "annotations": [],
+                "initialized": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 839,
+                  "end": 892,
+                  "line": 20,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "inner",
+                "type": "Inner",
+                "flags": [],
+                "allocation": null,
+                "annotations": [
+                  {
+                    "type": "org.springframework.beans.factory.annotation.Autowired",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 897,
+                      "end": 907,
+                      "line": 21,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "initialized": false,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 897,
+                  "end": 920,
+                  "line": 21,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "methods": [
+              {
+                "name": "xy",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 925,
+                      "end": 939,
+                      "line": 22,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM X",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 971,
+                          "end": 986,
+                          "line": 22,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 959,
+                      "end": 987,
+                      "line": 22,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  },
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM Y",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 1001,
+                          "end": 1016,
+                          "line": 22,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 989,
+                      "end": 1017,
+                      "line": 22,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 925,
+                  "end": 1020,
+                  "line": 22,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "yx",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1025,
+                      "end": 1039,
+                      "line": 23,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM Y",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 1071,
+                          "end": 1086,
+                          "line": 23,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1059,
+                      "end": 1087,
+                      "line": 23,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  },
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM X",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 1101,
+                          "end": 1116,
+                          "line": 23,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1089,
+                      "end": 1117,
+                      "line": 23,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1025,
+                  "end": 1120,
+                  "line": 23,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "outer",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1125,
+                      "end": 1139,
+                      "line": 24,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM X",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 1174,
+                          "end": 1189,
+                          "line": 24,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1162,
+                      "end": 1190,
+                      "line": 24,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  },
+                  {
+                    "receiver": "inner",
+                    "name": "fresh",
+                    "arity": 0,
+                    "arguments": [],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1192,
+                      "end": 1205,
+                      "line": 24,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1125,
+                  "end": 1208,
+                  "line": 24,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "repeated",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1213,
+                      "end": 1227,
+                      "line": 25,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "inner",
+                    "name": "required",
+                    "arity": 0,
+                    "arguments": [],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1253,
+                      "end": 1269,
+                      "line": 25,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  },
+                  {
+                    "receiver": "inner",
+                    "name": "required",
+                    "arity": 0,
+                    "arguments": [],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1271,
+                      "end": 1287,
+                      "line": 25,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1213,
+                  "end": 1290,
+                  "line": 25,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "required",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1295,
+                      "end": 1309,
+                      "line": 26,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "inner",
+                    "name": "required",
+                    "arity": 0,
+                    "arguments": [],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1335,
+                      "end": 1351,
+                      "line": 26,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  },
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM X",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 1365,
+                          "end": 1380,
+                          "line": 26,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1353,
+                      "end": 1381,
+                      "line": 26,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1295,
+                  "end": 1384,
+                  "line": 26,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "nested",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1389,
+                      "end": 1403,
+                      "line": 27,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "inner",
+                    "name": "nested",
+                    "arity": 0,
+                    "arguments": [],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1427,
+                      "end": 1441,
+                      "line": 27,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  },
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM X",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 1455,
+                          "end": 1470,
+                          "line": 27,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1443,
+                      "end": 1471,
+                      "line": 27,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1389,
+                  "end": 1474,
+                  "line": 27,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "frontier",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1479,
+                      "end": 1493,
+                      "line": 28,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM X",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 1531,
+                          "end": 1546,
+                          "line": 28,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1519,
+                      "end": 1547,
+                      "line": 28,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  },
+                  {
+                    "receiver": "unresolved",
+                    "name": "run",
+                    "arity": 0,
+                    "arguments": [],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1549,
+                      "end": 1565,
+                      "line": 28,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  },
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM Y",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 1579,
+                          "end": 1594,
+                          "line": 28,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1567,
+                      "end": 1595,
+                      "line": 28,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1479,
+                  "end": 1598,
+                  "line": 28,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "unordered",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1603,
+                      "end": 1617,
+                      "line": 29,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [
+                  "unsupported-control-or-expression"
+                ],
+                "calls": [
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM X",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 1668,
+                          "end": 1683,
+                          "line": 29,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": false,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1656,
+                      "end": 1684,
+                      "line": 29,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  },
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM Y",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 1700,
+                          "end": 1715,
+                          "line": 29,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1688,
+                      "end": 1716,
+                      "line": 29,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1603,
+                  "end": 1719,
+                  "line": 29,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "read",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1724,
+                      "end": 1738,
+                      "line": 30,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "jdbc",
+                    "name": "queryForList",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "SELECT * FROM X",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 1778,
+                          "end": 1795,
+                          "line": 30,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1760,
+                      "end": 1796,
+                      "line": 30,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1724,
+                  "end": 1799,
+                  "line": 30,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "request",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1804,
+                      "end": 1818,
+                      "line": 31,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "jdbc",
+                    "name": "queryForList",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "SELECT * FROM X FOR UPDATE",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 1861,
+                          "end": 1889,
+                          "line": 31,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1843,
+                      "end": 1890,
+                      "line": 31,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1804,
+                  "end": 1893,
+                  "line": 31,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "asyncCaller",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1898,
+                      "end": 1912,
+                      "line": 32,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "inner",
+                    "name": "async",
+                    "arity": 0,
+                    "arguments": [],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1941,
+                      "end": 1954,
+                      "line": 32,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1898,
+                  "end": 1957,
+                  "line": 32,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "unknownSql",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1962,
+                      "end": 1976,
+                      "line": 33,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "jdbc",
+                    "name": "execute",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "SELECT a FROM X WHERE id = 1",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 2017,
+                          "end": 2047,
+                          "line": 33,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2004,
+                      "end": 2048,
+                      "line": 33,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1962,
+                  "end": 2051,
+                  "line": 33,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 812,
+              "end": 2053,
+              "line": 18,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "fixture.Inner",
+            "simpleName": "Inner",
+            "kind": "CLASS",
+            "flags": [],
+            "parents": [],
+            "dispatchHazards": [],
+            "annotations": [
+              {
+                "type": "org.springframework.stereotype.Service",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2054,
+                  "end": 2062,
+                  "line": 35,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "fields": [
+              {
+                "name": "jdbc",
+                "type": "org.springframework.jdbc.core.JdbcTemplate",
+                "flags": [
+                  "private",
+                  "final"
+                ],
+                "allocation": {
+                  "type": "org.springframework.jdbc.core.JdbcTemplate",
+                  "explicitType": true,
+                  "arity": 0,
+                  "anonymous": false,
+                  "evidence": {
+                    "file": "src/main/java/fixture/Waits.java",
+                    "start": 2115,
+                    "end": 2133,
+                    "line": 37,
+                    "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                  }
+                },
+                "annotations": [],
+                "initialized": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2081,
+                  "end": 2134,
+                  "line": 37,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "methods": [
+              {
+                "name": "fresh",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {
+                      "propagation": {
+                        "kind": "MEMBER_SELECT",
+                        "literal": null,
+                        "text": "org.springframework.transaction.annotation.Propagation.REQUIRES_NEW"
+                      }
+                    },
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2139,
+                      "end": 2193,
+                      "line": 38,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "jdbc",
+                    "name": "queryForList",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "SELECT * FROM X FOR UPDATE",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 2234,
+                          "end": 2262,
+                          "line": 38,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2216,
+                      "end": 2263,
+                      "line": 38,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2139,
+                  "end": 2266,
+                  "line": 38,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "required",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2271,
+                      "end": 2285,
+                      "line": 39,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM X",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 2323,
+                          "end": 2338,
+                          "line": 39,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2311,
+                      "end": 2339,
+                      "line": 39,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2271,
+                  "end": 2342,
+                  "line": 39,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "nested",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.transaction.annotation.Transactional",
+                    "args": {
+                      "propagation": {
+                        "kind": "MEMBER_SELECT",
+                        "literal": null,
+                        "text": "org.springframework.transaction.annotation.Propagation.NESTED"
+                      }
+                    },
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2347,
+                      "end": 2395,
+                      "line": 40,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM X",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 2431,
+                          "end": 2446,
+                          "line": 40,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2419,
+                      "end": 2447,
+                      "line": 40,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2347,
+                  "end": 2450,
+                  "line": 40,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "name": "async",
+                "arity": 0,
+                "returnType": "void",
+                "annotations": [
+                  {
+                    "type": "org.springframework.scheduling.annotation.Async",
+                    "args": {},
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2455,
+                      "end": 2461,
+                      "line": 41,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "flags": [
+                  "public"
+                ],
+                "hazards": [],
+                "calls": [
+                  {
+                    "receiver": "jdbc",
+                    "name": "update",
+                    "arity": 1,
+                    "arguments": [
+                      {
+                        "kind": "STRING_LITERAL",
+                        "literal": "DELETE FROM X",
+                        "evidence": {
+                          "file": "src/main/java/fixture/Waits.java",
+                          "start": 2496,
+                          "end": 2511,
+                          "line": 41,
+                          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                        }
+                      }
+                    ],
+                    "statementCall": true,
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2484,
+                      "end": 2512,
+                      "line": 41,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2455,
+                  "end": 2515,
+                  "line": 41,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 2054,
+              "end": 2517,
+              "line": 35,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          }
+        ],
+        "errors": [],
+        "sources": {
+          "src/main/java/fixture/Waits.java": "package fixture;\nimport org.springframework.stereotype.Service;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.transaction.annotation.Transactional;\nimport org.springframework.transaction.annotation.Propagation;\nimport org.springframework.transaction.annotation.EnableTransactionManagement;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.jdbc.datasource.DataSourceTransactionManager;\nimport org.springframework.jdbc.core.JdbcTemplate;\nimport org.springframework.scheduling.annotation.Async;\n\n@Configuration\n@EnableTransactionManagement(proxyTargetClass = true)\nclass Config {\n    @Bean public DataSourceTransactionManager tx() { return new DataSourceTransactionManager(); }\n}\n@Service\nclass Paths {\n    private final JdbcTemplate jdbc = new JdbcTemplate();\n    @Autowired Inner inner;\n    @Transactional public void xy() { jdbc.update(\"DELETE FROM X\"); jdbc.update(\"DELETE FROM Y\"); }\n    @Transactional public void yx() { jdbc.update(\"DELETE FROM Y\"); jdbc.update(\"DELETE FROM X\"); }\n    @Transactional public void outer() { jdbc.update(\"DELETE FROM X\"); inner.fresh(); }\n    @Transactional public void repeated() { inner.required(); inner.required(); }\n    @Transactional public void required() { inner.required(); jdbc.update(\"DELETE FROM X\"); }\n    @Transactional public void nested() { inner.nested(); jdbc.update(\"DELETE FROM X\"); }\n    @Transactional public void frontier() { jdbc.update(\"DELETE FROM X\"); unresolved.run(); jdbc.update(\"DELETE FROM Y\"); }\n    @Transactional public void unordered() { if (flag) { jdbc.update(\"DELETE FROM X\"); } jdbc.update(\"DELETE FROM Y\"); }\n    @Transactional public void read() { jdbc.queryForList(\"SELECT * FROM X\"); }\n    @Transactional public void request() { jdbc.queryForList(\"SELECT * FROM X FOR UPDATE\"); }\n    @Transactional public void asyncCaller() { inner.async(); }\n    @Transactional public void unknownSql() { jdbc.execute(\"SELECT a FROM X WHERE id = 1\"); }\n}\n@Service\nclass Inner {\n    private final JdbcTemplate jdbc = new JdbcTemplate();\n    @Transactional(propagation = Propagation.REQUIRES_NEW) public void fresh() { jdbc.queryForList(\"SELECT * FROM X FOR UPDATE\"); }\n    @Transactional public void required() { jdbc.update(\"DELETE FROM X\"); }\n    @Transactional(propagation = Propagation.NESTED) public void nested() { jdbc.update(\"DELETE FROM X\"); }\n    @Async public void async() { jdbc.update(\"DELETE FROM X\"); }\n}\n"
+        }
+      }
+    },
+    "evidence": [
+      {
+        "path": "pom.xml",
+        "sha256": "fc93c8a4ae6b6c7871d8e90ce1e43e8c6b6fc6a05ad9c83c59bc5e27f47e56b0"
+      },
+      {
+        "path": "src/main/java/fixture/Waits.java",
+        "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+      }
+    ]
+  },
+  "sourceFacts": {
+    "classes": [
+      {
+        "name": "fixture.Config",
+        "simpleName": "Config",
+        "kind": "CLASS",
+        "flags": [],
+        "parents": [],
+        "dispatchHazards": [],
+        "annotations": [
+          {
+            "type": "org.springframework.context.annotation.Configuration",
+            "args": {},
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 628,
+              "end": 642,
+              "line": 13,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "type": "org.springframework.transaction.annotation.EnableTransactionManagement",
+            "args": {
+              "proxyTargetClass": {
+                "kind": "BOOLEAN_LITERAL",
+                "literal": true,
+                "text": "true"
+              }
+            },
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 643,
+              "end": 696,
+              "line": 14,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          }
+        ],
+        "fields": [],
+        "methods": [
+          {
+            "name": "tx",
+            "arity": 0,
+            "returnType": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+            "annotations": [
+              {
+                "type": "org.springframework.context.annotation.Bean",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 716,
+                  "end": 721,
+                  "line": 16,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [
+              "unsupported-control-or-expression"
+            ],
+            "calls": [],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 716,
+              "end": 809,
+              "line": 16,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          }
+        ],
+        "evidence": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 628,
+          "end": 811,
+          "line": 13,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        }
+      },
+      {
+        "name": "fixture.Paths",
+        "simpleName": "Paths",
+        "kind": "CLASS",
+        "flags": [],
+        "parents": [],
+        "dispatchHazards": [],
+        "annotations": [
+          {
+            "type": "org.springframework.stereotype.Service",
+            "args": {},
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 812,
+              "end": 820,
+              "line": 18,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          }
+        ],
+        "fields": [
+          {
+            "name": "jdbc",
+            "type": "org.springframework.jdbc.core.JdbcTemplate",
+            "flags": [
+              "private",
+              "final"
+            ],
+            "allocation": {
+              "type": "org.springframework.jdbc.core.JdbcTemplate",
+              "explicitType": true,
+              "arity": 0,
+              "anonymous": false,
+              "evidence": {
+                "file": "src/main/java/fixture/Waits.java",
+                "start": 873,
+                "end": 891,
+                "line": 20,
+                "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+              }
+            },
+            "annotations": [],
+            "initialized": true,
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 839,
+              "end": 892,
+              "line": 20,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "inner",
+            "type": "Inner",
+            "flags": [],
+            "allocation": null,
+            "annotations": [
+              {
+                "type": "org.springframework.beans.factory.annotation.Autowired",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 897,
+                  "end": 907,
+                  "line": 21,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "initialized": false,
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 897,
+              "end": 920,
+              "line": 21,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          }
+        ],
+        "methods": [
+          {
+            "name": "xy",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 925,
+                  "end": 939,
+                  "line": 22,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM X",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 971,
+                      "end": 986,
+                      "line": 22,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 959,
+                  "end": 987,
+                  "line": 22,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM Y",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1001,
+                      "end": 1016,
+                      "line": 22,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 989,
+                  "end": 1017,
+                  "line": 22,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 925,
+              "end": 1020,
+              "line": 22,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "yx",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1025,
+                  "end": 1039,
+                  "line": 23,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM Y",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1071,
+                      "end": 1086,
+                      "line": 23,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1059,
+                  "end": 1087,
+                  "line": 23,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM X",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1101,
+                      "end": 1116,
+                      "line": 23,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1089,
+                  "end": 1117,
+                  "line": 23,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 1025,
+              "end": 1120,
+              "line": 23,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "outer",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1125,
+                  "end": 1139,
+                  "line": 24,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM X",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1174,
+                      "end": 1189,
+                      "line": 24,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1162,
+                  "end": 1190,
+                  "line": 24,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "receiver": "inner",
+                "name": "fresh",
+                "arity": 0,
+                "arguments": [],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1192,
+                  "end": 1205,
+                  "line": 24,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 1125,
+              "end": 1208,
+              "line": 24,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "repeated",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1213,
+                  "end": 1227,
+                  "line": 25,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "inner",
+                "name": "required",
+                "arity": 0,
+                "arguments": [],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1253,
+                  "end": 1269,
+                  "line": 25,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "receiver": "inner",
+                "name": "required",
+                "arity": 0,
+                "arguments": [],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1271,
+                  "end": 1287,
+                  "line": 25,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 1213,
+              "end": 1290,
+              "line": 25,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "required",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1295,
+                  "end": 1309,
+                  "line": 26,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "inner",
+                "name": "required",
+                "arity": 0,
+                "arguments": [],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1335,
+                  "end": 1351,
+                  "line": 26,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM X",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1365,
+                      "end": 1380,
+                      "line": 26,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1353,
+                  "end": 1381,
+                  "line": 26,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 1295,
+              "end": 1384,
+              "line": 26,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "nested",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1389,
+                  "end": 1403,
+                  "line": 27,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "inner",
+                "name": "nested",
+                "arity": 0,
+                "arguments": [],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1427,
+                  "end": 1441,
+                  "line": 27,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM X",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1455,
+                      "end": 1470,
+                      "line": 27,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1443,
+                  "end": 1471,
+                  "line": 27,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 1389,
+              "end": 1474,
+              "line": 27,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "frontier",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1479,
+                  "end": 1493,
+                  "line": 28,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM X",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1531,
+                      "end": 1546,
+                      "line": 28,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1519,
+                  "end": 1547,
+                  "line": 28,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "receiver": "unresolved",
+                "name": "run",
+                "arity": 0,
+                "arguments": [],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1549,
+                  "end": 1565,
+                  "line": 28,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM Y",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1579,
+                      "end": 1594,
+                      "line": 28,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1567,
+                  "end": 1595,
+                  "line": 28,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 1479,
+              "end": 1598,
+              "line": 28,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "unordered",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1603,
+                  "end": 1617,
+                  "line": 29,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [
+              "unsupported-control-or-expression"
+            ],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM X",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1668,
+                      "end": 1683,
+                      "line": 29,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": false,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1656,
+                  "end": 1684,
+                  "line": 29,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              },
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM Y",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1700,
+                      "end": 1715,
+                      "line": 29,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1688,
+                  "end": 1716,
+                  "line": 29,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 1603,
+              "end": 1719,
+              "line": 29,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "read",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1724,
+                  "end": 1738,
+                  "line": 30,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "queryForList",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "SELECT * FROM X",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1778,
+                      "end": 1795,
+                      "line": 30,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1760,
+                  "end": 1796,
+                  "line": 30,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 1724,
+              "end": 1799,
+              "line": 30,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "request",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1804,
+                  "end": 1818,
+                  "line": 31,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "queryForList",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "SELECT * FROM X FOR UPDATE",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 1861,
+                      "end": 1889,
+                      "line": 31,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1843,
+                  "end": 1890,
+                  "line": 31,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 1804,
+              "end": 1893,
+              "line": 31,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "asyncCaller",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1898,
+                  "end": 1912,
+                  "line": 32,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "inner",
+                "name": "async",
+                "arity": 0,
+                "arguments": [],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1941,
+                  "end": 1954,
+                  "line": 32,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 1898,
+              "end": 1957,
+              "line": 32,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "unknownSql",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 1962,
+                  "end": 1976,
+                  "line": 33,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "execute",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "SELECT a FROM X WHERE id = 1",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2017,
+                      "end": 2047,
+                      "line": 33,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2004,
+                  "end": 2048,
+                  "line": 33,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 1962,
+              "end": 2051,
+              "line": 33,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          }
+        ],
+        "evidence": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 812,
+          "end": 2053,
+          "line": 18,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        }
+      },
+      {
+        "name": "fixture.Inner",
+        "simpleName": "Inner",
+        "kind": "CLASS",
+        "flags": [],
+        "parents": [],
+        "dispatchHazards": [],
+        "annotations": [
+          {
+            "type": "org.springframework.stereotype.Service",
+            "args": {},
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 2054,
+              "end": 2062,
+              "line": 35,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          }
+        ],
+        "fields": [
+          {
+            "name": "jdbc",
+            "type": "org.springframework.jdbc.core.JdbcTemplate",
+            "flags": [
+              "private",
+              "final"
+            ],
+            "allocation": {
+              "type": "org.springframework.jdbc.core.JdbcTemplate",
+              "explicitType": true,
+              "arity": 0,
+              "anonymous": false,
+              "evidence": {
+                "file": "src/main/java/fixture/Waits.java",
+                "start": 2115,
+                "end": 2133,
+                "line": 37,
+                "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+              }
+            },
+            "annotations": [],
+            "initialized": true,
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 2081,
+              "end": 2134,
+              "line": 37,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          }
+        ],
+        "methods": [
+          {
+            "name": "fresh",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {
+                  "propagation": {
+                    "kind": "MEMBER_SELECT",
+                    "literal": null,
+                    "text": "org.springframework.transaction.annotation.Propagation.REQUIRES_NEW"
+                  }
+                },
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2139,
+                  "end": 2193,
+                  "line": 38,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "queryForList",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "SELECT * FROM X FOR UPDATE",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2234,
+                      "end": 2262,
+                      "line": 38,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2216,
+                  "end": 2263,
+                  "line": 38,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 2139,
+              "end": 2266,
+              "line": 38,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "required",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2271,
+                  "end": 2285,
+                  "line": 39,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM X",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2323,
+                      "end": 2338,
+                      "line": 39,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2311,
+                  "end": 2339,
+                  "line": 39,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 2271,
+              "end": 2342,
+              "line": 39,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "nested",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.transaction.annotation.Transactional",
+                "args": {
+                  "propagation": {
+                    "kind": "MEMBER_SELECT",
+                    "literal": null,
+                    "text": "org.springframework.transaction.annotation.Propagation.NESTED"
+                  }
+                },
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2347,
+                  "end": 2395,
+                  "line": 40,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM X",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2431,
+                      "end": 2446,
+                      "line": 40,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2419,
+                  "end": 2447,
+                  "line": 40,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 2347,
+              "end": 2450,
+              "line": 40,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          },
+          {
+            "name": "async",
+            "arity": 0,
+            "returnType": "void",
+            "annotations": [
+              {
+                "type": "org.springframework.scheduling.annotation.Async",
+                "args": {},
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2455,
+                  "end": 2461,
+                  "line": 41,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "flags": [
+              "public"
+            ],
+            "hazards": [],
+            "calls": [
+              {
+                "receiver": "jdbc",
+                "name": "update",
+                "arity": 1,
+                "arguments": [
+                  {
+                    "kind": "STRING_LITERAL",
+                    "literal": "DELETE FROM X",
+                    "evidence": {
+                      "file": "src/main/java/fixture/Waits.java",
+                      "start": 2496,
+                      "end": 2511,
+                      "line": 41,
+                      "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                    }
+                  }
+                ],
+                "statementCall": true,
+                "evidence": {
+                  "file": "src/main/java/fixture/Waits.java",
+                  "start": 2484,
+                  "end": 2512,
+                  "line": 41,
+                  "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+                }
+              }
+            ],
+            "evidence": {
+              "file": "src/main/java/fixture/Waits.java",
+              "start": 2455,
+              "end": 2515,
+              "line": 41,
+              "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+            }
+          }
+        ],
+        "evidence": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 2054,
+          "end": 2517,
+          "line": 35,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        }
+      }
+    ],
+    "errors": [],
+    "sources": {
+      "src/main/java/fixture/Waits.java": "package fixture;\nimport org.springframework.stereotype.Service;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.transaction.annotation.Transactional;\nimport org.springframework.transaction.annotation.Propagation;\nimport org.springframework.transaction.annotation.EnableTransactionManagement;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.jdbc.datasource.DataSourceTransactionManager;\nimport org.springframework.jdbc.core.JdbcTemplate;\nimport org.springframework.scheduling.annotation.Async;\n\n@Configuration\n@EnableTransactionManagement(proxyTargetClass = true)\nclass Config {\n    @Bean public DataSourceTransactionManager tx() { return new DataSourceTransactionManager(); }\n}\n@Service\nclass Paths {\n    private final JdbcTemplate jdbc = new JdbcTemplate();\n    @Autowired Inner inner;\n    @Transactional public void xy() { jdbc.update(\"DELETE FROM X\"); jdbc.update(\"DELETE FROM Y\"); }\n    @Transactional public void yx() { jdbc.update(\"DELETE FROM Y\"); jdbc.update(\"DELETE FROM X\"); }\n    @Transactional public void outer() { jdbc.update(\"DELETE FROM X\"); inner.fresh(); }\n    @Transactional public void repeated() { inner.required(); inner.required(); }\n    @Transactional public void required() { inner.required(); jdbc.update(\"DELETE FROM X\"); }\n    @Transactional public void nested() { inner.nested(); jdbc.update(\"DELETE FROM X\"); }\n    @Transactional public void frontier() { jdbc.update(\"DELETE FROM X\"); unresolved.run(); jdbc.update(\"DELETE FROM Y\"); }\n    @Transactional public void unordered() { if (flag) { jdbc.update(\"DELETE FROM X\"); } jdbc.update(\"DELETE FROM Y\"); }\n    @Transactional public void read() { jdbc.queryForList(\"SELECT * FROM X\"); }\n    @Transactional public void request() { jdbc.queryForList(\"SELECT * FROM X FOR UPDATE\"); }\n    @Transactional public void asyncCaller() { inner.async(); }\n    @Transactional public void unknownSql() { jdbc.execute(\"SELECT a FROM X WHERE id = 1\"); }\n}\n@Service\nclass Inner {\n    private final JdbcTemplate jdbc = new JdbcTemplate();\n    @Transactional(propagation = Propagation.REQUIRES_NEW) public void fresh() { jdbc.queryForList(\"SELECT * FROM X FOR UPDATE\"); }\n    @Transactional public void required() { jdbc.update(\"DELETE FROM X\"); }\n    @Transactional(propagation = Propagation.NESTED) public void nested() { jdbc.update(\"DELETE FROM X\"); }\n    @Async public void async() { jdbc.update(\"DELETE FROM X\"); }\n}\n"
+    }
+  },
+  "observations": [
+    {
+      "frame": "F1",
+      "method": "fixture.Paths#yx()",
+      "applicationOperation": {
+        "receiver": "jdbc",
+        "method": "update"
+      },
+      "callSite": {
+        "file": "src/main/java/fixture/Waits.java",
+        "start": 1059,
+        "end": 1087,
+        "line": 23,
+        "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+      },
+      "operationType": "WRITE",
+      "sqlLiteral": "DELETE FROM Y",
+      "resource": {
+        "status": "LEXICAL_SQL_IDENTIFIER",
+        "name": "Y",
+        "runtimeIdentity": "UNKNOWN",
+        "lockGranularity": "UNKNOWN"
+      },
+      "transactionContext": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "datasource": {
+        "status": "UNKNOWN",
+        "id": null
+      },
+      "enlistment": "UNKNOWN",
+      "lockAcquired": "UNKNOWN",
+      "certainty": "CONDITIONAL",
+      "placement": {
+        "status": "T01_RESOURCE_LEAF",
+        "beforeT01Sequence": 4
+      },
+      "evidence": [
+        {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 1059,
+          "end": 1087,
+          "line": 23,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 839,
+          "end": 892,
+          "line": 20,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 1071,
+          "end": 1086,
+          "line": 23,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        }
+      ],
+      "premises": [
+        "T01 conditional path reaches this invocation syntax.",
+        "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+        "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+        "Normal synchronous return is assumed only for continuation of this path.",
+        "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+        "The catalogued overload has no application callback argument."
+      ],
+      "limits": [
+        "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+        "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+      ],
+      "id": "O1"
+    },
+    {
+      "frame": "F1",
+      "method": "fixture.Paths#yx()",
+      "applicationOperation": {
+        "receiver": "jdbc",
+        "method": "update"
+      },
+      "callSite": {
+        "file": "src/main/java/fixture/Waits.java",
+        "start": 1089,
+        "end": 1117,
+        "line": 23,
+        "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+      },
+      "operationType": "WRITE",
+      "sqlLiteral": "DELETE FROM X",
+      "resource": {
+        "status": "LEXICAL_SQL_IDENTIFIER",
+        "name": "X",
+        "runtimeIdentity": "UNKNOWN",
+        "lockGranularity": "UNKNOWN"
+      },
+      "transactionContext": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "datasource": {
+        "status": "UNKNOWN",
+        "id": null
+      },
+      "enlistment": "UNKNOWN",
+      "lockAcquired": "UNKNOWN",
+      "certainty": "CONDITIONAL",
+      "placement": {
+        "status": "T01_RESOURCE_LEAF",
+        "beforeT01Sequence": 5
+      },
+      "evidence": [
+        {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 1089,
+          "end": 1117,
+          "line": 23,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 839,
+          "end": 892,
+          "line": 20,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 1101,
+          "end": 1116,
+          "line": 23,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        }
+      ],
+      "premises": [
+        "T01 conditional path reaches this invocation syntax.",
+        "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+        "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+        "Normal synchronous return is assumed only for continuation of this path.",
+        "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+        "The catalogued overload has no application callback argument.",
+        "Normal returns required from prior T01 resource leaf calls: [4]"
+      ],
+      "limits": [
+        "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+        "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+      ],
+      "id": "O2"
+    }
+  ],
+  "timeline": [
+    {
+      "kind": "T01_EVENT",
+      "event": {
+        "sequence": 1,
+        "kind": "FRAME_ENTER",
+        "frame": "F1"
+      },
+      "sequence": 1
+    },
+    {
+      "kind": "T01_EVENT",
+      "event": {
+        "sequence": 2,
+        "kind": "PHYSICAL_BEGIN",
+        "frame": "F1",
+        "entity": "P1"
+      },
+      "sequence": 2
+    },
+    {
+      "kind": "T01_EVENT",
+      "event": {
+        "sequence": 3,
+        "kind": "LOGICAL_BEGIN",
+        "frame": "F1",
+        "entity": "L1"
+      },
+      "sequence": 3
+    },
+    {
+      "kind": "RESOURCE_OPERATION",
+      "observation": "O1",
+      "sequence": 4
+    },
+    {
+      "kind": "T01_EVENT",
+      "event": {
+        "sequence": 4,
+        "kind": "RESOURCE_LEAF_CALL",
+        "frame": "F1",
+        "callSite": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 1059,
+          "end": 1087,
+          "line": 23,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "receiver": "jdbc",
+        "method": "update",
+        "witness": {
+          "schema": "mana.resource-leaf-witness/v1",
+          "rule": {
+            "id": "spring-jdbc-template-literal",
+            "version": 2
+          },
+          "signature": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+          "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+          "callSite": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1059,
+            "end": 1087,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "methodEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1025,
+            "end": 1120,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "bindingEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 839,
+            "end": 892,
+            "line": 20,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "argumentEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1071,
+            "end": 1086,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "sourceCallOrdinal": 1,
+          "t01Sequence": 4,
+          "normalReturnDependencies": [],
+          "transactionContext": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "premises": [
+            "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+            "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+            "Normal synchronous return is assumed only for continuation of this path.",
+            "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+            "The catalogued overload has no application callback argument."
+          ],
+          "limits": [
+            "Runtime execution, successful SQL completion and normal return are not proved.",
+            "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+            "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+            "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+          ]
+        }
+      },
+      "sequence": 5
+    },
+    {
+      "kind": "RESOURCE_OPERATION",
+      "observation": "O2",
+      "sequence": 6
+    },
+    {
+      "kind": "T01_EVENT",
+      "event": {
+        "sequence": 5,
+        "kind": "RESOURCE_LEAF_CALL",
+        "frame": "F1",
+        "callSite": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 1089,
+          "end": 1117,
+          "line": 23,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "receiver": "jdbc",
+        "method": "update",
+        "witness": {
+          "schema": "mana.resource-leaf-witness/v1",
+          "rule": {
+            "id": "spring-jdbc-template-literal",
+            "version": 2
+          },
+          "signature": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+          "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+          "callSite": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1089,
+            "end": 1117,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "methodEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1025,
+            "end": 1120,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "bindingEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 839,
+            "end": 892,
+            "line": 20,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "argumentEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1101,
+            "end": 1116,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "sourceCallOrdinal": 2,
+          "t01Sequence": 5,
+          "normalReturnDependencies": [
+            4
+          ],
+          "transactionContext": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "premises": [
+            "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+            "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+            "Normal synchronous return is assumed only for continuation of this path.",
+            "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+            "The catalogued overload has no application callback argument."
+          ],
+          "limits": [
+            "Runtime execution, successful SQL completion and normal return are not proved.",
+            "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+            "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+            "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+          ]
+        }
+      },
+      "sequence": 7
+    },
+    {
+      "kind": "T01_EVENT",
+      "event": {
+        "sequence": 6,
+        "kind": "LOGICAL_END",
+        "frame": "F1",
+        "entity": "L1"
+      },
+      "sequence": 8
+    },
+    {
+      "kind": "T01_EVENT",
+      "event": {
+        "sequence": 7,
+        "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+        "frame": "F1",
+        "entity": "P1"
+      },
+      "sequence": 9
+    },
+    {
+      "kind": "T01_EVENT",
+      "event": {
+        "sequence": 8,
+        "kind": "FRAME_EXIT",
+        "frame": "F1"
+      },
+      "sequence": 10
+    }
+  ],
+  "limits": [
+    "Observed syntax is not proof of execution, enlistment or an acquired lock.",
+    "T01 scenario premises and unresolved continuations are preserved unchanged.",
+    "Datasource, runtime resource identity and row/table lock granularity are UNKNOWN.",
+    "No database query, runtime capture, commit/rollback or lock release is inferred.",
+    "Only a direct JdbcTemplate field (injected observation or positively bound allocation) and one SQL literal argument are supported."
+  ]
+}

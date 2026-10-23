@@ -1,0 +1,4047 @@
+{
+  "task": "TRANSACTION-01-T02-S02-I01-F02",
+  "oracle": "Manual D00 expectations plus source-only transitive closure, independent of engine inventory/proof/DFS",
+  "cases": [
+    {
+      "id": "A-R1-no-holdings",
+      "expected": "UNKNOWN",
+      "actual": {
+        "result": "UNKNOWN",
+        "cuts": [
+          {
+            "cut": "common",
+            "result": "UNKNOWN",
+            "contradictions": [],
+            "unknowns": [
+              "W4: NO_ORIENTED_WAIT_HYPOTHESIS",
+              "W4: acquisition/retention unproven for a1",
+              "W4: acquisition/retention unproven for b1"
+            ],
+            "claims": [],
+            "exclusionProof": null
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts.",
+        "exclusionProof": null
+      },
+      "coverage": {
+        "status": "INCOMPLETE",
+        "reasons": [
+          "UNRESOLVED_DATA_OR_CAUSALITY"
+        ],
+        "scope": {
+          "inputArtifacts": 2,
+          "participants": 2,
+          "resources": 2,
+          "selectedOperations": 4,
+          "requiresNewLevels": 1
+        },
+        "scopeStatus": "SUPPORTED",
+        "budgets": {
+          "t01Bytes": 4194304,
+          "timelineBytes": 4194304,
+          "combinedBytes": 8388608,
+          "sidecarBytes": 2097152,
+          "candidateComparisons": 100000,
+          "serializedEdges": 5000
+        },
+        "candidateComparisons": 17,
+        "serializedEdges": 6,
+        "inventoryOperations": 4,
+        "selectedOperations": 4,
+        "globalRiskAbsence": "NOT_ASSERTED",
+        "runtime": "NOT_RUN"
+      },
+      "unknowns": [
+        {
+          "cut": "common",
+          "reason": "NO_ORIENTED_WAIT_HYPOTHESIS",
+          "missingObligations": [
+            "W4"
+          ]
+        },
+        {
+          "cut": "common",
+          "reason": "PRIOR_HOLDING_EVIDENCE_UNPROVEN",
+          "missingObligations": [
+            "W4"
+          ]
+        }
+      ],
+      "scenario": {
+        "schema": "mana.wait-scenario/v1",
+        "id": "synthetic_O_A01",
+        "inputs": [
+          {
+            "id": "ta",
+            "sha256": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+          },
+          {
+            "id": "tb",
+            "sha256": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+          }
+        ],
+        "participants": [
+          {
+            "id": "a",
+            "input": "ta",
+            "independence": "independent_a"
+          },
+          {
+            "id": "b",
+            "input": "tb",
+            "independence": "independent_b"
+          }
+        ],
+        "premises": [
+          {
+            "id": "blocking",
+            "statement": "Abstract mode M waits on incompatible retention; no NOWAIT, skip, retry, upgrade or hidden locks.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/blocking"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "concurrent",
+            "statement": "Independent participant instances have overlapping lifetimes at this common prefix cut.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/concurrent"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "outer",
+            "statement": "The cut lies within the resolved synchronous replacement call; suspended outer does not execute.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/outer"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "serial",
+            "statement": "Alpha ends before beta begins; no common live interval.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/serial"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "independent_a",
+            "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/independent_a"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "independent_b",
+            "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/independent_b"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/X_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/X_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/X_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/Y_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/Y_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/Y_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a1_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a1_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a1_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a1_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a2_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a2_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a2_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a2_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b1_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b1_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b1_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b1_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b2_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b2_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b2_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b2_retain"
+            },
+            "dependsOn": []
+          }
+        ],
+        "resources": [
+          {
+            "id": "X",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "X_database",
+              "object": "X_object",
+              "overlap": "X_overlap"
+            }
+          },
+          {
+            "id": "Y",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "Y_database",
+              "object": "Y_object",
+              "overlap": "Y_overlap"
+            }
+          }
+        ],
+        "operations": [
+          {
+            "id": "a1",
+            "participant": "a",
+            "observation": "O1",
+            "resource": "X",
+            "binding": {
+              "datasource": "ds_a",
+              "database": "D",
+              "enlisted": true,
+              "premise": "a1_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "a1_request"
+            }
+          },
+          {
+            "id": "a2",
+            "participant": "a",
+            "observation": "O2",
+            "resource": "Y",
+            "binding": {
+              "datasource": "ds_a",
+              "database": "D",
+              "enlisted": true,
+              "premise": "a2_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "a2_request"
+            }
+          },
+          {
+            "id": "b1",
+            "participant": "b",
+            "observation": "O1",
+            "resource": "Y",
+            "binding": {
+              "datasource": "ds_b",
+              "database": "D",
+              "enlisted": true,
+              "premise": "b1_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "b1_request"
+            }
+          },
+          {
+            "id": "b2",
+            "participant": "b",
+            "observation": "O2",
+            "resource": "X",
+            "binding": {
+              "datasource": "ds_b",
+              "database": "D",
+              "enlisted": true,
+              "premise": "b2_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "b2_request"
+            }
+          }
+        ],
+        "lockRule": {
+          "id": "opaque_exclusive",
+          "version": 1,
+          "modes": [
+            "M"
+          ],
+          "compatibility": [
+            {
+              "left": "M",
+              "right": "M",
+              "result": "INCOMPATIBLE"
+            }
+          ],
+          "blockingPremise": "blocking"
+        },
+        "cuts": [
+          {
+            "id": "common",
+            "prefixes": {
+              "a": 5,
+              "b": 5
+            },
+            "pending": [
+              "a2",
+              "b2"
+            ],
+            "holdings": [],
+            "temporal": {
+              "kind": "CONCURRENT",
+              "premise": "concurrent"
+            }
+          }
+        ]
+      },
+      "inputDigests": {
+        "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+      },
+      "independentOracle": {
+        "dbPairs": [
+          [
+            [
+              "a",
+              "P1"
+            ],
+            [
+              "b",
+              "P1"
+            ]
+          ],
+          [
+            [
+              "b",
+              "P1"
+            ],
+            [
+              "a",
+              "P1"
+            ]
+          ]
+        ],
+        "appPairs": [],
+        "acyclic": false
+      }
+    },
+    {
+      "id": "C-R1-no-holdings",
+      "expected": "UNKNOWN",
+      "actual": {
+        "result": "UNKNOWN",
+        "cuts": [
+          {
+            "cut": "replacement",
+            "result": "UNKNOWN",
+            "contradictions": [],
+            "unknowns": [
+              "W4: NO_ORIENTED_WAIT_HYPOTHESIS",
+              "W4: acquisition/retention unproven for a1"
+            ],
+            "claims": [],
+            "exclusionProof": null
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts.",
+        "exclusionProof": null
+      },
+      "coverage": {
+        "status": "INCOMPLETE",
+        "reasons": [
+          "UNRESOLVED_DATA_OR_CAUSALITY"
+        ],
+        "scope": {
+          "inputArtifacts": 2,
+          "participants": 2,
+          "resources": 2,
+          "selectedOperations": 4,
+          "requiresNewLevels": 1
+        },
+        "scopeStatus": "SUPPORTED",
+        "budgets": {
+          "t01Bytes": 4194304,
+          "timelineBytes": 4194304,
+          "combinedBytes": 8388608,
+          "sidecarBytes": 2097152,
+          "candidateComparisons": 100000,
+          "serializedEdges": 5000
+        },
+        "candidateComparisons": 5,
+        "serializedEdges": 7,
+        "inventoryOperations": 2,
+        "selectedOperations": 2,
+        "globalRiskAbsence": "NOT_ASSERTED",
+        "runtime": "NOT_RUN"
+      },
+      "unknowns": [
+        {
+          "cut": "replacement",
+          "reason": "NO_ORIENTED_WAIT_HYPOTHESIS",
+          "missingObligations": [
+            "W4"
+          ]
+        },
+        {
+          "cut": "replacement",
+          "reason": "PRIOR_HOLDING_EVIDENCE_UNPROVEN",
+          "missingObligations": [
+            "W4"
+          ]
+        }
+      ],
+      "scenario": {
+        "schema": "mana.wait-scenario/v1",
+        "id": "synthetic_O_C01",
+        "inputs": [
+          {
+            "id": "t",
+            "sha256": "98ef6a110e5a1552d3343d14881df49f2cb53863f1112c9dd1ae841da256c73f"
+          }
+        ],
+        "participants": [
+          {
+            "id": "a",
+            "input": "t",
+            "independence": "independent_a"
+          }
+        ],
+        "premises": [
+          {
+            "id": "blocking",
+            "statement": "Abstract mode M waits on incompatible retention; no NOWAIT, skip, retry, upgrade or hidden locks.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/blocking"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "concurrent",
+            "statement": "Independent participant instances have overlapping lifetimes at this common prefix cut.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/concurrent"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "outer",
+            "statement": "The cut lies within the resolved synchronous replacement call; suspended outer does not execute.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/outer"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "serial",
+            "statement": "Alpha ends before beta begins; no common live interval.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/serial"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "independent_a",
+            "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/independent_a"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/X_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/X_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/X_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/Y_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/Y_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/Y_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/a1_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/a1_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/a1_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/a1_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/a2_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/a2_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/a2_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_C01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_C01/a2_retain"
+            },
+            "dependsOn": []
+          }
+        ],
+        "resources": [
+          {
+            "id": "X",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "X_database",
+              "object": "X_object",
+              "overlap": "X_overlap"
+            }
+          },
+          {
+            "id": "Y",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "Y_database",
+              "object": "Y_object",
+              "overlap": "Y_overlap"
+            }
+          }
+        ],
+        "operations": [
+          {
+            "id": "a1",
+            "participant": "a",
+            "observation": "O1",
+            "resource": "X",
+            "binding": {
+              "datasource": "ds_a",
+              "database": "D",
+              "enlisted": true,
+              "premise": "a1_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "a1_request"
+            }
+          },
+          {
+            "id": "a2",
+            "participant": "a",
+            "observation": "O2",
+            "resource": "X",
+            "binding": {
+              "datasource": "ds_a",
+              "database": "D",
+              "enlisted": true,
+              "premise": "a2_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "a2_request"
+            }
+          }
+        ],
+        "lockRule": {
+          "id": "opaque_exclusive",
+          "version": 1,
+          "modes": [
+            "M"
+          ],
+          "compatibility": [
+            {
+              "left": "M",
+              "right": "M",
+              "result": "INCOMPATIBLE"
+            }
+          ],
+          "blockingPremise": "blocking"
+        },
+        "cuts": [
+          {
+            "id": "replacement",
+            "prefixes": {
+              "a": 9
+            },
+            "pending": [
+              "a2"
+            ],
+            "holdings": [],
+            "temporal": {
+              "kind": "OUTER_REQUIRES_NEW",
+              "premise": "outer"
+            }
+          }
+        ]
+      },
+      "inputDigests": {
+        "t": "98ef6a110e5a1552d3343d14881df49f2cb53863f1112c9dd1ae841da256c73f"
+      },
+      "independentOracle": {
+        "dbPairs": [
+          [
+            [
+              "a",
+              "P2"
+            ],
+            [
+              "a",
+              "P1"
+            ]
+          ]
+        ],
+        "appPairs": [
+          [
+            [
+              "a",
+              "P1"
+            ],
+            [
+              "a",
+              "P2"
+            ]
+          ]
+        ],
+        "acyclic": false
+      }
+    },
+    {
+      "id": "A-partial-holder-omission",
+      "expected": "UNKNOWN",
+      "actual": {
+        "result": "UNKNOWN",
+        "cuts": [
+          {
+            "cut": "common",
+            "result": "UNKNOWN",
+            "contradictions": [],
+            "unknowns": [
+              "W4: acquisition/retention unproven for b1"
+            ],
+            "claims": [
+              "C11"
+            ],
+            "exclusionProof": null
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts.",
+        "exclusionProof": null
+      },
+      "coverage": {
+        "status": "INCOMPLETE",
+        "reasons": [
+          "UNRESOLVED_DATA_OR_CAUSALITY"
+        ],
+        "scope": {
+          "inputArtifacts": 2,
+          "participants": 2,
+          "resources": 2,
+          "selectedOperations": 4,
+          "requiresNewLevels": 1
+        },
+        "scopeStatus": "SUPPORTED",
+        "budgets": {
+          "t01Bytes": 4194304,
+          "timelineBytes": 4194304,
+          "combinedBytes": 8388608,
+          "sidecarBytes": 2097152,
+          "candidateComparisons": 100000,
+          "serializedEdges": 5000
+        },
+        "candidateComparisons": 17,
+        "serializedEdges": 7,
+        "inventoryOperations": 4,
+        "selectedOperations": 4,
+        "globalRiskAbsence": "NOT_ASSERTED",
+        "runtime": "NOT_RUN"
+      },
+      "unknowns": [
+        {
+          "candidate": "W1",
+          "cut": "common",
+          "reason": "EXCLUDED",
+          "missingObligations": [
+            "W3",
+            "W7"
+          ],
+          "contradictedObligations": [
+            "W1"
+          ]
+        },
+        {
+          "cut": "common",
+          "reason": "PRIOR_HOLDING_EVIDENCE_UNPROVEN",
+          "missingObligations": [
+            "W4"
+          ]
+        }
+      ],
+      "scenario": {
+        "schema": "mana.wait-scenario/v1",
+        "id": "synthetic_O_A01",
+        "inputs": [
+          {
+            "id": "ta",
+            "sha256": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+          },
+          {
+            "id": "tb",
+            "sha256": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+          }
+        ],
+        "participants": [
+          {
+            "id": "a",
+            "input": "ta",
+            "independence": "independent_a"
+          },
+          {
+            "id": "b",
+            "input": "tb",
+            "independence": "independent_b"
+          }
+        ],
+        "premises": [
+          {
+            "id": "blocking",
+            "statement": "Abstract mode M waits on incompatible retention; no NOWAIT, skip, retry, upgrade or hidden locks.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/blocking"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "concurrent",
+            "statement": "Independent participant instances have overlapping lifetimes at this common prefix cut.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/concurrent"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "outer",
+            "statement": "The cut lies within the resolved synchronous replacement call; suspended outer does not execute.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/outer"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "serial",
+            "statement": "Alpha ends before beta begins; no common live interval.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/serial"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "independent_a",
+            "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/independent_a"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "independent_b",
+            "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/independent_b"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/X_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/X_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/X_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/Y_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/Y_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/Y_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a1_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a1_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a1_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a1_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a2_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a2_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a2_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/a2_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b1_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b1_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b1_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b1_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b2_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b2_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b2_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_A01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_A01/b2_retain"
+            },
+            "dependsOn": []
+          }
+        ],
+        "resources": [
+          {
+            "id": "X",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "X_database",
+              "object": "X_object",
+              "overlap": "X_overlap"
+            }
+          },
+          {
+            "id": "Y",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "Y_database",
+              "object": "Y_object",
+              "overlap": "Y_overlap"
+            }
+          }
+        ],
+        "operations": [
+          {
+            "id": "a1",
+            "participant": "a",
+            "observation": "O1",
+            "resource": "X",
+            "binding": {
+              "datasource": "ds_a",
+              "database": "D",
+              "enlisted": true,
+              "premise": "a1_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "a1_request"
+            }
+          },
+          {
+            "id": "a2",
+            "participant": "a",
+            "observation": "O2",
+            "resource": "Y",
+            "binding": {
+              "datasource": "ds_a",
+              "database": "D",
+              "enlisted": true,
+              "premise": "a2_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "a2_request"
+            }
+          },
+          {
+            "id": "b1",
+            "participant": "b",
+            "observation": "O1",
+            "resource": "Y",
+            "binding": {
+              "datasource": "ds_b",
+              "database": "D",
+              "enlisted": true,
+              "premise": "b1_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "b1_request"
+            }
+          },
+          {
+            "id": "b2",
+            "participant": "b",
+            "observation": "O2",
+            "resource": "X",
+            "binding": {
+              "datasource": "ds_b",
+              "database": "D",
+              "enlisted": true,
+              "premise": "b2_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "b2_request"
+            }
+          }
+        ],
+        "lockRule": {
+          "id": "opaque_exclusive",
+          "version": 1,
+          "modes": [
+            "M"
+          ],
+          "compatibility": [
+            {
+              "left": "M",
+              "right": "M",
+              "result": "INCOMPATIBLE"
+            }
+          ],
+          "blockingPremise": "blocking"
+        },
+        "cuts": [
+          {
+            "id": "common",
+            "prefixes": {
+              "a": 5,
+              "b": 5
+            },
+            "pending": [
+              "a2",
+              "b2"
+            ],
+            "holdings": [
+              {
+                "operation": "a1",
+                "acquisitionPremise": "a1_acquire",
+                "retentionPremise": "a1_retain"
+              }
+            ],
+            "temporal": {
+              "kind": "CONCURRENT",
+              "premise": "concurrent"
+            }
+          }
+        ]
+      },
+      "inputDigests": {
+        "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+      },
+      "independentOracle": {
+        "dbPairs": [
+          [
+            [
+              "a",
+              "P1"
+            ],
+            [
+              "b",
+              "P1"
+            ]
+          ],
+          [
+            [
+              "b",
+              "P1"
+            ],
+            [
+              "a",
+              "P1"
+            ]
+          ]
+        ],
+        "appPairs": [],
+        "acyclic": false
+      }
+    },
+    {
+      "id": "frontier-incomplete-cut",
+      "expected": "UNKNOWN",
+      "actual": {
+        "result": "UNKNOWN",
+        "cuts": [
+          {
+            "cut": "frontier",
+            "result": "UNKNOWN",
+            "contradictions": [
+              "pending invocation is not the prefix boundary: a/O2",
+              "prefix crosses UNRESOLVED_CALL frontier"
+            ],
+            "unknowns": [
+              "prefix crosses UNRESOLVED_CALL frontier"
+            ],
+            "claims": [],
+            "exclusionProof": null
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts.",
+        "exclusionProof": null
+      },
+      "coverage": {
+        "status": "INCOMPLETE",
+        "reasons": [
+          "T01_UNCERTAINTIES:a",
+          "UNRESOLVED_DATA_OR_CAUSALITY"
+        ],
+        "scope": {
+          "inputArtifacts": 2,
+          "participants": 2,
+          "resources": 2,
+          "selectedOperations": 4,
+          "requiresNewLevels": 1
+        },
+        "scopeStatus": "SUPPORTED",
+        "budgets": {
+          "t01Bytes": 4194304,
+          "timelineBytes": 4194304,
+          "combinedBytes": 8388608,
+          "sidecarBytes": 2097152,
+          "candidateComparisons": 100000,
+          "serializedEdges": 5000
+        },
+        "candidateComparisons": 5,
+        "serializedEdges": 4,
+        "inventoryOperations": 3,
+        "selectedOperations": 3,
+        "globalRiskAbsence": "NOT_ASSERTED",
+        "runtime": "NOT_RUN"
+      },
+      "unknowns": [
+        {
+          "operation": "a/O3",
+          "reason": "CAUSAL_ORDER_OR_BODY_UNPROVEN",
+          "limits": [
+            "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+            "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED",
+            "T01_BODY_OR_CONTINUATION_NOT_TRAVERSED"
+          ]
+        },
+        {
+          "operation": "a/O2",
+          "reason": "DATABASE_PREMISES_UNPROVEN",
+          "missingObligations": [
+            "W3"
+          ]
+        },
+        {
+          "candidate": "W1",
+          "cut": "frontier",
+          "reason": "EXCLUDED",
+          "missingObligations": [
+            "W3",
+            "W6",
+            "W7"
+          ],
+          "contradictedObligations": [
+            "W1",
+            "W2",
+            "W8"
+          ]
+        }
+      ],
+      "scenario": {
+        "schema": "mana.wait-scenario/v1",
+        "id": "synthetic_frontier_f02",
+        "inputs": [
+          {
+            "id": "t",
+            "sha256": "e79c6211933d307cb7929f4a443c9db2f79a08f298d81c6dfb2b3df00715ca04"
+          }
+        ],
+        "participants": [
+          {
+            "id": "a",
+            "input": "t",
+            "independence": "independent_a"
+          }
+        ],
+        "premises": [
+          {
+            "id": "blocking",
+            "statement": "Abstract mode M waits on incompatible retention; no NOWAIT, skip, retry, upgrade or hidden locks.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/blocking"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "concurrent",
+            "statement": "Independent participant instances have overlapping lifetimes at this common prefix cut.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/concurrent"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "outer",
+            "statement": "The cut lies within the resolved synchronous replacement call; suspended outer does not execute.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/outer"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "serial",
+            "statement": "Alpha ends before beta begins; no common live interval.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/serial"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "independent_a",
+            "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/independent_a"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/X_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/X_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/X_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/Y_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/Y_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/Y_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/a1_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/a1_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/a1_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/a1_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/a2_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/a2_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/a2_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/a2_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a3_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/a3_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a3_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/a3_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a3_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/a3_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a3_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_frontier_f02",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "frontier_f02/a3_retain"
+            },
+            "dependsOn": []
+          }
+        ],
+        "resources": [
+          {
+            "id": "X",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "X_database",
+              "object": "X_object",
+              "overlap": "X_overlap"
+            }
+          },
+          {
+            "id": "Y",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "Y_database",
+              "object": "Y_object",
+              "overlap": "Y_overlap"
+            }
+          }
+        ],
+        "operations": [
+          {
+            "id": "a1",
+            "participant": "a",
+            "observation": "O1",
+            "resource": "X",
+            "binding": {
+              "datasource": "ds_a",
+              "database": "D",
+              "enlisted": true,
+              "premise": "a1_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "a1_request"
+            }
+          },
+          {
+            "id": "a2",
+            "participant": "a",
+            "observation": "O2",
+            "resource": null,
+            "binding": {
+              "datasource": "ds_a",
+              "database": "D",
+              "enlisted": true,
+              "premise": "a2_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "a2_request"
+            }
+          },
+          {
+            "id": "a3",
+            "participant": "a",
+            "observation": "O3",
+            "resource": "Y",
+            "binding": {
+              "datasource": "ds_a",
+              "database": "D",
+              "enlisted": true,
+              "premise": "a3_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "a3_request"
+            }
+          }
+        ],
+        "lockRule": {
+          "id": "opaque_exclusive",
+          "version": 1,
+          "modes": [
+            "M"
+          ],
+          "compatibility": [
+            {
+              "left": "M",
+              "right": "M",
+              "result": "INCOMPATIBLE"
+            }
+          ],
+          "blockingPremise": "blocking"
+        },
+        "cuts": [
+          {
+            "id": "frontier",
+            "prefixes": {
+              "a": 6
+            },
+            "pending": [
+              "a2"
+            ],
+            "holdings": [
+              {
+                "operation": "a1",
+                "acquisitionPremise": "a1_acquire",
+                "retentionPremise": "a1_retain"
+              }
+            ],
+            "temporal": {
+              "kind": "OUTER_REQUIRES_NEW",
+              "premise": "outer"
+            }
+          }
+        ]
+      },
+      "inputDigests": {
+        "t": "e79c6211933d307cb7929f4a443c9db2f79a08f298d81c6dfb2b3df00715ca04"
+      },
+      "independentOracle": null
+    },
+    {
+      "id": "B-no-pending",
+      "expected": "NO_CYCLE_IN_MODELED_SCENARIO",
+      "actual": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "cuts": [
+          {
+            "cut": "one_wait",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [
+              "W4: NO_ORIENTED_WAIT_HYPOTHESIS"
+            ],
+            "claims": [],
+            "exclusionProof": {
+              "kind": "STRUCTURAL_EXCLUSION",
+              "rule": "ACYCLIC_CAUSAL_SUPERGRAPH",
+              "operationRefs": [
+                "a/O1",
+                "a/O2",
+                "b/O1",
+                "b/O2"
+              ],
+              "prefixes": {
+                "a": 5,
+                "b": 4
+              },
+              "upperBoundEdges": [
+                {
+                  "from": "[\"synthetic_O_B01\",\"b\",\"3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65\",\"P1\"]",
+                  "to": "[\"synthetic_O_B01\",\"a\",\"3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65\",\"P1\"]",
+                  "type": "POSSIBLE_DB_WAIT",
+                  "evidence": [
+                    "b/O1",
+                    "a/O1"
+                  ]
+                }
+              ],
+              "scope": "Selected operations at this cut; no lock or runtime absence asserted."
+            }
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts.",
+        "exclusionProof": null
+      },
+      "coverage": {
+        "status": "INCOMPLETE",
+        "reasons": [
+          "UNRESOLVED_DATA_OR_CAUSALITY"
+        ],
+        "scope": {
+          "inputArtifacts": 2,
+          "participants": 2,
+          "resources": 2,
+          "selectedOperations": 4,
+          "requiresNewLevels": 1
+        },
+        "scopeStatus": "SUPPORTED",
+        "budgets": {
+          "t01Bytes": 4194304,
+          "timelineBytes": 4194304,
+          "combinedBytes": 8388608,
+          "sidecarBytes": 2097152,
+          "candidateComparisons": 100000,
+          "serializedEdges": 5000
+        },
+        "candidateComparisons": 14,
+        "serializedEdges": 7,
+        "inventoryOperations": 4,
+        "selectedOperations": 4,
+        "globalRiskAbsence": "NOT_ASSERTED",
+        "runtime": "NOT_RUN"
+      },
+      "unknowns": [
+        {
+          "cut": "one_wait",
+          "reason": "NO_ORIENTED_WAIT_HYPOTHESIS",
+          "missingObligations": [
+            "W4"
+          ]
+        }
+      ],
+      "scenario": {
+        "schema": "mana.wait-scenario/v1",
+        "id": "synthetic_O_B01",
+        "inputs": [
+          {
+            "id": "ta",
+            "sha256": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+          },
+          {
+            "id": "tb",
+            "sha256": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+          }
+        ],
+        "participants": [
+          {
+            "id": "a",
+            "input": "ta",
+            "independence": "independent_a"
+          },
+          {
+            "id": "b",
+            "input": "tb",
+            "independence": "independent_b"
+          }
+        ],
+        "premises": [
+          {
+            "id": "blocking",
+            "statement": "Abstract mode M waits on incompatible retention; no NOWAIT, skip, retry, upgrade or hidden locks.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/blocking"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "concurrent",
+            "statement": "Independent participant instances have overlapping lifetimes at this common prefix cut.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/concurrent"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "outer",
+            "statement": "The cut lies within the resolved synchronous replacement call; suspended outer does not execute.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/outer"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "serial",
+            "statement": "Alpha ends before beta begins; no common live interval.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/serial"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "independent_a",
+            "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/independent_a"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "independent_b",
+            "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/independent_b"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/X_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/X_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/X_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/Y_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/Y_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/Y_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a1_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a1_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a1_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a1_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a2_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a2_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a2_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a2_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b1_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b1_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b1_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b1_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b2_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b2_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b2_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b2_retain"
+            },
+            "dependsOn": []
+          }
+        ],
+        "resources": [
+          {
+            "id": "X",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "X_database",
+              "object": "X_object",
+              "overlap": "X_overlap"
+            }
+          },
+          {
+            "id": "Y",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "Y_database",
+              "object": "Y_object",
+              "overlap": "Y_overlap"
+            }
+          }
+        ],
+        "operations": [
+          {
+            "id": "a1",
+            "participant": "a",
+            "observation": "O1",
+            "resource": "X",
+            "binding": {
+              "datasource": "ds_a",
+              "database": "D",
+              "enlisted": true,
+              "premise": "a1_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "a1_request"
+            }
+          },
+          {
+            "id": "a2",
+            "participant": "a",
+            "observation": "O2",
+            "resource": "Y",
+            "binding": {
+              "datasource": "ds_a",
+              "database": "D",
+              "enlisted": true,
+              "premise": "a2_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "a2_request"
+            }
+          },
+          {
+            "id": "b1",
+            "participant": "b",
+            "observation": "O1",
+            "resource": "X",
+            "binding": {
+              "datasource": "ds_b",
+              "database": "D",
+              "enlisted": true,
+              "premise": "b1_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "b1_request"
+            }
+          },
+          {
+            "id": "b2",
+            "participant": "b",
+            "observation": "O2",
+            "resource": "Y",
+            "binding": {
+              "datasource": "ds_b",
+              "database": "D",
+              "enlisted": true,
+              "premise": "b2_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "b2_request"
+            }
+          }
+        ],
+        "lockRule": {
+          "id": "opaque_exclusive",
+          "version": 1,
+          "modes": [
+            "M"
+          ],
+          "compatibility": [
+            {
+              "left": "M",
+              "right": "M",
+              "result": "INCOMPATIBLE"
+            }
+          ],
+          "blockingPremise": "blocking"
+        },
+        "cuts": [
+          {
+            "id": "one_wait",
+            "prefixes": {
+              "a": 5,
+              "b": 4
+            },
+            "pending": [],
+            "holdings": [
+              {
+                "operation": "a1",
+                "acquisitionPremise": "a1_acquire",
+                "retentionPremise": "a1_retain"
+              }
+            ],
+            "temporal": {
+              "kind": "CONCURRENT",
+              "premise": "concurrent"
+            }
+          }
+        ]
+      },
+      "inputDigests": {
+        "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "tb": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+      },
+      "independentOracle": {
+        "dbPairs": [
+          [
+            [
+              "b",
+              "P1"
+            ],
+            [
+              "a",
+              "P1"
+            ]
+          ]
+        ],
+        "appPairs": [],
+        "acyclic": true
+      }
+    },
+    {
+      "id": "B-one-incomplete-cut",
+      "expected": "NO_CYCLE_IN_MODELED_SCENARIO",
+      "actual": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "cuts": [
+          {
+            "cut": "one_wait",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [],
+            "claims": [
+              "C11"
+            ],
+            "exclusionProof": {
+              "kind": "EVIDENCE_COMPLETE_EXCLUSION",
+              "rule": "QUALIFIED_OR_CONTRADICTED_CANDIDATES",
+              "candidateRefs": [
+                "W1",
+                "W2"
+              ]
+            }
+          },
+          {
+            "cut": "missing",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [
+              "W4: NO_ORIENTED_WAIT_HYPOTHESIS",
+              "W4: acquisition/retention unproven for a1"
+            ],
+            "claims": [],
+            "exclusionProof": {
+              "kind": "STRUCTURAL_EXCLUSION",
+              "rule": "ACYCLIC_CAUSAL_SUPERGRAPH",
+              "operationRefs": [
+                "a/O1",
+                "a/O2",
+                "b/O1",
+                "b/O2"
+              ],
+              "prefixes": {
+                "a": 5,
+                "b": 4
+              },
+              "upperBoundEdges": [
+                {
+                  "from": "[\"synthetic_O_B01\",\"b\",\"3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65\",\"P1\"]",
+                  "to": "[\"synthetic_O_B01\",\"a\",\"3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65\",\"P1\"]",
+                  "type": "POSSIBLE_DB_WAIT",
+                  "evidence": [
+                    "b/O1",
+                    "a/O1"
+                  ]
+                }
+              ],
+              "scope": "Selected operations at this cut; no lock or runtime absence asserted."
+            }
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts.",
+        "exclusionProof": null
+      },
+      "coverage": {
+        "status": "INCOMPLETE",
+        "reasons": [
+          "UNRESOLVED_DATA_OR_CAUSALITY"
+        ],
+        "scope": {
+          "inputArtifacts": 2,
+          "participants": 2,
+          "resources": 2,
+          "selectedOperations": 4,
+          "requiresNewLevels": 1
+        },
+        "scopeStatus": "SUPPORTED",
+        "budgets": {
+          "t01Bytes": 4194304,
+          "timelineBytes": 4194304,
+          "combinedBytes": 8388608,
+          "sidecarBytes": 2097152,
+          "candidateComparisons": 100000,
+          "serializedEdges": 5000
+        },
+        "candidateComparisons": 18,
+        "serializedEdges": 8,
+        "inventoryOperations": 4,
+        "selectedOperations": 4,
+        "globalRiskAbsence": "NOT_ASSERTED",
+        "runtime": "NOT_RUN"
+      },
+      "unknowns": [
+        {
+          "candidate": "W1",
+          "cut": "one_wait",
+          "reason": "EXCLUDED",
+          "missingObligations": [
+            "W3",
+            "W7"
+          ],
+          "contradictedObligations": [
+            "W1"
+          ]
+        },
+        {
+          "cut": "missing",
+          "reason": "NO_ORIENTED_WAIT_HYPOTHESIS",
+          "missingObligations": [
+            "W4"
+          ]
+        },
+        {
+          "cut": "missing",
+          "reason": "PRIOR_HOLDING_EVIDENCE_UNPROVEN",
+          "missingObligations": [
+            "W4"
+          ]
+        }
+      ],
+      "scenario": {
+        "schema": "mana.wait-scenario/v1",
+        "id": "synthetic_O_B01",
+        "inputs": [
+          {
+            "id": "ta",
+            "sha256": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+          },
+          {
+            "id": "tb",
+            "sha256": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+          }
+        ],
+        "participants": [
+          {
+            "id": "a",
+            "input": "ta",
+            "independence": "independent_a"
+          },
+          {
+            "id": "b",
+            "input": "tb",
+            "independence": "independent_b"
+          }
+        ],
+        "premises": [
+          {
+            "id": "blocking",
+            "statement": "Abstract mode M waits on incompatible retention; no NOWAIT, skip, retry, upgrade or hidden locks.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/blocking"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "concurrent",
+            "statement": "Independent participant instances have overlapping lifetimes at this common prefix cut.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/concurrent"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "outer",
+            "statement": "The cut lies within the resolved synchronous replacement call; suspended outer does not execute.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/outer"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "serial",
+            "statement": "Alpha ends before beta begins; no common live interval.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/serial"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "independent_a",
+            "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/independent_a"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "independent_b",
+            "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/independent_b"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/X_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/X_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/X_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/Y_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/Y_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/Y_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a1_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a1_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a1_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a1_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a2_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a2_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a2_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/a2_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b1_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b1_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b1_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b1_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b1_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b2_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b2_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b2_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "b2_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_O_B01",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "O_B01/b2_retain"
+            },
+            "dependsOn": []
+          }
+        ],
+        "resources": [
+          {
+            "id": "X",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "X_database",
+              "object": "X_object",
+              "overlap": "X_overlap"
+            }
+          },
+          {
+            "id": "Y",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "Y_database",
+              "object": "Y_object",
+              "overlap": "Y_overlap"
+            }
+          }
+        ],
+        "operations": [
+          {
+            "id": "a1",
+            "participant": "a",
+            "observation": "O1",
+            "resource": "X",
+            "binding": {
+              "datasource": "ds_a",
+              "database": "D",
+              "enlisted": true,
+              "premise": "a1_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "a1_request"
+            }
+          },
+          {
+            "id": "a2",
+            "participant": "a",
+            "observation": "O2",
+            "resource": "Y",
+            "binding": {
+              "datasource": "ds_a",
+              "database": "D",
+              "enlisted": true,
+              "premise": "a2_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "a2_request"
+            }
+          },
+          {
+            "id": "b1",
+            "participant": "b",
+            "observation": "O1",
+            "resource": "X",
+            "binding": {
+              "datasource": "ds_b",
+              "database": "D",
+              "enlisted": true,
+              "premise": "b1_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "b1_request"
+            }
+          },
+          {
+            "id": "b2",
+            "participant": "b",
+            "observation": "O2",
+            "resource": "Y",
+            "binding": {
+              "datasource": "ds_b",
+              "database": "D",
+              "enlisted": true,
+              "premise": "b2_binding"
+            },
+            "request": {
+              "mode": "M",
+              "premise": "b2_request"
+            }
+          }
+        ],
+        "lockRule": {
+          "id": "opaque_exclusive",
+          "version": 1,
+          "modes": [
+            "M"
+          ],
+          "compatibility": [
+            {
+              "left": "M",
+              "right": "M",
+              "result": "INCOMPATIBLE"
+            }
+          ],
+          "blockingPremise": "blocking"
+        },
+        "cuts": [
+          {
+            "id": "one_wait",
+            "prefixes": {
+              "a": 5,
+              "b": 4
+            },
+            "pending": [
+              "a2",
+              "b1"
+            ],
+            "holdings": [
+              {
+                "operation": "a1",
+                "acquisitionPremise": "a1_acquire",
+                "retentionPremise": "a1_retain"
+              }
+            ],
+            "temporal": {
+              "kind": "CONCURRENT",
+              "premise": "concurrent"
+            }
+          },
+          {
+            "id": "missing",
+            "prefixes": {
+              "a": 5,
+              "b": 4
+            },
+            "pending": [
+              "a2",
+              "b1"
+            ],
+            "holdings": [],
+            "temporal": {
+              "kind": "CONCURRENT",
+              "premise": "concurrent"
+            }
+          }
+        ]
+      },
+      "inputDigests": {
+        "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "tb": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+      },
+      "independentOracle": {
+        "dbPairs": [
+          [
+            [
+              "b",
+              "P1"
+            ],
+            [
+              "a",
+              "P1"
+            ]
+          ]
+        ],
+        "appPairs": [],
+        "acyclic": true
+      }
+    },
+    {
+      "id": "required-incomplete-cut",
+      "expected": "NO_CYCLE_IN_MODELED_SCENARIO",
+      "actual": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "cuts": [
+          {
+            "cut": "incomplete",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [
+              "W4: NO_ORIENTED_WAIT_HYPOTHESIS"
+            ],
+            "claims": [],
+            "exclusionProof": {
+              "kind": "STRUCTURAL_EXCLUSION",
+              "rule": "ACYCLIC_CAUSAL_SUPERGRAPH",
+              "operationRefs": [
+                "a/O1",
+                "a/O2"
+              ],
+              "prefixes": {
+                "a": 9
+              },
+              "upperBoundEdges": [],
+              "scope": "Selected operations at this cut; no lock or runtime absence asserted."
+            }
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts.",
+        "exclusionProof": null
+      },
+      "coverage": {
+        "status": "INCOMPLETE",
+        "reasons": [
+          "UNRESOLVED_DATA_OR_CAUSALITY"
+        ],
+        "scope": {
+          "inputArtifacts": 2,
+          "participants": 2,
+          "resources": 2,
+          "selectedOperations": 4,
+          "requiresNewLevels": 1
+        },
+        "scopeStatus": "SUPPORTED",
+        "budgets": {
+          "t01Bytes": 4194304,
+          "timelineBytes": 4194304,
+          "combinedBytes": 8388608,
+          "sidecarBytes": 2097152,
+          "candidateComparisons": 100000,
+          "serializedEdges": 5000
+        },
+        "candidateComparisons": 5,
+        "serializedEdges": 5,
+        "inventoryOperations": 2,
+        "selectedOperations": 2,
+        "globalRiskAbsence": "NOT_ASSERTED",
+        "runtime": "NOT_RUN"
+      },
+      "unknowns": [
+        {
+          "operation": "a/O1",
+          "reason": "DATABASE_PREMISES_UNPROVEN",
+          "missingObligations": [
+            "W2",
+            "W4",
+            "W5"
+          ]
+        },
+        {
+          "operation": "a/O2",
+          "reason": "DATABASE_PREMISES_UNPROVEN",
+          "missingObligations": [
+            "W2",
+            "W4",
+            "W5"
+          ]
+        },
+        {
+          "cut": "incomplete",
+          "reason": "NO_ORIENTED_WAIT_HYPOTHESIS",
+          "missingObligations": [
+            "W4"
+          ]
+        }
+      ],
+      "scenario": {
+        "schema": "mana.wait-scenario/v1",
+        "id": "synthetic_required",
+        "inputs": [
+          {
+            "id": "t",
+            "sha256": "10326e5199bcedffc51ffd2580bf4e66eaefadfcc10d7c9732aee8729a2596b8"
+          }
+        ],
+        "participants": [
+          {
+            "id": "a",
+            "input": "t",
+            "independence": "independent_a"
+          }
+        ],
+        "premises": [
+          {
+            "id": "blocking",
+            "statement": "Abstract mode M waits on incompatible retention; no NOWAIT, skip, retry, upgrade or hidden locks.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/blocking"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "concurrent",
+            "statement": "Independent participant instances have overlapping lifetimes at this common prefix cut.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/concurrent"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "outer",
+            "statement": "The cut lies within the resolved synchronous replacement call; suspended outer does not execute.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/outer"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "serial",
+            "statement": "Alpha ends before beta begins; no common live interval.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/serial"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "independent_a",
+            "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/independent_a"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/X_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/X_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/X_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/Y_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/Y_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/Y_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/a1_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/a1_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/a1_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/a1_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/a2_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/a2_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/a2_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_required",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "required/a2_retain"
+            },
+            "dependsOn": []
+          }
+        ],
+        "resources": [
+          {
+            "id": "X",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "X_database",
+              "object": "X_object",
+              "overlap": "X_overlap"
+            }
+          },
+          {
+            "id": "Y",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "Y_database",
+              "object": "Y_object",
+              "overlap": "Y_overlap"
+            }
+          }
+        ],
+        "operations": [
+          {
+            "id": "a1",
+            "participant": "a",
+            "observation": "O1",
+            "resource": "X",
+            "binding": {
+              "datasource": null,
+              "database": null,
+              "enlisted": null,
+              "premise": null
+            },
+            "request": {
+              "mode": null,
+              "premise": null
+            }
+          },
+          {
+            "id": "a2",
+            "participant": "a",
+            "observation": "O2",
+            "resource": "X",
+            "binding": {
+              "datasource": null,
+              "database": null,
+              "enlisted": null,
+              "premise": null
+            },
+            "request": {
+              "mode": null,
+              "premise": null
+            }
+          }
+        ],
+        "lockRule": {
+          "id": "opaque_exclusive",
+          "version": 1,
+          "modes": [
+            "M"
+          ],
+          "compatibility": [],
+          "blockingPremise": null
+        },
+        "cuts": [
+          {
+            "id": "incomplete",
+            "prefixes": {
+              "a": 9
+            },
+            "pending": [
+              "a2"
+            ],
+            "holdings": [],
+            "temporal": {
+              "kind": "CONCURRENT",
+              "premise": "concurrent"
+            }
+          }
+        ]
+      },
+      "inputDigests": {
+        "t": "10326e5199bcedffc51ffd2580bf4e66eaefadfcc10d7c9732aee8729a2596b8"
+      },
+      "independentOracle": {
+        "dbPairs": [],
+        "appPairs": [],
+        "acyclic": true
+      }
+    },
+    {
+      "id": "nested-incomplete-cut",
+      "expected": "NO_CYCLE_IN_MODELED_SCENARIO",
+      "actual": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "cuts": [
+          {
+            "cut": "incomplete",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [
+              "W4: NO_ORIENTED_WAIT_HYPOTHESIS"
+            ],
+            "claims": [],
+            "exclusionProof": {
+              "kind": "STRUCTURAL_EXCLUSION",
+              "rule": "ACYCLIC_CAUSAL_SUPERGRAPH",
+              "operationRefs": [
+                "a/O1",
+                "a/O2"
+              ],
+              "prefixes": {
+                "a": 11
+              },
+              "upperBoundEdges": [],
+              "scope": "Selected operations at this cut; no lock or runtime absence asserted."
+            }
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts.",
+        "exclusionProof": null
+      },
+      "coverage": {
+        "status": "INCOMPLETE",
+        "reasons": [
+          "UNRESOLVED_DATA_OR_CAUSALITY"
+        ],
+        "scope": {
+          "inputArtifacts": 2,
+          "participants": 2,
+          "resources": 2,
+          "selectedOperations": 4,
+          "requiresNewLevels": 1
+        },
+        "scopeStatus": "SUPPORTED",
+        "budgets": {
+          "t01Bytes": 4194304,
+          "timelineBytes": 4194304,
+          "combinedBytes": 8388608,
+          "sidecarBytes": 2097152,
+          "candidateComparisons": 100000,
+          "serializedEdges": 5000
+        },
+        "candidateComparisons": 5,
+        "serializedEdges": 5,
+        "inventoryOperations": 2,
+        "selectedOperations": 2,
+        "globalRiskAbsence": "NOT_ASSERTED",
+        "runtime": "NOT_RUN"
+      },
+      "unknowns": [
+        {
+          "operation": "a/O1",
+          "reason": "DATABASE_PREMISES_UNPROVEN",
+          "missingObligations": [
+            "W2",
+            "W4",
+            "W5"
+          ]
+        },
+        {
+          "operation": "a/O2",
+          "reason": "DATABASE_PREMISES_UNPROVEN",
+          "missingObligations": [
+            "W2",
+            "W4",
+            "W5"
+          ]
+        },
+        {
+          "cut": "incomplete",
+          "reason": "NO_ORIENTED_WAIT_HYPOTHESIS",
+          "missingObligations": [
+            "W4"
+          ]
+        }
+      ],
+      "scenario": {
+        "schema": "mana.wait-scenario/v1",
+        "id": "synthetic_nested",
+        "inputs": [
+          {
+            "id": "t",
+            "sha256": "266340e92d0ff378051f36dcff264915169a7db406175d671b44f57cf241a8dc"
+          }
+        ],
+        "participants": [
+          {
+            "id": "a",
+            "input": "t",
+            "independence": "independent_a"
+          }
+        ],
+        "premises": [
+          {
+            "id": "blocking",
+            "statement": "Abstract mode M waits on incompatible retention; no NOWAIT, skip, retry, upgrade or hidden locks.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/blocking"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "concurrent",
+            "statement": "Independent participant instances have overlapping lifetimes at this common prefix cut.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/concurrent"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "outer",
+            "statement": "The cut lies within the resolved synchronous replacement call; suspended outer does not execute.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/outer"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "serial",
+            "statement": "Alpha ends before beta begins; no common live interval.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/serial"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "independent_a",
+            "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/independent_a"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/X_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/X_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "X_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/X_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_database",
+            "statement": "Both aliases refer to the opaque shared database D.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/Y_database"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_object",
+            "statement": "Selected operations mapped to this opaque alias access the same object set.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/Y_object"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "Y_overlap",
+            "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/Y_overlap"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/a1_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/a1_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/a1_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a1_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/a1_retain"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_binding",
+            "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/a2_binding"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_request",
+            "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/a2_request"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_acquire",
+            "statement": "Assume this operation returned after acquisition before the cut.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/a2_acquire"
+            },
+            "dependsOn": []
+          },
+          {
+            "id": "a2_retain",
+            "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+            "scope": "synthetic_nested",
+            "state": "EXPLICIT_ASSUMPTION",
+            "provenance": {
+              "source": "manual-synthetic-fixture",
+              "reference": "nested/a2_retain"
+            },
+            "dependsOn": []
+          }
+        ],
+        "resources": [
+          {
+            "id": "X",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "X_database",
+              "object": "X_object",
+              "overlap": "X_overlap"
+            }
+          },
+          {
+            "id": "Y",
+            "database": "D",
+            "databaseRelation": "SAME",
+            "objectMatch": "SAME",
+            "lockTargetOverlap": "SAME",
+            "granularity": "UNKNOWN",
+            "premises": {
+              "database": "Y_database",
+              "object": "Y_object",
+              "overlap": "Y_overlap"
+            }
+          }
+        ],
+        "operations": [
+          {
+            "id": "a1",
+            "participant": "a",
+            "observation": "O1",
+            "resource": "X",
+            "binding": {
+              "datasource": null,
+              "database": null,
+              "enlisted": null,
+              "premise": null
+            },
+            "request": {
+              "mode": null,
+              "premise": null
+            }
+          },
+          {
+            "id": "a2",
+            "participant": "a",
+            "observation": "O2",
+            "resource": "X",
+            "binding": {
+              "datasource": null,
+              "database": null,
+              "enlisted": null,
+              "premise": null
+            },
+            "request": {
+              "mode": null,
+              "premise": null
+            }
+          }
+        ],
+        "lockRule": {
+          "id": "opaque_exclusive",
+          "version": 1,
+          "modes": [
+            "M"
+          ],
+          "compatibility": [],
+          "blockingPremise": null
+        },
+        "cuts": [
+          {
+            "id": "incomplete",
+            "prefixes": {
+              "a": 11
+            },
+            "pending": [
+              "a2"
+            ],
+            "holdings": [],
+            "temporal": {
+              "kind": "CONCURRENT",
+              "premise": "concurrent"
+            }
+          }
+        ]
+      },
+      "inputDigests": {
+        "t": "266340e92d0ff378051f36dcff264915169a7db406175d671b44f57cf241a8dc"
+      },
+      "independentOracle": {
+        "dbPairs": [],
+        "appPairs": [],
+        "acyclic": true
+      }
+    }
+  ]
+}

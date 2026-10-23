@@ -1,0 +1,721 @@
+--- a/scripts/skill_factory/transactions/wait_dependencies.py
++++ b/scripts/skill_factory/transactions/wait_dependencies.py
+@@ -655,7 +655,10 @@
+             problems.append("multiple pending invocations on one synchronous path")
+         for e in s.report(pid)["transactionModel"]["events"]:
+             if e["sequence"] < before and e["kind"] == "UNRESOLVED_CALL":
++                # The proposed continuation contradicts the known prefix, but
++                # the unmodeled suffix still prevents an exhaustive negative.
+                 problems.append("prefix crosses UNRESOLVED_CALL frontier")
++                unresolved.append("prefix crosses UNRESOLVED_CALL frontier")
+         # Normal-return dependencies are structured witness data, never prose.
+         blocked = {o["t01Sequence"] for o in pending}
+         for op in selected.values():
+@@ -704,6 +707,10 @@
+         and s.state([cut["temporal"]["premise"]]) == "EXPLICIT_ASSUMPTION"
+     ):
+         problems.append("serial lifetimes contradict common overlap")
++    # No candidate pair is not evidence of no dependency. W4 requires a
++    # separate acquisition/retention hypothesis even when no ledger is built.
++    if not cut["pending"] or not cut["holdings"]:
++        unresolved.append("W4: NO_ORIENTED_WAIT_HYPOTHESIS")
+     return problems, unresolved
+ 
+ 
+@@ -874,27 +881,44 @@
+     return False
+ 
+ 
+-def build_report(raw_inputs, sidecar):
+-    """Pure consumer: original JSON objects are neither repaired nor mutated."""
+-    require(isinstance(sidecar, dict), "sidecar must be an object")
+-    if len(encoded(sidecar)) > BUDGETS["sidecarBytes"]:
+-        raise BudgetExceeded("sidecar exceeds 2 MiB; coverage INCOMPLETE")
+-    declarations = unique(sidecar.get("inputs", []))
+-    inputs = Inputs(raw_inputs, declarations)
+-    s = Scenario(sidecar, inputs)
+-    operations, app_sources, cross = inventory(s)
+-    if len(cross) > BUDGETS["serializedEdges"]:
+-        raise BudgetExceeded(
+-            "serialized cross-layer edge budget exceeded; coverage INCOMPLETE"
+-        )
+-    opmap = {o["id"]: o for o in operations}
+-    selected = {
+-        key: opmap[x["participant"] + "/" + x["observation"]]
+-        for key, x in s.selected.items()
+-    }
++def missing_holding_evidence(s, cut, selected, consistency, compare):
++    """An omitted prior acquisition is not evidence of absent retention.
++
++    Use the existing W ledger to exclude irrelevant pairs (same P, ended P,
++    disjoint targets, etc.). No holder or edge is inferred from the operation.
++    """
++    missing = []
++    held_ids = {h["operation"] for h in cut["holdings"]}
++    for hid, holder in s.selected.items():
++        op = selected[hid]
++        if (
++            hid in held_ids
++            or op["t01Sequence"] is None
++            or op["t01Sequence"] >= cut["prefixes"][holder["participant"]]
++        ):
++            continue
++        for qid in cut["pending"]:
++            compare()
++            ledger = obligations(
++                s,
++                cut,
++                s.selected[qid],
++                holder,
++                {"acquisitionPremise": None, "retentionPremise": None},
++                selected,
++                consistency,
++            )
++            if not any(w["state"] == "CONTRADICTED" for w in ledger):
++                missing.append("W4: acquisition/retention unproven for " + hid)
++                break
++    return missing
++
++
++def scope_problems(s):
++    """Scope limits apply before any exhaustive negative assessment."""
+     unsupported = []
+     for key, count in (
+-        ("inputArtifacts", len(inputs.reports)),
++        ("inputArtifacts", len(s.inputs.reports)),
+         ("participants", len(s.participants)),
+         ("resources", len(s.resources)),
+         ("selectedOperations", len(s.selected)),
+@@ -912,6 +936,45 @@
+                     unsupported.append("requiresNewLevels exceeds I01 scope")
+             elif e["kind"] == "RESUME_CONDITIONAL":
+                 active -= 1
++    return unsupported
++
++
++def single_physical_scope(selected):
++    """D00 O-D01/O-E01: identified same-P frames exclude inter-P cycles.
++
++    This limited identity proof needs no lock hypotheses or witness cut.
++    It does not qualify a supplied incomplete cut or an unplaced operation.
++    """
++    return (
++        len(selected) >= 2
++        and all(
++            o["namespace"]["originalPhysicalId"] and o["t01Sequence"] is not None
++            for o in selected.values()
++        )
++        and len({node_id(o["namespace"]) for o in selected.values()}) == 1
++        and len({o["observation"]["frame"] for o in selected.values()}) >= 2
++    )
++
++
++def build_report(raw_inputs, sidecar):
++    """Pure consumer: original JSON objects are neither repaired nor mutated."""
++    require(isinstance(sidecar, dict), "sidecar must be an object")
++    if len(encoded(sidecar)) > BUDGETS["sidecarBytes"]:
++        raise BudgetExceeded("sidecar exceeds 2 MiB; coverage INCOMPLETE")
++    declarations = unique(sidecar.get("inputs", []))
++    inputs = Inputs(raw_inputs, declarations)
++    s = Scenario(sidecar, inputs)
++    operations, app_sources, cross = inventory(s)
++    if len(cross) > BUDGETS["serializedEdges"]:
++        raise BudgetExceeded(
++            "serialized cross-layer edge budget exceeded; coverage INCOMPLETE"
++        )
++    opmap = {o["id"]: o for o in operations}
++    selected = {
++        key: opmap[x["participant"] + "/" + x["observation"]]
++        for key, x in s.selected.items()
++    }
++    unsupported = scope_problems(s)
+     claims, unknowns, dbedges, appedges, candidates = [], [], [], [], []
+ 
+     def claim(category, ops, certainty, premises=(), **fields):
+@@ -1196,6 +1259,11 @@
+         problems, unresolved = (
+             cut_checks[cut["id"]] if not unsupported else ([], ["UNSUPPORTED_SCOPE"])
+         )
++        missing_holds = (
++            missing_holding_evidence(s, cut, selected, (problems, unresolved), compare)
++            if not unsupported
++            else []
++        )
+         cross_risk = False
+         for edge in edges:
+             c = next(c for c in claims if c["id"] == edge["claim"])
+@@ -1224,11 +1292,21 @@
+             else "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK"
+             if cross_risk
+             else "UNKNOWN"
+-            if any(
++            if missing_holds
++            or any(
+                 c["status"] == "UNKNOWN" and c["cut"] == cut["id"] for c in candidates
+             )
+             else "NO_CYCLE_IN_MODELED_SCENARIO"
+         )
++        if result == "UNKNOWN":
++            unresolved = list(unresolved) + missing_holds
++            for candidate in candidates:
++                if candidate["cut"] == cut["id"] and candidate["status"] == "UNKNOWN":
++                    unresolved.extend(
++                        w["id"] + ": " + w["reason"]
++                        for w in candidate["obligations"]
++                        if w["state"] == "UNKNOWN"
++                    )
+         cut_results.append(
+             {
+                 "cut": cut["id"],
+@@ -1238,6 +1316,14 @@
+                 "claims": [e["claim"] for e in edges],
+             }
+         )
++        if missing_holds:
++            unknowns.append(
++                {
++                    "cut": cut["id"],
++                    "reason": "PRIOR_HOLDING_EVIDENCE_UNPROVEN",
++                    "missingObligations": ["W4"],
++                }
++            )
+     if unsupported:
+         outcome = "UNKNOWN"
+     elif any(r["result"] == "CONDITIONAL_CYCLE_RISK" for r in cut_results):
+@@ -1253,18 +1339,9 @@
+     ):
+         outcome = "NO_CYCLE_IN_MODELED_SCENARIO"
+     else:
+-        # A single P cannot form an inter-P cycle. This does not assert lock absence.
+-        phys = {
+-            node_id(o["namespace"])
+-            for o in selected.values()
+-            if o["namespace"]["originalPhysicalId"] is not None
+-        }
+         outcome = (
+             "NO_CYCLE_IN_MODELED_SCENARIO"
+-            if len(selected) >= 2
+-            and len(phys) == 1
+-            and len({o["observation"]["frame"] for o in selected.values()}) >= 2
+-            and all(o["namespace"]["originalPhysicalId"] for o in selected.values())
++            if not s.cuts and single_physical_scope(selected)
+             else "UNKNOWN"
+         )
+     reasons = list(unsupported)
+--- a/scripts/skill_factory/transactions/wait_validation.py
++++ b/scripts/skill_factory/transactions/wait_validation.py
+@@ -1,6 +1,24 @@
+ """S02 output invariants plus full source/reference projection verification."""
+ 
+-from .wait_dependencies import BUDGETS, LIMITS, build_report, keys, node_id, require
++from .wait_dependencies import (
++    BUDGETS,
++    LIMITS,
++    BudgetExceeded,
++    Inputs,
++    Scenario,
++    build_report,
++    cut_consistency,
++    inventory,
++    keys,
++    missing_holding_evidence,
++    node_id,
++    obligations,
++    require,
++    scope_problems,
++    single_physical_scope,
++    structural_cycle,
++    unique,
++)
+ 
+ CATEGORIES = {
+     "RESOURCE_OPERATION",
+@@ -9,6 +27,114 @@
+     "DB_WAIT_DEPENDENCY",
+     "APPLICATION_WAIT_DEPENDENCY",
+ }
++
++
++def validate_negative_assessments(report, raw_inputs):
++    """Authorize negative claims from sources, never from producer W/status flags.
++
++    Reconstruct source positions and premise dependencies before the final full
++    projection comparison. A contradicted candidate is excluded; an unresolved
++    candidate is not. D00's same-P proof without cuts is a separate narrow case.
++    """
++    negative = "NO_CYCLE_IN_MODELED_SCENARIO"
++    cuts = report["assessment"]["cuts"]
++    global_negative = report["assessment"]["result"] == negative
++    if not global_negative and not any(c["result"] == negative for c in cuts):
++        return
++    value = report["scenario"]
++    s = Scenario(value, Inputs(raw_inputs, unique(value["inputs"])))
++    require(not scope_problems(s), "NO_CYCLE requires supported complete cut scope")
++    operations, _, _ = inventory(s)
++    opmap = {o["id"]: o for o in operations}
++    selected = {
++        key: opmap[o["participant"] + "/" + o["observation"]]
++        for key, o in s.selected.items()
++    }
++    require(
++        len(cuts) == len(s.cuts) and {c["cut"] for c in cuts} == set(s.cuts),
++        "NO_CYCLE cut inventory differs from source scenario",
++    )
++    if global_negative:
++        require(
++            all(c["result"] == negative for c in cuts)
++            if s.cuts
++            else single_physical_scope(selected),
++            "NO_CYCLE requires every cut qualified or the D00 same-P identity proof",
++        )
++        require(
++            not structural_cycle(report["databaseGraph"]["edges"]),
++            "NO_CYCLE cannot certify a cyclic union of cuts",
++        )
++    comparisons = 0
++    source_edges = []
++
++    def compare():
++        nonlocal comparisons
++        comparisons += 1
++        if comparisons > BUDGETS["candidateComparisons"]:
++            raise BudgetExceeded(
++                "negative evidence validation budget; coverage INCOMPLETE"
++            )
++
++    for assessment in cuts:
++        if assessment["result"] != negative:
++            continue
++        cut = s.cuts[assessment["cut"]]
++        # Explicit source guard: a fabricated MODEL_EVIDENCE W4 ledger, an empty
++        # graph, or a COMPLETE coverage flag cannot supply missing holdings.
++        require(
++            cut["pending"] and cut["holdings"],
++            "NO_CYCLE requires W4 request and separate acquisition/retention evidence",
++        )
++        consistency = cut_consistency(s, cut, selected, compare)
++        require(not consistency[1], "NO_CYCLE has unresolved cut evidence")
++        require(
++            not missing_holding_evidence(s, cut, selected, consistency, compare),
++            "NO_CYCLE lacks W4 evidence for a prior potential holder",
++        )
++        require(not assessment["unknowns"], "NO_CYCLE reports unresolved cut premises")
++        cut_edges = []
++        for qid in cut["pending"]:
++            for held in cut["holdings"]:
++                compare()
++                ledger = obligations(
++                    s,
++                    cut,
++                    s.selected[qid],
++                    s.selected[held["operation"]],
++                    held,
++                    selected,
++                    consistency,
++                )
++                states = {w["state"] for w in ledger}
++                require(
++                    "CONTRADICTED" in states or "UNKNOWN" not in states,
++                    "NO_CYCLE has source obligations UNKNOWN: "
++                    + ", ".join(w["id"] for w in ledger if w["state"] == "UNKNOWN"),
++                )
++                if states <= {"MODEL_EVIDENCE", "EXPLICIT_ASSUMPTION"}:
++                    cut_edges.append(
++                        {
++                            "from": node_id(selected[qid]["namespace"]),
++                            "to": node_id(selected[held["operation"]]["namespace"]),
++                        }
++                    )
++        source_edges.extend(cut_edges)
++        require(
++            not structural_cycle(cut_edges),
++            "NO_CYCLE contradicts a cycle qualified by source evidence",
++        )
++        require(
++            not structural_cycle(
++                [e for e in report["databaseGraph"]["edges"] if e["cut"] == cut["id"]]
++            ),
++            "NO_CYCLE cut contains a structural cycle",
++        )
++    if global_negative:
++        require(
++            not structural_cycle(source_edges),
++            "NO_CYCLE contradicts the union of source-qualified cuts",
++        )
+ 
+ 
+ def validate_report(report, raw_inputs):
+@@ -217,6 +343,7 @@
+         and report["coverage"]["runtime"] == "NOT_RUN",
+         "unqualified global/runtime conclusion",
+     )
++    validate_negative_assessments(report, raw_inputs)
+     # Revalidate original input bytes and the scenario, including cut semantics,
+     # source witness, premise dependencies and the inventory's exact completeness.
+     require(
+--- a/scripts/mana-wait-dependencies.py
++++ b/scripts/mana-wait-dependencies.py
+@@ -87,6 +87,11 @@
+         "```",
+         "",
+     ]
++    if report["assessment"]["result"] == "UNKNOWN":
++        lines[4:4] = [
++            "Insufficient evidence to qualify the modeled cut. An empty database graph does not establish absence of dependencies or cycles.",
++            "",
++        ]
+     for cut in report["assessment"]["cuts"]:
+         edges = [e for e in report["databaseGraph"]["edges"] if e["cut"] == cut["cut"]]
+         text = diagram(
+@@ -135,6 +140,14 @@
+                 + ", ".join(w["premises"])
+             ]
+     lines += ["", "## Coverage and limits", ""]
++    if report["assessment"]["result"] == "UNKNOWN":
++        for unknown in report["unknowns"]:
++            lines.append(
++                "- "
++                + unknown["reason"]
++                + ": "
++                + ", ".join(unknown.get("missingObligations", []))
++            )
+     lines += [
+         "- " + reason for reason in report["coverage"]["reasons"] + report["limits"]
+     ]
+--- /dev/null
++++ b/tests/wait-dependencies-negative-evidence.py
+@@ -0,0 +1,334 @@
++#!/usr/bin/env python3
++"""F01 D00 regressions: source evidence gates negative claims independently.
++
++Oracles: D00 sections 4-6/9; O-B01/B03/C02/D01/E01/F05/G02.
++Existing synthetic examples are inputs, never expected verdict generators.
++"""
++
++import copy
++import importlib.util
++import json
++from pathlib import Path
++import subprocess
++import sys
++import tempfile
++import unittest
++from unittest.mock import patch
++
++sys.dont_write_bytecode = True
++ROOT = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(ROOT / "scripts"))
++from skill_factory.transactions import wait_dependencies as wd  # noqa: E402
++from skill_factory.transactions import wait_validation as validator  # noqa: E402
++
++NEGATIVE = "NO_CYCLE_IN_MODELED_SCENARIO"
++
++
++def load(case):
++    base = ROOT / "docs/examples/transaction-01-t02-s02" / case
++    scenario = json.loads((base / "scenario.json").read_bytes())
++    raw = {
++        i["id"]: (base / "inputs" / (i["id"] + ".json")).read_bytes()
++        for i in scenario["inputs"]
++    }
++    return raw, scenario
++
++
++def promote(report):
++    forged = copy.deepcopy(report)
++    forged["assessment"]["result"] = NEGATIVE
++    forged["unknowns"] = []
++    forged["coverage"]["status"] = "COMPLETE_MODELED_SCOPE"
++    forged["coverage"]["reasons"] = []
++    for cut in forged["assessment"]["cuts"]:
++        cut["result"] = NEGATIVE
++        cut["unknowns"] = []
++    for candidate in forged["waitCandidates"]:
++        candidate["status"] = "EXCLUDED"
++        for w in candidate["obligations"]:
++            if w["state"] == "UNKNOWN":
++                w["state"] = "MODEL_EVIDENCE"
++    return forged
++
++
++class NegativeEvidenceTests(unittest.TestCase):
++    def build(self, raw, scenario):
++        original = copy.deepcopy(scenario)
++        raw_before = dict(raw)
++        report = wd.build_report(raw, scenario)
++        self.assertTrue(validator.validate_report(report, raw))
++        self.assertEqual(scenario, original)
++        self.assertEqual(raw, raw_before)
++        return report
++
++    def independent_rejection(self, report, raw):
++        # Simulate the original failure mode: the producer repeats its own bug.
++        # Acceptance must not depend on report == build_report(...).
++        with patch.object(validator, "build_report", return_value=report) as producer:
++            with self.assertRaises(wd.RejectedInput):
++                validator.validate_report(report, raw)
++            producer.assert_not_called()
++
++    def test_01_r1_A_and_C_missing_W4_generate_unknown(self):
++        for case, app in (("A", 0), ("C", 1)):
++            with self.subTest(case=case):
++                raw, s = load(case)
++                s["cuts"][0]["holdings"] = []
++                r = self.build(raw, s)
++                self.assertEqual(r["assessment"]["result"], "UNKNOWN")
++                self.assertEqual(r["assessment"]["cuts"][0]["result"], "UNKNOWN")
++                self.assertIn(
++                    "W4: NO_ORIENTED_WAIT_HYPOTHESIS",
++                    r["assessment"]["cuts"][0]["unknowns"],
++                )
++                self.assertEqual(r["coverage"]["status"], "INCOMPLETE")
++                self.assertEqual(len(r["databaseGraph"]["edges"]), 0)
++                self.assertEqual(len(r["applicationGraph"]["edges"]), app)
++
++    def test_02_missing_W4_negative_rejected_without_reprojection(self):
++        for case in ("A", "C"):
++            raw, s = load(case)
++            s["cuts"][0]["holdings"] = []
++            self.independent_rejection(promote(self.build(raw, s)), raw)
++
++    def test_03_complete_acyclic_B_retains_negative(self):
++        raw, s = load("B")
++        r = self.build(raw, s)
++        self.assertEqual(r["assessment"]["result"], NEGATIVE)
++        self.assertEqual(len(r["databaseGraph"]["edges"]), 1)
++        # Broad inventory coverage can be incomplete due to excluded candidates;
++        # this is not a missing indispensable premise for the scoped negative.
++        self.assertEqual(r["assessment"]["cuts"][0]["unknowns"], [])
++
++    def test_04_complete_A_compatible_cycle(self):
++        raw, s = load("A")
++        r = self.build(raw, s)
++        self.assertEqual(r["assessment"]["result"], "CONDITIONAL_CYCLE_RISK")
++        self.assertEqual(len(r["databaseGraph"]["edges"]), 2)
++        self.independent_rejection(promote(r), raw)
++        forged = promote(r)
++        forged["databaseGraph"]["edges"] = []
++        forged["claims"] = [
++            c for c in forged["claims"] if c["category"] != "DB_WAIT_DEPENDENCY"
++        ]
++        for cut in forged["assessment"]["cuts"]:
++            cut["claims"] = []
++        self.independent_rejection(forged, raw)
++
++    def test_05_incompatible_holdings_exclude_cycle(self):
++        raw, s = load("B")
++        s["cuts"][0].update(
++            prefixes={"a": 5, "b": 5},
++            pending=["a2", "b2"],
++            holdings=[
++                {
++                    "operation": h,
++                    "acquisitionPremise": h + "_acquire",
++                    "retentionPremise": h + "_retain",
++                }
++                for h in ("a1", "b1")
++            ],
++        )
++        r = self.build(raw, s)
++        self.assertEqual(r["assessment"]["result"], NEGATIVE)
++        self.assertFalse(r["databaseGraph"]["edges"])
++        self.assertIn(
++            "simultaneous incompatible holdings on the same opaque target",
++            r["assessment"]["cuts"][0]["contradictions"],
++        )
++
++    def test_06_missing_W4_positive_promotion_rejected(self):
++        for case in ("A", "C"):
++            raw, s = load(case)
++            positive = self.build(raw, s)
++            s["cuts"][0]["holdings"] = []
++            positive["scenario"] = s
++            with self.assertRaises(wd.RejectedInput):
++                validator.validate_report(positive, raw)
++
++    def test_07_opaque_object_without_overlap_is_unknown(self):
++        raw, s = load("A")
++        for resource in s["resources"]:
++            resource["lockTargetOverlap"] = "UNKNOWN"
++        r = self.build(raw, s)
++        self.assertEqual(r["assessment"]["result"], "UNKNOWN")
++        self.assertFalse(r["databaseGraph"]["edges"])
++        self.independent_rejection(promote(r), raw)
++
++    def test_08_budget_never_returns_negative(self):
++        raw, s = load("B")
++        for budget in ("candidateComparisons", "serializedEdges"):
++            with self.subTest(budget=budget), patch.dict(wd.BUDGETS, {budget: 1}):
++                with self.assertRaises(wd.BudgetExceeded):
++                    wd.build_report(raw, s)
++
++    def test_09_declared_W4_does_not_replace_source_evidence(self):
++        raw, s = load("A")
++        for holding in s["cuts"][0]["holdings"]:
++            pid = holding["acquisitionPremise"]
++            next(p for p in s["premises"] if p["id"] == pid)["state"] = "UNKNOWN"
++        r = self.build(raw, s)
++        self.assertEqual(r["assessment"]["result"], "UNKNOWN")
++        self.independent_rejection(promote(r), raw)
++        # Sidecar MODEL_EVIDENCE is not an authority for the original model.
++        s["premises"][0]["state"] = "MODEL_EVIDENCE"
++        with self.assertRaises(wd.RejectedInput):
++            wd.build_report(raw, s)
++
++    def test_10_requires_new_application_dependencies_preserved(self):
++        raw, s = load("C")
++        before = self.build(raw, s)
++        s["cuts"][0]["holdings"] = []
++        after = self.build(raw, s)
++        self.assertEqual(after["crossLayerRelations"], before["crossLayerRelations"])
++        fields = (
++            "caller",
++            "callee",
++            "callerPhysical",
++            "calleePhysical",
++            "source",
++            "resource",
++        )
++
++        def app(r):
++            return [
++                {k: c[k] for k in fields}
++                for c in r["claims"]
++                if c["category"] == "APPLICATION_WAIT_DEPENDENCY"
++            ]
++
++        self.assertEqual(app(after), app(before))
++        self.assertEqual(len(app(after)), 1)
++
++    def test_11_missing_pending_and_premise_dependency(self):
++        raw, s = load("B")
++        s["cuts"][0]["pending"] = []
++        self.assertEqual(self.build(raw, s)["assessment"]["result"], "UNKNOWN")
++        raw, s = load("A")
++        for holding in s["cuts"][0]["holdings"]:
++            acquire = next(
++                p for p in s["premises"] if p["id"] == holding["acquisitionPremise"]
++            )
++            retain = next(
++                p for p in s["premises"] if p["id"] == holding["retentionPremise"]
++            )
++            acquire["state"] = "UNKNOWN"
++            retain["dependsOn"] = [acquire["id"]]
++        r = self.build(raw, s)
++        self.independent_rejection(promote(r), raw)
++
++    def test_12_one_incomplete_cut_blocks_global_negative(self):
++        raw, s = load("B")
++        missing = copy.deepcopy(s["cuts"][0])
++        missing["id"] = "missing"
++        missing["holdings"] = []
++        s["cuts"].append(missing)
++        r = self.build(raw, s)
++        self.assertEqual(
++            [c["result"] for c in r["assessment"]["cuts"]], [NEGATIVE, "UNKNOWN"]
++        )
++        self.assertEqual(r["assessment"]["result"], "UNKNOWN")
++        self.independent_rejection(promote(r), raw)
++
++    def test_13_cli_unknown_invalid_negative_and_budget(self):
++        with tempfile.TemporaryDirectory(prefix="mana-f01-cli-") as tmp:
++            stage = Path(tmp).resolve()
++            for case in ("A", "B", "C"):
++                raw, s = load(case)
++                if case != "B":
++                    s["cuts"][0]["holdings"] = []
++                scenario = stage / (case + ".json")
++                scenario.write_text(json.dumps(s))
++                args = [
++                    sys.executable,
++                    str(ROOT / "scripts/mana-wait-dependencies.py"),
++                    "--scenario",
++                    str(scenario),
++                ]
++                for key, value in raw.items():
++                    path = stage / (case + "-" + key + ".json")
++                    path.write_bytes(value)
++                    args += ["--timeline", key + "=" + str(path)]
++                output = stage / case
++                result = subprocess.run(
++                    args + ["--output-dir", str(output)], capture_output=True, text=True
++                )
++                self.assertEqual(result.returncode, 0, result.stderr)
++                self.assertEqual(
++                    json.loads(result.stdout)["assessment"],
++                    NEGATIVE if case == "B" else "UNKNOWN",
++                )
++                report = json.loads((output / "wait-dependency.json").read_bytes())
++                if case != "B":
++                    self.assertIn("W4", (output / "report.md").read_text())
++                    forged = stage / (case + "-forged.json")
++                    forged.write_text(json.dumps(promote(report)))
++                    bad = subprocess.run(
++                        args + ["--validate", str(forged)],
++                        capture_output=True,
++                        text=True,
++                    )
++                    self.assertEqual(bad.returncode, 2)
++                    self.assertEqual(bad.stdout, "")
++                    self.assertEqual(json.loads(bad.stderr)["status"], "REJECTED_INPUT")
++                    self.assertIn("W4", json.loads(bad.stderr)["reason"])
++                valid = subprocess.run(
++                    args + ["--validate", str(output / "wait-dependency.json")],
++                    capture_output=True,
++                    text=True,
++                )
++                self.assertEqual(valid.returncode, 0, valid.stderr)
++                scenario.write_bytes(b" " * (wd.BUDGETS["sidecarBytes"] + 1))
++                target = stage / (case + "-budget")
++                limited = subprocess.run(
++                    args + ["--output-dir", str(target)], capture_output=True, text=True
++                )
++                self.assertEqual(limited.returncode, 2)
++                self.assertEqual(
++                    json.loads(limited.stderr)["status"], "BUDGET_EXCEEDED"
++                )
++                self.assertFalse(target.exists())
++
++    def test_14_partial_holder_omission_cannot_prove_acyclicity(self):
++        raw, s = load("A")
++        s["cuts"][0]["holdings"].pop()
++        r = self.build(raw, s)
++        self.assertEqual(r["assessment"]["result"], "UNKNOWN")
++        self.assertEqual(len(r["databaseGraph"]["edges"]), 1)
++        self.assertTrue(any("W4" in u for u in r["assessment"]["cuts"][0]["unknowns"]))
++        self.independent_rejection(promote(r), raw)
++
++    def test_15_frontier_and_same_P_cut_do_not_use_identity_fallback(self):
++        # Reuse I01's parse-only synthetic fixtures, not its verdicts/oracles.
++        spec = importlib.util.spec_from_file_location(
++            "i01_fixtures", ROOT / "tests/wait-dependencies.py"
++        )
++        fixture = importlib.util.module_from_spec(spec)
++        spec.loader.exec_module(fixture)
++        fixture.WaitTests.setUpClass()
++        try:
++            raw = {"t": fixture.WaitTests.models["frontier"]}
++            s = fixture.scenarios.scenario(raw, [("a", "t")], "frontier_f01")
++            fixture.scenarios.cut(
++                s, raw, "frontier", ["a2"], ["a1"], "OUTER_REQUIRES_NEW"
++            )
++            s["cuts"][0]["prefixes"]["a"] += 1
++            r = self.build(raw, s)
++            self.assertEqual(r["assessment"]["result"], "UNKNOWN")
++            self.independent_rejection(promote(r), raw)
++            for kind in ("required", "nested"):
++                raw = {"t": fixture.WaitTests.models[kind]}
++                s = fixture.scenarios.clear_lock_scenario(
++                    fixture.scenarios.scenario(raw, [("a", "t")], kind)
++                )
++                self.assertEqual(self.build(raw, s)["assessment"]["result"], NEGATIVE)
++                fixture.scenarios.cut(s, raw, "incomplete", ["a2"], [])
++                r = self.build(raw, s)
++                self.assertEqual(r["assessment"]["result"], "UNKNOWN")
++                self.independent_rejection(promote(r), raw)
++        finally:
++            fixture.WaitTests.tearDownClass()
++
++
++if __name__ == "__main__":
++    unittest.main()

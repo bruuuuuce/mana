@@ -1,0 +1,10 @@
+%% Typed cross-layer relations; these are not DB wait edges
+flowchart LR
+  N1["frame a/F1"]
+  N2["P a/P1"]
+  N1 -. EXECUTES_IN .-> N2
+  N3["frame a/F2"]
+  N4["P a/P2"]
+  N3 -. EXECUTES_IN .-> N4
+  N2 -. SUSPENDS_FOR .-> N4
+  N2 -. RESUME_REQUIRES_COMPLETION .-> N4

@@ -1,0 +1,2510 @@
+{
+  "mandate": "MANA-TRANSACTION-01-T02-S02-I01",
+  "date": "2026-10-22T18:46:36.980414+00:00",
+  "status": "IMPLEMENTED_READY_FOR_REVIEW",
+  "baselineHead": "9d3468101ccdcf40f680418955be17aec098c9e6",
+  "suite": {
+    "command": "python3 tests/wait-dependencies.py -v",
+    "tests": 22,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "status": "PASS",
+    "log": "/private/tmp/mana-s02-i01/final-tests.log",
+    "logText": "test_01_all_static_manual_oracles (wait_tests.WaitTests) ... ok\ntest_02_A_literal_directions_namespaces_and_future_end (wait_tests.WaitTests) ... ok\ntest_03_C_separate_graphs_and_suspended_holder (wait_tests.WaitTests) ... ok\ntest_04_B_never_unions_cuts_into_feasible_cycle (wait_tests.WaitTests) ... ok\ntest_05_D_E_logical_and_savepoint_end_do_not_end_P (wait_tests.WaitTests) ... ok\ntest_06_F_partial_identity_and_distinct_instances (wait_tests.WaitTests) ... ok\ntest_07_G_prefix_witness_and_async (wait_tests.WaitTests) ... ok\ntest_08_I_request_syntax_is_not_holding (wait_tests.WaitTests) ... ok\ntest_09_missing_or_contradicted_premises_cannot_qualify (wait_tests.WaitTests) ... ok\ntest_10_false_digests_projections_and_witnesses_rejected (wait_tests.WaitTests) ... ok\ntest_11_output_validator_adversarial_mutations (wait_tests.WaitTests) ... ok\ntest_12_scope_overflow_preserves_inventory_and_is_incomplete (wait_tests.WaitTests) ... ok\ntest_13_byte_comparison_and_edge_budgets (wait_tests.WaitTests) ... ok\ntest_14_cli_publication_validation_and_no_overwrite (wait_tests.WaitTests) ... ok\ntest_15_diagrams_keep_layers_and_cut_witness_separate (wait_tests.WaitTests) ... ok\ntest_16_legacy_canonical_inputs_read_only (wait_tests.WaitTests) ... ok\ntest_17_unknown_sql_not_a_target_and_no_hidden_lock (wait_tests.WaitTests) ... ok\ntest_18_repeated_methods_use_distinct_frame_instances (wait_tests.WaitTests) ... ok\ntest_19_frontier_prefix_never_repairs_a_continuation (wait_tests.WaitTests) ... ok\ntest_20_invalid_sidecar_rule_and_premise_cycles (wait_tests.WaitTests) ... ok\ntest_21_actual_byte_thresholds_stop_before_publication (wait_tests.WaitTests) ... ok\ntest_22_s02_report_byte_budget_is_checked_too (wait_tests.WaitTests) ... ok\n\n----------------------------------------------------------------------\nRan 22 tests in 4.568s\n\nOK\n"
+  },
+  "oracles": {
+    "total": 35,
+    "staticAThroughI": 30,
+    "staticCertaintyGuardJ05": 1,
+    "passed": 31,
+    "deferredRuntime": 4,
+    "cases": [
+      {
+        "id": "O-A01",
+        "case": "A",
+        "status": "PASS",
+        "dbEdges": 2,
+        "appEdges": 0,
+        "result": "CONDITIONAL_CYCLE_RISK",
+        "basis": "Testimone manuale: entrambe le prime operazioni completate; entrambe le seconde invocate e ancora senza ritorno",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+        },
+        "sidecarSha256": "99cd61f75c94721c257b3272e118e7396ef1fb09ec83eb712db7f26a6199ff54",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 11,
+          "serializedEdges": 8,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "CONDITIONAL_CYCLE_RISK",
+          "cuts": [
+            {
+              "cut": "common",
+              "result": "CONDITIONAL_CYCLE_RISK",
+              "contradictions": [],
+              "unknowns": [],
+              "claims": [
+                "C11",
+                "C12"
+              ]
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "CONDITIONAL P\u03b1\u2192P\u03b2[Y]; CONDITIONAL P\u03b2\u2192P\u03b1[X]",
+          "expected_application_graph": "Nessun arco fra i partecipanti indipendenti",
+          "cycle_result": "CONDITIONAL_CYCLE_RISK",
+          "must_remain_unknown": "Esecuzione reale; acquisizioni reali; granularit\u00e0 reale; attese runtime; outcome",
+          "forbidden_inference": "Ordine inverso o ciclo statico uguale deadlock confermato"
+        }
+      },
+      {
+        "id": "O-A02",
+        "case": "A",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "UNKNOWN",
+        "basis": "Le sole etichette READ/WRITE non descrivono il protocollo di lock",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+        },
+        "sidecarSha256": "f531de93f363b8a1e2a598a38125ab3b8a1e03491c9e6a76ebb78910deae8b26",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 6,
+          "serializedEdges": 6,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco; UNKNOWN W2-W7 secondo input",
+          "expected_application_graph": "Nessun arco fra i partecipanti",
+          "cycle_result": "UNKNOWN \u2014 INSUFFICIENT_PREMISES",
+          "must_remain_unknown": "Lock richiesti/acquisiti; detenzione; incompatibilit\u00e0; attesa",
+          "forbidden_inference": "WRITE implica lock esclusivo acquisito"
+        }
+      },
+      {
+        "id": "O-A03",
+        "case": "A",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "UNKNOWN",
+        "basis": "Due tracce locali non stabiliscono la relazione fra le loro istanze",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+        },
+        "sidecarSha256": "0fbe744e0f41ea939b7a40b338e26719ad2a7462830552fdc23dbad5a31858d1",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 11,
+          "serializedEdges": 6,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [
+            {
+              "cut": "common",
+              "result": "UNKNOWN",
+              "contradictions": [],
+              "unknowns": [],
+              "claims": []
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco orientato qualificato; UNKNOWN W7",
+          "expected_application_graph": "Nessun arco fra i partecipanti",
+          "cycle_result": "UNKNOWN \u2014 CONCURRENCY_UNPROVEN",
+          "must_remain_unknown": "Simultaneit\u00e0 e cut comune",
+          "forbidden_inference": "Due P presenti nei file sono necessariamente concorrenti"
+        }
+      },
+      {
+        "id": "O-A04",
+        "case": "A",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "basis": "Ordine totale manuale END(P\u03b1) prima di BEGIN(P\u03b2) esclude lifetime comuni",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+        },
+        "sidecarSha256": "f75eaa17defee2ad05d37a1b65f65e9bc4bfec812334d6531b7e86c0b67d0f46",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 11,
+          "serializedEdges": 6,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "cuts": [
+            {
+              "cut": "serial",
+              "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+              "contradictions": [
+                "serial lifetimes contradict common overlap"
+              ],
+              "unknowns": [],
+              "claims": []
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco fra queste P al medesimo cut; premessa di overlap CONTRADICTED",
+          "expected_application_graph": "Nessun arco fra i partecipanti",
+          "cycle_result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "must_remain_unknown": "Comportamento runtime e risorse fuori scope",
+          "forbidden_inference": "Ignorare vincoli seriali per conservare il ciclo desiderato"
+        }
+      },
+      {
+        "id": "O-B01",
+        "case": "B",
+        "status": "PASS",
+        "dbEdges": 1,
+        "appEdges": 0,
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "basis": "Se P\u03b2 \u00e8 fermo su X detenuta da P\u03b1 non ha raggiunto Y; il simmetrico richiede un altro cut",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+        },
+        "sidecarSha256": "1da513422367f9d11f441f37ab5623453783a87c5e8bf42f101716643649a126",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 8,
+          "serializedEdges": 7,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "cuts": [
+            {
+              "cut": "one_wait",
+              "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+              "contradictions": [],
+              "unknowns": [],
+              "claims": [
+                "C11"
+              ]
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Solo archi condizionali ammessi dal singolo cut; nessuna coppia reciproca congiunta",
+          "expected_application_graph": "Nessun arco fra partecipanti indipendenti",
+          "cycle_result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "must_remain_unknown": "Lock e attese runtime; assenza generale di deadlock",
+          "forbidden_inference": "Stesso ordine prova sicurezza generale dell'applicazione"
+        }
+      },
+      {
+        "id": "O-B02",
+        "case": "B",
+        "status": "PASS",
+        "dbEdges": 2,
+        "appEdges": 0,
+        "result": "CYCLE_FEASIBILITY_UNKNOWN",
+        "basis": "Due testimoni separati non forniscono un testimone della loro congiunzione",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+        },
+        "sidecarSha256": "8da23e7c5dac1719f1be90526bff77dc9c9228f009dc43034128f6c5e71eaf07",
+        "coverage": {
+          "status": "COMPLETE_MODELED_SCOPE",
+          "reasons": [],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 8,
+          "serializedEdges": 8,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "CYCLE_FEASIBILITY_UNKNOWN",
+          "cuts": [
+            {
+              "cut": "s1",
+              "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+              "contradictions": [],
+              "unknowns": [],
+              "claims": [
+                "C11"
+              ]
+            },
+            {
+              "cut": "s2",
+              "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+              "contradictions": [],
+              "unknowns": [],
+              "claims": [
+                "C12"
+              ]
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Conservare gli archi con scenario/cut distinti; non unirli come simultanei",
+          "expected_application_graph": "Nessun arco fra i partecipanti",
+          "cycle_result": "CYCLE_FEASIBILITY_UNKNOWN",
+          "must_remain_unknown": "Fattibilit\u00e0 di un cut comune per il ciclo",
+          "forbidden_inference": "Ciclo nell'unione degli archi uguale ciclo fattibile"
+        }
+      },
+      {
+        "id": "O-B03",
+        "case": "B",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "basis": "Confronto manuale degli stati H e Q: chi attende X non pu\u00f2 gi\u00e0 possedere lo stesso X incompatibile",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+        },
+        "sidecarSha256": "219ad437d6df5e29b6f82b31796d88409caafab572187fa98d3a7fcccee6c90a",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 11,
+          "serializedEdges": 6,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "cuts": [
+            {
+              "cut": "impossible",
+              "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+              "contradictions": [
+                "acquisition has not returned before cut: a/O1",
+                "acquisition has not returned before cut: b/O1",
+                "simultaneous incompatible holdings on the same opaque target"
+              ],
+              "unknowns": [],
+              "claims": []
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessuna coppia reciproca congiunta; W8 CONTRADICTED per il ciclo proposto",
+          "expected_application_graph": "Nessun arco fra i partecipanti",
+          "cycle_result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "must_remain_unknown": "Lock e attese runtime; comportamenti fuori dal protocollo assunto",
+          "forbidden_inference": "Accettare due detenzioni esclusive simultanee per fabbricare un ciclo"
+        }
+      },
+      {
+        "id": "O-C01",
+        "case": "C",
+        "status": "PASS",
+        "dbEdges": 1,
+        "appEdges": 1,
+        "result": "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK",
+        "basis": "Controllo manuale dello stack: outer non procede fino al ritorno inner; SUSPEND non \u00e8 END e non \u00e8 acquisizione",
+        "inputDigests": {
+          "t": "98ef6a110e5a1552d3343d14881df49f2cb53863f1112c9dd1ae841da256c73f"
+        },
+        "sidecarSha256": "fe5c9038a9313ffe736d6190d2166cbad7d78da69abff631de0beab2afa67d0c",
+        "coverage": {
+          "status": "COMPLETE_MODELED_SCOPE",
+          "reasons": [],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 2,
+          "serializedEdges": 8,
+          "inventoryOperations": 2,
+          "selectedOperations": 2,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK",
+          "cuts": [
+            {
+              "cut": "replacement",
+              "result": "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK",
+              "contradictions": [],
+              "unknowns": [],
+              "claims": [
+                "C7"
+              ]
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "CONDITIONAL P2\u2192P1[X]; nessun P1\u2192P2 database",
+          "expected_application_graph": "CONDITIONAL Fouter\u2192Finner; legami EXECUTES_IN e SUSPENDS_FOR separati",
+          "cycle_result": "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK",
+          "must_remain_unknown": "Lock realmente trattenuto da P1; attesa DB reale; thread runtime; outcome",
+          "forbidden_inference": "Attesa applicativa P1\u2192P2 \u00e8 automaticamente un arco DB che chiude un deadlock database"
+        }
+      },
+      {
+        "id": "O-C02",
+        "case": "C",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 1,
+        "result": "UNKNOWN",
+        "basis": "Presenza di una P viva non \u00e8 evidenza di un lock posseduto",
+        "inputDigests": {
+          "t": "98ef6a110e5a1552d3343d14881df49f2cb53863f1112c9dd1ae841da256c73f"
+        },
+        "sidecarSha256": "711604432fd5be15d6bc86eebf74ddeac89a581fbd4f27858534ff09413570ae",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 1,
+          "serializedEdges": 7,
+          "inventoryOperations": 2,
+          "selectedOperations": 2,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco DB; UNKNOWN W4 e ulteriori premesse mancanti",
+          "expected_application_graph": "CONDITIONAL Fouter\u2192Finner",
+          "cycle_result": "UNKNOWN \u2014 DATABASE_WAIT_UNPROVEN",
+          "must_remain_unknown": "Holder P1; acquisizione; ritenzione; compatibilit\u00e0; attesa DB",
+          "forbidden_inference": "Sospensione di P1 implica che P1 trattiene un lock"
+        }
+      },
+      {
+        "id": "O-C03",
+        "case": "C",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 1,
+        "result": "UNKNOWN",
+        "basis": "Separazione manuale fra dichiarazione di propagation ed effetti qualificati del confine",
+        "inputDigests": {
+          "t": "62efe8a12f31d3da5810f32625e0dc3afcbc456a0d48caba1d4a4afc83499449"
+        },
+        "sidecarSha256": "06ffdd1842961f15c8ea32c9a886b8d05c2cb0993f277b8f1cfa4f18fc2a733c",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "T01_UNCERTAINTIES:a",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 1,
+          "serializedEdges": 5,
+          "inventoryOperations": 2,
+          "selectedOperations": 2,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco da una P2 inventata",
+          "expected_application_graph": "CONDITIONAL Fouter\u2192Finner; contesto inner UNKNOWN senza P2 inventata",
+          "cycle_result": "UNKNOWN \u2014 BOUNDARY_UNRESOLVED",
+          "must_remain_unknown": "Identit\u00e0 fisica inner; sospensione; corpo e ordine delle sue operazioni",
+          "forbidden_inference": "Annotazione REQUIRES_NEW basta per creare P2 e sospendere P1"
+        }
+      },
+      {
+        "id": "O-D01",
+        "case": "D",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 1,
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "basis": "Identit\u00e0 P1 letteralmente condivisa prima e durante REQUIRED",
+        "inputDigests": {
+          "t": "10326e5199bcedffc51ffd2580bf4e66eaefadfcc10d7c9732aee8729a2596b8"
+        },
+        "sidecarSha256": "05fce2c484ea6688e5e3ec66d2877e70aa89abf5ca1736fa256ba09c516b613a",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 1,
+          "serializedEdges": 5,
+          "inventoryOperations": 2,
+          "selectedOperations": 2,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco inter-P fra queste due operazioni; nessun self-loop DB",
+          "expected_application_graph": "Caller\u2192callee possibile come obbligo frame; contesti entrambi P1",
+          "cycle_result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "must_remain_unknown": "Lock runtime; dettaglio interno DB; esecuzione reale",
+          "forbidden_inference": "L1 e L2 sono due transazioni fisiche concorrenti"
+        }
+      },
+      {
+        "id": "O-D02",
+        "case": "D",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 1,
+        "result": "UNKNOWN",
+        "basis": "Il terminale della P \u00e8 PHYSICAL_END_OUTCOME_UNKNOWN e non LOGICAL_END",
+        "inputDigests": {
+          "t": "10326e5199bcedffc51ffd2580bf4e66eaefadfcc10d7c9732aee8729a2596b8"
+        },
+        "sidecarSha256": "93e94b721f8393a56a57e5286d783b579bf5ed59d369fc79710638faa52ea246",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_DATABASE_OPERATIONS_SELECTED",
+            "NO_WITNESS_CUT",
+            "OPERATIONS_OUTSIDE_SELECTED_DATABASE_SCOPE",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 0,
+          "serializedEdges": 5,
+          "inventoryOperations": 2,
+          "selectedOperations": 0,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco derivato dal solo END L; eventuali archi richiedono W1-W8",
+          "expected_application_graph": "Nessun nuovo obbligo dal solo END L",
+          "cycle_result": "UNKNOWN \u2014 LOCK_LIFETIME_UNPROVEN",
+          "must_remain_unknown": "Se un lock sia stato acquisito o rilasciato",
+          "forbidden_inference": "LOGICAL_END rilascia lock e termina P1"
+        }
+      },
+      {
+        "id": "O-E01",
+        "case": "E",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 1,
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "basis": "Identit\u00e0 fisica letterale identica; SP \u00e8 un'entit\u00e0 distinta dalla P",
+        "inputDigests": {
+          "t": "266340e92d0ff378051f36dcff264915169a7db406175d671b44f57cf241a8dc"
+        },
+        "sidecarSha256": "fac8f8d9621f633897fbcb85f50f994e7acd3924e9100f6d7b14f2021249718c",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 1,
+          "serializedEdges": 5,
+          "inventoryOperations": 2,
+          "selectedOperations": 2,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco inter-P n\u00e9 self-loop DB per outer/nested",
+          "expected_application_graph": "Caller\u2192nested condizionale se chiamata risolta; contesti P1/P1",
+          "cycle_result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "must_remain_unknown": "Lock runtime; eventuale rollback al savepoint",
+          "forbidden_inference": "Savepoint \u00e8 una P indipendente equivalente a REQUIRES_NEW"
+        }
+      },
+      {
+        "id": "O-E02",
+        "case": "E",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 1,
+        "result": "UNKNOWN",
+        "basis": "Lifetime P e savepoint sono invarianti differenti nel modello",
+        "inputDigests": {
+          "t": "266340e92d0ff378051f36dcff264915169a7db406175d671b44f57cf241a8dc"
+        },
+        "sidecarSha256": "3fd70873c25d217c8043a7c6fb735dd249c7d1a5068cce19f1c226aaa79ef38f",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_DATABASE_OPERATIONS_SELECTED",
+            "NO_WITNESS_CUT",
+            "OPERATIONS_OUTSIDE_SELECTED_DATABASE_SCOPE",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 0,
+          "serializedEdges": 5,
+          "inventoryOperations": 2,
+          "selectedOperations": 0,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco o eliminazione di holder dal solo SP release",
+          "expected_application_graph": "Nessun arco nuovo dal solo SP release",
+          "cycle_result": "UNKNOWN \u2014 LOCK_LIFETIME_UNPROVEN",
+          "must_remain_unknown": "Rilascio o conservazione dei lock reali; outcome",
+          "forbidden_inference": "SP release prova rilascio di lock o commit parziale"
+        }
+      },
+      {
+        "id": "O-F01",
+        "case": "F",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "UNKNOWN",
+        "basis": "Uguaglianza lessicale non dimostra identit\u00e0 database o connessione",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+        },
+        "sidecarSha256": "9e8769d88e6122ef8654c795f06ab498747d5469e121bab1b63d91a1e474409b",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 6,
+          "serializedEdges": 6,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco DB; UNKNOWN W2-W4",
+          "expected_application_graph": "Conservare eventuali obblighi app provati indipendentemente",
+          "cycle_result": "UNKNOWN \u2014 BINDING_UNPROVEN",
+          "must_remain_unknown": "Datasource; database comune; enlistment; overlap; lock e attesa",
+          "forbidden_inference": "Stesso nome X e stesso manager identificano stessa risorsa e lock"
+        }
+      },
+      {
+        "id": "O-F02",
+        "case": "F",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "UNKNOWN",
+        "basis": "Il contesto causale T01 non \u00e8 un contratto di binding JDBC",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+        },
+        "sidecarSha256": "48be153e068e1f1b9275c32f702b64c14c35dd055e550b46cb77c149f1d1f301",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "OPERATIONS_OUTSIDE_SELECTED_DATABASE_SCOPE",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 2,
+          "serializedEdges": 6,
+          "inventoryOperations": 4,
+          "selectedOperations": 2,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [
+            {
+              "cut": "common",
+              "result": "UNKNOWN",
+              "contradictions": [],
+              "unknowns": [],
+              "claims": []
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco fra le P simboliche; UNKNOWN enlistment",
+          "expected_application_graph": "Obblighi app indipendenti preservati",
+          "cycle_result": "UNKNOWN \u2014 ENLISTMENT_UNPROVEN",
+          "must_remain_unknown": "Quale transazione DB esegua l'operazione",
+          "forbidden_inference": "Contesto ACTIVE prova che JdbcTemplate usa la connessione enlistata"
+        }
+      },
+      {
+        "id": "O-F03",
+        "case": "F",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "basis": "Due oggetti dichiarati disgiunti non soddisfano W3",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+        },
+        "sidecarSha256": "c0da04f65fba217518a8078963b229e276d56df2e0a5573d30700cc543d2716d",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 11,
+          "serializedEdges": 6,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "cuts": [
+            {
+              "cut": "common",
+              "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+              "contradictions": [],
+              "unknowns": [],
+              "claims": []
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun conflitto o arco DB su questi target",
+          "expected_application_graph": "Indipendente dalla disgiunzione DB",
+          "cycle_result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "must_remain_unknown": "Validit\u00e0 runtime della premessa; altri target fuori scope",
+          "forbidden_inference": "Unire risorse disgiunte perch\u00e9 si chiamano entrambe X"
+        }
+      },
+      {
+        "id": "O-F04",
+        "case": "F",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "UNKNOWN",
+        "basis": "Un datasource \u00e8 una configurazione di accesso e non l'identit\u00e0 del database",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+        },
+        "sidecarSha256": "a62792adacadb203f258735a1d642360e65ae7ea74ccec6bbee49f865074db72",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 6,
+          "serializedEdges": 6,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco DB e nessuna esclusione certa per sola diversit\u00e0 datasource",
+          "expected_application_graph": "Obblighi app indipendenti preservati",
+          "cycle_result": "UNKNOWN \u2014 RESOURCE_ALIAS_UNPROVEN",
+          "must_remain_unknown": "Identit\u00e0 database e risorsa fisica",
+          "forbidden_inference": "Datasource diversi implicano database fisici disgiunti"
+        }
+      },
+      {
+        "id": "O-F05",
+        "case": "F",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "UNKNOWN",
+        "basis": "W3 richiede sovrapposizione del target e non il solo nome tabella",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+        },
+        "sidecarSha256": "1856b14b0292e3c349fda4ce067462a8a49c865b37b2d2ba90d3e575a7866c83",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 11,
+          "serializedEdges": 6,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [
+            {
+              "cut": "common",
+              "result": "UNKNOWN",
+              "contradictions": [],
+              "unknowns": [],
+              "claims": []
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco DB; UNKNOWN W3",
+          "expected_application_graph": "Indipendente dal dettaglio delle righe",
+          "cycle_result": "UNKNOWN \u2014 LOCK_TARGET_OVERLAP_UNPROVEN",
+          "must_remain_unknown": "Identit\u00e0 righe; granularit\u00e0; overlap e compatibilit\u00e0",
+          "forbidden_inference": "Stessa tabella implica stessa riga oppure granularit\u00e0 TABLE"
+        }
+      },
+      {
+        "id": "O-F06",
+        "case": "F",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "UNKNOWN",
+        "basis": "Identit\u00e0 locale del modello separata dall'identit\u00e0 dell'istanza di scenario",
+        "inputDigests": {
+          "t": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+        },
+        "sidecarSha256": "6c67516c77518a20000b182a3801b7ca1edfb7d4ddca95e12e1b1c93324f7cb9",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 6,
+          "serializedEdges": 6,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessuna fusione dei nodi per nome; nessun arco dalla sola differenza di namespace",
+          "expected_application_graph": "Frame con namespace distinti",
+          "cycle_result": "UNKNOWN \u2014 NO_LOCK_SCENARIO",
+          "must_remain_unknown": "Identit\u00e0 runtime; connessioni; eventuale correlazione reale",
+          "forbidden_inference": "P1 in due report \u00e8 la stessa P fisica oppure una connessione JDBC"
+        }
+      },
+      {
+        "id": "O-F07",
+        "case": "F",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 1,
+        "result": "UNKNOWN",
+        "basis": "Intersezione delle alternative non \u00e8 scelta di una delle alternative",
+        "inputDigests": {
+          "t": "83b5e9984e184e7513507fa11eb270bd87278eabc09d4f23773528c60ec00067"
+        },
+        "sidecarSha256": "8fed2aa84d515e5f4d649467290d81c9afdf336771e8092aaeceb09c92d976a4",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "T01_UNCERTAINTIES:a",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 1,
+          "serializedEdges": 5,
+          "inventoryOperations": 2,
+          "selectedOperations": 2,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun nodo/arco DB identificato dal null o da FRESH_IF_APPLIED",
+          "expected_application_graph": "Solo eventuali chiamate app autonomamente dimostrate",
+          "cycle_result": "UNKNOWN \u2014 PHYSICAL_ID_UNPROVEN",
+          "must_remain_unknown": "P corrente identificata; operazioni nel corpo non attraversato",
+          "forbidden_inference": "ACTIVE implica P1 o autorizza allocare una P fresca globale"
+        }
+      },
+      {
+        "id": "O-G01",
+        "case": "G",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "UNKNOWN",
+        "basis": "Le osservazioni non posizionate non appartengono alla Timeline causale",
+        "inputDigests": {
+          "t": "f5bd6248f5e09d4a50c665e7ed74d07554d7493a6eecff00bcf3c491db2927c5"
+        },
+        "sidecarSha256": "a8c4c066250d04dd8a44ef795ddd923dc6740053e7b58937acce1d978fba87e4",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "T01_UNCERTAINTIES:a",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 1,
+          "serializedEdges": 3,
+          "inventoryOperations": 2,
+          "selectedOperations": 2,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco dalle observation UNPLACED",
+          "expected_application_graph": "Nessun obbligo app dalla sola sintassi",
+          "cycle_result": "UNKNOWN \u2014 CAUSAL_ORDER_UNPROVEN",
+          "must_remain_unknown": "P; manager; raggiungibilit\u00e0; ordine causale",
+          "forbidden_inference": "Ordine dell'array observations uguale ordine di esecuzione"
+        }
+      },
+      {
+        "id": "O-G02",
+        "case": "G",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "UNKNOWN",
+        "basis": "Barriera causale indipendente dalla qualificazione del prefisso",
+        "inputDigests": {
+          "t": "e79c6211933d307cb7929f4a443c9db2f79a08f298d81c6dfb2b3df00715ca04"
+        },
+        "sidecarSha256": "3ebe9b8d299552da244ed9e2da3e4f1c1cd1e8cd9e2544dedd1df783957348aa",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "T01_UNCERTAINTIES:a",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 3,
+          "serializedEdges": 4,
+          "inventoryOperations": 3,
+          "selectedOperations": 3,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco con O2; prefisso valutabile separatamente",
+          "expected_application_graph": "Nessun arco di completamento certo per la chiamata irrisolta",
+          "cycle_result": "UNKNOWN \u2014 CONTINUATION_UNRESOLVED",
+          "must_remain_unknown": "Contesto ed esecuzione di O2; continuazione dopo frontiera",
+          "forbidden_inference": "Ritorno normale della leaf O1 certifica anche il suffisso O2"
+        }
+      },
+      {
+        "id": "O-G03",
+        "case": "G",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "UNKNOWN",
+        "basis": "Semantica async e selezione del callee non presenti nel modello qualificato",
+        "inputDigests": {
+          "t": "5d313fb4f5695b888ff4c1e2cdae9488d264a33da8e0360ed7fca4b8a6b708b5"
+        },
+        "sidecarSha256": "4b6f2b721c84195cb71bad55709729523738278a2ad2bbd4d64722935ec3a63a",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "T01_UNCERTAINTIES:a",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 0,
+          "serializedEdges": 3,
+          "inventoryOperations": 1,
+          "selectedOperations": 1,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco dalle operazioni non attraversate",
+          "expected_application_graph": "Nessun caller\u2192callee sincrono inventato per async",
+          "cycle_result": "UNKNOWN \u2014 ASYNC_OR_DISPATCH_UNSUPPORTED",
+          "must_remain_unknown": "Task runtime; join; P del corpo; ordine e concorrenza interni",
+          "forbidden_inference": "Ogni chiamata applicativa attende sincronicamente il callee"
+        }
+      },
+      {
+        "id": "O-G04",
+        "case": "G",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "basis": "Obbligazione manuale di prefisso: O2 dipende da un evento di ritorno escluso dal cut",
+        "inputDigests": {
+          "t": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+        },
+        "sidecarSha256": "f32121ee2d6106d2b623f1094320c1cf1d73c909bc46e93db948079370d742cc",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 3,
+          "serializedEdges": 3,
+          "inventoryOperations": 2,
+          "selectedOperations": 2,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "cuts": [
+            {
+              "cut": "impossible",
+              "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+              "contradictions": [
+                "pending invocation is not the prefix boundary: a/O1",
+                "multiple pending invocations on one synchronous path",
+                "normal return of pending request required by a/O2"
+              ],
+              "unknowns": [],
+              "claims": []
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco dal cut contraddittorio; W8 CONTRADICTED",
+          "expected_application_graph": "Nessun obbligo successivo giustificato da O2 a quel cut",
+          "cycle_result": "NO_CYCLE_IN_MODELED_SCENARIO per il cut proposto",
+          "must_remain_unknown": "Esecuzione reale e stato runtime delle due operazioni",
+          "forbidden_inference": "Usare il suffix normale di una richiesta bloccata per costruire ulteriori holder o archi"
+        }
+      },
+      {
+        "id": "O-H01",
+        "case": "H",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "basis": "Il lifetime simbolico finisce indipendentemente dall'outcome sconosciuto",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+        },
+        "sidecarSha256": "69654cdba26ee503b4865a442151ca3e6f37e722f7ad698e20752750b71b72e7",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 11,
+          "serializedEdges": 6,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "cuts": [
+            {
+              "cut": "ended",
+              "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+              "contradictions": [
+                "pending invocation is not the prefix boundary: a/O2",
+                "pending invocation is not the prefix boundary: b/O2"
+              ],
+              "unknowns": [],
+              "claims": []
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "P1 esclusa da holder e waiter al cut; eventuali archi storici appartengono ad altro cut",
+          "expected_application_graph": "Obblighi app valutati separatamente dal terminale P",
+          "cycle_result": "NO_CYCLE_IN_MODELED_SCENARIO per P1 a questo cut",
+          "must_remain_unknown": "Commit o rollback reale; rilascio effettivo dei lock runtime",
+          "forbidden_inference": "END prova commit o riutilizza P1 come transazione successiva"
+        }
+      },
+      {
+        "id": "O-H02",
+        "case": "H",
+        "status": "PASS",
+        "result": "REJECTED_INPUT",
+        "basis": "Invariante indipendente: simbolo fisico terminato non riciclabile",
+        "inputDigests": {
+          "ta": "0e26201d9be34ae235b9bad1334c827bb8c0a115fe0069cd9c76322d40cb6378",
+          "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+        },
+        "sidecarSha256": "1d5fb56d1b61c5d612ed245785312f70c8dbf7ff1fe38361b7014846f41eb3cb",
+        "normativeExpected": {
+          "expected_database_graph": "REJECTED_INPUT; nessun grafo pubblicato come valido",
+          "expected_application_graph": "REJECTED_INPUT",
+          "cycle_result": "NOT_APPLICABLE \u2014 INVALID_INPUT",
+          "must_remain_unknown": "Nessun valore sostitutivo inventato",
+          "forbidden_inference": "Degradare a UNKNOWN o riaprire P1 per accettare input incoerente"
+        }
+      },
+      {
+        "id": "O-H03",
+        "case": "H",
+        "status": "PASS",
+        "dbEdges": 2,
+        "appEdges": 0,
+        "result": "CONDITIONAL_CYCLE_RISK",
+        "basis": "Un prefisso non contiene i propri eventi successivi di chiusura",
+        "inputDigests": {
+          "ta": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "tb": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+        },
+        "sidecarSha256": "5077cf05df9214558d9320b1a6c6a9f26552fd9590acd7583041128baabe56b9",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 11,
+          "serializedEdges": 8,
+          "inventoryOperations": 4,
+          "selectedOperations": 4,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "CONDITIONAL_CYCLE_RISK",
+          "cuts": [
+            {
+              "cut": "common",
+              "result": "CONDITIONAL_CYCLE_RISK",
+              "contradictions": [],
+              "unknowns": [],
+              "claims": [
+                "C11",
+                "C12"
+              ]
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Non eliminare gli archi di A01 per END futuro",
+          "expected_application_graph": "Nessun nuovo arco",
+          "cycle_result": "CONDITIONAL_CYCLE_RISK",
+          "must_remain_unknown": "Se la richiesta ritorner\u00e0; outcome; attese reali",
+          "forbidden_inference": "Presenza di END nel JSON elimina qualunque rischio al prefisso"
+        }
+      },
+      {
+        "id": "O-I01",
+        "case": "I",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "UNKNOWN",
+        "basis": "Il tipo READ non specifica isolation o protocollo del database",
+        "inputDigests": {
+          "t": "82da10b617630748de41b0cd9905635f9475ee9ca62b2ee8f15840cd561fd125"
+        },
+        "sidecarSha256": "38db6cbf7319e6a61070526f3976fe79634e551987438db83a69f8c1e2337df7",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 0,
+          "serializedEdges": 2,
+          "inventoryOperations": 1,
+          "selectedOperations": 1,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessuna richiesta incompatibile o arco DB dedotto",
+          "expected_application_graph": "Obblighi app indipendenti preservati",
+          "cycle_result": "UNKNOWN \u2014 LOCK_SEMANTICS_UNPROVEN",
+          "must_remain_unknown": "Modo di lock; acquisizione; compatibilit\u00e0; blocco",
+          "forbidden_inference": "Ogni SELECT ottiene un lock incompatibile con WRITE"
+        }
+      },
+      {
+        "id": "O-I02",
+        "case": "I",
+        "status": "PASS",
+        "dbEdges": 0,
+        "appEdges": 0,
+        "result": "UNKNOWN",
+        "basis": "Richiesta dichiarata dalla sintassi distinta da acquisizione e attesa",
+        "inputDigests": {
+          "t": "a1207cb67267a5b7a2c73cdcc69dd5f5ac7d00896041403b75242579059ee1d0"
+        },
+        "sidecarSha256": "0fb8c081772a5ca35b68f01fb59bc0a75266c302dc52c1a8f7fcfe31a99ea6ea",
+        "coverage": {
+          "status": "INCOMPLETE",
+          "reasons": [
+            "NO_WITNESS_CUT",
+            "UNRESOLVED_DATA_OR_CAUSALITY"
+          ],
+          "scope": {
+            "inputArtifacts": 2,
+            "participants": 2,
+            "resources": 2,
+            "selectedOperations": 4,
+            "requiresNewLevels": 1
+          },
+          "scopeStatus": "SUPPORTED",
+          "budgets": {
+            "t01Bytes": 4194304,
+            "timelineBytes": 4194304,
+            "combinedBytes": 8388608,
+            "sidecarBytes": 2097152,
+            "candidateComparisons": 100000,
+            "serializedEdges": 5000
+          },
+          "candidateComparisons": 0,
+          "serializedEdges": 2,
+          "inventoryOperations": 1,
+          "selectedOperations": 1,
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "runtime": "NOT_RUN"
+        },
+        "assessment": {
+          "result": "UNKNOWN",
+          "cuts": [],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco DB dalla sola richiesta sintattica",
+          "expected_application_graph": "Indipendente dal candidato di richiesta",
+          "cycle_result": "UNKNOWN \u2014 HOLDER_AND_COMPATIBILITY_UNPROVEN",
+          "must_remain_unknown": "Accettazione SQL; modo; granularit\u00e0; acquisizione; holder; attesa",
+          "forbidden_inference": "FOR UPDATE prova lock acquisito e posseduto"
+        }
+      },
+      {
+        "id": "O-J01",
+        "case": "J",
+        "status": "DEFERRED",
+        "reason": "Runtime ingestion/correlation outside I01; D00 R1-R7 unchanged.",
+        "basis": "Distinzione manuale fra stato di concessione e relazione waiter\u2192blocker",
+        "normativeExpected": {
+          "expected_database_graph": "Nessun DB_WAIT_DEPENDENCY OBSERVED dalla sola acquisizione",
+          "expected_application_graph": "Nessuna osservazione app da questa capture",
+          "cycle_result": "UNKNOWN \u2014 WAIT_NOT_OBSERVED",
+          "must_remain_unknown": "Richieste pendenti; waiter; correlazione P se assente; outcome",
+          "forbidden_inference": "Lock acquisito osservato implica attesa osservata o rischio ciclico"
+        }
+      },
+      {
+        "id": "O-J02",
+        "case": "J",
+        "status": "DEFERRED",
+        "reason": "Runtime ingestion/correlation outside I01; D00 R1-R7 unchanged.",
+        "basis": "Relazione waiter/blocker attestata e correlata direttamente; non ricavata da WRITE",
+        "normativeExpected": {
+          "expected_database_graph": "OBSERVED P2\u2192P1[X] con provenance runtime; non promuovere altri archi",
+          "expected_application_graph": "Solo eventuale evidenza app separata",
+          "cycle_result": "Nessun deadlock diagnosticato dal singolo arco",
+          "must_remain_unknown": "Durata futura; altri archi; outcome; assenza generale di deadlock",
+          "forbidden_inference": "Attesa osservata eleva tutte le ipotesi statiche a fatti o prova un deadlock"
+        }
+      },
+      {
+        "id": "O-J03",
+        "case": "J",
+        "status": "DEFERRED",
+        "reason": "Runtime ingestion/correlation outside I01; D00 R1-R7 unchanged.",
+        "basis": "Identit\u00e0 di runtime e identit\u00e0 simbolica sono domini diversi con correlazione necessaria",
+        "normativeExpected": {
+          "expected_database_graph": "Nessun arco fra P inventate; evidenza runtime separata con SOURCE_MAPPING_UNKNOWN",
+          "expected_application_graph": "Nessun arco app inferito dalla relazione runtime",
+          "cycle_result": "UNKNOWN \u2014 STATIC_MAPPING_UNPROVEN",
+          "must_remain_unknown": "P statica e operazione sorgente corrispondenti; eventuali dettagli risorsa omessi dalla capture",
+          "forbidden_inference": "Sessione o connessione T1 corrisponde automaticamente a P1"
+        }
+      },
+      {
+        "id": "O-J04",
+        "case": "J",
+        "status": "DEFERRED",
+        "reason": "Runtime ingestion/correlation outside I01; D00 R1-R7 unchanged.",
+        "basis": "Un ciclo richiede archi validi nel medesimo episodio e intervallo coerente",
+        "normativeExpected": {
+          "expected_database_graph": "Due archi con intervalli distinti; nessun ciclo osservato per sola unione",
+          "expected_application_graph": "Nessuna inferenza app",
+          "cycle_result": "CYCLE_FEASIBILITY_UNKNOWN",
+          "must_remain_unknown": "Simultaneit\u00e0 delle due attese; ciclo runtime",
+          "forbidden_inference": "Unione di capture differenti dimostra un deadlock runtime"
+        }
+      },
+      {
+        "id": "O-J05",
+        "case": "J",
+        "status": "PASS",
+        "result": "REJECTED_INPUT",
+        "basis": "La soglia di certezza \u00e8 un'obbligazione verificabile e non un'etichetta scelta dal producer",
+        "inputDigests": {
+          "t": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+        },
+        "sidecarSha256": "3bbe390110c86075c710214c0d90781d7449bbf16b6357f4f6fc98af3b3c0d95",
+        "normativeExpected": {
+          "expected_database_graph": "Rifiutare claim OBSERVED; non pubblicare grafo osservato",
+          "expected_application_graph": "Nessuna promozione app a runtime",
+          "cycle_result": "NOT_APPLICABLE \u2014 INVALID_CERTAINTY_CLAIM",
+          "must_remain_unknown": "Attesa runtime; identit\u00e0 runtime; lock reali",
+          "forbidden_inference": "Un flag o un numero di confidenza sostituisce l'evidenza runtime"
+        }
+      }
+    ]
+  },
+  "examples": [
+    {
+      "case": "A",
+      "oracle": "O-A01",
+      "path": "docs/examples/transaction-01-t02-s02/A",
+      "command": [
+        "/Users/zel/.pyenv/versions/3.10.9/bin/python3",
+        "/Users/zel/projects/mana/scripts/mana-wait-dependencies.py",
+        "--timeline",
+        "ta=/private/tmp/mana-s02-i01/final-evidence/example-inputs-A/ta.json",
+        "--timeline",
+        "tb=/private/tmp/mana-s02-i01/final-evidence/example-inputs-A/tb.json",
+        "--scenario",
+        "/private/tmp/mana-s02-i01/final-evidence/example-inputs-A/scenario.json",
+        "--output-dir",
+        "/private/tmp/mana-s02-i01/final-evidence/example-output-A"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"assessment\": \"CONDITIONAL_CYCLE_RISK\", \"coverage\": \"INCOMPLETE\"}",
+      "validationExitCode": 0,
+      "validationStdout": "{\"status\": \"VALIDATED\", \"assessment\": \"CONDITIONAL_CYCLE_RISK\", \"coverage\": \"INCOMPLETE\"}",
+      "assessment": {
+        "result": "CONDITIONAL_CYCLE_RISK",
+        "cuts": [
+          {
+            "cut": "common",
+            "result": "CONDITIONAL_CYCLE_RISK",
+            "contradictions": [],
+            "unknowns": [],
+            "claims": [
+              "C11",
+              "C12"
+            ]
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "coverage": {
+        "status": "INCOMPLETE",
+        "reasons": [
+          "UNRESOLVED_DATA_OR_CAUSALITY"
+        ],
+        "scope": {
+          "inputArtifacts": 2,
+          "participants": 2,
+          "resources": 2,
+          "selectedOperations": 4,
+          "requiresNewLevels": 1
+        },
+        "scopeStatus": "SUPPORTED",
+        "budgets": {
+          "t01Bytes": 4194304,
+          "timelineBytes": 4194304,
+          "combinedBytes": 8388608,
+          "sidecarBytes": 2097152,
+          "candidateComparisons": 100000,
+          "serializedEdges": 5000
+        },
+        "candidateComparisons": 11,
+        "serializedEdges": 8,
+        "inventoryOperations": 4,
+        "selectedOperations": 4,
+        "globalRiskAbsence": "NOT_ASSERTED",
+        "runtime": "NOT_RUN"
+      },
+      "reportBytes": 86426
+    },
+    {
+      "case": "B",
+      "oracle": "O-B01",
+      "path": "docs/examples/transaction-01-t02-s02/B",
+      "command": [
+        "/Users/zel/.pyenv/versions/3.10.9/bin/python3",
+        "/Users/zel/projects/mana/scripts/mana-wait-dependencies.py",
+        "--timeline",
+        "ta=/private/tmp/mana-s02-i01/final-evidence/example-inputs-B/ta.json",
+        "--timeline",
+        "tb=/private/tmp/mana-s02-i01/final-evidence/example-inputs-B/tb.json",
+        "--scenario",
+        "/private/tmp/mana-s02-i01/final-evidence/example-inputs-B/scenario.json",
+        "--output-dir",
+        "/private/tmp/mana-s02-i01/final-evidence/example-output-B"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"assessment\": \"NO_CYCLE_IN_MODELED_SCENARIO\", \"coverage\": \"INCOMPLETE\"}",
+      "validationExitCode": 0,
+      "validationStdout": "{\"status\": \"VALIDATED\", \"assessment\": \"NO_CYCLE_IN_MODELED_SCENARIO\", \"coverage\": \"INCOMPLETE\"}",
+      "assessment": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "cuts": [
+          {
+            "cut": "one_wait",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [],
+            "claims": [
+              "C11"
+            ]
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "coverage": {
+        "status": "INCOMPLETE",
+        "reasons": [
+          "UNRESOLVED_DATA_OR_CAUSALITY"
+        ],
+        "scope": {
+          "inputArtifacts": 2,
+          "participants": 2,
+          "resources": 2,
+          "selectedOperations": 4,
+          "requiresNewLevels": 1
+        },
+        "scopeStatus": "SUPPORTED",
+        "budgets": {
+          "t01Bytes": 4194304,
+          "timelineBytes": 4194304,
+          "combinedBytes": 8388608,
+          "sidecarBytes": 2097152,
+          "candidateComparisons": 100000,
+          "serializedEdges": 5000
+        },
+        "candidateComparisons": 8,
+        "serializedEdges": 7,
+        "inventoryOperations": 4,
+        "selectedOperations": 4,
+        "globalRiskAbsence": "NOT_ASSERTED",
+        "runtime": "NOT_RUN"
+      },
+      "reportBytes": 74919
+    },
+    {
+      "case": "C",
+      "oracle": "O-C01",
+      "path": "docs/examples/transaction-01-t02-s02/C",
+      "command": [
+        "/Users/zel/.pyenv/versions/3.10.9/bin/python3",
+        "/Users/zel/projects/mana/scripts/mana-wait-dependencies.py",
+        "--timeline",
+        "t=/private/tmp/mana-s02-i01/final-evidence/example-inputs-C/t.json",
+        "--scenario",
+        "/private/tmp/mana-s02-i01/final-evidence/example-inputs-C/scenario.json",
+        "--output-dir",
+        "/private/tmp/mana-s02-i01/final-evidence/example-output-C"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"assessment\": \"CONDITIONAL_CROSS_LAYER_COMPLETION_RISK\", \"coverage\": \"COMPLETE_MODELED_SCOPE\"}",
+      "validationExitCode": 0,
+      "validationStdout": "{\"status\": \"VALIDATED\", \"assessment\": \"CONDITIONAL_CROSS_LAYER_COMPLETION_RISK\", \"coverage\": \"COMPLETE_MODELED_SCOPE\"}",
+      "assessment": {
+        "result": "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK",
+        "cuts": [
+          {
+            "cut": "replacement",
+            "result": "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK",
+            "contradictions": [],
+            "unknowns": [],
+            "claims": [
+              "C7"
+            ]
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "coverage": {
+        "status": "COMPLETE_MODELED_SCOPE",
+        "reasons": [],
+        "scope": {
+          "inputArtifacts": 2,
+          "participants": 2,
+          "resources": 2,
+          "selectedOperations": 4,
+          "requiresNewLevels": 1
+        },
+        "scopeStatus": "SUPPORTED",
+        "budgets": {
+          "t01Bytes": 4194304,
+          "timelineBytes": 4194304,
+          "combinedBytes": 8388608,
+          "sidecarBytes": 2097152,
+          "candidateComparisons": 100000,
+          "serializedEdges": 5000
+        },
+        "candidateComparisons": 2,
+        "serializedEdges": 8,
+        "inventoryOperations": 2,
+        "selectedOperations": 2,
+        "globalRiskAbsence": "NOT_ASSERTED",
+        "runtime": "NOT_RUN"
+      },
+      "reportBytes": 54527
+    }
+  ],
+  "checks": [
+    {
+      "command": [
+        "ruff",
+        "check",
+        "scripts/mana-wait-dependencies.py",
+        "scripts/skill_factory/transactions/wait_dependencies.py",
+        "scripts/skill_factory/transactions/wait_validation.py",
+        "tests/wait-dependencies.py",
+        "tests/fixtures/wait-dependencies/scenarios.py"
+      ],
+      "exitCode": 0,
+      "stdout": "All checks passed!"
+    },
+    {
+      "command": [
+        "ruff",
+        "format",
+        "--check",
+        "scripts/mana-wait-dependencies.py",
+        "scripts/skill_factory/transactions/wait_dependencies.py",
+        "scripts/skill_factory/transactions/wait_validation.py",
+        "tests/wait-dependencies.py",
+        "tests/fixtures/wait-dependencies/scenarios.py"
+      ],
+      "exitCode": 0,
+      "stdout": "5 files already formatted"
+    }
+  ],
+  "notRun": [
+    "Independent semantic review",
+    "General T01/S01 QA campaign",
+    "Runtime adapter/capture/correlation R1-R7",
+    "DB/provider/CI qualification",
+    "External Mermaid render/syntax engine"
+  ],
+  "runtimeStatus": "NOT RUN",
+  "limits": {
+    "mandatedBudgets": {
+      "t01Bytes": 4194304,
+      "timelineBytes": 4194304,
+      "combinedBytes": 8388608,
+      "sidecarBytes": 2097152,
+      "candidateComparisons": 100000,
+      "serializedEdges": 5000
+    },
+    "modeledScope": {
+      "inputArtifacts": 2,
+      "participants": 2,
+      "resources": 2,
+      "selectedOperations": 4,
+      "requiresNewLevels": 1
+    },
+    "scope": "Offline conditional static only; no global absence of risks."
+  },
+  "governance": {
+    "commit": false,
+    "merge": false,
+    "push": false,
+    "reset": false,
+    "newWorktree": false,
+    "skillActivation": false,
+    "oracleRuntimeAdapter": false,
+    "protectedAndPreexisting": "PASS: 1313 initial files and all 11 local paths byte/size/mode-identical; 6 also match historical receipt."
+  },
+  "integrity": {
+    "status": "PASS",
+    "initialFiles": 1313,
+    "unchangedInitialFiles": 1313,
+    "changedInitialFiles": [],
+    "baselineManifest": "/private/tmp/mana-s02-i01/baseline.json",
+    "baselineManifestSha256": "9293610f0624855b75e267fe93faceb264ed8a67db96a25ad9f1f73d60a85f4a",
+    "preexistingPaths": [
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv",
+        "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+        "size": 59758,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv",
+        "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+        "size": 19414,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01.md",
+        "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+        "size": 3593,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/architecture/MANA-EXEC-CONTRACT-001.md",
+        "sha256": "740dafea18c728ead3b017afb61de88d9e16580aacbc2b9d6f684f4624dcf2e7",
+        "size": 65308,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json",
+        "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+        "size": 402294,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md",
+        "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+        "size": 9130,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F02-R1-results.json",
+        "sha256": "fc80a37d38849ee7853ab6ba7960321f2b6f98f6a2fdeac398eb8a821ffaa5ac",
+        "size": 15198,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/TRANSACTION-01-T02-S02-contract.md",
+        "sha256": "d1ce0de6104e5a14b2365d56e85a3528562d73ef6cff6c2c6244194469c08081",
+        "size": 23289,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/TRANSACTION-01-T02-S02-implementation-plan.md",
+        "sha256": "1c0cab9f23825660841d4eeb236ec28931b9bf29b8b5bfdb62eef4e2f461c03e",
+        "size": 10388,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/TRANSACTION-01-T02-S02-oracles.csv",
+        "sha256": "e37d7fd28279afe59cc467beb5cbe906d12904740d89ed6dcf0dcc781eacd832",
+        "size": 24161,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01-T02.md",
+        "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+        "size": 1274,
+        "mode": 420,
+        "matchesInitial": true
+      }
+    ],
+    "protectedFiles": [
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv",
+        "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+        "size": 59758,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json",
+        "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+        "size": 402294,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md",
+        "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+        "size": 9130,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv",
+        "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+        "size": 19414,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01-T02.md",
+        "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+        "size": 1274,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01.md",
+        "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+        "size": 3593,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      }
+    ],
+    "branch": "develop",
+    "head": "9d3468101ccdcf40f680418955be17aec098c9e6",
+    "stagedChanges": [],
+    "worktrees": "worktree /Users/zel/projects/mana\nHEAD 9d3468101ccdcf40f680418955be17aec098c9e6\nbranch refs/heads/develop\n\nworktree /private/tmp/mana-c01-s01-i01-r2-20261014/integration/mana\nHEAD a6677eb19d91e56b1ce79017f7440f17c06b6dc5\nbranch refs/heads/work/c01-s01-i01-r2-reviewed-batch\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-c03-producer\nHEAD 34e9a4a3125ec5b257bc053e647eaf54bab0a154\nbranch refs/heads/feature/c03-producer-integration\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-choice-projection\nHEAD 2cc7a67db7f23bd9f4710d0098bfe8976a6ddba4\nbranch refs/heads/feature/human-choice-projection\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-exec-001-20261021\nHEAD e3537e3f8c8329a71615fe59d496757d5392c6a8\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-completion\nHEAD 6e5a8e0a6db36871c8dfda4da639fa7920f6db09\nbranch refs/heads/feature/feedback-replanning-activity-pages\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-index-recovery\nHEAD 8f247d5b9bf8c95666fbcf2112801654be796d8a\nbranch refs/heads/feature/feedback-index-recovery\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-large-reads\nHEAD ab0ff5b9dab31bd355a0ba1c0d9bd8f1d6b39c1e\nbranch refs/heads/feature/feedback-large-reads\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-operation-namespace\nHEAD db33a59051d0d736615b54c983e5ff178717fe2c\nbranch refs/heads/feature/feedback-operation-namespace\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-portable-operations\nHEAD de74dd0bb477b209eb56c2ce41f7e6260919a274\nbranch refs/heads/feature/feedback-portable-operations\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-verification-final\nHEAD 77fe0239fc28b29b76c0027a60474b817456d5bc\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-win-01-v1\nHEAD 205fff8bee1073fdc519b7562690bedfcc541a3b\nbranch refs/heads/work/win-01-v1\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-windows-performance\nHEAD 1ee21eb6ce22d2b2c0e0c8205520221b2e3f9d69\nbranch refs/heads/feature/windows-inspect-performance\nprunable gitdir file points to non-existent location\n\n",
+    "whitespaceCheck": "PASS on newly added implementation/document/diagram sources",
+    "newPathsExcludingReceiptSelf": [
+      {
+        "path": "docs/examples/transaction-01-t02-s02/A/application.mmd",
+        "sha256": "4609a83f121a52940788fcb094cc06a62eac2377227777a1244395b71824311d",
+        "size": 118,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/A/cross-layer.mmd",
+        "sha256": "c1dba2e2e1473197bb7d147266ee7effaec0566f6b9210f6c7176d2082771b86",
+        "size": 195,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/A/database-common.mmd",
+        "sha256": "b043f810810af1628977f73bfe5548549e9aaa3ca9c8b95064bdf61ccb88638d",
+        "size": 227,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/A/inputs/ta.json",
+        "sha256": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "size": 127325,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/A/inputs/tb.json",
+        "sha256": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "size": 127356,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/A/report.md",
+        "sha256": "12e5344936a27d1325eb50bb1f9bb86e3d6fb12c78f03ca747390a024bd153cd",
+        "size": 6100,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/A/scenario.json",
+        "sha256": "ff55dfb859e5b29505ea224dd9003cfdda4c1671969f417c91ebf522537e1348",
+        "size": 13312,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/A/wait-dependency.json",
+        "sha256": "2e88bc6f61e8c14e4d63985f731cf0c6b211be5acbbc952110bdcad53714072f",
+        "size": 86426,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/B/application.mmd",
+        "sha256": "4609a83f121a52940788fcb094cc06a62eac2377227777a1244395b71824311d",
+        "size": 118,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/B/cross-layer.mmd",
+        "sha256": "c1dba2e2e1473197bb7d147266ee7effaec0566f6b9210f6c7176d2082771b86",
+        "size": 195,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/B/database-one_wait.mmd",
+        "sha256": "1e4dbe7b68f905e81649f13a05cfe11e531a70c5a56e8db86e68d050facf035a",
+        "size": 191,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/B/inputs/ta.json",
+        "sha256": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "size": 127325,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/B/inputs/tb.json",
+        "sha256": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "size": 127325,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/B/report.md",
+        "sha256": "ee1310679ed06dce3c130b4bcc996ccd21134eaaba7304519a0a35ae68a8a7a5",
+        "size": 3765,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/B/scenario.json",
+        "sha256": "68bcc4298aecb2810f4704700827842315591d1f4aa0253ed5af6f35da75f34a",
+        "size": 13176,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/B/wait-dependency.json",
+        "sha256": "71968f3bf997e5a42b6f0f782a23e5b6d6882c96c04e418e016e551643b6069f",
+        "size": 74919,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/C/application.mmd",
+        "sha256": "a89d7b9f887d0a105a3449668abb461a498f42a8ff950934a4068a34ed85d22b",
+        "size": 182,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/C/cross-layer.mmd",
+        "sha256": "8ee3bcced74c7d4bb91a625d7ca24cf548916f1f3a1cca876ba972d376e1705f",
+        "size": 265,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/C/database-replacement.mmd",
+        "sha256": "85602b7391d64bb3dd4f5ee6faf5847f7c94d809f293941ed5044eb8a473e7d5",
+        "size": 197,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/C/inputs/t.json",
+        "sha256": "98ef6a110e5a1552d3343d14881df49f2cb53863f1112c9dd1ae841da256c73f",
+        "size": 134428,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/C/report.md",
+        "sha256": "3860323f0d00084b0c8a7865db02a7ebe4eae4b0b880b195178f8e26290343eb",
+        "size": 2763,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/C/scenario.json",
+        "sha256": "559e8e66688848346d2615b1f45f75da437d709b1fe2605889d98583fedd2339",
+        "size": 9025,
+        "mode": 420
+      },
+      {
+        "path": "docs/examples/transaction-01-t02-s02/C/wait-dependency.json",
+        "sha256": "787565836fd8c6fe84ccb0a07b9cd4f457faebf9a1b0dd58b66c66396c0a1089",
+        "size": 54527,
+        "mode": 420
+      },
+      {
+        "path": "docs/reports/TRANSACTION-01-T02-S02-D01-decisions.md",
+        "sha256": "2625b44eb14ff83e4db15e1b216ee770b1a4d35f266902d52e92e65a777c4219",
+        "size": 4172,
+        "mode": 420
+      },
+      {
+        "path": "docs/reports/TRANSACTION-01-T02-S02-I01-coverage.csv",
+        "sha256": "9fa7d020009414ee66d34e8bd19441354231fb4612ff240c12c6444381801be0",
+        "size": 10100,
+        "mode": 420
+      },
+      {
+        "path": "docs/reports/TRANSACTION-01-T02-S02-I01.md",
+        "sha256": "68f4d0d8e4ceec1271ba6085655f57e74e0665fd272833843044fbd5c1c05812",
+        "size": 9188,
+        "mode": 420
+      },
+      {
+        "path": "docs/reports/TRANSACTION-01-T02-S02-I01.patch",
+        "sha256": "031fd3cdbcb54e451d17fb100433db64d013d2e4d973cb0b80c22e005b469882",
+        "size": 1090208,
+        "mode": 420
+      },
+      {
+        "path": "docs/standards/wait-dependency-model-v1.md",
+        "sha256": "3029eab6439c221b4cc2407cd53dc5b64da5e8cbc72e813e86a0b77a2384ce8e",
+        "size": 11548,
+        "mode": 420
+      },
+      {
+        "path": "scripts/mana-wait-dependencies.py",
+        "sha256": "1bd984f083dc1ba6b8034a346d85869fe0b5b4236ad58caca0dfea7e95b9f816",
+        "size": 10020,
+        "mode": 420
+      },
+      {
+        "path": "scripts/skill_factory/transactions/wait_dependencies.py",
+        "sha256": "6b95d22c0aafcbd443c1d53f894caaca7cc86197305a358119217696c2453cd1",
+        "size": 52835,
+        "mode": 420
+      },
+      {
+        "path": "scripts/skill_factory/transactions/wait_validation.py",
+        "sha256": "275a534ead6eaaed04dbc59c2cf3aa271b45a20a8cab804215764b8d1291d177",
+        "size": 8541,
+        "mode": 420
+      },
+      {
+        "path": "tests/fixtures/wait-dependencies/README.md",
+        "sha256": "330d0fe8d5b9b42edbf06ab7de4417618bbdcde31cfe86118087edc555e07e92",
+        "size": 1022,
+        "mode": 420
+      },
+      {
+        "path": "tests/fixtures/wait-dependencies/context.json",
+        "sha256": "cd935669877c7ae88e8ae69fafa75ea9d3a3a3083f2a56862395aa007bc9974a",
+        "size": 252,
+        "mode": 420
+      },
+      {
+        "path": "tests/fixtures/wait-dependencies/oracles.json",
+        "sha256": "f169cf34c2b23f56ae52adf9f52a830e7454cee1fbf5e2be477aa60b61dffc02",
+        "size": 4691,
+        "mode": 420
+      },
+      {
+        "path": "tests/fixtures/wait-dependencies/pom.xml",
+        "sha256": "fc93c8a4ae6b6c7871d8e90ce1e43e8c6b6fc6a05ad9c83c59bc5e27f47e56b0",
+        "size": 139,
+        "mode": 420
+      },
+      {
+        "path": "tests/fixtures/wait-dependencies/scenarios.py",
+        "sha256": "c819c246160b16039ceb7cd64d776dffe2ec57361ffbdaa0c5d324e26566e471",
+        "size": 10628,
+        "mode": 420
+      },
+      {
+        "path": "tests/fixtures/wait-dependencies/src/main/java/fixture/Waits.java",
+        "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc",
+        "size": 2518,
+        "mode": 420
+      },
+      {
+        "path": "tests/wait-dependencies.py",
+        "sha256": "81dfb8ba14d6cdb98ebe520ad7fb58cac04c7f59bf344409082d8d7525a38888",
+        "size": 26051,
+        "mode": 420
+      }
+    ]
+  },
+  "diff": {
+    "path": "docs/reports/TRANSACTION-01-T02-S02-I01.patch",
+    "sha256": "031fd3cdbcb54e451d17fb100433db64d013d2e4d973cb0b80c22e005b469882",
+    "size": 1090208,
+    "mode": 420,
+    "includedPaths": [
+      "docs/examples/transaction-01-t02-s02/A/application.mmd",
+      "docs/examples/transaction-01-t02-s02/A/cross-layer.mmd",
+      "docs/examples/transaction-01-t02-s02/A/database-common.mmd",
+      "docs/examples/transaction-01-t02-s02/A/inputs/ta.json",
+      "docs/examples/transaction-01-t02-s02/A/inputs/tb.json",
+      "docs/examples/transaction-01-t02-s02/A/report.md",
+      "docs/examples/transaction-01-t02-s02/A/scenario.json",
+      "docs/examples/transaction-01-t02-s02/A/wait-dependency.json",
+      "docs/examples/transaction-01-t02-s02/B/application.mmd",
+      "docs/examples/transaction-01-t02-s02/B/cross-layer.mmd",
+      "docs/examples/transaction-01-t02-s02/B/database-one_wait.mmd",
+      "docs/examples/transaction-01-t02-s02/B/inputs/ta.json",
+      "docs/examples/transaction-01-t02-s02/B/inputs/tb.json",
+      "docs/examples/transaction-01-t02-s02/B/report.md",
+      "docs/examples/transaction-01-t02-s02/B/scenario.json",
+      "docs/examples/transaction-01-t02-s02/B/wait-dependency.json",
+      "docs/examples/transaction-01-t02-s02/C/application.mmd",
+      "docs/examples/transaction-01-t02-s02/C/cross-layer.mmd",
+      "docs/examples/transaction-01-t02-s02/C/database-replacement.mmd",
+      "docs/examples/transaction-01-t02-s02/C/inputs/t.json",
+      "docs/examples/transaction-01-t02-s02/C/report.md",
+      "docs/examples/transaction-01-t02-s02/C/scenario.json",
+      "docs/examples/transaction-01-t02-s02/C/wait-dependency.json",
+      "docs/reports/TRANSACTION-01-T02-S02-D01-decisions.md",
+      "docs/reports/TRANSACTION-01-T02-S02-I01-coverage.csv",
+      "docs/standards/wait-dependency-model-v1.md",
+      "scripts/mana-wait-dependencies.py",
+      "scripts/skill_factory/transactions/wait_dependencies.py",
+      "scripts/skill_factory/transactions/wait_validation.py",
+      "tests/fixtures/wait-dependencies/README.md",
+      "tests/fixtures/wait-dependencies/context.json",
+      "tests/fixtures/wait-dependencies/oracles.json",
+      "tests/fixtures/wait-dependencies/pom.xml",
+      "tests/fixtures/wait-dependencies/scenarios.py",
+      "tests/fixtures/wait-dependencies/src/main/java/fixture/Waits.java",
+      "tests/wait-dependencies.py"
+    ],
+    "excludedNewPaths": [
+      "docs/reports/TRANSACTION-01-T02-S02-I01.md",
+      "docs/reports/TRANSACTION-01-T02-S02-I01-results.json"
+    ],
+    "preexistingPathsExcluded": true,
+    "description": "I01 additions only; old D00/protected/local changes excluded. Report/receipt are separately versionable additions."
+  }
+}

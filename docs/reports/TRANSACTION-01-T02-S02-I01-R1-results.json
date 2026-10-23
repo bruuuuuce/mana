@@ -1,0 +1,745 @@
+{
+  "task": "MANA-TRANSACTION-01-T02-S02-I01-R1",
+  "date": "2026-10-22",
+  "verdict": "NEEDS_FIX",
+  "semanticReview": "FAIL",
+  "findings": [
+    {
+      "id": "F01",
+      "severity": "BLOCKING",
+      "classification": "LOCAL_IMPLEMENTATION_AND_VALIDATION_DEFECT",
+      "contractInsufficiency": false,
+      "summary": "Cut with no holder hypotheses produces NO_CYCLE_IN_MODELED_SCENARIO despite missing W4; validator and CLI accept it.",
+      "expected": "UNKNOWN",
+      "locations": [
+        "scripts/skill_factory/transactions/wait_dependencies.py:1075",
+        "scripts/skill_factory/transactions/wait_dependencies.py:1217",
+        "scripts/skill_factory/transactions/wait_dependencies.py:1251",
+        "scripts/skill_factory/transactions/wait_validation.py:215"
+      ]
+    }
+  ],
+  "suite": {
+    "command": "python3 tests/wait-dependencies.py -v",
+    "exitCode": 0,
+    "tests": 22,
+    "passed": 22,
+    "secondsReported": 4.828,
+    "log": "test_01_all_static_manual_oracles (__main__.WaitTests.test_01_all_static_manual_oracles) ... ok\ntest_02_A_literal_directions_namespaces_and_future_end (__main__.WaitTests.test_02_A_literal_directions_namespaces_and_future_end) ... ok\ntest_03_C_separate_graphs_and_suspended_holder (__main__.WaitTests.test_03_C_separate_graphs_and_suspended_holder) ... ok\ntest_04_B_never_unions_cuts_into_feasible_cycle (__main__.WaitTests.test_04_B_never_unions_cuts_into_feasible_cycle) ... ok\ntest_05_D_E_logical_and_savepoint_end_do_not_end_P (__main__.WaitTests.test_05_D_E_logical_and_savepoint_end_do_not_end_P) ... ok\ntest_06_F_partial_identity_and_distinct_instances (__main__.WaitTests.test_06_F_partial_identity_and_distinct_instances) ... ok\ntest_07_G_prefix_witness_and_async (__main__.WaitTests.test_07_G_prefix_witness_and_async) ... ok\ntest_08_I_request_syntax_is_not_holding (__main__.WaitTests.test_08_I_request_syntax_is_not_holding) ... ok\ntest_09_missing_or_contradicted_premises_cannot_qualify (__main__.WaitTests.test_09_missing_or_contradicted_premises_cannot_qualify) ... ok\ntest_10_false_digests_projections_and_witnesses_rejected (__main__.WaitTests.test_10_false_digests_projections_and_witnesses_rejected) ... ok\ntest_11_output_validator_adversarial_mutations (__main__.WaitTests.test_11_output_validator_adversarial_mutations) ... ok\ntest_12_scope_overflow_preserves_inventory_and_is_incomplete (__main__.WaitTests.test_12_scope_overflow_preserves_inventory_and_is_incomplete) ... ok\ntest_13_byte_comparison_and_edge_budgets (__main__.WaitTests.test_13_byte_comparison_and_edge_budgets) ... ok\ntest_14_cli_publication_validation_and_no_overwrite (__main__.WaitTests.test_14_cli_publication_validation_and_no_overwrite) ... ok\ntest_15_diagrams_keep_layers_and_cut_witness_separate (__main__.WaitTests.test_15_diagrams_keep_layers_and_cut_witness_separate) ... ok\ntest_16_legacy_canonical_inputs_read_only (__main__.WaitTests.test_16_legacy_canonical_inputs_read_only) ... ok\ntest_17_unknown_sql_not_a_target_and_no_hidden_lock (__main__.WaitTests.test_17_unknown_sql_not_a_target_and_no_hidden_lock) ... ok\ntest_18_repeated_methods_use_distinct_frame_instances (__main__.WaitTests.test_18_repeated_methods_use_distinct_frame_instances) ... ok\ntest_19_frontier_prefix_never_repairs_a_continuation (__main__.WaitTests.test_19_frontier_prefix_never_repairs_a_continuation) ... ok\ntest_20_invalid_sidecar_rule_and_premise_cycles (__main__.WaitTests.test_20_invalid_sidecar_rule_and_premise_cycles) ... ok\ntest_21_actual_byte_thresholds_stop_before_publication (__main__.WaitTests.test_21_actual_byte_thresholds_stop_before_publication) ... ok\ntest_22_s02_report_byte_budget_is_checked_too (__main__.WaitTests.test_22_s02_report_byte_budget_is_checked_too) ... ok\n\n----------------------------------------------------------------------\nRan 22 tests in 4.828s\n\nOK\n"
+  },
+  "oracles": [
+    {
+      "id": "O-A01",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-A02",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-A03",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-A04",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-B01",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-B02",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-B03",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-C01",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-C02",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-C03",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-D01",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-D02",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-E01",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-E02",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-F01",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-F02",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-F03",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-F04",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-F05",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-F06",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-F07",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-G01",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-G02",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-G03",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-G04",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-H01",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-H02",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-H03",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-I01",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-I02",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    },
+    {
+      "id": "O-J01",
+      "status": "NOT_RUN",
+      "evidence": "Deferred runtime adapter"
+    },
+    {
+      "id": "O-J02",
+      "status": "NOT_RUN",
+      "evidence": "Deferred runtime adapter"
+    },
+    {
+      "id": "O-J03",
+      "status": "NOT_RUN",
+      "evidence": "Deferred runtime adapter"
+    },
+    {
+      "id": "O-J04",
+      "status": "NOT_RUN",
+      "evidence": "Deferred runtime adapter"
+    },
+    {
+      "id": "O-J05",
+      "status": "PASS",
+      "evidence": "Rerun test_01_all_static_manual_oracles; existing I01 expectations"
+    }
+  ],
+  "independentControls": {
+    "command": "python3 docs/reports/TRANSACTION-01-T02-S02-I01-R1-checks.py",
+    "exitCode": 1,
+    "total": 27,
+    "passed": 26,
+    "failed": 1,
+    "results": [
+      {
+        "id": "A-compatible-common-cut",
+        "status": "PASS",
+        "detail": {
+          "result": "CONDITIONAL_CYCLE_RISK",
+          "db": 2,
+          "app": 0,
+          "coverage": "INCOMPLETE"
+        }
+      },
+      {
+        "id": "B-exclusive-schedules-and-returned-holdings",
+        "status": "PASS",
+        "detail": {
+          "separate": {
+            "result": "CYCLE_FEASIBILITY_UNKNOWN",
+            "db": 2,
+            "app": 0,
+            "coverage": "COMPLETE_MODELED_SCOPE"
+          },
+          "conjoined": {
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "db": 0,
+            "app": 0,
+            "coverage": "INCOMPLETE"
+          }
+        }
+      },
+      {
+        "id": "C-ended-holder-independent-of-pending-position",
+        "status": "PASS",
+        "detail": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "db": 0,
+          "app": 0,
+          "coverage": "INCOMPLETE"
+        }
+      },
+      {
+        "id": "D-mixed-completion-not-db-deadlock",
+        "status": "PASS",
+        "detail": {
+          "result": "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK",
+          "db": 1,
+          "app": 1,
+          "coverage": "COMPLETE_MODELED_SCOPE"
+        }
+      },
+      {
+        "id": "WRITE-does-not-acquire-or-request",
+        "status": "FAIL",
+        "error": "AssertionError({'result': 'NO_CYCLE_IN_MODELED_SCENARIO', 'db': 0, 'app': 0, 'coverage': 'INCOMPLETE'})"
+      },
+      {
+        "id": "missing-or-incompatible-overlap",
+        "status": "PASS",
+        "detail": {
+          "result": "UNKNOWN",
+          "db": 0,
+          "app": 0,
+          "coverage": "INCOMPLETE"
+        }
+      },
+      {
+        "id": "missing-or-incompatible-binding",
+        "status": "PASS",
+        "detail": {
+          "result": "UNKNOWN",
+          "db": 0,
+          "app": 0,
+          "coverage": "INCOMPLETE"
+        }
+      },
+      {
+        "id": "missing-or-incompatible-independence",
+        "status": "PASS",
+        "detail": {
+          "result": "UNKNOWN",
+          "db": 0,
+          "app": 0,
+          "coverage": "INCOMPLETE"
+        }
+      },
+      {
+        "id": "missing-or-incompatible-retention",
+        "status": "PASS",
+        "detail": {
+          "result": "UNKNOWN",
+          "db": 0,
+          "app": 0,
+          "coverage": "INCOMPLETE"
+        }
+      },
+      {
+        "id": "missing-or-incompatible-pending-prefix",
+        "status": "PASS",
+        "detail": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "db": 0,
+          "app": 0,
+          "coverage": "INCOMPLETE"
+        }
+      },
+      {
+        "id": "missing-or-incompatible-serial",
+        "status": "PASS",
+        "detail": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "db": 0,
+          "app": 0,
+          "coverage": "INCOMPLETE"
+        }
+      },
+      {
+        "id": "forgery-MODEL_EVIDENCE",
+        "status": "PASS",
+        "detail": "runtime/model evidence cannot be self-certified by a sidecar"
+      },
+      {
+        "id": "forgery-RUNTIME_EVIDENCE",
+        "status": "PASS",
+        "detail": "runtime/model evidence cannot be self-certified by a sidecar"
+      },
+      {
+        "id": "forgery-digest",
+        "status": "PASS",
+        "detail": "Timeline digest mismatch"
+      },
+      {
+        "id": "forgery-witness",
+        "status": "PASS",
+        "detail": "invalid authoritative Timeline/T01: resource leaf witness fails authoritative classification"
+      },
+      {
+        "id": "report-assessment",
+        "status": "PASS",
+        "detail": "S02 derivation/reference projection mismatch"
+      },
+      {
+        "id": "report-observed",
+        "status": "PASS",
+        "detail": "OBSERVED requires R1-R7 and a separate runtime mandate"
+      },
+      {
+        "id": "report-witness",
+        "status": "PASS",
+        "detail": "S02 derivation/reference projection mismatch"
+      },
+      {
+        "id": "report-cut",
+        "status": "PASS",
+        "detail": "DB direction/cut mismatch"
+      },
+      {
+        "id": "budget-t01Bytes",
+        "status": "PASS",
+        "detail": "embedded T01 exceeds 4 MiB; coverage INCOMPLETE"
+      },
+      {
+        "id": "budget-timelineBytes",
+        "status": "PASS",
+        "detail": "Timeline exceeds 4 MiB; coverage INCOMPLETE"
+      },
+      {
+        "id": "budget-combinedBytes",
+        "status": "PASS",
+        "detail": "combined input exceeds 8 MiB; coverage INCOMPLETE"
+      },
+      {
+        "id": "budget-sidecarBytes",
+        "status": "PASS",
+        "detail": "sidecar exceeds 2 MiB; coverage INCOMPLETE"
+      },
+      {
+        "id": "budget-candidateComparisons",
+        "status": "PASS",
+        "detail": "candidate comparison budget exceeded; coverage INCOMPLETE"
+      },
+      {
+        "id": "budget-serializedEdges",
+        "status": "PASS",
+        "detail": "serialized cross-layer edge budget exceeded; coverage INCOMPLETE"
+      },
+      {
+        "id": "scope-incomplete-keeps-inventory",
+        "status": "PASS",
+        "detail": {
+          "result": "UNKNOWN",
+          "db": 0,
+          "app": 0,
+          "coverage": "INCOMPLETE"
+        }
+      },
+      {
+        "id": "visual-json-mermaid-parity",
+        "status": "PASS",
+        "detail": "A/B/C exact regeneration; edge counts, cut and layer labels checked; external renderer NOT_RUN"
+      }
+    ]
+  },
+  "minimalCounterexamples": {
+    "command": "python3 docs/reports/TRANSACTION-01-T02-S02-I01-R1-counterexamples.py",
+    "exitCode": 1,
+    "results": [
+      {
+        "case": "A",
+        "mutation": "cuts[0].holdings = []",
+        "expected": "UNKNOWN",
+        "actual": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "status": "FAIL",
+        "validatorAccepted": true,
+        "coverage": "INCOMPLETE",
+        "globalRiskAbsence": "NOT_ASSERTED",
+        "unknowns": [
+          {
+            "cut": "common",
+            "reason": "NO_ORIENTED_WAIT_HYPOTHESIS",
+            "missingObligations": [
+              "W4"
+            ]
+          }
+        ],
+        "assessment": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "cuts": [
+            {
+              "cut": "common",
+              "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+              "contradictions": [],
+              "unknowns": [],
+              "claims": []
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "dbEdges": 0,
+        "appEdges": 0
+      },
+      {
+        "case": "C",
+        "mutation": "cuts[0].holdings = []",
+        "expected": "UNKNOWN",
+        "actual": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "status": "FAIL",
+        "validatorAccepted": true,
+        "coverage": "INCOMPLETE",
+        "globalRiskAbsence": "NOT_ASSERTED",
+        "unknowns": [
+          {
+            "cut": "replacement",
+            "reason": "NO_ORIENTED_WAIT_HYPOTHESIS",
+            "missingObligations": [
+              "W4"
+            ]
+          }
+        ],
+        "assessment": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "cuts": [
+            {
+              "cut": "replacement",
+              "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+              "contradictions": [],
+              "unknowns": [],
+              "claims": []
+            }
+          ],
+          "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+        },
+        "dbEdges": 0,
+        "appEdges": 1
+      }
+    ]
+  },
+  "cliCounterexample": [
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/mana-wait-dependencies.py",
+        "--timeline",
+        "t=docs/examples/transaction-01-t02-s02/C/inputs/t.json",
+        "--scenario",
+        "/private/tmp/mana-s02-i01-r1/C-no-holder.json",
+        "--output-dir",
+        "/private/tmp/mana-s02-i01-r1/C-no-holder-output"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"assessment\": \"NO_CYCLE_IN_MODELED_SCENARIO\", \"coverage\": \"INCOMPLETE\"}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/mana-wait-dependencies.py",
+        "--timeline",
+        "t=docs/examples/transaction-01-t02-s02/C/inputs/t.json",
+        "--scenario",
+        "/private/tmp/mana-s02-i01-r1/C-no-holder.json",
+        "--validate",
+        "/private/tmp/mana-s02-i01-r1/C-no-holder-output/wait-dependency.json"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"status\": \"VALIDATED\", \"assessment\": \"NO_CYCLE_IN_MODELED_SCENARIO\", \"coverage\": \"INCOMPLETE\"}\n",
+      "stderr": ""
+    }
+  ],
+  "repositoryValidation": {
+    "command": "bash scripts/validate-repo.sh",
+    "exitCode": 0,
+    "log": "Verification skills validation passed\nSkills validation passed\nAgents validation passed\nDivination metadata validation passed\nOutput standard validation passed\nStory trace validation passed\nDeveloper choice log validation passed\nRepository validation passed\n"
+  },
+  "ruff": {
+    "check": "PASS",
+    "formatCheck": "PASS",
+    "exitCodes": [
+      0,
+      0
+    ],
+    "scope": "Five unchanged I01 Python files and two new R1 Python review runners"
+  },
+  "visualization": {
+    "jsonAndMermaidParity": "PASS for exact regeneration of all A/B/C artifacts and edge/layer/cut checks",
+    "externalRenderer": "NOT_RUN; mmdc unavailable",
+    "productIntegration": "NOT_RUN"
+  },
+  "budgets": {
+    "timelineBytes": 4194304,
+    "t01CanonicalBytes": 4194304,
+    "combinedTimelineBytes": 8388608,
+    "sidecarBytes": 2097152,
+    "reportBytes": 2097152,
+    "candidateComparisons": 100000,
+    "serializedEdgesIncludingCrossLayer": 5000,
+    "probeScope": "Actual byte thresholds in I01 tests 21/22 and CLI 14; isolated reduced budget guards in I01 test 13 and R1. No production-size comparison/edge load qualification."
+  },
+  "integrity": {
+    "initialFiles": 1352,
+    "unchangedInitialFiles": 1352,
+    "changedInitialFiles": [],
+    "initialManifest": "/private/tmp/mana-s02-i01-r1/baseline.json",
+    "initialManifestHash": "647d028ca1ab9815694edc17adfa4eede7f17c6db82c65fc1d21cd641559170b",
+    "protectedFiles": [
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv",
+        "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+        "bytes": 59758,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true,
+        "crlf": 69,
+        "bareLf": 0
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json",
+        "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+        "bytes": 402294,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md",
+        "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+        "bytes": 9130,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv",
+        "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+        "bytes": 19414,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true,
+        "crlf": 92,
+        "bareLf": 0
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01-T02.md",
+        "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+        "bytes": 1274,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01.md",
+        "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+        "bytes": 3593,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      }
+    ],
+    "preexistingI01ManifestPaths": [
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv",
+        "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+        "bytes": 59758,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv",
+        "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+        "bytes": 19414,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01.md",
+        "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+        "bytes": 3593,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/architecture/MANA-EXEC-CONTRACT-001.md",
+        "sha256": "740dafea18c728ead3b017afb61de88d9e16580aacbc2b9d6f684f4624dcf2e7",
+        "bytes": 65308,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json",
+        "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+        "bytes": 402294,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md",
+        "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+        "bytes": 9130,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F02-R1-results.json",
+        "sha256": "fc80a37d38849ee7853ab6ba7960321f2b6f98f6a2fdeac398eb8a821ffaa5ac",
+        "bytes": 15198,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/TRANSACTION-01-T02-S02-contract.md",
+        "sha256": "d1ce0de6104e5a14b2365d56e85a3528562d73ef6cff6c2c6244194469c08081",
+        "bytes": 23289,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/TRANSACTION-01-T02-S02-implementation-plan.md",
+        "sha256": "1c0cab9f23825660841d4eeb236ec28931b9bf29b8b5bfdb62eef4e2f461c03e",
+        "bytes": 10388,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/reports/TRANSACTION-01-T02-S02-oracles.csv",
+        "sha256": "e37d7fd28279afe59cc467beb5cbe906d12904740d89ed6dcf0dcc781eacd832",
+        "bytes": 24161,
+        "mode": 420,
+        "matchesInitial": true
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01-T02.md",
+        "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+        "bytes": 1274,
+        "mode": 420,
+        "matchesInitial": true
+      }
+    ]
+  },
+  "gitFinal": {
+    "branch": "develop",
+    "head": "9d3468101ccdcf40f680418955be17aec098c9e6",
+    "develop": "9d3468101ccdcf40f680418955be17aec098c9e6",
+    "headTree": "d653a29de2823722b6753fcdf619410d4c5d8817",
+    "stagedPaths": [],
+    "refsUnchanged": true,
+    "status": "# branch.oid 9d3468101ccdcf40f680418955be17aec098c9e6\n# branch.head develop\n# branch.upstream origin/develop\n# branch.ab +3 -0\n1 .M N... 100644 100644 100644 b9177109933893924f0d889411a83c99b4eecf8e b9177109933893924f0d889411a83c99b4eecf8e docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv\n1 .M N... 100644 100644 100644 bb6627efeb17694a40c61f2f079b96a45e9a47e8 bb6627efeb17694a40c61f2f079b96a45e9a47e8 docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv\n1 .M N... 100644 100644 100644 b86eed84a4a54ac13fd198f8f4f08dc1bff1206f b86eed84a4a54ac13fd198f8f4f08dc1bff1206f docs/roadmap/TRANSACTION-01.md\n? docs/architecture/MANA-EXEC-CONTRACT-001.md\n? docs/examples/transaction-01-t02-s02/\n? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json\n? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md\n? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F02-R1-results.json\n? docs/reports/TRANSACTION-01-T02-S02-D01-decisions.md\n? docs/reports/TRANSACTION-01-T02-S02-I01-R1-checks.py\n? docs/reports/TRANSACTION-01-T02-S02-I01-R1-counterexamples.py\n? docs/reports/TRANSACTION-01-T02-S02-I01-R1-results.json\n? docs/reports/TRANSACTION-01-T02-S02-I01-R1.md\n? docs/reports/TRANSACTION-01-T02-S02-I01-coverage.csv\n? docs/reports/TRANSACTION-01-T02-S02-I01-results.json\n? docs/reports/TRANSACTION-01-T02-S02-I01.md\n? docs/reports/TRANSACTION-01-T02-S02-I01.patch\n? docs/reports/TRANSACTION-01-T02-S02-contract.md\n? docs/reports/TRANSACTION-01-T02-S02-implementation-plan.md\n? docs/reports/TRANSACTION-01-T02-S02-oracles.csv\n? docs/roadmap/TRANSACTION-01-T02.md\n? docs/standards/wait-dependency-model-v1.md\n? scripts/mana-wait-dependencies.py\n? scripts/skill_factory/transactions/wait_dependencies.py\n? scripts/skill_factory/transactions/wait_validation.py\n? tests/fixtures/wait-dependencies/\n? tests/wait-dependencies.py",
+    "createdCommit": null,
+    "integration": "NOT_RUN: semantic review failed"
+  },
+  "governance": {
+    "implementationModified": false,
+    "commit": false,
+    "merge": false,
+    "push": false,
+    "newWorktree": false,
+    "resetStashCleanForce": false,
+    "skillActivation": false,
+    "familiarModified": false,
+    "rel01aModified": false,
+    "oracleRuntimeAdapter": false
+  },
+  "notRun": [
+    "J01",
+    "J02",
+    "J03",
+    "J04",
+    "Oracle runtime/provider",
+    "remote CI",
+    "external Mermaid renderer",
+    "product visualization integration",
+    "conditional commit/signature/integration gates"
+  ],
+  "reviewArtifactHashes": [
+    {
+      "path": "docs/reports/TRANSACTION-01-T02-S02-I01-R1.md",
+      "sha256": "df9fc845d0534354bdd7b8a3f3a07a05d7dfeefd38e34665005258a490b21c12",
+      "bytes": 10608,
+      "mode": 420
+    },
+    {
+      "path": "docs/reports/TRANSACTION-01-T02-S02-I01-R1-checks.py",
+      "sha256": "208c502b59bfdedb6dd32456760dedae7a730659bc8e5c6c3ffdc2aa8e2ff513",
+      "bytes": 9900,
+      "mode": 420
+    },
+    {
+      "path": "docs/reports/TRANSACTION-01-T02-S02-I01-R1-counterexamples.py",
+      "sha256": "77444b80a77c606fee9843204f8a82baa164c6ffbe288b8473825ebc39f2971f",
+      "bytes": 2028,
+      "mode": 420
+    }
+  ],
+  "receiptPolicy": "Receipt excludes its own hash; git status below is refreshed after receipt creation.",
+  "externalEvidenceDirectory": "/private/tmp/mana-s02-i01-r1"
+}

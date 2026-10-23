@@ -1,0 +1,2858 @@
+{
+  "schema": "mana.wait-dependency/v1",
+  "status": "CONDITIONAL_STATIC_SCENARIO",
+  "inputs": [
+    {
+      "id": "ta",
+      "sha256": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+      "bytes": 127325,
+      "t01Sha256": "6ab36b4a7d003efa43adc2642da0fac62d4d2c55a37b149b9fa626c4bba214f1",
+      "t01Bytes": 34511,
+      "t01Encoding": "sorted-compact-ascii-json/v1"
+    },
+    {
+      "id": "tb",
+      "sha256": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+      "bytes": 127356,
+      "t01Sha256": "78544bc02eedb674795a3ff739a3513928fc709457befd3a6168b64d13c38407",
+      "t01Bytes": 34524,
+      "t01Encoding": "sorted-compact-ascii-json/v1"
+    }
+  ],
+  "scenario": {
+    "schema": "mana.wait-scenario/v1",
+    "id": "synthetic_O_A01",
+    "inputs": [
+      {
+        "id": "ta",
+        "sha256": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65"
+      },
+      {
+        "id": "tb",
+        "sha256": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70"
+      }
+    ],
+    "participants": [
+      {
+        "id": "a",
+        "input": "ta",
+        "independence": "independent_a"
+      },
+      {
+        "id": "b",
+        "input": "tb",
+        "independence": "independent_b"
+      }
+    ],
+    "premises": [
+      {
+        "id": "blocking",
+        "statement": "Abstract mode M waits on incompatible retention; no NOWAIT, skip, retry, upgrade or hidden locks.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/blocking"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "concurrent",
+        "statement": "Independent participant instances have overlapping lifetimes at this common prefix cut.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/concurrent"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "outer",
+        "statement": "The cut lies within the resolved synchronous replacement call; suspended outer does not execute.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/outer"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "serial",
+        "statement": "Alpha ends before beta begins; no common live interval.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/serial"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "independent_a",
+        "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/independent_a"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "independent_b",
+        "statement": "This participant is an independent invocation instance, not another name for an existing P.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/independent_b"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "X_database",
+        "statement": "Both aliases refer to the opaque shared database D.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/X_database"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "X_object",
+        "statement": "Selected operations mapped to this opaque alias access the same object set.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/X_object"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "X_overlap",
+        "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/X_overlap"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "Y_database",
+        "statement": "Both aliases refer to the opaque shared database D.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/Y_database"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "Y_object",
+        "statement": "Selected operations mapped to this opaque alias access the same object set.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/Y_object"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "Y_overlap",
+        "statement": "Their lock targets overlap despite UNKNOWN runtime granularity; no row identity inferred.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/Y_overlap"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "a1_binding",
+        "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/a1_binding"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "a1_request",
+        "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/a1_request"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "a1_acquire",
+        "statement": "Assume this operation returned after acquisition before the cut.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/a1_acquire"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "a1_retain",
+        "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/a1_retain"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "a2_binding",
+        "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/a2_binding"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "a2_request",
+        "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/a2_request"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "a2_acquire",
+        "statement": "Assume this operation returned after acquisition before the cut.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/a2_acquire"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "a2_retain",
+        "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/a2_retain"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "b1_binding",
+        "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/b1_binding"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "b1_request",
+        "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/b1_request"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "b1_acquire",
+        "statement": "Assume this operation returned after acquisition before the cut.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/b1_acquire"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "b1_retain",
+        "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/b1_retain"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "b2_binding",
+        "statement": "Assume effective datasource, database D and JDBC participation in the original P for this operation.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/b2_binding"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "b2_request",
+        "statement": "Assume this invocation requests abstract mode M on the selected opaque target.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/b2_request"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "b2_acquire",
+        "statement": "Assume this operation returned after acquisition before the cut.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/b2_acquire"
+        },
+        "dependsOn": []
+      },
+      {
+        "id": "b2_retain",
+        "statement": "Assume acquisition is retained through the cut, including any logical end, savepoint release or physical suspension.",
+        "scope": "synthetic_O_A01",
+        "state": "EXPLICIT_ASSUMPTION",
+        "provenance": {
+          "source": "manual-synthetic-fixture",
+          "reference": "O_A01/b2_retain"
+        },
+        "dependsOn": []
+      }
+    ],
+    "resources": [
+      {
+        "id": "X",
+        "database": "D",
+        "databaseRelation": "SAME",
+        "objectMatch": "SAME",
+        "lockTargetOverlap": "SAME",
+        "granularity": "UNKNOWN",
+        "premises": {
+          "database": "X_database",
+          "object": "X_object",
+          "overlap": "X_overlap"
+        }
+      },
+      {
+        "id": "Y",
+        "database": "D",
+        "databaseRelation": "SAME",
+        "objectMatch": "SAME",
+        "lockTargetOverlap": "SAME",
+        "granularity": "UNKNOWN",
+        "premises": {
+          "database": "Y_database",
+          "object": "Y_object",
+          "overlap": "Y_overlap"
+        }
+      }
+    ],
+    "operations": [
+      {
+        "id": "a1",
+        "participant": "a",
+        "observation": "O1",
+        "resource": "X",
+        "binding": {
+          "datasource": "ds_a",
+          "database": "D",
+          "enlisted": true,
+          "premise": "a1_binding"
+        },
+        "request": {
+          "mode": "M",
+          "premise": "a1_request"
+        }
+      },
+      {
+        "id": "a2",
+        "participant": "a",
+        "observation": "O2",
+        "resource": "Y",
+        "binding": {
+          "datasource": "ds_a",
+          "database": "D",
+          "enlisted": true,
+          "premise": "a2_binding"
+        },
+        "request": {
+          "mode": "M",
+          "premise": "a2_request"
+        }
+      },
+      {
+        "id": "b1",
+        "participant": "b",
+        "observation": "O1",
+        "resource": "Y",
+        "binding": {
+          "datasource": "ds_b",
+          "database": "D",
+          "enlisted": true,
+          "premise": "b1_binding"
+        },
+        "request": {
+          "mode": "M",
+          "premise": "b1_request"
+        }
+      },
+      {
+        "id": "b2",
+        "participant": "b",
+        "observation": "O2",
+        "resource": "X",
+        "binding": {
+          "datasource": "ds_b",
+          "database": "D",
+          "enlisted": true,
+          "premise": "b2_binding"
+        },
+        "request": {
+          "mode": "M",
+          "premise": "b2_request"
+        }
+      }
+    ],
+    "lockRule": {
+      "id": "opaque_exclusive",
+      "version": 1,
+      "modes": [
+        "M"
+      ],
+      "compatibility": [
+        {
+          "left": "M",
+          "right": "M",
+          "result": "INCOMPATIBLE"
+        }
+      ],
+      "blockingPremise": "blocking"
+    },
+    "cuts": [
+      {
+        "id": "common",
+        "prefixes": {
+          "a": 5,
+          "b": 5
+        },
+        "pending": [
+          "a2",
+          "b2"
+        ],
+        "holdings": [
+          {
+            "operation": "a1",
+            "acquisitionPremise": "a1_acquire",
+            "retentionPremise": "a1_retain"
+          },
+          {
+            "operation": "b1",
+            "acquisitionPremise": "b1_acquire",
+            "retentionPremise": "b1_retain"
+          }
+        ],
+        "temporal": {
+          "kind": "CONCURRENT",
+          "premise": "concurrent"
+        }
+      }
+    ]
+  },
+  "operations": [
+    {
+      "id": "a/O1",
+      "namespace": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalPhysicalId": "P1"
+      },
+      "observation": {
+        "frame": "F1",
+        "method": "fixture.Paths#xy()",
+        "applicationOperation": {
+          "receiver": "jdbc",
+          "method": "update"
+        },
+        "callSite": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 959,
+          "end": 987,
+          "line": 22,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "operationType": "WRITE",
+        "sqlLiteral": "DELETE FROM X",
+        "resource": {
+          "status": "LEXICAL_SQL_IDENTIFIER",
+          "name": "X",
+          "runtimeIdentity": "UNKNOWN",
+          "lockGranularity": "UNKNOWN"
+        },
+        "transactionContext": {
+          "kind": "TRANSACTION_PHYSICAL",
+          "physicalId": "P1",
+          "manager": "tx"
+        },
+        "datasource": {
+          "status": "UNKNOWN",
+          "id": null
+        },
+        "enlistment": "UNKNOWN",
+        "lockAcquired": "UNKNOWN",
+        "certainty": "CONDITIONAL",
+        "placement": {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 4
+        },
+        "evidence": [
+          {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 959,
+            "end": 987,
+            "line": 22,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 839,
+            "end": 892,
+            "line": 20,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 971,
+            "end": 986,
+            "line": 22,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          }
+        ],
+        "premises": [
+          "T01 conditional path reaches this invocation syntax.",
+          "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+          "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+          "Normal synchronous return is assumed only for continuation of this path.",
+          "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+          "The catalogued overload has no application callback argument."
+        ],
+        "limits": [
+          "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+          "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+        ],
+        "id": "O1"
+      },
+      "timelineSequence": 4,
+      "t01Sequence": 4,
+      "event": {
+        "sequence": 4,
+        "kind": "RESOURCE_LEAF_CALL",
+        "frame": "F1",
+        "callSite": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 959,
+          "end": 987,
+          "line": 22,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "receiver": "jdbc",
+        "method": "update",
+        "witness": {
+          "schema": "mana.resource-leaf-witness/v1",
+          "rule": {
+            "id": "spring-jdbc-template-literal",
+            "version": 2
+          },
+          "signature": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+          "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+          "callSite": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 959,
+            "end": 987,
+            "line": 22,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "methodEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 925,
+            "end": 1020,
+            "line": 22,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "bindingEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 839,
+            "end": 892,
+            "line": 20,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "argumentEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 971,
+            "end": 986,
+            "line": 22,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "sourceCallOrdinal": 1,
+          "t01Sequence": 4,
+          "normalReturnDependencies": [],
+          "transactionContext": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "premises": [
+            "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+            "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+            "Normal synchronous return is assumed only for continuation of this path.",
+            "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+            "The catalogued overload has no application callback argument."
+          ],
+          "limits": [
+            "Runtime execution, successful SQL completion and normal return are not proved.",
+            "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+            "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+            "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+          ]
+        }
+      },
+      "normalReturnDependencies": [],
+      "lifetime": {
+        "physicalId": "P1",
+        "status": "IDENTIFIED",
+        "events": [
+          {
+            "sequence": 2,
+            "kind": "PHYSICAL_BEGIN",
+            "frame": "F1",
+            "entity": "P1"
+          },
+          {
+            "sequence": 7,
+            "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+            "frame": "F1",
+            "entity": "P1"
+          }
+        ]
+      },
+      "suspension": {
+        "status": "ABSENT",
+        "records": [],
+        "events": []
+      },
+      "selectedForDatabase": true
+    },
+    {
+      "id": "a/O2",
+      "namespace": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalPhysicalId": "P1"
+      },
+      "observation": {
+        "frame": "F1",
+        "method": "fixture.Paths#xy()",
+        "applicationOperation": {
+          "receiver": "jdbc",
+          "method": "update"
+        },
+        "callSite": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 989,
+          "end": 1017,
+          "line": 22,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "operationType": "WRITE",
+        "sqlLiteral": "DELETE FROM Y",
+        "resource": {
+          "status": "LEXICAL_SQL_IDENTIFIER",
+          "name": "Y",
+          "runtimeIdentity": "UNKNOWN",
+          "lockGranularity": "UNKNOWN"
+        },
+        "transactionContext": {
+          "kind": "TRANSACTION_PHYSICAL",
+          "physicalId": "P1",
+          "manager": "tx"
+        },
+        "datasource": {
+          "status": "UNKNOWN",
+          "id": null
+        },
+        "enlistment": "UNKNOWN",
+        "lockAcquired": "UNKNOWN",
+        "certainty": "CONDITIONAL",
+        "placement": {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 5
+        },
+        "evidence": [
+          {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 989,
+            "end": 1017,
+            "line": 22,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 839,
+            "end": 892,
+            "line": 20,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1001,
+            "end": 1016,
+            "line": 22,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          }
+        ],
+        "premises": [
+          "T01 conditional path reaches this invocation syntax.",
+          "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+          "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+          "Normal synchronous return is assumed only for continuation of this path.",
+          "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+          "The catalogued overload has no application callback argument.",
+          "Normal returns required from prior T01 resource leaf calls: [4]"
+        ],
+        "limits": [
+          "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+          "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+        ],
+        "id": "O2"
+      },
+      "timelineSequence": 6,
+      "t01Sequence": 5,
+      "event": {
+        "sequence": 5,
+        "kind": "RESOURCE_LEAF_CALL",
+        "frame": "F1",
+        "callSite": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 989,
+          "end": 1017,
+          "line": 22,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "receiver": "jdbc",
+        "method": "update",
+        "witness": {
+          "schema": "mana.resource-leaf-witness/v1",
+          "rule": {
+            "id": "spring-jdbc-template-literal",
+            "version": 2
+          },
+          "signature": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+          "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+          "callSite": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 989,
+            "end": 1017,
+            "line": 22,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "methodEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 925,
+            "end": 1020,
+            "line": 22,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "bindingEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 839,
+            "end": 892,
+            "line": 20,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "argumentEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1001,
+            "end": 1016,
+            "line": 22,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "sourceCallOrdinal": 2,
+          "t01Sequence": 5,
+          "normalReturnDependencies": [
+            4
+          ],
+          "transactionContext": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "premises": [
+            "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+            "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+            "Normal synchronous return is assumed only for continuation of this path.",
+            "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+            "The catalogued overload has no application callback argument."
+          ],
+          "limits": [
+            "Runtime execution, successful SQL completion and normal return are not proved.",
+            "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+            "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+            "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+          ]
+        }
+      },
+      "normalReturnDependencies": [
+        4
+      ],
+      "lifetime": {
+        "physicalId": "P1",
+        "status": "IDENTIFIED",
+        "events": [
+          {
+            "sequence": 2,
+            "kind": "PHYSICAL_BEGIN",
+            "frame": "F1",
+            "entity": "P1"
+          },
+          {
+            "sequence": 7,
+            "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+            "frame": "F1",
+            "entity": "P1"
+          }
+        ]
+      },
+      "suspension": {
+        "status": "ABSENT",
+        "records": [],
+        "events": []
+      },
+      "selectedForDatabase": true
+    },
+    {
+      "id": "b/O1",
+      "namespace": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalPhysicalId": "P1"
+      },
+      "observation": {
+        "frame": "F1",
+        "method": "fixture.Paths#yx()",
+        "applicationOperation": {
+          "receiver": "jdbc",
+          "method": "update"
+        },
+        "callSite": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 1059,
+          "end": 1087,
+          "line": 23,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "operationType": "WRITE",
+        "sqlLiteral": "DELETE FROM Y",
+        "resource": {
+          "status": "LEXICAL_SQL_IDENTIFIER",
+          "name": "Y",
+          "runtimeIdentity": "UNKNOWN",
+          "lockGranularity": "UNKNOWN"
+        },
+        "transactionContext": {
+          "kind": "TRANSACTION_PHYSICAL",
+          "physicalId": "P1",
+          "manager": "tx"
+        },
+        "datasource": {
+          "status": "UNKNOWN",
+          "id": null
+        },
+        "enlistment": "UNKNOWN",
+        "lockAcquired": "UNKNOWN",
+        "certainty": "CONDITIONAL",
+        "placement": {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 4
+        },
+        "evidence": [
+          {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1059,
+            "end": 1087,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 839,
+            "end": 892,
+            "line": 20,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1071,
+            "end": 1086,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          }
+        ],
+        "premises": [
+          "T01 conditional path reaches this invocation syntax.",
+          "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+          "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+          "Normal synchronous return is assumed only for continuation of this path.",
+          "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+          "The catalogued overload has no application callback argument."
+        ],
+        "limits": [
+          "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+          "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+        ],
+        "id": "O1"
+      },
+      "timelineSequence": 4,
+      "t01Sequence": 4,
+      "event": {
+        "sequence": 4,
+        "kind": "RESOURCE_LEAF_CALL",
+        "frame": "F1",
+        "callSite": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 1059,
+          "end": 1087,
+          "line": 23,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "receiver": "jdbc",
+        "method": "update",
+        "witness": {
+          "schema": "mana.resource-leaf-witness/v1",
+          "rule": {
+            "id": "spring-jdbc-template-literal",
+            "version": 2
+          },
+          "signature": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+          "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+          "callSite": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1059,
+            "end": 1087,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "methodEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1025,
+            "end": 1120,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "bindingEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 839,
+            "end": 892,
+            "line": 20,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "argumentEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1071,
+            "end": 1086,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "sourceCallOrdinal": 1,
+          "t01Sequence": 4,
+          "normalReturnDependencies": [],
+          "transactionContext": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "premises": [
+            "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+            "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+            "Normal synchronous return is assumed only for continuation of this path.",
+            "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+            "The catalogued overload has no application callback argument."
+          ],
+          "limits": [
+            "Runtime execution, successful SQL completion and normal return are not proved.",
+            "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+            "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+            "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+          ]
+        }
+      },
+      "normalReturnDependencies": [],
+      "lifetime": {
+        "physicalId": "P1",
+        "status": "IDENTIFIED",
+        "events": [
+          {
+            "sequence": 2,
+            "kind": "PHYSICAL_BEGIN",
+            "frame": "F1",
+            "entity": "P1"
+          },
+          {
+            "sequence": 7,
+            "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+            "frame": "F1",
+            "entity": "P1"
+          }
+        ]
+      },
+      "suspension": {
+        "status": "ABSENT",
+        "records": [],
+        "events": []
+      },
+      "selectedForDatabase": true
+    },
+    {
+      "id": "b/O2",
+      "namespace": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalPhysicalId": "P1"
+      },
+      "observation": {
+        "frame": "F1",
+        "method": "fixture.Paths#yx()",
+        "applicationOperation": {
+          "receiver": "jdbc",
+          "method": "update"
+        },
+        "callSite": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 1089,
+          "end": 1117,
+          "line": 23,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "operationType": "WRITE",
+        "sqlLiteral": "DELETE FROM X",
+        "resource": {
+          "status": "LEXICAL_SQL_IDENTIFIER",
+          "name": "X",
+          "runtimeIdentity": "UNKNOWN",
+          "lockGranularity": "UNKNOWN"
+        },
+        "transactionContext": {
+          "kind": "TRANSACTION_PHYSICAL",
+          "physicalId": "P1",
+          "manager": "tx"
+        },
+        "datasource": {
+          "status": "UNKNOWN",
+          "id": null
+        },
+        "enlistment": "UNKNOWN",
+        "lockAcquired": "UNKNOWN",
+        "certainty": "CONDITIONAL",
+        "placement": {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 5
+        },
+        "evidence": [
+          {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1089,
+            "end": 1117,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 839,
+            "end": 892,
+            "line": 20,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1101,
+            "end": 1116,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          }
+        ],
+        "premises": [
+          "T01 conditional path reaches this invocation syntax.",
+          "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+          "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+          "Normal synchronous return is assumed only for continuation of this path.",
+          "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+          "The catalogued overload has no application callback argument.",
+          "Normal returns required from prior T01 resource leaf calls: [4]"
+        ],
+        "limits": [
+          "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+          "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+        ],
+        "id": "O2"
+      },
+      "timelineSequence": 6,
+      "t01Sequence": 5,
+      "event": {
+        "sequence": 5,
+        "kind": "RESOURCE_LEAF_CALL",
+        "frame": "F1",
+        "callSite": {
+          "file": "src/main/java/fixture/Waits.java",
+          "start": 1089,
+          "end": 1117,
+          "line": 23,
+          "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+        },
+        "receiver": "jdbc",
+        "method": "update",
+        "witness": {
+          "schema": "mana.resource-leaf-witness/v1",
+          "rule": {
+            "id": "spring-jdbc-template-literal",
+            "version": 2
+          },
+          "signature": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+          "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+          "callSite": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1089,
+            "end": 1117,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "methodEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1025,
+            "end": 1120,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "bindingEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 839,
+            "end": 892,
+            "line": 20,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "argumentEvidence": {
+            "file": "src/main/java/fixture/Waits.java",
+            "start": 1101,
+            "end": 1116,
+            "line": 23,
+            "sha256": "6ae3a81317c8efe5eed2a902700dd0eae6d6e65e3baa0249aadd6c115832cbbc"
+          },
+          "sourceCallOrdinal": 2,
+          "t01Sequence": 5,
+          "normalReturnDependencies": [
+            4
+          ],
+          "transactionContext": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "premises": [
+            "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+            "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+            "Normal synchronous return is assumed only for continuation of this path.",
+            "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+            "The catalogued overload has no application callback argument."
+          ],
+          "limits": [
+            "Runtime execution, successful SQL completion and normal return are not proved.",
+            "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+            "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+            "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+          ]
+        }
+      },
+      "normalReturnDependencies": [
+        4
+      ],
+      "lifetime": {
+        "physicalId": "P1",
+        "status": "IDENTIFIED",
+        "events": [
+          {
+            "sequence": 2,
+            "kind": "PHYSICAL_BEGIN",
+            "frame": "F1",
+            "entity": "P1"
+          },
+          {
+            "sequence": 7,
+            "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+            "frame": "F1",
+            "entity": "P1"
+          }
+        ]
+      },
+      "suspension": {
+        "status": "ABSENT",
+        "records": [],
+        "events": []
+      },
+      "selectedForDatabase": true
+    }
+  ],
+  "claims": [
+    {
+      "id": "C1",
+      "category": "RESOURCE_OPERATION",
+      "rule": {
+        "id": "mana-s02-i01",
+        "version": 1
+      },
+      "certainty": "STATIC_SYNTAX",
+      "operationRefs": [
+        "a/O1"
+      ],
+      "premises": [],
+      "evidence": [
+        "a/O1"
+      ],
+      "modelPremises": [
+        {
+          "id": "M_1",
+          "statement": "Referenced syntax, contexts and causal positions are those of the validated input model; execution and normal returns remain conditional.",
+          "scope": "synthetic_O_A01",
+          "state": "MODEL_EVIDENCE",
+          "provenance": {
+            "source": "validated-input-projection",
+            "reference": [
+              "a/O1"
+            ]
+          },
+          "dependsOn": []
+        }
+      ],
+      "propertyCertainty": {
+        "runtimeExecution": "UNKNOWN",
+        "runtimeWait": "UNKNOWN"
+      },
+      "excludedProperties": [
+        "runtime lock acquisition",
+        "runtime identity",
+        "commit/rollback",
+        "confirmed deadlock"
+      ],
+      "endpoint": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalPhysicalId": "P1"
+      }
+    },
+    {
+      "id": "C2",
+      "category": "RESOURCE_OPERATION",
+      "rule": {
+        "id": "mana-s02-i01",
+        "version": 1
+      },
+      "certainty": "STATIC_SYNTAX",
+      "operationRefs": [
+        "a/O2"
+      ],
+      "premises": [],
+      "evidence": [
+        "a/O2"
+      ],
+      "modelPremises": [
+        {
+          "id": "M_2",
+          "statement": "Referenced syntax, contexts and causal positions are those of the validated input model; execution and normal returns remain conditional.",
+          "scope": "synthetic_O_A01",
+          "state": "MODEL_EVIDENCE",
+          "provenance": {
+            "source": "validated-input-projection",
+            "reference": [
+              "a/O2"
+            ]
+          },
+          "dependsOn": []
+        }
+      ],
+      "propertyCertainty": {
+        "runtimeExecution": "UNKNOWN",
+        "runtimeWait": "UNKNOWN"
+      },
+      "excludedProperties": [
+        "runtime lock acquisition",
+        "runtime identity",
+        "commit/rollback",
+        "confirmed deadlock"
+      ],
+      "endpoint": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalPhysicalId": "P1"
+      }
+    },
+    {
+      "id": "C3",
+      "category": "RESOURCE_OPERATION",
+      "rule": {
+        "id": "mana-s02-i01",
+        "version": 1
+      },
+      "certainty": "STATIC_SYNTAX",
+      "operationRefs": [
+        "b/O1"
+      ],
+      "premises": [],
+      "evidence": [
+        "b/O1"
+      ],
+      "modelPremises": [
+        {
+          "id": "M_3",
+          "statement": "Referenced syntax, contexts and causal positions are those of the validated input model; execution and normal returns remain conditional.",
+          "scope": "synthetic_O_A01",
+          "state": "MODEL_EVIDENCE",
+          "provenance": {
+            "source": "validated-input-projection",
+            "reference": [
+              "b/O1"
+            ]
+          },
+          "dependsOn": []
+        }
+      ],
+      "propertyCertainty": {
+        "runtimeExecution": "UNKNOWN",
+        "runtimeWait": "UNKNOWN"
+      },
+      "excludedProperties": [
+        "runtime lock acquisition",
+        "runtime identity",
+        "commit/rollback",
+        "confirmed deadlock"
+      ],
+      "endpoint": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalPhysicalId": "P1"
+      }
+    },
+    {
+      "id": "C4",
+      "category": "RESOURCE_OPERATION",
+      "rule": {
+        "id": "mana-s02-i01",
+        "version": 1
+      },
+      "certainty": "STATIC_SYNTAX",
+      "operationRefs": [
+        "b/O2"
+      ],
+      "premises": [],
+      "evidence": [
+        "b/O2"
+      ],
+      "modelPremises": [
+        {
+          "id": "M_4",
+          "statement": "Referenced syntax, contexts and causal positions are those of the validated input model; execution and normal returns remain conditional.",
+          "scope": "synthetic_O_A01",
+          "state": "MODEL_EVIDENCE",
+          "provenance": {
+            "source": "validated-input-projection",
+            "reference": [
+              "b/O2"
+            ]
+          },
+          "dependsOn": []
+        }
+      ],
+      "propertyCertainty": {
+        "runtimeExecution": "UNKNOWN",
+        "runtimeWait": "UNKNOWN"
+      },
+      "excludedProperties": [
+        "runtime lock acquisition",
+        "runtime identity",
+        "commit/rollback",
+        "confirmed deadlock"
+      ],
+      "endpoint": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalPhysicalId": "P1"
+      }
+    },
+    {
+      "id": "C5",
+      "category": "LOCK_REQUEST_CANDIDATE",
+      "rule": {
+        "id": "mana-s02-i01",
+        "version": 1
+      },
+      "certainty": "CONDITIONAL",
+      "operationRefs": [
+        "a/O1"
+      ],
+      "premises": [
+        "a1_request"
+      ],
+      "evidence": [
+        "a/O1"
+      ],
+      "modelPremises": [
+        {
+          "id": "M_5",
+          "statement": "Referenced syntax, contexts and causal positions are those of the validated input model; execution and normal returns remain conditional.",
+          "scope": "synthetic_O_A01",
+          "state": "MODEL_EVIDENCE",
+          "provenance": {
+            "source": "validated-input-projection",
+            "reference": [
+              "a/O1"
+            ]
+          },
+          "dependsOn": []
+        }
+      ],
+      "propertyCertainty": {
+        "runtimeExecution": "UNKNOWN",
+        "runtimeWait": "UNKNOWN"
+      },
+      "excludedProperties": [
+        "runtime lock acquisition",
+        "runtime identity",
+        "commit/rollback",
+        "confirmed deadlock"
+      ],
+      "origin": "EXPLICIT_SCENARIO_RULE",
+      "endpoint": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalPhysicalId": "P1"
+      },
+      "mode": "M",
+      "abstractRule": {
+        "id": "opaque_exclusive",
+        "version": 1,
+        "modes": [
+          "M"
+        ],
+        "compatibility": [
+          {
+            "left": "M",
+            "right": "M",
+            "result": "INCOMPATIBLE"
+          }
+        ],
+        "blockingPremise": "blocking"
+      },
+      "acquisition": "UNKNOWN",
+      "retention": "UNKNOWN"
+    },
+    {
+      "id": "C6",
+      "category": "LOCK_REQUEST_CANDIDATE",
+      "rule": {
+        "id": "mana-s02-i01",
+        "version": 1
+      },
+      "certainty": "CONDITIONAL",
+      "operationRefs": [
+        "a/O2"
+      ],
+      "premises": [
+        "a2_request"
+      ],
+      "evidence": [
+        "a/O2"
+      ],
+      "modelPremises": [
+        {
+          "id": "M_6",
+          "statement": "Referenced syntax, contexts and causal positions are those of the validated input model; execution and normal returns remain conditional.",
+          "scope": "synthetic_O_A01",
+          "state": "MODEL_EVIDENCE",
+          "provenance": {
+            "source": "validated-input-projection",
+            "reference": [
+              "a/O2"
+            ]
+          },
+          "dependsOn": []
+        }
+      ],
+      "propertyCertainty": {
+        "runtimeExecution": "UNKNOWN",
+        "runtimeWait": "UNKNOWN"
+      },
+      "excludedProperties": [
+        "runtime lock acquisition",
+        "runtime identity",
+        "commit/rollback",
+        "confirmed deadlock"
+      ],
+      "origin": "EXPLICIT_SCENARIO_RULE",
+      "endpoint": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalPhysicalId": "P1"
+      },
+      "mode": "M",
+      "abstractRule": {
+        "id": "opaque_exclusive",
+        "version": 1,
+        "modes": [
+          "M"
+        ],
+        "compatibility": [
+          {
+            "left": "M",
+            "right": "M",
+            "result": "INCOMPATIBLE"
+          }
+        ],
+        "blockingPremise": "blocking"
+      },
+      "acquisition": "UNKNOWN",
+      "retention": "UNKNOWN"
+    },
+    {
+      "id": "C7",
+      "category": "LOCK_REQUEST_CANDIDATE",
+      "rule": {
+        "id": "mana-s02-i01",
+        "version": 1
+      },
+      "certainty": "CONDITIONAL",
+      "operationRefs": [
+        "b/O1"
+      ],
+      "premises": [
+        "b1_request"
+      ],
+      "evidence": [
+        "b/O1"
+      ],
+      "modelPremises": [
+        {
+          "id": "M_7",
+          "statement": "Referenced syntax, contexts and causal positions are those of the validated input model; execution and normal returns remain conditional.",
+          "scope": "synthetic_O_A01",
+          "state": "MODEL_EVIDENCE",
+          "provenance": {
+            "source": "validated-input-projection",
+            "reference": [
+              "b/O1"
+            ]
+          },
+          "dependsOn": []
+        }
+      ],
+      "propertyCertainty": {
+        "runtimeExecution": "UNKNOWN",
+        "runtimeWait": "UNKNOWN"
+      },
+      "excludedProperties": [
+        "runtime lock acquisition",
+        "runtime identity",
+        "commit/rollback",
+        "confirmed deadlock"
+      ],
+      "origin": "EXPLICIT_SCENARIO_RULE",
+      "endpoint": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalPhysicalId": "P1"
+      },
+      "mode": "M",
+      "abstractRule": {
+        "id": "opaque_exclusive",
+        "version": 1,
+        "modes": [
+          "M"
+        ],
+        "compatibility": [
+          {
+            "left": "M",
+            "right": "M",
+            "result": "INCOMPATIBLE"
+          }
+        ],
+        "blockingPremise": "blocking"
+      },
+      "acquisition": "UNKNOWN",
+      "retention": "UNKNOWN"
+    },
+    {
+      "id": "C8",
+      "category": "LOCK_REQUEST_CANDIDATE",
+      "rule": {
+        "id": "mana-s02-i01",
+        "version": 1
+      },
+      "certainty": "CONDITIONAL",
+      "operationRefs": [
+        "b/O2"
+      ],
+      "premises": [
+        "b2_request"
+      ],
+      "evidence": [
+        "b/O2"
+      ],
+      "modelPremises": [
+        {
+          "id": "M_8",
+          "statement": "Referenced syntax, contexts and causal positions are those of the validated input model; execution and normal returns remain conditional.",
+          "scope": "synthetic_O_A01",
+          "state": "MODEL_EVIDENCE",
+          "provenance": {
+            "source": "validated-input-projection",
+            "reference": [
+              "b/O2"
+            ]
+          },
+          "dependsOn": []
+        }
+      ],
+      "propertyCertainty": {
+        "runtimeExecution": "UNKNOWN",
+        "runtimeWait": "UNKNOWN"
+      },
+      "excludedProperties": [
+        "runtime lock acquisition",
+        "runtime identity",
+        "commit/rollback",
+        "confirmed deadlock"
+      ],
+      "origin": "EXPLICIT_SCENARIO_RULE",
+      "endpoint": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalPhysicalId": "P1"
+      },
+      "mode": "M",
+      "abstractRule": {
+        "id": "opaque_exclusive",
+        "version": 1,
+        "modes": [
+          "M"
+        ],
+        "compatibility": [
+          {
+            "left": "M",
+            "right": "M",
+            "result": "INCOMPATIBLE"
+          }
+        ],
+        "blockingPremise": "blocking"
+      },
+      "acquisition": "UNKNOWN",
+      "retention": "UNKNOWN"
+    },
+    {
+      "id": "C9",
+      "category": "LOCK_CONFLICT_CANDIDATE",
+      "rule": {
+        "id": "mana-s02-i01",
+        "version": 1
+      },
+      "certainty": "CONDITIONAL",
+      "operationRefs": [
+        "a/O1",
+        "b/O2"
+      ],
+      "premises": [
+        "X_database",
+        "X_object",
+        "X_overlap",
+        "a1_request",
+        "b2_request",
+        "blocking"
+      ],
+      "evidence": [
+        "a/O1",
+        "b/O2"
+      ],
+      "modelPremises": [
+        {
+          "id": "M_9",
+          "statement": "Referenced syntax, contexts and causal positions are those of the validated input model; execution and normal returns remain conditional.",
+          "scope": "synthetic_O_A01",
+          "state": "MODEL_EVIDENCE",
+          "provenance": {
+            "source": "validated-input-projection",
+            "reference": [
+              "a/O1",
+              "b/O2"
+            ]
+          },
+          "dependsOn": []
+        }
+      ],
+      "propertyCertainty": {
+        "runtimeExecution": "UNKNOWN",
+        "runtimeWait": "UNKNOWN"
+      },
+      "excludedProperties": [
+        "runtime lock acquisition",
+        "runtime identity",
+        "commit/rollback",
+        "confirmed deadlock"
+      ],
+      "resource": "X",
+      "orientation": "UNORIENTED",
+      "holder": "UNKNOWN"
+    },
+    {
+      "id": "C10",
+      "category": "LOCK_CONFLICT_CANDIDATE",
+      "rule": {
+        "id": "mana-s02-i01",
+        "version": 1
+      },
+      "certainty": "CONDITIONAL",
+      "operationRefs": [
+        "a/O2",
+        "b/O1"
+      ],
+      "premises": [
+        "Y_database",
+        "Y_object",
+        "Y_overlap",
+        "a2_request",
+        "b1_request",
+        "blocking"
+      ],
+      "evidence": [
+        "a/O2",
+        "b/O1"
+      ],
+      "modelPremises": [
+        {
+          "id": "M_10",
+          "statement": "Referenced syntax, contexts and causal positions are those of the validated input model; execution and normal returns remain conditional.",
+          "scope": "synthetic_O_A01",
+          "state": "MODEL_EVIDENCE",
+          "provenance": {
+            "source": "validated-input-projection",
+            "reference": [
+              "a/O2",
+              "b/O1"
+            ]
+          },
+          "dependsOn": []
+        }
+      ],
+      "propertyCertainty": {
+        "runtimeExecution": "UNKNOWN",
+        "runtimeWait": "UNKNOWN"
+      },
+      "excludedProperties": [
+        "runtime lock acquisition",
+        "runtime identity",
+        "commit/rollback",
+        "confirmed deadlock"
+      ],
+      "resource": "Y",
+      "orientation": "UNORIENTED",
+      "holder": "UNKNOWN"
+    },
+    {
+      "id": "C11",
+      "category": "DB_WAIT_DEPENDENCY",
+      "rule": {
+        "id": "mana-s02-i01",
+        "version": 1
+      },
+      "certainty": "CONDITIONAL",
+      "operationRefs": [
+        "a/O2",
+        "b/O1"
+      ],
+      "premises": [
+        "Y_database",
+        "Y_object",
+        "Y_overlap",
+        "a2_binding",
+        "a2_request",
+        "b1_acquire",
+        "b1_binding",
+        "b1_request",
+        "b1_retain",
+        "blocking",
+        "concurrent",
+        "independent_a",
+        "independent_b"
+      ],
+      "evidence": [
+        "a/O2",
+        "b/O1"
+      ],
+      "modelPremises": [
+        {
+          "id": "M_11",
+          "statement": "Referenced syntax, contexts and causal positions are those of the validated input model; execution and normal returns remain conditional.",
+          "scope": "synthetic_O_A01",
+          "state": "MODEL_EVIDENCE",
+          "provenance": {
+            "source": "validated-input-projection",
+            "reference": [
+              "a/O2",
+              "b/O1"
+            ]
+          },
+          "dependsOn": []
+        }
+      ],
+      "propertyCertainty": {
+        "runtimeExecution": "UNKNOWN",
+        "runtimeWait": "UNKNOWN"
+      },
+      "excludedProperties": [
+        "runtime lock acquisition",
+        "runtime identity",
+        "commit/rollback",
+        "confirmed deadlock"
+      ],
+      "waiter": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalPhysicalId": "P1"
+      },
+      "blocker": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalPhysicalId": "P1"
+      },
+      "resource": "Y",
+      "cut": "common",
+      "candidate": "W2",
+      "obligations": [
+        {
+          "id": "W1",
+          "state": "MODEL_EVIDENCE",
+          "premises": [],
+          "reason": "Distinct identified P; live at cut; waiter current and unsuspended.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W2",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "a2_binding",
+            "b1_binding"
+          ],
+          "reason": "Common database, effective datasource and JDBC enlistment explicitly assumed.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W3",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "Y_database",
+            "Y_object",
+            "Y_overlap"
+          ],
+          "reason": "Object and opaque lock target overlap are separate explicit premises; granularity remains bounded/UNKNOWN.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W4",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "a2_request",
+            "b1_request",
+            "b1_acquire",
+            "b1_retain"
+          ],
+          "reason": "Waiter request, prior holder acquisition and retention have separate provenance.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W5",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "blocking"
+          ],
+          "reason": "Versioned abstract incompatible modes and blocking (not NOWAIT/skip/retry).",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W6",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "b1_retain"
+          ],
+          "reason": "Pending waiter at invocation; holder acquisition precedes cut and is retained, not inferred from L/SP/S.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W7",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "concurrent",
+            "independent_a",
+            "independent_b"
+          ],
+          "reason": "Common explicit prefix cut with concurrent independent instances or live suspended outer/replacement.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W8",
+          "state": "MODEL_EVIDENCE",
+          "premises": [],
+          "reason": "Jointly compatible prefixes; no continuation beyond pending returns or unresolved frontiers.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        }
+      ],
+      "request": {
+        "operation": "a/O2",
+        "mode": "M",
+        "pending": "EXPLICIT_ASSUMPTION"
+      },
+      "holding": {
+        "operation": "b/O1",
+        "mode": "M",
+        "acquisitionPremise": "b1_acquire",
+        "retentionPremise": "b1_retain"
+      }
+    },
+    {
+      "id": "C12",
+      "category": "DB_WAIT_DEPENDENCY",
+      "rule": {
+        "id": "mana-s02-i01",
+        "version": 1
+      },
+      "certainty": "CONDITIONAL",
+      "operationRefs": [
+        "b/O2",
+        "a/O1"
+      ],
+      "premises": [
+        "X_database",
+        "X_object",
+        "X_overlap",
+        "a1_acquire",
+        "a1_binding",
+        "a1_request",
+        "a1_retain",
+        "b2_binding",
+        "b2_request",
+        "blocking",
+        "concurrent",
+        "independent_a",
+        "independent_b"
+      ],
+      "evidence": [
+        "b/O2",
+        "a/O1"
+      ],
+      "modelPremises": [
+        {
+          "id": "M_12",
+          "statement": "Referenced syntax, contexts and causal positions are those of the validated input model; execution and normal returns remain conditional.",
+          "scope": "synthetic_O_A01",
+          "state": "MODEL_EVIDENCE",
+          "provenance": {
+            "source": "validated-input-projection",
+            "reference": [
+              "b/O2",
+              "a/O1"
+            ]
+          },
+          "dependsOn": []
+        }
+      ],
+      "propertyCertainty": {
+        "runtimeExecution": "UNKNOWN",
+        "runtimeWait": "UNKNOWN"
+      },
+      "excludedProperties": [
+        "runtime lock acquisition",
+        "runtime identity",
+        "commit/rollback",
+        "confirmed deadlock"
+      ],
+      "waiter": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalPhysicalId": "P1"
+      },
+      "blocker": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalPhysicalId": "P1"
+      },
+      "resource": "X",
+      "cut": "common",
+      "candidate": "W3",
+      "obligations": [
+        {
+          "id": "W1",
+          "state": "MODEL_EVIDENCE",
+          "premises": [],
+          "reason": "Distinct identified P; live at cut; waiter current and unsuspended.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W2",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "b2_binding",
+            "a1_binding"
+          ],
+          "reason": "Common database, effective datasource and JDBC enlistment explicitly assumed.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W3",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "X_database",
+            "X_object",
+            "X_overlap"
+          ],
+          "reason": "Object and opaque lock target overlap are separate explicit premises; granularity remains bounded/UNKNOWN.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W4",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "b2_request",
+            "a1_request",
+            "a1_acquire",
+            "a1_retain"
+          ],
+          "reason": "Waiter request, prior holder acquisition and retention have separate provenance.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W5",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "blocking"
+          ],
+          "reason": "Versioned abstract incompatible modes and blocking (not NOWAIT/skip/retry).",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W6",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "a1_retain"
+          ],
+          "reason": "Pending waiter at invocation; holder acquisition precedes cut and is retained, not inferred from L/SP/S.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W7",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "concurrent",
+            "independent_b",
+            "independent_a"
+          ],
+          "reason": "Common explicit prefix cut with concurrent independent instances or live suspended outer/replacement.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W8",
+          "state": "MODEL_EVIDENCE",
+          "premises": [],
+          "reason": "Jointly compatible prefixes; no continuation beyond pending returns or unresolved frontiers.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        }
+      ],
+      "request": {
+        "operation": "b/O2",
+        "mode": "M",
+        "pending": "EXPLICIT_ASSUMPTION"
+      },
+      "holding": {
+        "operation": "a/O1",
+        "mode": "M",
+        "acquisitionPremise": "a1_acquire",
+        "retentionPremise": "a1_retain"
+      }
+    }
+  ],
+  "waitCandidates": [
+    {
+      "id": "W1",
+      "cut": "common",
+      "waiter": "a2",
+      "holder": "a1",
+      "obligations": [
+        {
+          "id": "W1",
+          "state": "CONTRADICTED",
+          "premises": [],
+          "reason": "Distinct identified P; live at cut; waiter current and unsuspended.",
+          "evidence": [
+            "a/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W2",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "a2_binding",
+            "a1_binding"
+          ],
+          "reason": "Common database, effective datasource and JDBC enlistment explicitly assumed.",
+          "evidence": [
+            "a/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W3",
+          "state": "UNKNOWN",
+          "premises": [],
+          "reason": "Object and opaque lock target overlap are separate explicit premises; granularity remains bounded/UNKNOWN.",
+          "evidence": [
+            "a/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W4",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "a2_request",
+            "a1_request",
+            "a1_acquire",
+            "a1_retain"
+          ],
+          "reason": "Waiter request, prior holder acquisition and retention have separate provenance.",
+          "evidence": [
+            "a/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W5",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "blocking"
+          ],
+          "reason": "Versioned abstract incompatible modes and blocking (not NOWAIT/skip/retry).",
+          "evidence": [
+            "a/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W6",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "a1_retain"
+          ],
+          "reason": "Pending waiter at invocation; holder acquisition precedes cut and is retained, not inferred from L/SP/S.",
+          "evidence": [
+            "a/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W7",
+          "state": "UNKNOWN",
+          "premises": [
+            "concurrent"
+          ],
+          "reason": "Common explicit prefix cut with concurrent independent instances or live suspended outer/replacement.",
+          "evidence": [
+            "a/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W8",
+          "state": "MODEL_EVIDENCE",
+          "premises": [],
+          "reason": "Jointly compatible prefixes; no continuation beyond pending returns or unresolved frontiers.",
+          "evidence": [
+            "a/O2",
+            "a/O1"
+          ]
+        }
+      ],
+      "status": "EXCLUDED"
+    },
+    {
+      "id": "W2",
+      "cut": "common",
+      "waiter": "a2",
+      "holder": "b1",
+      "obligations": [
+        {
+          "id": "W1",
+          "state": "MODEL_EVIDENCE",
+          "premises": [],
+          "reason": "Distinct identified P; live at cut; waiter current and unsuspended.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W2",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "a2_binding",
+            "b1_binding"
+          ],
+          "reason": "Common database, effective datasource and JDBC enlistment explicitly assumed.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W3",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "Y_database",
+            "Y_object",
+            "Y_overlap"
+          ],
+          "reason": "Object and opaque lock target overlap are separate explicit premises; granularity remains bounded/UNKNOWN.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W4",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "a2_request",
+            "b1_request",
+            "b1_acquire",
+            "b1_retain"
+          ],
+          "reason": "Waiter request, prior holder acquisition and retention have separate provenance.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W5",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "blocking"
+          ],
+          "reason": "Versioned abstract incompatible modes and blocking (not NOWAIT/skip/retry).",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W6",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "b1_retain"
+          ],
+          "reason": "Pending waiter at invocation; holder acquisition precedes cut and is retained, not inferred from L/SP/S.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W7",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "concurrent",
+            "independent_a",
+            "independent_b"
+          ],
+          "reason": "Common explicit prefix cut with concurrent independent instances or live suspended outer/replacement.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W8",
+          "state": "MODEL_EVIDENCE",
+          "premises": [],
+          "reason": "Jointly compatible prefixes; no continuation beyond pending returns or unresolved frontiers.",
+          "evidence": [
+            "a/O2",
+            "b/O1"
+          ]
+        }
+      ],
+      "status": "QUALIFIED"
+    },
+    {
+      "id": "W3",
+      "cut": "common",
+      "waiter": "b2",
+      "holder": "a1",
+      "obligations": [
+        {
+          "id": "W1",
+          "state": "MODEL_EVIDENCE",
+          "premises": [],
+          "reason": "Distinct identified P; live at cut; waiter current and unsuspended.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W2",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "b2_binding",
+            "a1_binding"
+          ],
+          "reason": "Common database, effective datasource and JDBC enlistment explicitly assumed.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W3",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "X_database",
+            "X_object",
+            "X_overlap"
+          ],
+          "reason": "Object and opaque lock target overlap are separate explicit premises; granularity remains bounded/UNKNOWN.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W4",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "b2_request",
+            "a1_request",
+            "a1_acquire",
+            "a1_retain"
+          ],
+          "reason": "Waiter request, prior holder acquisition and retention have separate provenance.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W5",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "blocking"
+          ],
+          "reason": "Versioned abstract incompatible modes and blocking (not NOWAIT/skip/retry).",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W6",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "a1_retain"
+          ],
+          "reason": "Pending waiter at invocation; holder acquisition precedes cut and is retained, not inferred from L/SP/S.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W7",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "concurrent",
+            "independent_b",
+            "independent_a"
+          ],
+          "reason": "Common explicit prefix cut with concurrent independent instances or live suspended outer/replacement.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        },
+        {
+          "id": "W8",
+          "state": "MODEL_EVIDENCE",
+          "premises": [],
+          "reason": "Jointly compatible prefixes; no continuation beyond pending returns or unresolved frontiers.",
+          "evidence": [
+            "b/O2",
+            "a/O1"
+          ]
+        }
+      ],
+      "status": "QUALIFIED"
+    },
+    {
+      "id": "W4",
+      "cut": "common",
+      "waiter": "b2",
+      "holder": "b1",
+      "obligations": [
+        {
+          "id": "W1",
+          "state": "CONTRADICTED",
+          "premises": [],
+          "reason": "Distinct identified P; live at cut; waiter current and unsuspended.",
+          "evidence": [
+            "b/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W2",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "b2_binding",
+            "b1_binding"
+          ],
+          "reason": "Common database, effective datasource and JDBC enlistment explicitly assumed.",
+          "evidence": [
+            "b/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W3",
+          "state": "UNKNOWN",
+          "premises": [],
+          "reason": "Object and opaque lock target overlap are separate explicit premises; granularity remains bounded/UNKNOWN.",
+          "evidence": [
+            "b/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W4",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "b2_request",
+            "b1_request",
+            "b1_acquire",
+            "b1_retain"
+          ],
+          "reason": "Waiter request, prior holder acquisition and retention have separate provenance.",
+          "evidence": [
+            "b/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W5",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "blocking"
+          ],
+          "reason": "Versioned abstract incompatible modes and blocking (not NOWAIT/skip/retry).",
+          "evidence": [
+            "b/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W6",
+          "state": "EXPLICIT_ASSUMPTION",
+          "premises": [
+            "b1_retain"
+          ],
+          "reason": "Pending waiter at invocation; holder acquisition precedes cut and is retained, not inferred from L/SP/S.",
+          "evidence": [
+            "b/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W7",
+          "state": "UNKNOWN",
+          "premises": [
+            "concurrent"
+          ],
+          "reason": "Common explicit prefix cut with concurrent independent instances or live suspended outer/replacement.",
+          "evidence": [
+            "b/O2",
+            "b/O1"
+          ]
+        },
+        {
+          "id": "W8",
+          "state": "MODEL_EVIDENCE",
+          "premises": [],
+          "reason": "Jointly compatible prefixes; no continuation beyond pending returns or unresolved frontiers.",
+          "evidence": [
+            "b/O2",
+            "b/O1"
+          ]
+        }
+      ],
+      "status": "EXCLUDED"
+    }
+  ],
+  "databaseGraph": {
+    "nodes": [
+      {
+        "id": "[\"synthetic_O_A01\",\"a\",\"3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65\",\"P1\"]",
+        "namespace": {
+          "scenarioId": "synthetic_O_A01",
+          "participantId": "a",
+          "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+          "originalPhysicalId": "P1"
+        }
+      },
+      {
+        "id": "[\"synthetic_O_A01\",\"b\",\"6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70\",\"P1\"]",
+        "namespace": {
+          "scenarioId": "synthetic_O_A01",
+          "participantId": "b",
+          "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+          "originalPhysicalId": "P1"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "[\"synthetic_O_A01\",\"a\",\"3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65\",\"P1\"]",
+        "to": "[\"synthetic_O_A01\",\"b\",\"6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70\",\"P1\"]",
+        "claim": "C11",
+        "cut": "common",
+        "resource": "Y",
+        "certainty": "CONDITIONAL"
+      },
+      {
+        "from": "[\"synthetic_O_A01\",\"b\",\"6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70\",\"P1\"]",
+        "to": "[\"synthetic_O_A01\",\"a\",\"3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65\",\"P1\"]",
+        "claim": "C12",
+        "cut": "common",
+        "resource": "X",
+        "certainty": "CONDITIONAL"
+      }
+    ]
+  },
+  "applicationGraph": {
+    "nodes": [],
+    "edges": []
+  },
+  "crossLayerRelations": [
+    {
+      "type": "EXECUTES_IN",
+      "operation": "a/O1",
+      "frame": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalFrameId": "F1"
+      },
+      "physical": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalPhysicalId": "P1"
+      },
+      "certainty": "CONDITIONAL",
+      "evidence": [
+        "a/O1"
+      ]
+    },
+    {
+      "type": "EXECUTES_IN",
+      "operation": "a/O2",
+      "frame": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalFrameId": "F1"
+      },
+      "physical": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalPhysicalId": "P1"
+      },
+      "certainty": "CONDITIONAL",
+      "evidence": [
+        "a/O2"
+      ]
+    },
+    {
+      "type": "EXECUTES_IN",
+      "frame": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalFrameId": "F1"
+      },
+      "physical": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "a",
+        "inputDigest": "3d312e9c1e58bfe6b809ac5ab07953090b1e8a01889e9656b62c56f3d5e60b65",
+        "originalPhysicalId": "P1"
+      },
+      "certainty": "CONDITIONAL",
+      "evidence": [
+        {
+          "input": "ta",
+          "frame": "F1",
+          "enterT01Sequence": 1
+        }
+      ]
+    },
+    {
+      "type": "EXECUTES_IN",
+      "operation": "b/O1",
+      "frame": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalFrameId": "F1"
+      },
+      "physical": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalPhysicalId": "P1"
+      },
+      "certainty": "CONDITIONAL",
+      "evidence": [
+        "b/O1"
+      ]
+    },
+    {
+      "type": "EXECUTES_IN",
+      "operation": "b/O2",
+      "frame": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalFrameId": "F1"
+      },
+      "physical": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalPhysicalId": "P1"
+      },
+      "certainty": "CONDITIONAL",
+      "evidence": [
+        "b/O2"
+      ]
+    },
+    {
+      "type": "EXECUTES_IN",
+      "frame": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalFrameId": "F1"
+      },
+      "physical": {
+        "scenarioId": "synthetic_O_A01",
+        "participantId": "b",
+        "inputDigest": "6b5fa942bf14824b30eec6a8d5ad16140497fdef98e69eae886068c0c108ee70",
+        "originalPhysicalId": "P1"
+      },
+      "certainty": "CONDITIONAL",
+      "evidence": [
+        {
+          "input": "tb",
+          "frame": "F1",
+          "enterT01Sequence": 1
+        }
+      ]
+    }
+  ],
+  "unknowns": [
+    {
+      "candidate": "W1",
+      "cut": "common",
+      "reason": "EXCLUDED",
+      "missingObligations": [
+        "W3",
+        "W7"
+      ],
+      "contradictedObligations": [
+        "W1"
+      ]
+    },
+    {
+      "candidate": "W4",
+      "cut": "common",
+      "reason": "EXCLUDED",
+      "missingObligations": [
+        "W3",
+        "W7"
+      ],
+      "contradictedObligations": [
+        "W1"
+      ]
+    }
+  ],
+  "limits": [
+    "Conditional static scenario only; execution, locks and waits are not observed.",
+    "Opaque targets and abstract compatibility are explicit scenario assumptions.",
+    "No JDBC wiring, SQL target resolution, runtime adapter or schedule enumeration.",
+    "NO_CYCLE_IN_MODELED_SCENARIO applies only to the modeled scope and cut(s).",
+    "No conclusion of general risk absence, deadlock freedom, commit or rollback.",
+    "Input digests establish byte identity, not external source authenticity."
+  ],
+  "coverage": {
+    "status": "INCOMPLETE",
+    "reasons": [
+      "UNRESOLVED_DATA_OR_CAUSALITY"
+    ],
+    "scope": {
+      "inputArtifacts": 2,
+      "participants": 2,
+      "resources": 2,
+      "selectedOperations": 4,
+      "requiresNewLevels": 1
+    },
+    "scopeStatus": "SUPPORTED",
+    "budgets": {
+      "t01Bytes": 4194304,
+      "timelineBytes": 4194304,
+      "combinedBytes": 8388608,
+      "sidecarBytes": 2097152,
+      "candidateComparisons": 100000,
+      "serializedEdges": 5000
+    },
+    "candidateComparisons": 11,
+    "serializedEdges": 8,
+    "inventoryOperations": 4,
+    "selectedOperations": 4,
+    "globalRiskAbsence": "NOT_ASSERTED",
+    "runtime": "NOT_RUN"
+  },
+  "assessment": {
+    "result": "CONDITIONAL_CYCLE_RISK",
+    "cuts": [
+      {
+        "cut": "common",
+        "result": "CONDITIONAL_CYCLE_RISK",
+        "contradictions": [],
+        "unknowns": [],
+        "claims": [
+          "C11",
+          "C12"
+        ]
+      }
+    ],
+    "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+  }
+}

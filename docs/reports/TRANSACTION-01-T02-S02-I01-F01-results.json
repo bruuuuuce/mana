@@ -1,0 +1,1034 @@
+{
+  "task": "TRANSACTION-01-T02-S02-I01-F01",
+  "date": "2026-10-22",
+  "verdict": "FIX_READY_FOR_REVIEW",
+  "scope": "Local static I01 F01 remediation only; independent review of fix NOT_RUN",
+  "baseline": {
+    "branch": "develop",
+    "head": "9d3468101ccdcf40f680418955be17aec098c9e6",
+    "initialFiles": 1356,
+    "historicalR1InitialFiles": 1352,
+    "explanation": "1352 historical initial files plus four R1 deliverables = 1356 at F01 start"
+  },
+  "gates": [
+    {
+      "id": "i01",
+      "status": "PASS",
+      "command": "python3 tests/wait-dependencies.py -v",
+      "exitCode": 0,
+      "count": 22,
+      "log": "test_01_all_static_manual_oracles (__main__.WaitTests.test_01_all_static_manual_oracles) ... ok\ntest_02_A_literal_directions_namespaces_and_future_end (__main__.WaitTests.test_02_A_literal_directions_namespaces_and_future_end) ... ok\ntest_03_C_separate_graphs_and_suspended_holder (__main__.WaitTests.test_03_C_separate_graphs_and_suspended_holder) ... ok\ntest_04_B_never_unions_cuts_into_feasible_cycle (__main__.WaitTests.test_04_B_never_unions_cuts_into_feasible_cycle) ... ok\ntest_05_D_E_logical_and_savepoint_end_do_not_end_P (__main__.WaitTests.test_05_D_E_logical_and_savepoint_end_do_not_end_P) ... ok\ntest_06_F_partial_identity_and_distinct_instances (__main__.WaitTests.test_06_F_partial_identity_and_distinct_instances) ... ok\ntest_07_G_prefix_witness_and_async (__main__.WaitTests.test_07_G_prefix_witness_and_async) ... ok\ntest_08_I_request_syntax_is_not_holding (__main__.WaitTests.test_08_I_request_syntax_is_not_holding) ... ok\ntest_09_missing_or_contradicted_premises_cannot_qualify (__main__.WaitTests.test_09_missing_or_contradicted_premises_cannot_qualify) ... ok\ntest_10_false_digests_projections_and_witnesses_rejected (__main__.WaitTests.test_10_false_digests_projections_and_witnesses_rejected) ... ok\ntest_11_output_validator_adversarial_mutations (__main__.WaitTests.test_11_output_validator_adversarial_mutations) ... ok\ntest_12_scope_overflow_preserves_inventory_and_is_incomplete (__main__.WaitTests.test_12_scope_overflow_preserves_inventory_and_is_incomplete) ... ok\ntest_13_byte_comparison_and_edge_budgets (__main__.WaitTests.test_13_byte_comparison_and_edge_budgets) ... ok\ntest_14_cli_publication_validation_and_no_overwrite (__main__.WaitTests.test_14_cli_publication_validation_and_no_overwrite) ... ok\ntest_15_diagrams_keep_layers_and_cut_witness_separate (__main__.WaitTests.test_15_diagrams_keep_layers_and_cut_witness_separate) ... ok\ntest_16_legacy_canonical_inputs_read_only (__main__.WaitTests.test_16_legacy_canonical_inputs_read_only) ... ok\ntest_17_unknown_sql_not_a_target_and_no_hidden_lock (__main__.WaitTests.test_17_unknown_sql_not_a_target_and_no_hidden_lock) ... ok\ntest_18_repeated_methods_use_distinct_frame_instances (__main__.WaitTests.test_18_repeated_methods_use_distinct_frame_instances) ... ok\ntest_19_frontier_prefix_never_repairs_a_continuation (__main__.WaitTests.test_19_frontier_prefix_never_repairs_a_continuation) ... ok\ntest_20_invalid_sidecar_rule_and_premise_cycles (__main__.WaitTests.test_20_invalid_sidecar_rule_and_premise_cycles) ... ok\ntest_21_actual_byte_thresholds_stop_before_publication (__main__.WaitTests.test_21_actual_byte_thresholds_stop_before_publication) ... ok\ntest_22_s02_report_byte_budget_is_checked_too (__main__.WaitTests.test_22_s02_report_byte_budget_is_checked_too) ... ok\n\n----------------------------------------------------------------------\nRan 22 tests in 4.327s\n\nOK\n"
+    },
+    {
+      "id": "targeted",
+      "status": "PASS",
+      "command": "python3 tests/wait-dependencies-negative-evidence.py -v",
+      "exitCode": 0,
+      "count": 15,
+      "log": "test_01_r1_A_and_C_missing_W4_generate_unknown (__main__.NegativeEvidenceTests.test_01_r1_A_and_C_missing_W4_generate_unknown) ... ok\ntest_02_missing_W4_negative_rejected_without_reprojection (__main__.NegativeEvidenceTests.test_02_missing_W4_negative_rejected_without_reprojection) ... ok\ntest_03_complete_acyclic_B_retains_negative (__main__.NegativeEvidenceTests.test_03_complete_acyclic_B_retains_negative) ... ok\ntest_04_complete_A_compatible_cycle (__main__.NegativeEvidenceTests.test_04_complete_A_compatible_cycle) ... ok\ntest_05_incompatible_holdings_exclude_cycle (__main__.NegativeEvidenceTests.test_05_incompatible_holdings_exclude_cycle) ... ok\ntest_06_missing_W4_positive_promotion_rejected (__main__.NegativeEvidenceTests.test_06_missing_W4_positive_promotion_rejected) ... ok\ntest_07_opaque_object_without_overlap_is_unknown (__main__.NegativeEvidenceTests.test_07_opaque_object_without_overlap_is_unknown) ... ok\ntest_08_budget_never_returns_negative (__main__.NegativeEvidenceTests.test_08_budget_never_returns_negative) ... ok\ntest_09_declared_W4_does_not_replace_source_evidence (__main__.NegativeEvidenceTests.test_09_declared_W4_does_not_replace_source_evidence) ... ok\ntest_10_requires_new_application_dependencies_preserved (__main__.NegativeEvidenceTests.test_10_requires_new_application_dependencies_preserved) ... ok\ntest_11_missing_pending_and_premise_dependency (__main__.NegativeEvidenceTests.test_11_missing_pending_and_premise_dependency) ... ok\ntest_12_one_incomplete_cut_blocks_global_negative (__main__.NegativeEvidenceTests.test_12_one_incomplete_cut_blocks_global_negative) ... ok\ntest_13_cli_unknown_invalid_negative_and_budget (__main__.NegativeEvidenceTests.test_13_cli_unknown_invalid_negative_and_budget) ... ok\ntest_14_partial_holder_omission_cannot_prove_acyclicity (__main__.NegativeEvidenceTests.test_14_partial_holder_omission_cannot_prove_acyclicity) ... ok\ntest_15_frontier_and_same_P_cut_do_not_use_identity_fallback (__main__.NegativeEvidenceTests.test_15_frontier_and_same_P_cut_do_not_use_identity_fallback) ... ok\n\n----------------------------------------------------------------------\nRan 15 tests in 7.359s\n\nOK\n"
+    },
+    {
+      "id": "checks",
+      "status": "PASS",
+      "command": "python3 docs/reports/TRANSACTION-01-T02-S02-I01-R1-checks.py /private/tmp/mana-s02-i01-f01",
+      "exitCode": 0,
+      "count": 27,
+      "log": "A-compatible-common-cut PASS {\"result\": \"CONDITIONAL_CYCLE_RISK\", \"db\": 2, \"app\": 0, \"coverage\": \"INCOMPLETE\"}\nB-exclusive-schedules-and-returned-holdings PASS {\"separate\": {\"result\": \"CYCLE_FEASIBILITY_UNKNOWN\", \"db\": 2, \"app\": 0, \"coverage\": \"COMPLETE_MODELED_SCOPE\"}, \"conjoined\": {\"result\": \"NO_CYCLE_IN_MODELED_SCENARIO\", \"db\": 0, \"app\": 0, \"coverage\": \"INCOMPLETE\"}}\nC-ended-holder-independent-of-pending-position PASS {\"result\": \"NO_CYCLE_IN_MODELED_SCENARIO\", \"db\": 0, \"app\": 0, \"coverage\": \"INCOMPLETE\"}\nD-mixed-completion-not-db-deadlock PASS {\"result\": \"CONDITIONAL_CROSS_LAYER_COMPLETION_RISK\", \"db\": 1, \"app\": 1, \"coverage\": \"COMPLETE_MODELED_SCOPE\"}\nWRITE-does-not-acquire-or-request PASS {\"result\": \"UNKNOWN\", \"db\": 0, \"app\": 0, \"coverage\": \"INCOMPLETE\"}\nmissing-or-incompatible-overlap PASS {\"result\": \"UNKNOWN\", \"db\": 0, \"app\": 0, \"coverage\": \"INCOMPLETE\"}\nmissing-or-incompatible-binding PASS {\"result\": \"UNKNOWN\", \"db\": 0, \"app\": 0, \"coverage\": \"INCOMPLETE\"}\nmissing-or-incompatible-independence PASS {\"result\": \"UNKNOWN\", \"db\": 0, \"app\": 0, \"coverage\": \"INCOMPLETE\"}\nmissing-or-incompatible-retention PASS {\"result\": \"UNKNOWN\", \"db\": 0, \"app\": 0, \"coverage\": \"INCOMPLETE\"}\nmissing-or-incompatible-pending-prefix PASS {\"result\": \"NO_CYCLE_IN_MODELED_SCENARIO\", \"db\": 0, \"app\": 0, \"coverage\": \"INCOMPLETE\"}\nmissing-or-incompatible-serial PASS {\"result\": \"NO_CYCLE_IN_MODELED_SCENARIO\", \"db\": 0, \"app\": 0, \"coverage\": \"INCOMPLETE\"}\nforgery-MODEL_EVIDENCE PASS \"runtime/model evidence cannot be self-certified by a sidecar\"\nforgery-RUNTIME_EVIDENCE PASS \"runtime/model evidence cannot be self-certified by a sidecar\"\nforgery-digest PASS \"Timeline digest mismatch\"\nforgery-witness PASS \"invalid authoritative Timeline/T01: resource leaf witness fails authoritative classification\"\nreport-assessment PASS \"NO_CYCLE requires every cut qualified or the D00 same-P identity proof\"\nreport-observed PASS \"OBSERVED requires R1-R7 and a separate runtime mandate\"\nreport-witness PASS \"S02 derivation/reference projection mismatch\"\nreport-cut PASS \"DB direction/cut mismatch\"\nbudget-t01Bytes PASS \"embedded T01 exceeds 4 MiB; coverage INCOMPLETE\"\nbudget-timelineBytes PASS \"Timeline exceeds 4 MiB; coverage INCOMPLETE\"\nbudget-combinedBytes PASS \"combined input exceeds 8 MiB; coverage INCOMPLETE\"\nbudget-sidecarBytes PASS \"sidecar exceeds 2 MiB; coverage INCOMPLETE\"\nbudget-candidateComparisons PASS \"candidate comparison budget exceeded; coverage INCOMPLETE\"\nbudget-serializedEdges PASS \"serialized cross-layer edge budget exceeded; coverage INCOMPLETE\"\nscope-incomplete-keeps-inventory PASS {\"result\": \"UNKNOWN\", \"db\": 0, \"app\": 0, \"coverage\": \"INCOMPLETE\"}\nvisual-json-mermaid-parity PASS \"A/B/C exact regeneration; edge counts, cut and layer labels checked; external renderer NOT_RUN\"\n"
+    },
+    {
+      "id": "r1",
+      "status": "PASS",
+      "command": "python3 docs/reports/TRANSACTION-01-T02-S02-I01-R1-counterexamples.py",
+      "exitCode": 0,
+      "count": 2,
+      "log": "[\n  {\n    \"case\": \"A\",\n    \"mutation\": \"cuts[0].holdings = []\",\n    \"expected\": \"UNKNOWN\",\n    \"actual\": \"UNKNOWN\",\n    \"status\": \"PASS\",\n    \"validatorAccepted\": true,\n    \"coverage\": \"INCOMPLETE\",\n    \"globalRiskAbsence\": \"NOT_ASSERTED\",\n    \"unknowns\": [\n      {\n        \"cut\": \"common\",\n        \"reason\": \"NO_ORIENTED_WAIT_HYPOTHESIS\",\n        \"missingObligations\": [\n          \"W4\"\n        ]\n      },\n      {\n        \"cut\": \"common\",\n        \"reason\": \"PRIOR_HOLDING_EVIDENCE_UNPROVEN\",\n        \"missingObligations\": [\n          \"W4\"\n        ]\n      }\n    ],\n    \"assessment\": {\n      \"result\": \"UNKNOWN\",\n      \"cuts\": [\n        {\n          \"cut\": \"common\",\n          \"result\": \"UNKNOWN\",\n          \"contradictions\": [],\n          \"unknowns\": [\n            \"W4: NO_ORIENTED_WAIT_HYPOTHESIS\",\n            \"W4: acquisition/retention unproven for a1\",\n            \"W4: acquisition/retention unproven for b1\"\n          ],\n          \"claims\": []\n        }\n      ],\n      \"scope\": \"Only selected operations, explicit abstract rules and listed witness cuts.\"\n    },\n    \"dbEdges\": 0,\n    \"appEdges\": 0\n  },\n  {\n    \"case\": \"C\",\n    \"mutation\": \"cuts[0].holdings = []\",\n    \"expected\": \"UNKNOWN\",\n    \"actual\": \"UNKNOWN\",\n    \"status\": \"PASS\",\n    \"validatorAccepted\": true,\n    \"coverage\": \"INCOMPLETE\",\n    \"globalRiskAbsence\": \"NOT_ASSERTED\",\n    \"unknowns\": [\n      {\n        \"cut\": \"replacement\",\n        \"reason\": \"NO_ORIENTED_WAIT_HYPOTHESIS\",\n        \"missingObligations\": [\n          \"W4\"\n        ]\n      },\n      {\n        \"cut\": \"replacement\",\n        \"reason\": \"PRIOR_HOLDING_EVIDENCE_UNPROVEN\",\n        \"missingObligations\": [\n          \"W4\"\n        ]\n      }\n    ],\n    \"assessment\": {\n      \"result\": \"UNKNOWN\",\n      \"cuts\": [\n        {\n          \"cut\": \"replacement\",\n          \"result\": \"UNKNOWN\",\n          \"contradictions\": [],\n          \"unknowns\": [\n            \"W4: NO_ORIENTED_WAIT_HYPOTHESIS\",\n            \"W4: acquisition/retention unproven for a1\"\n          ],\n          \"claims\": []\n        }\n      ],\n      \"scope\": \"Only selected operations, explicit abstract rules and listed witness cuts.\"\n    },\n    \"dbEdges\": 0,\n    \"appEdges\": 1\n  }\n]\n"
+    },
+    {
+      "id": "repo",
+      "status": "PASS",
+      "command": "bash scripts/validate-repo.sh",
+      "exitCode": 0,
+      "count": null,
+      "log": "Verification skills validation passed\nSkills validation passed\nAgents validation passed\nDivination metadata validation passed\nOutput standard validation passed\nStory trace validation passed\nDeveloper choice log validation passed\nRepository validation passed\n"
+    },
+    {
+      "id": "ruff",
+      "status": "PASS",
+      "command": "ruff check scripts/skill_factory/transactions/wait_dependencies.py scripts/skill_factory/transactions/wait_validation.py scripts/mana-wait-dependencies.py tests/wait-dependencies-negative-evidence.py tests/wait-dependencies.py tests/fixtures/wait-dependencies/scenarios.py docs/reports/TRANSACTION-01-T02-S02-I01-R1-checks.py docs/reports/TRANSACTION-01-T02-S02-I01-R1-counterexamples.py",
+      "exitCode": 0,
+      "count": null,
+      "log": "All checks passed!\n"
+    },
+    {
+      "id": "ruff-format",
+      "status": "PASS",
+      "command": "ruff format --check scripts/skill_factory/transactions/wait_dependencies.py scripts/skill_factory/transactions/wait_validation.py scripts/mana-wait-dependencies.py tests/wait-dependencies-negative-evidence.py tests/wait-dependencies.py tests/fixtures/wait-dependencies/scenarios.py docs/reports/TRANSACTION-01-T02-S02-I01-R1-checks.py docs/reports/TRANSACTION-01-T02-S02-I01-R1-counterexamples.py",
+      "exitCode": 0,
+      "count": null,
+      "log": "8 files already formatted\n"
+    },
+    {
+      "id": "incremental-patch",
+      "status": "PASS",
+      "command": "git apply --reverse --check docs/reports/TRANSACTION-01-T02-S02-I01-F01.patch",
+      "exitCode": 0,
+      "log": ""
+    }
+  ],
+  "oracles": {
+    "staticApplicable": 31,
+    "staticPassed": 31,
+    "historicalRows": 35,
+    "csvUnchanged": true,
+    "expectationsUnchanged": true,
+    "runtimeDeferred": [
+      "O-J01",
+      "O-J02",
+      "O-J03",
+      "O-J04"
+    ],
+    "source": "tests/wait-dependencies.py test_01_all_static_manual_oracles; unchanged manual D00 matrix"
+  },
+  "counterexamples": {
+    "originalSnapshotReproduction": {
+      "command": "python3 /private/tmp/mana-s02-i01-f01/reproduce-original.py",
+      "exitCode": 1,
+      "basis": "The three pre-edit implementation files were saved before any edit; their hashes are in integrity.changedAuthorizedFiles.before",
+      "results": [
+        {
+          "case": "A",
+          "mutation": "cuts[0].holdings = []",
+          "expected": "UNKNOWN",
+          "actual": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "status": "FAIL",
+          "validatorAccepted": true,
+          "coverage": "INCOMPLETE",
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "unknowns": [
+            {
+              "cut": "common",
+              "reason": "NO_ORIENTED_WAIT_HYPOTHESIS",
+              "missingObligations": [
+                "W4"
+              ]
+            }
+          ],
+          "assessment": {
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "cuts": [
+              {
+                "cut": "common",
+                "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+                "contradictions": [],
+                "unknowns": [],
+                "claims": []
+              }
+            ],
+            "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+          },
+          "dbEdges": 0,
+          "appEdges": 0
+        },
+        {
+          "case": "C",
+          "mutation": "cuts[0].holdings = []",
+          "expected": "UNKNOWN",
+          "actual": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "status": "FAIL",
+          "validatorAccepted": true,
+          "coverage": "INCOMPLETE",
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "unknowns": [
+            {
+              "cut": "replacement",
+              "reason": "NO_ORIENTED_WAIT_HYPOTHESIS",
+              "missingObligations": [
+                "W4"
+              ]
+            }
+          ],
+          "assessment": {
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "cuts": [
+              {
+                "cut": "replacement",
+                "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+                "contradictions": [],
+                "unknowns": [],
+                "claims": []
+              }
+            ],
+            "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+          },
+          "dbEdges": 0,
+          "appEdges": 1
+        }
+      ]
+    },
+    "after": {
+      "exitCode": 0,
+      "results": [
+        {
+          "case": "A",
+          "mutation": "cuts[0].holdings = []",
+          "expected": "UNKNOWN",
+          "actual": "UNKNOWN",
+          "status": "PASS",
+          "validatorAccepted": true,
+          "coverage": "INCOMPLETE",
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "unknowns": [
+            {
+              "cut": "common",
+              "reason": "NO_ORIENTED_WAIT_HYPOTHESIS",
+              "missingObligations": [
+                "W4"
+              ]
+            },
+            {
+              "cut": "common",
+              "reason": "PRIOR_HOLDING_EVIDENCE_UNPROVEN",
+              "missingObligations": [
+                "W4"
+              ]
+            }
+          ],
+          "assessment": {
+            "result": "UNKNOWN",
+            "cuts": [
+              {
+                "cut": "common",
+                "result": "UNKNOWN",
+                "contradictions": [],
+                "unknowns": [
+                  "W4: NO_ORIENTED_WAIT_HYPOTHESIS",
+                  "W4: acquisition/retention unproven for a1",
+                  "W4: acquisition/retention unproven for b1"
+                ],
+                "claims": []
+              }
+            ],
+            "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+          },
+          "dbEdges": 0,
+          "appEdges": 0
+        },
+        {
+          "case": "C",
+          "mutation": "cuts[0].holdings = []",
+          "expected": "UNKNOWN",
+          "actual": "UNKNOWN",
+          "status": "PASS",
+          "validatorAccepted": true,
+          "coverage": "INCOMPLETE",
+          "globalRiskAbsence": "NOT_ASSERTED",
+          "unknowns": [
+            {
+              "cut": "replacement",
+              "reason": "NO_ORIENTED_WAIT_HYPOTHESIS",
+              "missingObligations": [
+                "W4"
+              ]
+            },
+            {
+              "cut": "replacement",
+              "reason": "PRIOR_HOLDING_EVIDENCE_UNPROVEN",
+              "missingObligations": [
+                "W4"
+              ]
+            }
+          ],
+          "assessment": {
+            "result": "UNKNOWN",
+            "cuts": [
+              {
+                "cut": "replacement",
+                "result": "UNKNOWN",
+                "contradictions": [],
+                "unknowns": [
+                  "W4: NO_ORIENTED_WAIT_HYPOTHESIS",
+                  "W4: acquisition/retention unproven for a1"
+                ],
+                "claims": []
+              }
+            ],
+            "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+          },
+          "dbEdges": 0,
+          "appEdges": 1
+        }
+      ]
+    },
+    "fullWitnessFile": "docs/reports/TRANSACTION-01-T02-S02-I01-F01-witnesses.json"
+  },
+  "independentR1Controls": [
+    {
+      "id": "A-compatible-common-cut",
+      "status": "PASS",
+      "detail": {
+        "result": "CONDITIONAL_CYCLE_RISK",
+        "db": 2,
+        "app": 0,
+        "coverage": "INCOMPLETE"
+      }
+    },
+    {
+      "id": "B-exclusive-schedules-and-returned-holdings",
+      "status": "PASS",
+      "detail": {
+        "separate": {
+          "result": "CYCLE_FEASIBILITY_UNKNOWN",
+          "db": 2,
+          "app": 0,
+          "coverage": "COMPLETE_MODELED_SCOPE"
+        },
+        "conjoined": {
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "db": 0,
+          "app": 0,
+          "coverage": "INCOMPLETE"
+        }
+      }
+    },
+    {
+      "id": "C-ended-holder-independent-of-pending-position",
+      "status": "PASS",
+      "detail": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "db": 0,
+        "app": 0,
+        "coverage": "INCOMPLETE"
+      }
+    },
+    {
+      "id": "D-mixed-completion-not-db-deadlock",
+      "status": "PASS",
+      "detail": {
+        "result": "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK",
+        "db": 1,
+        "app": 1,
+        "coverage": "COMPLETE_MODELED_SCOPE"
+      }
+    },
+    {
+      "id": "WRITE-does-not-acquire-or-request",
+      "status": "PASS",
+      "detail": {
+        "result": "UNKNOWN",
+        "db": 0,
+        "app": 0,
+        "coverage": "INCOMPLETE"
+      }
+    },
+    {
+      "id": "missing-or-incompatible-overlap",
+      "status": "PASS",
+      "detail": {
+        "result": "UNKNOWN",
+        "db": 0,
+        "app": 0,
+        "coverage": "INCOMPLETE"
+      }
+    },
+    {
+      "id": "missing-or-incompatible-binding",
+      "status": "PASS",
+      "detail": {
+        "result": "UNKNOWN",
+        "db": 0,
+        "app": 0,
+        "coverage": "INCOMPLETE"
+      }
+    },
+    {
+      "id": "missing-or-incompatible-independence",
+      "status": "PASS",
+      "detail": {
+        "result": "UNKNOWN",
+        "db": 0,
+        "app": 0,
+        "coverage": "INCOMPLETE"
+      }
+    },
+    {
+      "id": "missing-or-incompatible-retention",
+      "status": "PASS",
+      "detail": {
+        "result": "UNKNOWN",
+        "db": 0,
+        "app": 0,
+        "coverage": "INCOMPLETE"
+      }
+    },
+    {
+      "id": "missing-or-incompatible-pending-prefix",
+      "status": "PASS",
+      "detail": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "db": 0,
+        "app": 0,
+        "coverage": "INCOMPLETE"
+      }
+    },
+    {
+      "id": "missing-or-incompatible-serial",
+      "status": "PASS",
+      "detail": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "db": 0,
+        "app": 0,
+        "coverage": "INCOMPLETE"
+      }
+    },
+    {
+      "id": "forgery-MODEL_EVIDENCE",
+      "status": "PASS",
+      "detail": "runtime/model evidence cannot be self-certified by a sidecar"
+    },
+    {
+      "id": "forgery-RUNTIME_EVIDENCE",
+      "status": "PASS",
+      "detail": "runtime/model evidence cannot be self-certified by a sidecar"
+    },
+    {
+      "id": "forgery-digest",
+      "status": "PASS",
+      "detail": "Timeline digest mismatch"
+    },
+    {
+      "id": "forgery-witness",
+      "status": "PASS",
+      "detail": "invalid authoritative Timeline/T01: resource leaf witness fails authoritative classification"
+    },
+    {
+      "id": "report-assessment",
+      "status": "PASS",
+      "detail": "NO_CYCLE requires every cut qualified or the D00 same-P identity proof"
+    },
+    {
+      "id": "report-observed",
+      "status": "PASS",
+      "detail": "OBSERVED requires R1-R7 and a separate runtime mandate"
+    },
+    {
+      "id": "report-witness",
+      "status": "PASS",
+      "detail": "S02 derivation/reference projection mismatch"
+    },
+    {
+      "id": "report-cut",
+      "status": "PASS",
+      "detail": "DB direction/cut mismatch"
+    },
+    {
+      "id": "budget-t01Bytes",
+      "status": "PASS",
+      "detail": "embedded T01 exceeds 4 MiB; coverage INCOMPLETE"
+    },
+    {
+      "id": "budget-timelineBytes",
+      "status": "PASS",
+      "detail": "Timeline exceeds 4 MiB; coverage INCOMPLETE"
+    },
+    {
+      "id": "budget-combinedBytes",
+      "status": "PASS",
+      "detail": "combined input exceeds 8 MiB; coverage INCOMPLETE"
+    },
+    {
+      "id": "budget-sidecarBytes",
+      "status": "PASS",
+      "detail": "sidecar exceeds 2 MiB; coverage INCOMPLETE"
+    },
+    {
+      "id": "budget-candidateComparisons",
+      "status": "PASS",
+      "detail": "candidate comparison budget exceeded; coverage INCOMPLETE"
+    },
+    {
+      "id": "budget-serializedEdges",
+      "status": "PASS",
+      "detail": "serialized cross-layer edge budget exceeded; coverage INCOMPLETE"
+    },
+    {
+      "id": "scope-incomplete-keeps-inventory",
+      "status": "PASS",
+      "detail": {
+        "result": "UNKNOWN",
+        "db": 0,
+        "app": 0,
+        "coverage": "INCOMPLETE"
+      }
+    },
+    {
+      "id": "visual-json-mermaid-parity",
+      "status": "PASS",
+      "detail": "A/B/C exact regeneration; edge counts, cut and layer labels checked; external renderer NOT_RUN"
+    }
+  ],
+  "newRegressionBasis": "D00 sections 4-6/9; manual expected outcomes; adversarial validator tests mock a faulty producer and require rejection before reprojection; no historical expectation modified",
+  "cliEvidence": [
+    {
+      "id": "generate",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/zel/projects/mana/scripts/mana-wait-dependencies.py",
+        "--scenario",
+        "/private/tmp/mana-s02-i01-f01/witnesses/C/scenario.json",
+        "--timeline",
+        "t=/Users/zel/projects/mana/docs/examples/transaction-01-t02-s02/C/inputs/t.json",
+        "--output-dir",
+        "/private/tmp/mana-s02-i01-f01/cli-C"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"assessment\": \"UNKNOWN\", \"coverage\": \"INCOMPLETE\"}\n",
+      "stderr": ""
+    },
+    {
+      "id": "reject-original",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/zel/projects/mana/scripts/mana-wait-dependencies.py",
+        "--scenario",
+        "/private/tmp/mana-s02-i01-f01/witnesses/C/scenario.json",
+        "--timeline",
+        "t=/Users/zel/projects/mana/docs/examples/transaction-01-t02-s02/C/inputs/t.json",
+        "--validate",
+        "/private/tmp/mana-s02-i01-f01/witnesses/C/before.json"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "{\"status\": \"REJECTED_INPUT\", \"coverage\": \"INCOMPLETE\", \"published\": false, \"reason\": \"NO_CYCLE requires W4 request and separate acquisition/retention evidence\"}\n"
+    },
+    {
+      "id": "validate-unknown",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/zel/projects/mana/scripts/mana-wait-dependencies.py",
+        "--scenario",
+        "/private/tmp/mana-s02-i01-f01/witnesses/C/scenario.json",
+        "--timeline",
+        "t=/Users/zel/projects/mana/docs/examples/transaction-01-t02-s02/C/inputs/t.json",
+        "--validate",
+        "/private/tmp/mana-s02-i01-f01/cli-C/wait-dependency.json"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"status\": \"VALIDATED\", \"assessment\": \"UNKNOWN\", \"coverage\": \"INCOMPLETE\"}\n",
+      "stderr": ""
+    }
+  ],
+  "degradedConclusions": [
+    {
+      "id": "A-R1-no-holdings",
+      "before": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "cuts": [
+          {
+            "cut": "common",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "after": {
+        "result": "UNKNOWN",
+        "cuts": [
+          {
+            "cut": "common",
+            "result": "UNKNOWN",
+            "contradictions": [],
+            "unknowns": [
+              "W4: NO_ORIENTED_WAIT_HYPOTHESIS",
+              "W4: acquisition/retention unproven for a1",
+              "W4: acquisition/retention unproven for b1"
+            ],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "beforeDbEdges": 0,
+      "afterDbEdges": 0,
+      "beforeAppEdges": 0,
+      "afterAppEdges": 0
+    },
+    {
+      "id": "C-R1-no-holdings",
+      "before": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "cuts": [
+          {
+            "cut": "replacement",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "after": {
+        "result": "UNKNOWN",
+        "cuts": [
+          {
+            "cut": "replacement",
+            "result": "UNKNOWN",
+            "contradictions": [],
+            "unknowns": [
+              "W4: NO_ORIENTED_WAIT_HYPOTHESIS",
+              "W4: acquisition/retention unproven for a1"
+            ],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "beforeDbEdges": 0,
+      "afterDbEdges": 0,
+      "beforeAppEdges": 1,
+      "afterAppEdges": 1
+    },
+    {
+      "id": "A-partial-holder-omission",
+      "before": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "cuts": [
+          {
+            "cut": "common",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [],
+            "claims": [
+              "C11"
+            ]
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "after": {
+        "result": "UNKNOWN",
+        "cuts": [
+          {
+            "cut": "common",
+            "result": "UNKNOWN",
+            "contradictions": [],
+            "unknowns": [
+              "W4: acquisition/retention unproven for b1"
+            ],
+            "claims": [
+              "C11"
+            ]
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "beforeDbEdges": 1,
+      "afterDbEdges": 1,
+      "beforeAppEdges": 0,
+      "afterAppEdges": 0
+    },
+    {
+      "id": "B-no-pending",
+      "before": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "cuts": [
+          {
+            "cut": "one_wait",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "after": {
+        "result": "UNKNOWN",
+        "cuts": [
+          {
+            "cut": "one_wait",
+            "result": "UNKNOWN",
+            "contradictions": [],
+            "unknowns": [
+              "W4: NO_ORIENTED_WAIT_HYPOTHESIS"
+            ],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "beforeDbEdges": 0,
+      "afterDbEdges": 0,
+      "beforeAppEdges": 0,
+      "afterAppEdges": 0
+    },
+    {
+      "id": "B-one-incomplete-cut",
+      "before": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "cuts": [
+          {
+            "cut": "one_wait",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [],
+            "claims": [
+              "C11"
+            ]
+          },
+          {
+            "cut": "missing",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "after": {
+        "result": "UNKNOWN",
+        "cuts": [
+          {
+            "cut": "one_wait",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [],
+            "claims": [
+              "C11"
+            ]
+          },
+          {
+            "cut": "missing",
+            "result": "UNKNOWN",
+            "contradictions": [],
+            "unknowns": [
+              "W4: NO_ORIENTED_WAIT_HYPOTHESIS",
+              "W4: acquisition/retention unproven for a1"
+            ],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "beforeDbEdges": 1,
+      "afterDbEdges": 1,
+      "beforeAppEdges": 0,
+      "afterAppEdges": 0
+    },
+    {
+      "id": "required-incomplete-cut",
+      "before": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "cuts": [
+          {
+            "cut": "incomplete",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "after": {
+        "result": "UNKNOWN",
+        "cuts": [
+          {
+            "cut": "incomplete",
+            "result": "UNKNOWN",
+            "contradictions": [],
+            "unknowns": [
+              "W4: NO_ORIENTED_WAIT_HYPOTHESIS"
+            ],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "beforeDbEdges": 0,
+      "afterDbEdges": 0,
+      "beforeAppEdges": 1,
+      "afterAppEdges": 1
+    },
+    {
+      "id": "nested-incomplete-cut",
+      "before": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "cuts": [
+          {
+            "cut": "incomplete",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [],
+            "unknowns": [],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "after": {
+        "result": "UNKNOWN",
+        "cuts": [
+          {
+            "cut": "incomplete",
+            "result": "UNKNOWN",
+            "contradictions": [],
+            "unknowns": [
+              "W4: NO_ORIENTED_WAIT_HYPOTHESIS"
+            ],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "beforeDbEdges": 0,
+      "afterDbEdges": 0,
+      "beforeAppEdges": 1,
+      "afterAppEdges": 1
+    },
+    {
+      "id": "frontier-incomplete-cut",
+      "before": {
+        "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+        "cuts": [
+          {
+            "cut": "frontier",
+            "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+            "contradictions": [
+              "pending invocation is not the prefix boundary: a/O2",
+              "prefix crosses UNRESOLVED_CALL frontier"
+            ],
+            "unknowns": [],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "after": {
+        "result": "UNKNOWN",
+        "cuts": [
+          {
+            "cut": "frontier",
+            "result": "UNKNOWN",
+            "contradictions": [
+              "pending invocation is not the prefix boundary: a/O2",
+              "prefix crosses UNRESOLVED_CALL frontier"
+            ],
+            "unknowns": [
+              "prefix crosses UNRESOLVED_CALL frontier"
+            ],
+            "claims": []
+          }
+        ],
+        "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+      },
+      "beforeDbEdges": 0,
+      "afterDbEdges": 0,
+      "beforeAppEdges": 0,
+      "afterAppEdges": 0
+    }
+  ],
+  "degradationScope": "Eight exercised variants, not an exhaustive enumeration. Historical 31 static oracle outcomes unchanged. Original A/B/C artifacts regenerate byte-identically.",
+  "integrity": {
+    "status": "PASS",
+    "initialManifest": "/private/tmp/mana-s02-i01-f01/baseline.json",
+    "initialManifestSha256": "321c841d1b85c3db0479ed709785ee800870ce4024aca693ff323ade3fb2bc06",
+    "initialFiles": 1356,
+    "unchangedInitialFiles": 1353,
+    "changedAuthorizedFiles": [
+      {
+        "path": "scripts/mana-wait-dependencies.py",
+        "before": {
+          "sha256": "1bd984f083dc1ba6b8034a346d85869fe0b5b4236ad58caca0dfea7e95b9f816",
+          "bytes": 10020,
+          "mode": 33188
+        },
+        "after": {
+          "sha256": "5f1180525965eac9bdd4de670d16032091d45d83594616ee5e48074a8bbb9dad",
+          "bytes": 10546,
+          "mode": 33188
+        }
+      },
+      {
+        "path": "scripts/skill_factory/transactions/wait_dependencies.py",
+        "before": {
+          "sha256": "6b95d22c0aafcbd443c1d53f894caaca7cc86197305a358119217696c2453cd1",
+          "bytes": 52835,
+          "mode": 33188
+        },
+        "after": {
+          "sha256": "1d99e1df9894592c8ec7e90bbfd555aac786f70c79874f65ac6af99855abe7c1",
+          "bytes": 55747,
+          "mode": 33188
+        }
+      },
+      {
+        "path": "scripts/skill_factory/transactions/wait_validation.py",
+        "before": {
+          "sha256": "275a534ead6eaaed04dbc59c2cf3aa271b45a20a8cab804215764b8d1291d177",
+          "bytes": 8541,
+          "mode": 33188
+        },
+        "after": {
+          "sha256": "009d43bfa59c71612cc1168546b22f0a121b3168de1a4fa9b39878012caa3fc9",
+          "bytes": 13243,
+          "mode": 33188
+        }
+      }
+    ],
+    "unexpectedChanges": [],
+    "missingFiles": [],
+    "historical1352ChangedOnlyAuthorized": [
+      "scripts/mana-wait-dependencies.py",
+      "scripts/skill_factory/transactions/wait_dependencies.py",
+      "scripts/skill_factory/transactions/wait_validation.py"
+    ],
+    "protectedFiles": [
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv",
+        "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+        "bytes": 59758,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json",
+        "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+        "bytes": 402294,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md",
+        "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+        "bytes": 9130,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv",
+        "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+        "bytes": 19414,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01-T02.md",
+        "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+        "bytes": 1274,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01.md",
+        "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+        "bytes": 3593,
+        "mode": 420,
+        "matchesInitial": true,
+        "matchesHistoricalReceipt": true
+      }
+    ],
+    "expectedNewFiles": [
+      "docs/reports/TRANSACTION-01-T02-S02-I01-F01-results.json",
+      "docs/reports/TRANSACTION-01-T02-S02-I01-F01-witnesses.json",
+      "docs/reports/TRANSACTION-01-T02-S02-I01-F01.md",
+      "docs/reports/TRANSACTION-01-T02-S02-I01-F01.patch",
+      "tests/wait-dependencies-negative-evidence.py"
+    ],
+    "refsUnchanged": true,
+    "headBranchUnchanged": true,
+    "indexDiffUnchangedAndEmpty": true,
+    "worktreeListUnchanged": true,
+    "trackedPreexistingBytesPreserved": true
+  },
+  "gitFinal": {
+    "status --porcelain=v1 --untracked-files=all": " M docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv\n M docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv\n M docs/roadmap/TRANSACTION-01.md\n?? docs/architecture/MANA-EXEC-CONTRACT-001.md\n?? docs/examples/transaction-01-t02-s02/A/application.mmd\n?? docs/examples/transaction-01-t02-s02/A/cross-layer.mmd\n?? docs/examples/transaction-01-t02-s02/A/database-common.mmd\n?? docs/examples/transaction-01-t02-s02/A/inputs/ta.json\n?? docs/examples/transaction-01-t02-s02/A/inputs/tb.json\n?? docs/examples/transaction-01-t02-s02/A/report.md\n?? docs/examples/transaction-01-t02-s02/A/scenario.json\n?? docs/examples/transaction-01-t02-s02/A/wait-dependency.json\n?? docs/examples/transaction-01-t02-s02/B/application.mmd\n?? docs/examples/transaction-01-t02-s02/B/cross-layer.mmd\n?? docs/examples/transaction-01-t02-s02/B/database-one_wait.mmd\n?? docs/examples/transaction-01-t02-s02/B/inputs/ta.json\n?? docs/examples/transaction-01-t02-s02/B/inputs/tb.json\n?? docs/examples/transaction-01-t02-s02/B/report.md\n?? docs/examples/transaction-01-t02-s02/B/scenario.json\n?? docs/examples/transaction-01-t02-s02/B/wait-dependency.json\n?? docs/examples/transaction-01-t02-s02/C/application.mmd\n?? docs/examples/transaction-01-t02-s02/C/cross-layer.mmd\n?? docs/examples/transaction-01-t02-s02/C/database-replacement.mmd\n?? docs/examples/transaction-01-t02-s02/C/inputs/t.json\n?? docs/examples/transaction-01-t02-s02/C/report.md\n?? docs/examples/transaction-01-t02-s02/C/scenario.json\n?? docs/examples/transaction-01-t02-s02/C/wait-dependency.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F02-R1-results.json\n?? docs/reports/TRANSACTION-01-T02-S02-D01-decisions.md\n?? docs/reports/TRANSACTION-01-T02-S02-I01-F01-results.json\n?? docs/reports/TRANSACTION-01-T02-S02-I01-F01-witnesses.json\n?? docs/reports/TRANSACTION-01-T02-S02-I01-F01.md\n?? docs/reports/TRANSACTION-01-T02-S02-I01-F01.patch\n?? docs/reports/TRANSACTION-01-T02-S02-I01-R1-checks.py\n?? docs/reports/TRANSACTION-01-T02-S02-I01-R1-counterexamples.py\n?? docs/reports/TRANSACTION-01-T02-S02-I01-R1-results.json\n?? docs/reports/TRANSACTION-01-T02-S02-I01-R1.md\n?? docs/reports/TRANSACTION-01-T02-S02-I01-coverage.csv\n?? docs/reports/TRANSACTION-01-T02-S02-I01-results.json\n?? docs/reports/TRANSACTION-01-T02-S02-I01.md\n?? docs/reports/TRANSACTION-01-T02-S02-I01.patch\n?? docs/reports/TRANSACTION-01-T02-S02-contract.md\n?? docs/reports/TRANSACTION-01-T02-S02-implementation-plan.md\n?? docs/reports/TRANSACTION-01-T02-S02-oracles.csv\n?? docs/roadmap/TRANSACTION-01-T02.md\n?? docs/standards/wait-dependency-model-v1.md\n?? scripts/mana-wait-dependencies.py\n?? scripts/skill_factory/transactions/wait_dependencies.py\n?? scripts/skill_factory/transactions/wait_validation.py\n?? tests/fixtures/wait-dependencies/README.md\n?? tests/fixtures/wait-dependencies/context.json\n?? tests/fixtures/wait-dependencies/oracles.json\n?? tests/fixtures/wait-dependencies/pom.xml\n?? tests/fixtures/wait-dependencies/scenarios.py\n?? tests/fixtures/wait-dependencies/src/main/java/fixture/Waits.java\n?? tests/wait-dependencies-negative-evidence.py\n?? tests/wait-dependencies.py\n",
+    "show-ref": "9d3468101ccdcf40f680418955be17aec098c9e6 refs/heads/develop\nb17fad0ec97671b581bfce110e513a93c455e7ca refs/heads/feature/analysis-trajectory-guard\n34e9a4a3125ec5b257bc053e647eaf54bab0a154 refs/heads/feature/c03-producer-integration\n8f247d5b9bf8c95666fbcf2112801654be796d8a refs/heads/feature/feedback-index-recovery\nab0ff5b9dab31bd355a0ba1c0d9bd8f1d6b39c1e refs/heads/feature/feedback-large-reads\ndb33a59051d0d736615b54c983e5ff178717fe2c refs/heads/feature/feedback-operation-namespace\nde74dd0bb477b209eb56c2ce41f7e6260919a274 refs/heads/feature/feedback-portable-operations\n6e5a8e0a6db36871c8dfda4da639fa7920f6db09 refs/heads/feature/feedback-replanning-activity-pages\n2cc7a67db7f23bd9f4710d0098bfe8976a6ddba4 refs/heads/feature/human-choice-projection\nb81fd8b1401b532b4a2126d6ab839e7322784c2f refs/heads/feature/m08-knowledge-retrieval-automation\n8b5d4ed3522c4b145fdb1fd87481107ecc90b77b refs/heads/feature/mana-context-runtime-v2\ndc8df352a86dc6f5cbe54aeb6aa60bd86f4d0ac3 refs/heads/feature/mana-learning\n378243883adb101a7a41feef71e2a66b76e7f508 refs/heads/feature/mana-meta-skill-00\ne3537e3f8c8329a71615fe59d496757d5392c6a8 refs/heads/feature/mana-transaction-01\n9d3468101ccdcf40f680418955be17aec098c9e6 refs/heads/feature/mana-transaction-02\n7fa79f82f01157fb66974d85955a4e192a639664 refs/heads/feature/story-start-scope-v2\n1ee21eb6ce22d2b2c0e0c8205520221b2e3f9d69 refs/heads/feature/windows-inspect-performance\n5decaa0acce2a8b02c38b86272627ac840662040 refs/heads/fix/bash-3-heredoc-compat\n897cae6a07c52f04133e639b0186794e8d182b9d refs/heads/fix/codex-config-toml\n205fff8bee1073fdc519b7562690bedfcc541a3b refs/heads/fix/g00-fix-01-windows-context-runtime\n227c75ede2785c87c5b12d1f35dd2729c4902a86 refs/heads/fix/mana-agent-model-routing\nd129c3e9cd8668a192d4b3dc0845fcbb2d9073d1 refs/heads/main\n82b53c400d08270cbd8671b454c570848dd0ec54 refs/heads/work/c01-i00-reviewed-20261014\na6677eb19d91e56b1ce79017f7440f17c06b6dc5 refs/heads/work/c01-s01-i01-r2-reviewed-batch\n205fff8bee1073fdc519b7562690bedfcc541a3b refs/heads/work/win-01-v1\ncbc4af61b309190d110ab8379450d0eef96d585a refs/original/refs/heads/develop\ncbc4af61b309190d110ab8379450d0eef96d585a refs/original/refs/remotes/origin/develop\n2e53afb03cf60a516002fc6c311032c7aafa82f3 refs/original/refs/stash\nad8730ebe70f494ac24a80fbf32fcf2b30cdef35 refs/remotes/origin/develop\nb17fad0ec97671b581bfce110e513a93c455e7ca refs/remotes/origin/feature/analysis-trajectory-guard\n34e9a4a3125ec5b257bc053e647eaf54bab0a154 refs/remotes/origin/feature/c03-producer-integration\n90465b1fa3a9df56df1e67db68adcc6b978963d5 refs/remotes/origin/feature/feedback-large-reads\n4e92a95ec62f1f41ccf65c810bf9e33b6a802149 refs/remotes/origin/feature/feedback-portable-operations\n6e5a8e0a6db36871c8dfda4da639fa7920f6db09 refs/remotes/origin/feature/feedback-replanning-activity-pages\nb81fd8b1401b532b4a2126d6ab839e7322784c2f refs/remotes/origin/feature/m08-knowledge-retrieval-automation\n8b5d4ed3522c4b145fdb1fd87481107ecc90b77b refs/remotes/origin/feature/mana-context-runtime-v2\n1ee21eb6ce22d2b2c0e0c8205520221b2e3f9d69 refs/remotes/origin/feature/windows-inspect-performance\n897cae6a07c52f04133e639b0186794e8d182b9d refs/remotes/origin/fix/codex-config-toml\n227c75ede2785c87c5b12d1f35dd2729c4902a86 refs/remotes/origin/fix/mana-agent-model-routing\nd129c3e9cd8668a192d4b3dc0845fcbb2d9073d1 refs/remotes/origin/main\n008d110aa91e96e06ae8626777c6d54fede6fb39 refs/remotes/origin/safety/develop-pre-sync-20261019\n170ce7f05849e242f24983c36c537b954a057af4 refs/stash\n2944c14a99bf2eeb70c4722f5aea484f37680058 refs/tags/v0.3.0\n4e92ae9e99b9e32a6930d10071de47046be9f8e0 refs/tags/v0.4.0\n4b02e9fb2462cb5d850399b6cee6d831a6b41a2a refs/tags/v0.4.1\nc531aa37a235f215856009c1af159f92f11978d6 refs/tags/v0.5.0\n",
+    "diff --cached": "",
+    "worktree list --porcelain": "worktree /Users/zel/projects/mana\nHEAD 9d3468101ccdcf40f680418955be17aec098c9e6\nbranch refs/heads/develop\n\nworktree /private/tmp/mana-c01-s01-i01-r2-20261014/integration/mana\nHEAD a6677eb19d91e56b1ce79017f7440f17c06b6dc5\nbranch refs/heads/work/c01-s01-i01-r2-reviewed-batch\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-c03-producer\nHEAD 34e9a4a3125ec5b257bc053e647eaf54bab0a154\nbranch refs/heads/feature/c03-producer-integration\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-choice-projection\nHEAD 2cc7a67db7f23bd9f4710d0098bfe8976a6ddba4\nbranch refs/heads/feature/human-choice-projection\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-exec-001-20261021\nHEAD e3537e3f8c8329a71615fe59d496757d5392c6a8\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-completion\nHEAD 6e5a8e0a6db36871c8dfda4da639fa7920f6db09\nbranch refs/heads/feature/feedback-replanning-activity-pages\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-index-recovery\nHEAD 8f247d5b9bf8c95666fbcf2112801654be796d8a\nbranch refs/heads/feature/feedback-index-recovery\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-large-reads\nHEAD ab0ff5b9dab31bd355a0ba1c0d9bd8f1d6b39c1e\nbranch refs/heads/feature/feedback-large-reads\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-operation-namespace\nHEAD db33a59051d0d736615b54c983e5ff178717fe2c\nbranch refs/heads/feature/feedback-operation-namespace\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-portable-operations\nHEAD de74dd0bb477b209eb56c2ce41f7e6260919a274\nbranch refs/heads/feature/feedback-portable-operations\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-verification-final\nHEAD 77fe0239fc28b29b76c0027a60474b817456d5bc\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-win-01-v1\nHEAD 205fff8bee1073fdc519b7562690bedfcc541a3b\nbranch refs/heads/work/win-01-v1\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-windows-performance\nHEAD 1ee21eb6ce22d2b2c0e0c8205520221b2e3f9d69\nbranch refs/heads/feature/windows-inspect-performance\nprunable gitdir file points to non-existent location\n\n",
+    "rev-parse HEAD": "9d3468101ccdcf40f680418955be17aec098c9e6\n",
+    "branch --show-current": "develop\n"
+  },
+  "artifacts": {
+    "docs/reports/TRANSACTION-01-T02-S02-I01-F01-witnesses.json": {
+      "sha256": "437dc345211627d0455f56052e99a7933797f6f6795151929e846a192ec7ca0f",
+      "bytes": 263522,
+      "mode": 33188
+    },
+    "docs/reports/TRANSACTION-01-T02-S02-I01-F01.md": {
+      "sha256": "b35e274c1bbb5bb3ce577c7268d84753730628e869ed8e40a343a20bf7e23035",
+      "bytes": 9785,
+      "mode": 33188
+    },
+    "docs/reports/TRANSACTION-01-T02-S02-I01-F01.patch": {
+      "sha256": "e41a783df5e433ac85737b4738651912ac8bf99f81f14b96b04c45d3b10faebb",
+      "bytes": 29504,
+      "mode": 33188
+    },
+    "scripts/mana-wait-dependencies.py": {
+      "sha256": "5f1180525965eac9bdd4de670d16032091d45d83594616ee5e48074a8bbb9dad",
+      "bytes": 10546,
+      "mode": 33188
+    },
+    "scripts/skill_factory/transactions/wait_dependencies.py": {
+      "sha256": "1d99e1df9894592c8ec7e90bbfd555aac786f70c79874f65ac6af99855abe7c1",
+      "bytes": 55747,
+      "mode": 33188
+    },
+    "scripts/skill_factory/transactions/wait_validation.py": {
+      "sha256": "009d43bfa59c71612cc1168546b22f0a121b3168de1a4fa9b39878012caa3fc9",
+      "bytes": 13243,
+      "mode": 33188
+    },
+    "tests/wait-dependencies-negative-evidence.py": {
+      "sha256": "31fa1140b16c1e6131599d1860d3bd48662098869a310e8dff940956cab78175",
+      "bytes": 13965,
+      "mode": 33188
+    }
+  },
+  "diff": {
+    "path": "docs/reports/TRANSACTION-01-T02-S02-I01-F01.patch",
+    "basis": "Incremental against initial uncommitted I01 bytes; three modified files plus new targeted test, not a HEAD diff",
+    "excludedDeliverables": "Report, results and full witnesses are separate to avoid duplicating evidence in patch"
+  },
+  "risks": [
+    "No independent review of this remediation has been executed.",
+    "Validator uses shared source/W primitives, but negative authorization is separate from producer assessment and full reprojection.",
+    "Explicit assumptions are conditional premises, not authenticated runtime facts; digests establish byte identity.",
+    "Scope remains two instances, two opaque resources, four selected operations and one REQUIRES_NEW level.",
+    "Comparison and edge budget guards tested with reduced limits, not maximum-load benchmarking."
+  ],
+  "notRun": [
+    "J01-J04 runtime ingestion/correlation",
+    "Real databases and providers",
+    "CI",
+    "External Mermaid renderer",
+    "New independent remediation review"
+  ],
+  "governance": {
+    "commit": false,
+    "merge": false,
+    "push": false,
+    "newWorktree": false,
+    "clone": false,
+    "repositoryBackup": false,
+    "familiarModified": false,
+    "rel01aModified": false,
+    "skillsActivated": false,
+    "canonicalT01S01Modified": false,
+    "stopAtDelivery": true
+  },
+  "iterations": {
+    "firstI01Run": "21/22 PASS; frontier contradiction compatibility preserved in subsequent correction; historical test unchanged",
+    "finalI01Run": "22/22 PASS"
+  },
+  "receiptPolicy": "Receipt excludes its own hash; full initial manifest and bounded original implementation snapshots are external. No repository copy."
+}

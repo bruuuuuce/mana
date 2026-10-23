@@ -1,0 +1,8 @@
+%% Typed cross-layer relations; these are not DB wait edges
+flowchart LR
+  N1["frame a/F1"]
+  N2["P a/P1"]
+  N1 -. EXECUTES_IN .-> N2
+  N3["frame b/F1"]
+  N4["P b/P1"]
+  N3 -. EXECUTES_IN .-> N4

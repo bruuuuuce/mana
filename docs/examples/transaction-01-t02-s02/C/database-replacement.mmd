@@ -1,0 +1,6 @@
+%% DB graph: one common cut replacement
+%% CONDITIONAL only. Arrows are waiter -> blocker (or caller -> callee).
+flowchart LR
+  N1["a/P1"]
+  N2["a/P2"]
+  N2 -->|"X CONDITIONAL cut=replacement"| N1

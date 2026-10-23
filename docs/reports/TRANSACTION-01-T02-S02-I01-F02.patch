@@ -1,0 +1,1103 @@
+diff --git a/scripts/mana-wait-dependencies.py b/scripts/mana-wait-dependencies.py
+--- a/scripts/mana-wait-dependencies.py
++++ b/scripts/mana-wait-dependencies.py
+@@ -92,6 +92,9 @@
+             "Insufficient evidence to qualify the modeled cut. An empty database graph does not establish absence of dependencies or cycles.",
+             "",
+         ]
++    if report["assessment"].get("exclusionProof"):
++        proof = report["assessment"]["exclusionProof"]
++        lines += ["Exclusion: " + proof["kind"] + " (" + proof["rule"] + ").", ""]
+     for cut in report["assessment"]["cuts"]:
+         edges = [e for e in report["databaseGraph"]["edges"] if e["cut"] == cut["cut"]]
+         text = diagram(
+@@ -108,6 +111,13 @@
+             "```",
+             "",
+         ]
++        if cut.get("exclusionProof"):
++            proof = cut["exclusionProof"]
++            lines += ["", "Exclusion: " + proof["kind"] + " (" + proof["rule"] + ")."]
++            if proof["kind"] == "STRUCTURAL_EXCLUSION":
++                lines += [
++                    "Acyclic source upper bound; missing lock evidence remains unknown. Possible edges in this proof are not qualified DB waits."
++                ]
+         for problem in cut["contradictions"] + cut["unknowns"]:
+             lines.append("- " + problem)
+     if not report["assessment"]["cuts"]:
+@@ -140,7 +150,15 @@
+                 + ", ".join(w["premises"])
+             ]
+     lines += ["", "## Coverage and limits", ""]
+-    if report["assessment"]["result"] == "UNKNOWN":
++    if (
++        report["assessment"]["result"] == "UNKNOWN"
++        or any(
++            c.get("exclusionProof", {}).get("kind") == "STRUCTURAL_EXCLUSION"
++            for c in report["assessment"]["cuts"]
++            if c.get("exclusionProof")
++        )
++        or report["assessment"].get("exclusionProof")
++    ):
+         for unknown in report["unknowns"]:
+             lines.append(
+                 "- "
+@@ -280,6 +298,16 @@
+                     "status": "VALIDATED" if args.validate else report["status"],
+                     "assessment": report["assessment"]["result"],
+                     "coverage": report["coverage"]["status"],
++                    "exclusionProofs": [
++                        c["exclusionProof"]["kind"]
++                        for c in report["assessment"]["cuts"]
++                        if c.get("exclusionProof")
++                    ]
++                    + (
++                        [report["assessment"]["exclusionProof"]["kind"]]
++                        if report["assessment"].get("exclusionProof")
++                        else []
++                    ),
+                 }
+             )
+         )
+diff --git a/scripts/skill_factory/transactions/wait_dependencies.py b/scripts/skill_factory/transactions/wait_dependencies.py
+--- a/scripts/skill_factory/transactions/wait_dependencies.py
++++ b/scripts/skill_factory/transactions/wait_dependencies.py
+@@ -954,6 +954,92 @@
+         and len({node_id(o["namespace"]) for o in selected.values()}) == 1
+         and len({o["observation"]["frame"] for o in selected.values()}) >= 2
+     )
++
++
++def structural_exclusion(s, cut, selected, apps, consistency, compare):
++    """Prove acyclicity of a supergraph, never infer missing lock facts.
++
++    Every frontier operation is a possible waiter, even if pending is omitted.
++    Every prior operation is a possible holder, regardless of W2-W5. W1/W6
++    alone exclude pairs. Active application completions are included so that
++    a missing outer holding cannot hide a REQUIRES_NEW completion circuit.
++    """
++    problems, unresolved = consistency
++    if not selected or problems or any(not u.startswith("W4:") for u in unresolved):
++        return None
++    if len(selected) != sum(
++        len(s.report(pid)["observations"]) for pid in s.participants
++    ):
++        # An omitted source operation may hide another acquisition. In contrast
++        # to evidence-complete exclusion, this proof needs the whole inventory.
++        return None
++    for pid, before in cut["prefixes"].items():
++        if any(
++            e["kind"] == "UNRESOLVED_CALL" and e["sequence"] <= before
++            for e in s.report(pid)["transactionModel"]["events"]
++        ):
++            return None
++    if any(
++        o["t01Sequence"] is None or o["namespace"]["originalPhysicalId"] is None
++        for o in selected.values()
++    ):
++        return None
++    states = {
++        pid: prefix_state(s, pid, before) for pid, before in cut["prefixes"].items()
++    }
++    edges = []
++    for q in selected.values():
++        qp, physical = (
++            q["namespace"]["participantId"],
++            q["namespace"]["originalPhysicalId"],
++        )
++        if (
++            q["t01Sequence"] != cut["prefixes"][qp]
++            or physical not in states[qp][0]
++            or physical in states[qp][1]
++        ):
++            continue
++        for h in selected.values():
++            compare()
++            hp = h["namespace"]["participantId"]
++            if (
++                h["namespace"] != q["namespace"]
++                and h["t01Sequence"] < cut["prefixes"][hp]
++                and h["namespace"]["originalPhysicalId"] in states[hp][0]
++            ):
++                edges.append(
++                    {
++                        "from": node_id(q["namespace"]),
++                        "to": node_id(h["namespace"]),
++                        "type": "POSSIBLE_DB_WAIT",
++                        "evidence": [q["id"], h["id"]],
++                    }
++                )
++    for app in apps:
++        compare()
++        pid = app["participant"]
++        if app["enterT01Sequence"] < cut["prefixes"][pid] <= app["exitT01Sequence"]:
++            if app["callerPhysical"] is None or app["calleePhysical"] is None:
++                return None
++            if app["callerPhysical"] != app["calleePhysical"]:
++                edges.append(
++                    {
++                        "from": node_id(namespace(s, pid, app["callerPhysical"])),
++                        "to": node_id(namespace(s, pid, app["calleePhysical"])),
++                        "type": "APPLICATION_COMPLETION",
++                        "evidence": [copy.deepcopy(app)],
++                    }
++                )
++    if structural_cycle(edges):
++        return None
++    return {
++        "kind": "STRUCTURAL_EXCLUSION",
++        "rule": "ACYCLIC_CAUSAL_SUPERGRAPH",
++        "operationRefs": sorted(o["id"] for o in selected.values()),
++        "prefixes": copy.deepcopy(cut["prefixes"]),
++        "upperBoundEdges": edges,
++        "scope": "Selected operations at this cut; no lock or runtime absence asserted.",
++    }
+ 
+ 
+ def build_report(raw_inputs, sidecar):
+@@ -1298,15 +1384,27 @@
+             )
+             else "NO_CYCLE_IN_MODELED_SCENARIO"
+         )
+-        if result == "UNKNOWN":
+-            unresolved = list(unresolved) + missing_holds
+-            for candidate in candidates:
+-                if candidate["cut"] == cut["id"] and candidate["status"] == "UNKNOWN":
+-                    unresolved.extend(
+-                        w["id"] + ": " + w["reason"]
+-                        for w in candidate["obligations"]
+-                        if w["state"] == "UNKNOWN"
+-                    )
++        proof = None
++        if result == "NO_CYCLE_IN_MODELED_SCENARIO":
++            proof = {
++                "kind": "EVIDENCE_COMPLETE_EXCLUSION",
++                "rule": "QUALIFIED_OR_CONTRADICTED_CANDIDATES",
++                "candidateRefs": [c["id"] for c in candidates if c["cut"] == cut["id"]],
++            }
++        elif result == "UNKNOWN" and not unsupported:
++            proof = structural_exclusion(
++                s, cut, selected, app_sources, (problems, unresolved), compare
++            )
++            if proof is not None:
++                result = "NO_CYCLE_IN_MODELED_SCENARIO"
++        unresolved = list(unresolved) + missing_holds
++        for candidate in candidates:
++            if candidate["cut"] == cut["id"] and candidate["status"] == "UNKNOWN":
++                unresolved.extend(
++                    w["id"] + ": " + w["reason"]
++                    for w in candidate["obligations"]
++                    if w["state"] == "UNKNOWN"
++                )
+         cut_results.append(
+             {
+                 "cut": cut["id"],
+@@ -1314,6 +1412,7 @@
+                 "contradictions": problems,
+                 "unknowns": unresolved,
+                 "claims": [e["claim"] for e in edges],
++                "exclusionProof": proof,
+             }
+         )
+         if missing_holds:
+@@ -1332,7 +1431,17 @@
+         r["result"] == "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK" for r in cut_results
+     ):
+         outcome = "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK"
+-    elif structural_cycle(dbedges):
++    elif structural_cycle(
++        dbedges
++        + [
++            e
++            for r in cut_results
++            if r["exclusionProof"]
++            and r["exclusionProof"]["kind"] == "STRUCTURAL_EXCLUSION"
++            for e in r["exclusionProof"]["upperBoundEdges"]
++            if e["type"] == "POSSIBLE_DB_WAIT"
++        ]
++    ):
+         outcome = "CYCLE_FEASIBILITY_UNKNOWN"
+     elif cut_results and all(
+         r["result"] == "NO_CYCLE_IN_MODELED_SCENARIO" for r in cut_results
+@@ -1382,6 +1491,16 @@
+         for p in s.report(pid)["transactionModel"]["physicalTransactions"]:
+             ns = namespace(s, pid, p["id"])
+             physical[node_id(ns)] = ns
++    proof_edge_count = sum(
++        len(r["exclusionProof"].get("upperBoundEdges", []))
++        for r in cut_results
++        if r["exclusionProof"]
++    )
++    serialized_edges = len(dbedges) + len(appedges) + len(cross) + proof_edge_count
++    if serialized_edges > BUDGETS["serializedEdges"]:
++        raise BudgetExceeded(
++            "serialized proof/graph edge budget exceeded; coverage INCOMPLETE"
++        )
+     report = {
+         "schema": "mana.wait-dependency/v1",
+         "status": "CONDITIONAL_STATIC_SCENARIO",
+@@ -1405,7 +1524,7 @@
+             "scopeStatus": "UNSUPPORTED" if unsupported else "SUPPORTED",
+             "budgets": dict(BUDGETS),
+             "candidateComparisons": comparisons,
+-            "serializedEdges": len(dbedges) + len(appedges) + len(cross),
++            "serializedEdges": serialized_edges,
+             "inventoryOperations": len(operations),
+             "selectedOperations": len(selected),
+             "globalRiskAbsence": "NOT_ASSERTED",
+@@ -1415,6 +1534,13 @@
+             "result": outcome,
+             "cuts": cut_results,
+             "scope": "Only selected operations, explicit abstract rules and listed witness cuts.",
++            "exclusionProof": {
++                "kind": "STRUCTURAL_EXCLUSION",
++                "rule": "SINGLE_PHYSICAL_IDENTITY",
++                "operationRefs": sorted(o["id"] for o in selected.values()),
++            }
++            if outcome == "NO_CYCLE_IN_MODELED_SCENARIO" and not s.cuts
++            else None,
+         },
+     }
+     if len(encoded(report)) > BUDGETS["sidecarBytes"]:
+diff --git a/scripts/skill_factory/transactions/wait_validation.py b/scripts/skill_factory/transactions/wait_validation.py
+--- a/scripts/skill_factory/transactions/wait_validation.py
++++ b/scripts/skill_factory/transactions/wait_validation.py
+@@ -15,7 +15,6 @@
+     obligations,
+     require,
+     scope_problems,
+-    single_physical_scope,
+     structural_cycle,
+     unique,
+ )
+@@ -27,6 +26,149 @@
+     "DB_WAIT_DEPENDENCY",
+     "APPLICATION_WAIT_DEPENDENCY",
+ }
++
++
++def acyclic_source_graph(edges):
++    """Independent topological check; does not call the producer's DFS."""
++    adjacency, indegree = {}, {}
++    for edge in edges:
++        a, b = edge["from"], edge["to"]
++        adjacency.setdefault(a, []).append(b)
++        indegree.setdefault(a, 0)
++        indegree[b] = indegree.get(b, 0) + 1
++    ready = [n for n, degree in indegree.items() if degree == 0]
++    removed = 0
++    while ready:
++        n = ready.pop()
++        removed += 1
++        for child in adjacency.get(n, []):
++            indegree[child] -= 1
++            if indegree[child] == 0:
++                ready.append(child)
++    return removed == len(indegree)
++
++
++def source_completion_edges(s, cut, apps, compare):
++    edges = []
++    for app in apps:
++        compare()
++        pid = app["participant"]
++        if not app["enterT01Sequence"] < cut["prefixes"][pid] <= app["exitT01Sequence"]:
++            continue
++        require(
++            app["callerPhysical"] is not None and app["calleePhysical"] is not None,
++            "exclusion has unknown application context",
++        )
++        if app["callerPhysical"] != app["calleePhysical"]:
++            template = {
++                "scenarioId": s.value["id"],
++                "participantId": pid,
++                "inputDigest": s.inputs.meta[s.participants[pid]["input"]]["sha256"],
++            }
++            edges.append(
++                {
++                    "from": node_id(
++                        {**template, "originalPhysicalId": app["callerPhysical"]}
++                    ),
++                    "to": node_id(
++                        {**template, "originalPhysicalId": app["calleePhysical"]}
++                    ),
++                    "type": "APPLICATION_COMPLETION",
++                    "evidence": [app],
++                }
++            )
++    return edges
++
++
++def validate_structural_exclusion(s, cut, selected, apps, proof, consistency, compare):
++    """Verify the certificate without the producer's proof/cycle functions.
++
++    Reconstruct all possible frontier/prior pairs and active app links, then
++    eliminate zero-indegree nodes. Unknown lock facts never remove an edge.
++    """
++    problems, unresolved = consistency
++    require(
++        not problems and all(u.startswith("W4:") for u in unresolved),
++        "structural exclusion has unresolved causal scope",
++    )
++    require(selected, "structural exclusion requires selected source operations")
++    require(
++        len(selected)
++        == sum(len(s.report(pid)["observations"]) for pid in s.participants),
++        "structural exclusion omits source operations",
++    )
++    live, suspended = {}, {}
++    for pid, before in cut["prefixes"].items():
++        live[pid], suspended[pid] = set(), set()
++        for e in s.report(pid)["transactionModel"]["events"]:
++            require(
++                e["kind"] != "UNRESOLVED_CALL" or e["sequence"] > before,
++                "structural exclusion crosses an unresolved frontier",
++            )
++            if e["sequence"] >= before:
++                continue
++            if e["kind"] == "PHYSICAL_BEGIN":
++                live[pid].add(e["entity"])
++            elif e["kind"] == "PHYSICAL_END_OUTCOME_UNKNOWN":
++                live[pid].discard(e["entity"])
++            elif e["kind"] == "SUSPEND":
++                suspended[pid].add(e["physicalId"])
++            elif e["kind"] == "RESUME_CONDITIONAL":
++                suspended[pid].discard(e["physicalId"])
++    require(
++        all(
++            o["t01Sequence"] is not None
++            and o["namespace"]["originalPhysicalId"] is not None
++            for o in selected.values()
++        ),
++        "structural exclusion needs identified positioned endpoints",
++    )
++    expected = []
++    for q in selected.values():
++        qp, physical = (
++            q["namespace"]["participantId"],
++            q["namespace"]["originalPhysicalId"],
++        )
++        if (
++            q["t01Sequence"] != cut["prefixes"][qp]
++            or physical not in live[qp]
++            or physical in suspended[qp]
++        ):
++            continue
++        for h in selected.values():
++            compare()
++            hp = h["namespace"]["participantId"]
++            if (
++                h["namespace"] != q["namespace"]
++                and h["t01Sequence"] < cut["prefixes"][hp]
++                and h["namespace"]["originalPhysicalId"] in live[hp]
++            ):
++                expected.append(
++                    {
++                        "from": node_id(q["namespace"]),
++                        "to": node_id(h["namespace"]),
++                        "type": "POSSIBLE_DB_WAIT",
++                        "evidence": [q["id"], h["id"]],
++                    }
++                )
++    expected.extend(source_completion_edges(s, cut, apps, compare))
++    require(
++        proof
++        == {
++            "kind": "STRUCTURAL_EXCLUSION",
++            "rule": "ACYCLIC_CAUSAL_SUPERGRAPH",
++            "operationRefs": sorted(o["id"] for o in selected.values()),
++            "prefixes": cut["prefixes"],
++            "upperBoundEdges": expected,
++            "scope": "Selected operations at this cut; no lock or runtime absence asserted.",
++        },
++        "structural exclusion certificate differs from authoritative source upper bound",
++    )
++    require(
++        acyclic_source_graph(expected),
++        "structural exclusion upper bound contains a DB/application circuit",
++    )
++    return [e for e in expected if e["type"] == "POSSIBLE_DB_WAIT"]
+ 
+ 
+ def validate_negative_assessments(report, raw_inputs):
+@@ -44,7 +186,7 @@
+     value = report["scenario"]
+     s = Scenario(value, Inputs(raw_inputs, unique(value["inputs"])))
+     require(not scope_problems(s), "NO_CYCLE requires supported complete cut scope")
+-    operations, _, _ = inventory(s)
++    operations, apps, _ = inventory(s)
+     opmap = {o["id"]: o for o in operations}
+     selected = {
+         key: opmap[o["participant"] + "/" + o["observation"]]
+@@ -55,16 +197,34 @@
+         "NO_CYCLE cut inventory differs from source scenario",
+     )
+     if global_negative:
+-        require(
+-            all(c["result"] == negative for c in cuts)
+-            if s.cuts
+-            else single_physical_scope(selected),
++        same_identity = (
++            len(selected) >= 2
++            and all(
++                o["namespace"]["originalPhysicalId"] is not None
++                and o["t01Sequence"] is not None
++                for o in selected.values()
++            )
++            and len({node_id(o["namespace"]) for o in selected.values()}) == 1
++            and len({o["observation"]["frame"] for o in selected.values()}) >= 2
++        )
++        require(
++            all(c["result"] == negative for c in cuts) if s.cuts else same_identity,
+             "NO_CYCLE requires every cut qualified or the D00 same-P identity proof",
+         )
+         require(
+             not structural_cycle(report["databaseGraph"]["edges"]),
+             "NO_CYCLE cannot certify a cyclic union of cuts",
+         )
++        if not s.cuts:
++            require(
++                report["assessment"]["exclusionProof"]
++                == {
++                    "kind": "STRUCTURAL_EXCLUSION",
++                    "rule": "SINGLE_PHYSICAL_IDENTITY",
++                    "operationRefs": sorted(o["id"] for o in selected.values()),
++                },
++                "invalid same-P structural exclusion certificate",
++            )
+     comparisons = 0
+     source_edges = []
+ 
+@@ -80,13 +240,83 @@
+         if assessment["result"] != negative:
+             continue
+         cut = s.cuts[assessment["cut"]]
++        proof = assessment.get("exclusionProof")
++        require(
++            isinstance(proof, dict),
++            "NO_CYCLE requires a source exclusion proof; missing W4 cannot be self-certified",
++        )
++        consistency = cut_consistency(s, cut, selected, compare)
++        if proof.get("kind") == "STRUCTURAL_EXCLUSION":
++            bound = validate_structural_exclusion(
++                s, cut, selected, apps, proof, consistency, compare
++            )
++            required_unknowns = list(consistency[1]) + missing_holding_evidence(
++                s, cut, selected, consistency, compare
++            )
++            for qid in cut["pending"]:
++                for held in cut["holdings"]:
++                    compare()
++                    ledger = obligations(
++                        s,
++                        cut,
++                        s.selected[qid],
++                        s.selected[held["operation"]],
++                        held,
++                        selected,
++                        consistency,
++                    )
++                    if not any(w["state"] == "CONTRADICTED" for w in ledger):
++                        required_unknowns.extend(
++                            w["id"] + ": " + w["reason"]
++                            for w in ledger
++                            if w["state"] == "UNKNOWN"
++                        )
++            require(
++                set(required_unknowns) <= set(assessment["unknowns"]),
++                "structural exclusion hides unresolved source evidence",
++            )
++            require(
++                not required_unknowns or report["coverage"]["status"] == "INCOMPLETE",
++                "structural exclusion cannot complete missing lock evidence",
++            )
++            if not cut["pending"] or not cut["holdings"]:
++                require(
++                    {
++                        "cut": cut["id"],
++                        "reason": "NO_ORIENTED_WAIT_HYPOTHESIS",
++                        "missingObligations": ["W4"],
++                    }
++                    in report["unknowns"],
++                    "structural exclusion hides global W4 uncertainty",
++                )
++            allowed = {(e["from"], e["to"]) for e in bound}
++            require(
++                all(
++                    (e["from"], e["to"]) in allowed
++                    for e in report["databaseGraph"]["edges"]
++                    if e["cut"] == cut["id"]
++                ),
++                "DB edge outside structural source upper bound",
++            )
++            source_edges.extend(bound)
++            continue
++        require(
++            proof
++            == {
++                "kind": "EVIDENCE_COMPLETE_EXCLUSION",
++                "rule": "QUALIFIED_OR_CONTRADICTED_CANDIDATES",
++                "candidateRefs": [
++                    c["id"] for c in report["waitCandidates"] if c["cut"] == cut["id"]
++                ],
++            },
++            "invalid evidence-complete exclusion certificate",
++        )
+         # Explicit source guard: a fabricated MODEL_EVIDENCE W4 ledger, an empty
+         # graph, or a COMPLETE coverage flag cannot supply missing holdings.
+         require(
+             cut["pending"] and cut["holdings"],
+             "NO_CYCLE requires W4 request and separate acquisition/retention evidence",
+         )
+-        consistency = cut_consistency(s, cut, selected, compare)
+         require(not consistency[1], "NO_CYCLE has unresolved cut evidence")
+         require(
+             not missing_holding_evidence(s, cut, selected, consistency, compare),
+@@ -121,8 +351,10 @@
+                     )
+         source_edges.extend(cut_edges)
+         require(
+-            not structural_cycle(cut_edges),
+-            "NO_CYCLE contradicts a cycle qualified by source evidence",
++            acyclic_source_graph(
++                cut_edges + source_completion_edges(s, cut, apps, compare)
++            ),
++            "NO_CYCLE contradicts a DB/application cycle qualified by source evidence",
+         )
+         require(
+             not structural_cycle(
+@@ -132,7 +364,7 @@
+         )
+     if global_negative:
+         require(
+-            not structural_cycle(source_edges),
++            acyclic_source_graph(source_edges),
+             "NO_CYCLE contradicts the union of source-qualified cuts",
+         )
+ 
+@@ -327,7 +559,14 @@
+             "missing dependency graph edge",
+         )
+     require(
+-        total + len(report["crossLayerRelations"]) <= BUDGETS["serializedEdges"],
++        total
++        + len(report["crossLayerRelations"])
++        + sum(
++            len(c["exclusionProof"].get("upperBoundEdges", []))
++            for c in report["assessment"]["cuts"]
++            if c.get("exclusionProof")
++        )
++        <= BUDGETS["serializedEdges"],
+         "serialized edge budget exceeded",
+     )
+     require(
+diff --git a/tests/wait-dependencies-proof-exclusions.py b/tests/wait-dependencies-proof-exclusions.py
+new file mode 100644
+--- /dev/null
++++ b/tests/wait-dependencies-proof-exclusions.py
+@@ -0,0 +1,505 @@
++#!/usr/bin/env python3
++"""F02 manual D00 oracles and adversarial source-proof checks.
++
++The independent oracle below uses source observation positions and transitive
++closure, not the engine's inventory, upper-bound builder or cycle detector.
++Historical test sources and their expectations remain unmodified.
++"""
++
++import copy
++import importlib.util
++import json
++import os
++from pathlib import Path
++import subprocess
++import sys
++import tempfile
++import unittest
++from unittest.mock import patch
++
++sys.dont_write_bytecode = True
++ROOT = Path(__file__).resolve().parents[1]
++spec = importlib.util.spec_from_file_location(
++    "source_fixture", ROOT / "tests/wait-dependencies.py"
++)
++f = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(f)
++wd, val = f.wd, sys.modules["skill_factory.transactions.wait_validation"]
++NEG = "NO_CYCLE_IN_MODELED_SCENARIO"
++WITNESSES = []
++
++
++def load(case):
++    base = ROOT / "docs/examples/transaction-01-t02-s02" / case
++    s = json.loads((base / "scenario.json").read_bytes())
++    return {
++        i["id"]: (base / "inputs" / (i["id"] + ".json")).read_bytes()
++        for i in s["inputs"]
++    }, s
++
++
++def source_upper_bound(raw, s, cut):
++    """Small independent oracle; intentionally overapproximates live endpoints."""
++    ops = []
++    app_pairs = set()
++    for p in s["participants"]:
++        report = json.loads(raw[p["input"]])
++        observations = {o["id"]: o for o in report["observations"]}
++        for choice in s["operations"]:
++            if choice["participant"] == p["id"]:
++                o = observations[choice["observation"]]
++                seq, physical = (
++                    o["placement"]["beforeT01Sequence"],
++                    o["transactionContext"]["physicalId"],
++                )
++                assert seq is not None and physical is not None
++                ops.append((p["id"], physical, seq))
++        # Read frame stack directly, without inventory()/app_sources.
++        frames = {x["id"]: x for x in report["transactionModel"]["frames"]}
++        stack = []
++        before = cut["prefixes"][p["id"]]
++        for event in report["transactionModel"]["events"]:
++            if event["sequence"] >= before:
++                break
++            assert event["kind"] != "UNRESOLVED_CALL"
++            if event["kind"] == "FRAME_ENTER":
++                stack.append(event["frame"])
++            elif event["kind"] == "FRAME_EXIT":
++                stack.pop()
++        for a, b in zip(stack, stack[1:]):
++            pa, pb = (
++                frames[a]["duringState"]["physicalId"],
++                frames[b]["duringState"]["physicalId"],
++            )
++            assert pa is not None and pb is not None
++            if pa != pb:
++                app_pairs.add(((p["id"], pa), (p["id"], pb)))
++    pairs = {
++        ((p, physical), (hp, hphysical))
++        for p, physical, seq in ops
++        for hp, hphysical, hseq in ops
++        if seq == cut["prefixes"][p]
++        and hseq < cut["prefixes"][hp]
++        and (p, physical) != (hp, hphysical)
++    }
++    closure = pairs | app_pairs
++    while True:
++        extended = closure | {(a, d) for a, b in closure for c, d in closure if b == c}
++        if extended == closure:
++            break
++        closure = extended
++    return {
++        "dbPairs": sorted(pairs),
++        "appPairs": sorted(app_pairs),
++        "acyclic": not any(a == b for a, b in closure),
++    }
++
++
++class ProofExclusions(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        f.WaitTests.setUpClass()
++
++    @classmethod
++    def tearDownClass(cls):
++        f.WaitTests.tearDownClass()
++
++    def build(self, raw, s):
++        original = copy.deepcopy(s)
++        report = wd.build_report(raw, s)
++        self.assertTrue(val.validate_report(report, raw))
++        self.assertEqual(s, original)
++        return report
++
++    def same_p(self, kind):
++        raw = {"t": f.WaitTests.models[kind]}
++        s = f.scenarios.clear_lock_scenario(
++            f.scenarios.scenario(raw, [("a", "t")], kind)
++        )
++        f.scenarios.cut(s, raw, "incomplete", ["a2"], [])
++        return raw, s
++
++    def expect(self, name, raw, s, result, kind=None):
++        report = self.build(raw, s)
++        self.assertEqual(report["assessment"]["result"], result)
++        if kind:
++            self.assertEqual(
++                report["assessment"]["cuts"][0]["exclusionProof"]["kind"], kind
++            )
++        proof = (
++            source_upper_bound(raw, s, s["cuts"][0])
++            if name != "frontier-incomplete-cut"
++            else None
++        )
++        WITNESSES.append(
++            {
++                "id": name,
++                "expected": result,
++                "actual": report["assessment"],
++                "coverage": report["coverage"],
++                "unknowns": report["unknowns"],
++                "scenario": copy.deepcopy(s),
++                "inputDigests": {k: wd.digest(v) for k, v in raw.items()},
++                "independentOracle": proof,
++            }
++        )
++        return report
++
++    def reject_before_producer(self, report, raw):
++        with patch.object(val, "build_report", return_value=report) as producer:
++            with self.assertRaises(wd.RejectedInput):
++                val.validate_report(report, raw)
++            producer.assert_not_called()
++
++    def forged(self, case):
++        raw, s = load(case)
++        s["cuts"][0]["holdings"] = []
++        r = self.build(raw, s)
++        r["assessment"]["result"] = NEG
++        r["assessment"]["cuts"][0]["result"] = NEG
++        r["assessment"]["cuts"][0]["exclusionProof"] = {
++            "kind": "STRUCTURAL_EXCLUSION",
++            "rule": "ACYCLIC_CAUSAL_SUPERGRAPH",
++            "operationRefs": sorted(o["id"] for o in r["operations"]),
++            "prefixes": s["cuts"][0]["prefixes"],
++            "upperBoundEdges": [],
++            "scope": "Selected operations at this cut; no lock or runtime absence asserted.",
++        }
++        return raw, r
++
++    def test_01_four_justified_degradations_remain_unknown(self):
++        for case in ("A", "C"):
++            raw, s = load(case)
++            s["cuts"][0]["holdings"] = []
++            r = self.expect(case + "-R1-no-holdings", raw, s, "UNKNOWN")
++            self.assertFalse(WITNESSES[-1]["independentOracle"]["acyclic"])
++            self.assertEqual(len(r["applicationGraph"]["edges"]), int(case == "C"))
++        raw, s = load("A")
++        s["cuts"][0]["holdings"].pop()
++        self.expect("A-partial-holder-omission", raw, s, "UNKNOWN")
++        raw = {"t": f.WaitTests.models["frontier"]}
++        s = f.scenarios.scenario(raw, [("a", "t")], "frontier_f02")
++        f.scenarios.cut(s, raw, "frontier", ["a2"], ["a1"], "OUTER_REQUIRES_NEW")
++        s["cuts"][0]["prefixes"]["a"] += 1
++        self.expect("frontier-incomplete-cut", raw, s, "UNKNOWN")
++
++    def test_02_four_unnecessary_degradations_recovered(self):
++        raw, s = load("B")
++        s["cuts"][0]["pending"] = []
++        self.expect("B-no-pending", raw, s, NEG, "STRUCTURAL_EXCLUSION")
++        self.assertTrue(WITNESSES[-1]["independentOracle"]["acyclic"])
++        raw, s = load("B")
++        missing = copy.deepcopy(s["cuts"][0])
++        missing.update(id="missing", holdings=[])
++        s["cuts"].append(missing)
++        r = self.expect(
++            "B-one-incomplete-cut", raw, s, NEG, "EVIDENCE_COMPLETE_EXCLUSION"
++        )
++        self.assertEqual(
++            r["assessment"]["cuts"][1]["exclusionProof"]["kind"], "STRUCTURAL_EXCLUSION"
++        )
++        for kind in ("required", "nested"):
++            raw, s = self.same_p(kind)
++            self.expect(kind + "-incomplete-cut", raw, s, NEG, "STRUCTURAL_EXCLUSION")
++            self.assertTrue(WITNESSES[-1]["independentOracle"]["acyclic"])
++
++    def test_03_complete_acyclic_evidence_route(self):
++        raw, s = load("B")
++        r = self.build(raw, s)
++        self.assertEqual(r["assessment"]["result"], NEG)
++        self.assertEqual(
++            r["assessment"]["cuts"][0]["exclusionProof"]["kind"],
++            "EVIDENCE_COMPLETE_EXCLUSION",
++        )
++
++    def test_04_positive_cycles_and_cross_layer_unchanged(self):
++        for case, result, db in (
++            ("A", "CONDITIONAL_CYCLE_RISK", 2),
++            ("C", "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK", 1),
++        ):
++            raw, s = load(case)
++            r = self.build(raw, s)
++            self.assertEqual(r["assessment"]["result"], result)
++            self.assertEqual(len(r["databaseGraph"]["edges"]), db)
++            self.assertIsNone(r["assessment"]["cuts"][0]["exclusionProof"])
++
++    def test_05_forged_empty_structural_proof_A_rejected(self):
++        raw, r = self.forged("A")
++        self.reject_before_producer(r, raw)
++
++    def test_06_forged_C_cannot_ignore_application_completion(self):
++        raw, r = self.forged("C")
++        self.reject_before_producer(r, raw)
++
++    def test_07_exact_but_cyclic_certificate_rejected_independently(self):
++        raw, r = self.forged("A")
++        cut = r["assessment"]["cuts"][0]
++        ops = {o["id"]: o for o in r["operations"]}
++        cut["exclusionProof"]["upperBoundEdges"] = [
++            {
++                "from": wd.node_id(ops[q]["namespace"]),
++                "to": wd.node_id(ops[h]["namespace"]),
++                "type": "POSSIBLE_DB_WAIT",
++                "evidence": [q, h],
++            }
++            for q, h in (("a/O2", "b/O1"), ("b/O2", "a/O1"))
++        ]
++        self.reject_before_producer(r, raw)
++
++    def test_08_removed_edge_from_valid_proof_rejected(self):
++        raw, s = load("B")
++        s["cuts"][0]["holdings"] = []
++        r = self.build(raw, s)
++        r["assessment"]["cuts"][0]["exclusionProof"]["upperBoundEdges"] = []
++        self.reject_before_producer(r, raw)
++
++    def test_09_proof_scope_and_prefix_tampering_rejected(self):
++        raw, s = self.same_p("required")
++        for field, value in (
++            ("prefixes", {"a": 1}),
++            ("operationRefs", []),
++            ("kind", "EVIDENCE_COMPLETE_EXCLUSION"),
++        ):
++            r = self.build(raw, s)
++            r["assessment"]["cuts"][0]["exclusionProof"][field] = value
++            self.reject_before_producer(r, raw)
++
++    def test_10_missing_evidence_stays_visible(self):
++        raw, s = load("B")
++        s["cuts"][0]["holdings"] = []
++        r = self.build(raw, s)
++        self.assertEqual(r["coverage"]["status"], "INCOMPLETE")
++        self.assertTrue(r["assessment"]["cuts"][0]["unknowns"])
++        for field in ("coverage", "cut-unknowns", "global-unknowns"):
++            forged = copy.deepcopy(r)
++            if field == "coverage":
++                forged["coverage"]["status"] = "COMPLETE_MODELED_SCOPE"
++            elif field == "cut-unknowns":
++                forged["assessment"]["cuts"][0]["unknowns"] = []
++            else:
++                forged["unknowns"] = []
++            self.reject_before_producer(forged, raw)
++
++    def test_11_null_or_unplaced_identity_no_structural_proof(self):
++        for oid in ("O-F07", "O-G01", "O-G03"):
++            raw, s = f.WaitTests.case(f.WaitTests, oid)
++            r = self.build(raw, s)
++            self.assertEqual(r["assessment"]["result"], "UNKNOWN")
++
++    def test_12_partial_inventory_preserves_enlistment_unknown(self):
++        raw, s = f.WaitTests.case(f.WaitTests, "O-F02")
++        self.assertEqual(self.build(raw, s)["assessment"]["result"], "UNKNOWN")
++
++    def test_13_same_P_minimal_no_assumptions(self):
++        for kind in ("required", "nested"):
++            raw, s = self.same_p(kind)
++            s["resources"], s["premises"] = [], []
++            s["participants"][0]["independence"] = None
++            s["lockRule"] = {
++                "id": "none",
++                "version": 1,
++                "modes": [],
++                "compatibility": [],
++                "blockingPremise": None,
++            }
++            s["cuts"][0]["temporal"] = {"kind": "UNKNOWN", "premise": None}
++            for op in s["operations"]:
++                op["resource"] = None
++            r = self.build(raw, s)
++            self.assertEqual(r["assessment"]["result"], NEG)
++            self.assertFalse(r["databaseGraph"]["edges"])
++            self.assertEqual(
++                r["assessment"]["cuts"][0]["exclusionProof"]["upperBoundEdges"], []
++            )
++
++    def test_14_same_P_without_cut_independent_validator(self):
++        raw, s = self.same_p("required")
++        s["cuts"] = []
++        r = self.build(raw, s)
++        self.assertEqual(
++            r["assessment"]["exclusionProof"]["kind"], "STRUCTURAL_EXCLUSION"
++        )
++        with patch.object(wd, "single_physical_scope", return_value=False):
++            with patch.object(val, "build_report", return_value=r):
++                self.assertTrue(val.validate_report(r, raw))
++
++    def test_15_unknown_acquisition_and_dependencies_still_block_A(self):
++        raw, s = load("A")
++        for h in s["cuts"][0]["holdings"]:
++            acquire = next(
++                p for p in s["premises"] if p["id"] == h["acquisitionPremise"]
++            )
++            retain = next(p for p in s["premises"] if p["id"] == h["retentionPremise"])
++            acquire["state"] = "UNKNOWN"
++            retain["dependsOn"] = [acquire["id"]]
++        self.assertEqual(self.build(raw, s)["assessment"]["result"], "UNKNOWN")
++
++    def test_16_no_sidecar_can_self_certify_model_evidence(self):
++        raw, s = load("B")
++        s["premises"][0]["state"] = "MODEL_EVIDENCE"
++        with self.assertRaises(wd.RejectedInput):
++            wd.build_report(raw, s)
++
++    def test_17_budget_guards_include_serialized_proof_edges(self):
++        raw, s = load("B")
++        s["cuts"][0]["holdings"] = []
++        r = self.build(raw, s)
++        graph_edges = sum(
++            len(r[k]["edges"]) for k in ("databaseGraph", "applicationGraph")
++        ) + len(r["crossLayerRelations"])
++        self.assertGreater(r["coverage"]["serializedEdges"], graph_edges)
++        with patch.dict(wd.BUDGETS, {"serializedEdges": graph_edges}):
++            with self.assertRaises(wd.BudgetExceeded):
++                wd.build_report(raw, s)
++        with patch.dict(wd.BUDGETS, {"candidateComparisons": 1}):
++            with self.assertRaises(wd.BudgetExceeded):
++                wd.build_report(raw, s)
++
++    def test_18_incompatible_cuts_and_holdings_still_distinct(self):
++        for oid, expected in (
++            ("O-B02", "CYCLE_FEASIBILITY_UNKNOWN"),
++            ("O-B03", NEG),
++            ("O-G04", NEG),
++        ):
++            raw, s = f.WaitTests.case(f.WaitTests, oid)
++            self.assertEqual(self.build(raw, s)["assessment"]["result"], expected)
++
++    def test_19_cli_proof_unknown_budget_and_altered_sidecar(self):
++        for case in ("A", "B", "C"):
++            raw, s = load(case)
++            s["cuts"][0]["holdings"] = []
++            with tempfile.TemporaryDirectory(prefix="mana-f02-cli-") as tmp:
++                stage = Path(tmp).resolve()
++                scenario = stage / "scenario.json"
++                scenario.write_text(json.dumps(s))
++                args = [
++                    sys.executable,
++                    str(ROOT / "scripts/mana-wait-dependencies.py"),
++                    "--scenario",
++                    str(scenario),
++                ]
++                for key, value in raw.items():
++                    path = stage / (key + ".json")
++                    path.write_bytes(value)
++                    args += ["--timeline", key + "=" + str(path)]
++                generated = subprocess.run(
++                    args + ["--output-dir", str(stage / "out")],
++                    capture_output=True,
++                    text=True,
++                )
++                self.assertEqual(generated.returncode, 0, generated.stderr)
++                summary = json.loads(generated.stdout)
++                self.assertEqual(
++                    summary["assessment"], NEG if case == "B" else "UNKNOWN"
++                )
++                self.assertEqual(
++                    summary["exclusionProofs"],
++                    ["STRUCTURAL_EXCLUSION"] if case == "B" else [],
++                )
++                markdown = (stage / "out/report.md").read_text()
++                self.assertIn("W4", markdown)
++                if case == "B":
++                    self.assertIn("STRUCTURAL_EXCLUSION", markdown)
++                validated = subprocess.run(
++                    args + ["--validate", str(stage / "out/wait-dependency.json")],
++                    capture_output=True,
++                    text=True,
++                )
++                self.assertEqual(validated.returncode, 0, validated.stderr)
++                s["cuts"][0]["pending"] = []
++                scenario.write_text(json.dumps(s))
++                altered = subprocess.run(
++                    args + ["--validate", str(stage / "out/wait-dependency.json")],
++                    capture_output=True,
++                    text=True,
++                )
++                self.assertEqual(altered.returncode, 2)
++                scenario.write_bytes(b" " * (wd.BUDGETS["sidecarBytes"] + 1))
++                limited = subprocess.run(
++                    args + ["--output-dir", str(stage / "budget")],
++                    capture_output=True,
++                    text=True,
++                )
++                self.assertEqual(limited.returncode, 2)
++                self.assertFalse((stage / "budget").exists())
++
++    def test_20_structural_union_cannot_promote_incompatible_directions(self):
++        raw, s = load("B")
++        first = copy.deepcopy(s["cuts"][0])
++        first["holdings"] = []
++        other = copy.deepcopy(first)
++        other.update(id="reverse", prefixes={"a": 4, "b": 5}, pending=["a1", "b2"])
++        s["cuts"] = [first, other]
++        r = self.build(raw, s)
++        self.assertTrue(all(c["result"] == NEG for c in r["assessment"]["cuts"]))
++        self.assertEqual(r["assessment"]["result"], "CYCLE_FEASIBILITY_UNKNOWN")
++        r["assessment"]["result"] = NEG
++        self.reject_before_producer(r, raw)
++
++    def test_21_namespace_never_merges_replicated_local_P1(self):
++        raw, s = load("A")
++        s["cuts"][0]["holdings"] = []
++        self.assertEqual(len(self.build(raw, s)["databaseGraph"]["nodes"]), 2)
++        self.assertFalse(source_upper_bound(raw, s, s["cuts"][0])["acyclic"])
++
++    def test_22_validator_does_not_call_structural_producer(self):
++        raw, s = load("B")
++        s["cuts"][0]["holdings"] = []
++        r = self.build(raw, s)
++        with patch.object(
++            wd,
++            "structural_exclusion",
++            side_effect=AssertionError("producer must not run"),
++        ):
++            with patch.object(val, "build_report", return_value=r):
++                self.assertTrue(val.validate_report(r, raw))
++
++    def test_24_evidence_complete_cannot_hide_cross_layer_circuit(self):
++        raw, s = load("C")
++        r = self.build(raw, s)
++        r["assessment"]["result"] = NEG
++        cut = r["assessment"]["cuts"][0]
++        cut["result"] = NEG
++        cut["exclusionProof"] = {
++            "kind": "EVIDENCE_COMPLETE_EXCLUSION",
++            "rule": "QUALIFIED_OR_CONTRADICTED_CANDIDATES",
++            "candidateRefs": [c["id"] for c in r["waitCandidates"]],
++        }
++        self.reject_before_producer(r, raw)
++
++    def test_23_historical_example_semantics_and_diagrams_preserved(self):
++        for case in ("A", "B", "C"):
++            raw, s = load(case)
++            r = self.build(raw, s)
++            historical = json.loads(
++                (
++                    ROOT
++                    / "docs/examples/transaction-01-t02-s02"
++                    / case
++                    / "wait-dependency.json"
++                ).read_bytes()
++            )
++            normalized = copy.deepcopy(r)
++            normalized["assessment"].pop("exclusionProof")
++            for c in normalized["assessment"]["cuts"]:
++                c.pop("exclusionProof")
++            self.assertEqual(normalized, historical)
++            artifacts = f.s02.artifacts(r)
++            for name, value in artifacts.items():
++                if name.endswith(".mmd"):
++                    self.assertEqual(
++                        value,
++                        (
++                            ROOT / "docs/examples/transaction-01-t02-s02" / case / name
++                        ).read_bytes(),
++                    )
++
++
++if __name__ == "__main__":
++    suite = unittest.defaultTestLoader.loadTestsFromTestCase(ProofExclusions)
++    result = unittest.TextTestRunner(verbosity=2).run(suite)
++    if os.environ.get("MANA_F02_WITNESSES"):
++        Path(os.environ["MANA_F02_WITNESSES"]).write_text(
++            json.dumps(WITNESSES, indent=2) + "\n"
++        )
++    sys.exit(not result.wasSuccessful())

@@ -1,0 +1,7 @@
+%% DB graph: one common cut common
+%% CONDITIONAL only. Arrows are waiter -> blocker (or caller -> callee).
+flowchart LR
+  N1["a/P1"]
+  N2["b/P1"]
+  N1 -->|"Y CONDITIONAL cut=common"| N2
+  N2 -->|"X CONDITIONAL cut=common"| N1
