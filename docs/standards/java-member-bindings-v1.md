@@ -119,3 +119,41 @@ remains required only for this optional adapter. The tested Corretto build is
 8u442, Amazon distribution, OpenJDK GPLv2 with Classpath Exception; its local digest
 manifest is recorded in each witness. No JDK or application dependency was downloaded
 or bundled. Windows/Linux and JDK 17/21 distribution behavior remain unqualified.
+
+## EXEC-01 partial executable recovery
+
+`execution.execution_dependencies(...)` accepts the same explicit Python inputs as
+`semantic.member_bindings(...)`. It opts into an additional metadata scan of the
+**same attributed javac task**, and emits the separate
+`mana.java-execution-dependencies/v1` envelope. Legacy binding requests keep their
+existing schema and fields. No CLI execution mode or canonical T01 extension is
+introduced in this partial increment.
+
+The scan starts at the existing selected entry relationships. It recovers their
+source method bodies and follows calls only into the requested member types;
+other source callees remain outside the selected closure. All observed callee calls
+retain caller identity, selected declaration signature/owner, source span/hash,
+body availability, dispatch kind/certainty, and explicit limits. The record order
+is AST inspection order, **not execution order**. An exact private/final/static
+declaration or constructor is not proof that its source site executes or returns.
+Virtual targets remain UNKNOWN unless the declaration cannot be overridden;
+receiver values always remain UNKNOWN. Implicit generated calls without source
+spans are unresolved. Missing bodies, enclosing instances, initialization, argument
+evaluation, unsupported statements, outside-scope calls and cycles retain limits.
+Method transaction annotation metadata does not assert interception or propagation
+effects; class/meta-annotation semantics are not resolved by this recovery witness.
+
+Bounds are shared with HYBRID's existing AST counter/deadline/output cap, with at
+most 32 recovered methods including the entry and 16 expansion levels. Repeated
+declarations are deduplicated; actual graph cycles are distinguished from sharing.
+Compiler errors invalidate every positive binding. `verify_execution_snapshot`
+recomputes the full witness against a separately pinned request, parser snapshot,
+source bytes and toolchain/classpath. No source bodies or argument values appear
+in the witness. Only fixed Mana/test helpers are compiled; target generation and
+execution remain disabled.
+
+This is **recovery only**: every site and method has traversal NOT_ASSERTED, and
+any observed call makes execution closure INCOMPLETE. Even the straight-line static
+fixture does not authorize T01 traversal. T01 does not consume this envelope;
+its omission guard and public model remain unchanged. This is a deliberate partial
+delivery, not a claim of executable dependency closure or pilot advancement.

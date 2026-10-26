@@ -1101,6 +1101,12 @@ def validate_model(report):
     """Referential/temporal checks independent of diagram text."""
     if report["schema"] != "mana.transaction-model/v1":
         raise ValueError("wrong model schema")
+    from .executable_contract import validate_extension
+
+    validate_extension(report)
+    from .local_admission import validate_extension as validate_local_admission
+
+    validate_local_admission(report)
     leaf_facts = resource_leaf.validate_extension(report)
     leaf_dependencies = []
     frames = {f["id"]: f for f in report["frames"]}

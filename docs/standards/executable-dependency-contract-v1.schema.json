@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Executable Dependency Contract v1: static facts only",
+  "description": "Shape only. Mandatory semantic validation and pinned source replay are specified in executable-dependency-contract-v1.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "scope",
+    "t01Entry",
+    "entryDeclaration",
+    "completeness",
+    "records",
+    "limits",
+    "witness"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mana.executable-dependency-contract/v1"
+    },
+    "scope": {
+      "const": "SELECTED_STATIC_DEPENDENCIES_ONLY"
+    },
+    "t01Entry": {
+      "type": "string"
+    },
+    "entryDeclaration": {
+      "type": "string"
+    },
+    "completeness": {
+      "const": "INCOMPLETE"
+    },
+    "records": {
+      "type": "array",
+      "maxItems": 20000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "idKind",
+          "callerMethod",
+          "targetMethod",
+          "callSite",
+          "targetDeclaration",
+          "declarationAvailability",
+          "binding",
+          "dispatch",
+          "dispatchCertainty",
+          "bodyAvailable",
+          "relation",
+          "dependencyCompleteness",
+          "reachability",
+          "runtimeExecution",
+          "transactionInterception",
+          "admission",
+          "limits"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "idKind": {
+            "enum": [
+              "SOURCE_SITE",
+              "IMPLICIT_OCCURRENCE"
+            ]
+          },
+          "callerMethod": {
+            "type": "string"
+          },
+          "targetMethod": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "callSite": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/evidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "targetDeclaration": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/evidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "declarationAvailability": {
+            "enum": [
+              "SOURCE",
+              "UNAVAILABLE"
+            ]
+          },
+          "binding": {
+            "enum": [
+              "VERIFIED",
+              "UNRESOLVED"
+            ]
+          },
+          "dispatch": {
+            "enum": [
+              "STATIC",
+              "DIRECT",
+              "VIRTUAL",
+              "CONSTRUCTOR",
+              "UNKNOWN"
+            ]
+          },
+          "dispatchCertainty": {
+            "enum": [
+              "DECLARATION_EXACT",
+              "UNKNOWN"
+            ]
+          },
+          "bodyAvailable": {
+            "type": "boolean"
+          },
+          "relation": {
+            "enum": [
+              "STATIC_BINDING",
+              "UNRESOLVED"
+            ]
+          },
+          "dependencyCompleteness": {
+            "const": "INCOMPLETE"
+          },
+          "reachability": {
+            "const": "NOT_ASSERTED"
+          },
+          "runtimeExecution": {
+            "const": "NOT_OBSERVED"
+          },
+          "transactionInterception": {
+            "const": "NOT_ASSERTED"
+          },
+          "admission": {
+            "const": "NOT_ASSERTED"
+          },
+          "limits": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        }
+      }
+    },
+    "limits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "witness": {
+      "type": "object",
+      "required": [
+        "schema",
+        "request",
+        "sources",
+        "execution"
+      ],
+      "properties": {
+        "schema": {
+          "const": "mana.java-execution-dependencies/v1"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "sha256",
+        "start",
+        "end",
+        "line"
+      ],
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

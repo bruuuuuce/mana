@@ -147,6 +147,8 @@ def member_bindings(
     *,
     parse_facts,
     limits=None,
+    execution=False,
+    local_entry=False,
 ):
     """Return a source-free sidecar and separate noncanonical cost measurements.
 
@@ -154,6 +156,8 @@ def member_bindings(
     This intentionally prefers incompleteness to javac recovery as positive proof.
     The parser witness is independently reparsed; contradictions produce CONFLICT.
     """
+    if execution and local_entry:
+        raise ValueError("recovery and local entry are separate witnesses")
     start = time.monotonic()
     budgets = dict(LIMITS)
     if limits:
@@ -175,7 +179,13 @@ def member_bindings(
     )
     safe_dependencies = sorted(set(dependencies)) if dependency_input_valid else []
     witness = {
-        "schema": SCHEMA,
+        "schema": (
+            "mana.java-local-entry-evaluation/v1"
+            if local_entry
+            else "mana.java-execution-dependencies/v1"
+            if execution
+            else SCHEMA
+        ),
         "status": "BLOCKED",
         "reason": "INPUT_INCOMPLETE",
         "request": {
@@ -194,6 +204,14 @@ def member_bindings(
         "diagnostics": [],
         "transactionTraversal": "NOT_ASSERTED",
     }
+    if execution:
+        witness["producer"]["JavaExecution.java"] = _file_digest(
+            Path(__file__).with_name("JavaExecution.java")
+        )
+    if local_entry:
+        witness["producer"]["JavaLocalEntry.java"] = _file_digest(
+            Path(__file__).with_name("JavaLocalEntry.java")
+        )
     metrics = {"heapMiB": budgets["heapMiB"], "subprocesses": 0}
     try:
         if not dependency_input_valid:
@@ -310,7 +328,12 @@ def member_bindings(
                 tool_cp += os.pathsep + str(home / "lib/tools.jar")
             helpers = [
                 Path(__file__).with_name(n)
-                for n in ("JavaFacts.java", "JavaBindings.java")
+                for n in (
+                    "JavaFacts.java",
+                    "JavaBindings.java",
+                    "JavaExecution.java",
+                    "JavaLocalEntry.java",
+                )
             ]
             run(
                 [
@@ -354,6 +377,13 @@ def member_bindings(
                     ",".join(witness["request"]["dependencies"]),
                     environment["release"],
                     target_cp,
+                    *(
+                        ["--execution"]
+                        if execution
+                        else ["--local-entry"]
+                        if local_entry
+                        else []
+                    ),
                     *paths,
                 ]
             )
@@ -372,6 +402,14 @@ def member_bindings(
 
             attach(facts)
             witness.update(facts)
+            if (
+                execution
+                and facts["status"] not in {"BLOCKED", "CONFLICT"}
+                and facts.get("execution", {}).get("status") != "COMPLETE"
+            ):
+                witness.update(
+                    status="INCOMPLETE", reason="EXECUTION_CLOSURE_INCOMPLETE"
+                )
             if facts["status"] == "COMPLETE" and any(
                 t["status"] != "VERIFIED" for t in facts["types"]
             ):
@@ -403,6 +441,9 @@ def member_bindings(
             relations=[],
         )
     metrics["seconds"] = round(time.monotonic() - start, 6)
+    if witness["status"] in {"BLOCKED", "CONFLICT"}:
+        witness.pop("execution", None)
+        witness.pop("localEntry", None)
     return witness, metrics
 
 

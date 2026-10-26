@@ -109,8 +109,10 @@ public final class JavaBindings {
             } else options.addAll(Arrays.asList("--release",release));
             // Compiler textual diagnostics are deliberately discarded; listener is allowlisted.
             Writer sink=new Writer(){public void write(char[] c,int o,int n){} public void flush(){} public void close(){}};
+            boolean execution=args.length>8 && args[8].equals("--execution");
+            boolean localEntry=args.length>8 && args[8].equals("--local-entry");
             JavacTask task=(JavacTask)compiler.getTask(sink,fm,listener,options,null,
-                fm.getJavaFileObjects(Arrays.copyOfRange(args,8,args.length)));
+                fm.getJavaFileObjects(Arrays.copyOfRange(args,(execution || localEntry)?9:8,args.length)));
             trees=Trees.instance(task);
             List<CompilationUnitTree> units=new ArrayList<CompilationUnitTree>();
             final TreePath[] entry={null};
@@ -212,11 +214,15 @@ public final class JavaBindings {
                 }
                 @Override public Void visitClass(ClassTree c,Void p){return null;} // no local/anonymous bodies
             }.scan(entry[0],null);
-            System.out.println(JavaFacts.json(obj("status",entry[0]==null?"BLOCKED":errors?"INCOMPLETE":"COMPLETE",
+            Map<String,Object> output=obj("status",entry[0]==null?"BLOCKED":errors?"INCOMPLETE":"COMPLETE",
                 "reason",entry[0]==null?"ENTRY_ABSENT":errors?"ATTRIBUTION_ERRORS":"STATIC_BINDINGS_ONLY",
                 "types",types,"relations",relations,"diagnostics",diagnostics,"nodes",nodes,
                 "runtime",obj("javaVersion",System.getProperty("java.version"),"vendor",System.getProperty("java.vendor"),
-                    "languageVersion",System.getProperty("java.specification.version")))));
+                    "languageVersion",System.getProperty("java.specification.version")));
+            if(execution && entry[0]!=null)output.put("execution",JavaExecution.collect(entry[0]));
+            if(localEntry && entry[0]!=null)output.put("localEntry",JavaLocalEntry.collect(entry[0]));
+            output.put("nodes",nodes);
+            System.out.println(JavaFacts.json(output));
         } finally {fm.close();}
     }
     public static void main(String[] args) {
