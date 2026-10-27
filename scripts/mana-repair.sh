@@ -4,6 +4,12 @@
 set -u
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
+# Exact mode is a separate effect contract, dispatched before provider libraries.
+for mana_arg in "$@"; do
+  if [ "$mana_arg" = --exact-request ]; then
+    exec python3 -I -B "$root/scripts/lib/exact_repair.py" "$@" --entry repair
+  fi
+done
 . "$root/scripts/lib/verification.sh"
 . "$root/scripts/lib/repair.sh"
 . "$root/scripts/lib/repair-containment.sh"
@@ -12,7 +18,8 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 
 project_root="$(pwd)"; from=""; check_id=""; allow_path=""; provider=""; once=false; max_iterations=1; max_iterations_set=false; dry_run=false; explain=false; json=false
 usage() { cat <<'USAGE'
-Usage: mana repair --from <verification-result.json> [--check <id>]
+Usage: mana repair --exact-request <absolute.json> --host-grant <private.json> --provider none [--json]
+       mana repair --from <verification-result.json> [--check <id>]
        --allow-path <repository-relative-file> --runner <codex|claude|opencode>
        [--max-iterations <1|2>] [--dry-run] [--explain] [--json]
 

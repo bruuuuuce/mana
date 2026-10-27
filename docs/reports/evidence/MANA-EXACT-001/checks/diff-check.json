@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "/usr/bin/git",
+    "diff",
+    "--check",
+    "--",
+    "scripts/mana-repair.sh",
+    "scripts/mana-verify.sh"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": "",
+  "seconds": 0.02174533298239112
+}

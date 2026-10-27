@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "/Users/zel/projects/mana-o-matic/.venv/bin/ruff",
+    "check",
+    "--isolated",
+    "--no-cache",
+    "--select",
+    "E,F,I",
+    "--line-length",
+    "100",
+    "scripts/lib/exact_repair.py",
+    "tests/exact-repair.py"
+  ],
+  "exit": 0,
+  "stdout": "All checks passed!\n",
+  "stderr": "",
+  "seconds": 0.04142487503122538
+}

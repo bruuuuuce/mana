@@ -1,0 +1,80 @@
+{
+  "boundary": {
+    "argv": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "-I",
+      "-B",
+      "-c",
+      "PROTECTED=['/Users/zel/projects/mana/scripts/mana-repair.sh', '/Users/zel/projects/mana/README.md', '/Users/zel/projects/mana-o-matic/AGENTS.md', '/Users/zel/projects/mana/scripts/mana-repair.sh', '/Users/zel/projects/mana/scripts/mana-verify.sh', '/Users/zel/projects/mana/scripts/lib/exact_repair.py', '/Users/zel/projects/mana/scripts/lib/verification-exec.pl', '/private/tmp/mana-exact-native-qualification-5_dvyeqo/outputs/control.json', '/private/tmp/mana-exact-native-qualification-5_dvyeqo/copy/src/test/java/example/ExampleTest.java', '/private/tmp/mana-exact-native-qualification-5_dvyeqo/copy/README.md']\nSOURCE='/private/tmp/mana-exact-native-qualification-5_dvyeqo/copy/src/main/java/example/Example.java'\nBUILD='/private/tmp/mana-exact-native-qualification-5_dvyeqo/outputs/classes'\nimport os,socket,json,errno\nr={}\nfor p in PROTECTED:\n try:\n  fd=os.open(p,os.O_WRONLY);os.close(fd);r[p]=False\n except OSError as e:r[p]=e.errno in (errno.EACCES,errno.EPERM)\nfor i,p in enumerate(PROTECTED):\n alias=BUILD+'/alias-'+str(i)\n try:\n  os.symlink(p,alias)\n  try:\n   fd=os.open(alias,os.O_WRONLY);os.close(fd);r['symlink-'+str(i)]=False\n  except OSError as e:r['symlink-'+str(i)]=e.errno in (errno.EACCES,errno.EPERM)\n finally:\n  if os.path.lexists(alias):os.unlink(alias)\ntry:\n s=socket.socket();s.connect(('127.0.0.1',9));r['network']=False\nexcept OSError as e:r['network']=e.errno in (errno.EACCES,errno.EPERM)\ntry:\n pid=os.fork()\n if pid==0:os._exit(0)\n os.waitpid(pid,0);r['fork_denied']=False\nexcept OSError as e:r['fork_denied']=e.errno in (errno.EACCES,errno.EPERM)\ntry:\n pid=os.posix_spawn('/usr/bin/java',['/usr/bin/java','-version'],{})\n os.waitpid(pid,0);r['spawn_denied']=False\nexcept OSError as e:r['spawn_denied']=e.errno in (errno.EACCES,errno.EPERM)\nfd=os.open(SOURCE,os.O_WRONLY);os.close(fd);r['source_write_open']=True\np=BUILD+'/probe';open(p,'xb').write(b'allowed');os.unlink(p);r['build_write']=True\nprint(json.dumps(r,sort_keys=True))\nraise SystemExit(0 if all(r.values()) else 1)\n"
+    ],
+    "cwd": "/private/tmp/mana-exact-native-qualification-5_dvyeqo/copy",
+    "descendants_terminated": false,
+    "duration_ms": 26,
+    "exit": 0,
+    "signal": 0,
+    "stderr": "",
+    "stderr_bytes": 0,
+    "stdout": "{\"/Users/zel/projects/mana-o-matic/AGENTS.md\": true, \"/Users/zel/projects/mana/README.md\": true, \"/Users/zel/projects/mana/scripts/lib/exact_repair.py\": true, \"/Users/zel/projects/mana/scripts/lib/verification-exec.pl\": true, \"/Users/zel/projects/mana/scripts/mana-repair.sh\": true, \"/Users/zel/projects/mana/scripts/mana-verify.sh\": true, \"/private/tmp/mana-exact-native-qualification-5_dvyeqo/copy/README.md\": true, \"/private/tmp/mana-exact-native-qualification-5_dvyeqo/copy/src/test/java/example/ExampleTest.java\": true, \"/private/tmp/mana-exact-native-qualification-5_dvyeqo/outputs/control.json\": true, \"build_write\": true, \"fork_denied\": true, \"network\": true, \"source_write_open\": true, \"spawn_denied\": true, \"symlink-0\": true, \"symlink-1\": true, \"symlink-2\": true, \"symlink-3\": true, \"symlink-4\": true, \"symlink-5\": true, \"symlink-6\": true, \"symlink-7\": true, \"symlink-8\": true, \"symlink-9\": true}\n",
+    "stdout_bytes": 907,
+    "timeout": false,
+    "timeout_probe": {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-I",
+        "-B",
+        "-c",
+        "import time;time.sleep(10)"
+      ],
+      "cwd": "/private/tmp/mana-exact-native-qualification-5_dvyeqo/copy",
+      "descendants_terminated": false,
+      "duration_ms": 1031,
+      "exit": 143,
+      "signal": 15,
+      "stderr": "",
+      "stderr_bytes": 0,
+      "stdout": "",
+      "stdout_bytes": 0,
+      "timeout": true
+    }
+  },
+  "jdk-0": {
+    "argv": [
+      "/usr/bin/javac",
+      "-d",
+      "/private/tmp/mana-exact-native-qualification-5_dvyeqo/outputs/classes",
+      "/private/tmp/mana-exact-native-qualification-5_dvyeqo/copy/src/main/java/example/Example.java",
+      "/private/tmp/mana-exact-native-qualification-5_dvyeqo/copy/src/test/java/example/ExampleTest.java"
+    ],
+    "cwd": "/private/tmp/mana-exact-native-qualification-5_dvyeqo/copy",
+    "descendants_terminated": false,
+    "duration_ms": 207,
+    "exit": 0,
+    "signal": 0,
+    "stderr": "",
+    "stderr_bytes": 0,
+    "stdout": "",
+    "stdout_bytes": 0,
+    "timeout": false
+  },
+  "jdk-1": {
+    "argv": [
+      "/usr/bin/java",
+      "-cp",
+      "/private/tmp/mana-exact-native-qualification-5_dvyeqo/outputs/classes",
+      "example.ExampleTest"
+    ],
+    "cwd": "/private/tmp/mana-exact-native-qualification-5_dvyeqo/copy",
+    "descendants_terminated": false,
+    "duration_ms": 44,
+    "exit": 0,
+    "signal": 0,
+    "stderr": "",
+    "stderr_bytes": 0,
+    "stdout": "PASS native qualification\n",
+    "stdout_bytes": 26,
+    "timeout": false
+  },
+  "policy": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(allow process-exec (literal \"/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14\") (literal \"/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python\") (literal \"/usr/bin/java\") (literal \"/usr/bin/javac\") (literal \"/Users/zel/Library/Java/JavaVirtualMachines/corretto-1.8.0_442/Contents/Home/bin/java\") (literal \"/Users/zel/Library/Java/JavaVirtualMachines/corretto-1.8.0_442/Contents/Home/bin/javac\"))\n(allow sysctl-read)\n(allow file-read-metadata)\n(allow file-read* (subpath \"/System\") (subpath \"/usr\") (subpath \"/Library/Java\") (subpath \"/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14\") (subpath \"/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14\") (subpath \"/Users/zel/Library/Java/JavaVirtualMachines/corretto-1.8.0_442/Contents/Home\") (subpath \"/private/tmp/mana-exact-native-qualification-5_dvyeqo/copy\") (subpath \"/private/tmp/mana-exact-native-qualification-5_dvyeqo/outputs/classes\"))\n(allow file-read* (literal \"/Users/zel/projects/mana/scripts/lib/exact_repair.py\"))\n(allow file-read* (literal \"/dev/urandom\") (literal \"/dev/random\") (literal \"/\"))\n(allow file-read* file-write-data (literal \"/dev/null\"))\n(allow file-write-data (literal \"/private/tmp/mana-exact-native-qualification-5_dvyeqo/copy/src/main/java/example/Example.java\"))\n(allow file-write* (subpath \"/private/tmp/mana-exact-native-qualification-5_dvyeqo/outputs/classes\"))",
+  "python": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+  "root": "/private/tmp/mana-exact-native-qualification-5_dvyeqo"
+}

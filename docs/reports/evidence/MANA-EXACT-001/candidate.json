@@ -1,0 +1,41 @@
+{
+  "base_revision": "aaed1122a22a9c1dc3f88771b2527180d967fb4f",
+  "branch": "develop",
+  "changed_code_paths": [
+    "scripts/mana-repair.sh",
+    "scripts/mana-verify.sh",
+    "scripts/lib/exact_repair.py"
+  ],
+  "new_test": "tests/exact-repair.py",
+  "old_mom_pin_unchanged": "378243883adb101a7a41feef71e2a66b76e7f508",
+  "patch_sha256": "cd6785b75bb6f3c1e05b7b9cdcb7d07bdd581dca68a1e2c7a924ec925c7df14b",
+  "released": false,
+  "runtime": {
+    "base_revision": "aaed1122a22a9c1dc3f88771b2527180d967fb4f",
+    "changes_identity": "abb7b77bf58b87fe6b49a262a8893e6a1b7403f96461549a297fe9094a471d5a",
+    "files": {
+      "scripts/lib/exact_repair.py": "82d51900c7fade715f8a71acacd398aaa4793bedc40c9e781a44c9f4cdc25f7e",
+      "scripts/lib/verification-exec.pl": "9cb5bd9642d269adf857ba10ab3ad9c91e44307dc0a8d820fbfaa62557989f1a",
+      "scripts/mana-repair.sh": "47c2c9e2618b3332050d2f19b9a2555bd03dedf2f1d9498f4b2f0a58bf76c968",
+      "scripts/mana-verify.sh": "babc8c34f9a4813ab4ae433fd463a5c90bf7eb9e51799c2e975ac3188b8d9d2d"
+    },
+    "jdk_home": "/Users/zel/Library/Java/JavaVirtualMachines/corretto-1.8.0_442/Contents/Home",
+    "tools": {
+      "/Users/zel/Library/Java/JavaVirtualMachines/corretto-1.8.0_442/Contents/Home/bin/java": "4450e9d116d2cc6db5003a1b92ea5c231b7c88ca2b550e95d788197b843845a9",
+      "/Users/zel/Library/Java/JavaVirtualMachines/corretto-1.8.0_442/Contents/Home/bin/javac": "9af0a565d4fc53e21532809623f6e576316a569f3f11eacc40abf7a22cf4c8f2",
+      "/opt/homebrew/opt/python@3.14/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python": "e89d60f8ccee9db684801330198797723db2ac378cd53e5cfe523128feb76599",
+      "/opt/homebrew/opt/python@3.14/bin/python3.14": "87d4df53fd91304be5bac391fb204643c36b7df2023c04a0953bcbc7d4fdf634",
+      "/usr/bin/java": "88a575aa4376513cc174b65ad3dfbfb4d5819b24d0ed6288c010b15286b7b639",
+      "/usr/bin/javac": "88a575aa4376513cc174b65ad3dfbfb4d5819b24d0ed6288c010b15286b7b639",
+      "/usr/bin/perl": "53bce3db7e095b596fa42626b55edc63e3388d7afecf45a0b1ecc5211721c812",
+      "/usr/bin/sandbox-exec": "abc5bb136d6b5cce8fa85d789f78e3326c51ca60cae637b2064adfb67a1dcd9a"
+    }
+  },
+  "test_sha256": "bf96b1dace8f63bf80ff397e9340c51666a22efbb78209f2dd3e8b78784998ae",
+  "tested_code_paths": [
+    "scripts/mana-repair.sh",
+    "scripts/mana-verify.sh",
+    "scripts/lib/exact_repair.py",
+    "scripts/lib/verification-exec.pl"
+  ]
+}

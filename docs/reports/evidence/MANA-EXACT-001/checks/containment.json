@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "/bin/bash",
+    "tests/repair-containment.sh"
+  ],
+  "exit": 0,
+  "stdout": "Repair containment tests passed\n",
+  "stderr": "",
+  "seconds": 38.504599417035934
+}

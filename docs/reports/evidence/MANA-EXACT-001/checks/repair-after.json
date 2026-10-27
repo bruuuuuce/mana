@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "/bin/bash",
+    "tests/bounded-repair.sh"
+  ],
+  "exit": 0,
+  "stdout": "Bounded repair tests passed\n",
+  "stderr": "",
+  "seconds": 31.289667667006142
+}
