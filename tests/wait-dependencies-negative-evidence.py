@@ -23,6 +23,13 @@ from skill_factory.transactions import wait_validation as validator  # noqa: E40
 
 NEGATIVE = "NO_CYCLE_IN_MODELED_SCENARIO"
 
+# Reuse the source-only oracle, not the historical public-layout assertions.
+spec = importlib.util.spec_from_file_location(
+    "historical_f02_oracle", ROOT / "tests/wait-dependencies-proof-exclusions.py"
+)
+historical = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(historical)
+
 
 def load(case):
     base = ROOT / "docs/examples/transaction-01-t02-s02" / case
@@ -68,6 +75,25 @@ class NegativeEvidenceTests(unittest.TestCase):
             with self.assertRaises(wd.RejectedInput):
                 validator.validate_report(report, raw)
             producer.assert_not_called()
+
+    def assert_source_exclusion(self, raw, scenario, cut, expected_db_pairs):
+        # Every source observation must be selected. The independent oracle reads
+        # source positions/frame stacks and rejects unresolved frontiers; it never
+        # reads producer verdicts, ledgers or exclusion certificates.
+        for participant in scenario["participants"]:
+            timeline = json.loads(raw[participant["input"]])
+            self.assertEqual(
+                {
+                    o["observation"]
+                    for o in scenario["operations"]
+                    if o["participant"] == participant["id"]
+                },
+                {o["id"] for o in timeline["observations"]},
+            )
+        bound = historical.source_upper_bound(raw, scenario, cut)
+        self.assertEqual(bound["dbPairs"], expected_db_pairs)
+        self.assertEqual(bound["appPairs"], [])
+        self.assertTrue(bound["acyclic"])
 
     def test_01_r1_A_and_C_missing_W4_generate_unknown(self):
         for case, app in (("A", 0), ("C", 1)):
@@ -203,7 +229,10 @@ class NegativeEvidenceTests(unittest.TestCase):
     def test_11_missing_pending_and_premise_dependency(self):
         raw, s = load("B")
         s["cuts"][0]["pending"] = []
-        self.assertEqual(self.build(raw, s)["assessment"]["result"], "UNKNOWN")
+        self.assert_source_exclusion(raw, s, s["cuts"][0], [(("b", "P1"), ("a", "P1"))])
+        r = self.build(raw, s)
+        self.assertEqual(r["assessment"]["result"], NEGATIVE)
+        self.assertEqual(r["coverage"]["status"], "INCOMPLETE")
         raw, s = load("A")
         for holding in s["cuts"][0]["holdings"]:
             acquire = next(
@@ -215,19 +244,25 @@ class NegativeEvidenceTests(unittest.TestCase):
             acquire["state"] = "UNKNOWN"
             retain["dependsOn"] = [acquire["id"]]
         r = self.build(raw, s)
+        self.assertEqual(r["assessment"]["result"], "UNKNOWN")
         self.independent_rejection(promote(r), raw)
 
-    def test_12_one_incomplete_cut_blocks_global_negative(self):
+    def test_12_acyclic_incomplete_cuts_retain_scoped_negative(self):
         raw, s = load("B")
         missing = copy.deepcopy(s["cuts"][0])
         missing["id"] = "missing"
         missing["holdings"] = []
         s["cuts"].append(missing)
+        for cut in s["cuts"]:
+            self.assert_source_exclusion(raw, s, cut, [(("b", "P1"), ("a", "P1"))])
         r = self.build(raw, s)
         self.assertEqual(
-            [c["result"] for c in r["assessment"]["cuts"]], [NEGATIVE, "UNKNOWN"]
+            [c["result"] for c in r["assessment"]["cuts"]], [NEGATIVE, NEGATIVE]
         )
-        self.assertEqual(r["assessment"]["result"], "UNKNOWN")
+        self.assertEqual(r["assessment"]["result"], NEGATIVE)
+        self.assertEqual(r["coverage"]["status"], "INCOMPLETE")
+        self.assertTrue(r["assessment"]["cuts"][1]["unknowns"])
+        # The negative is justified; falsely complete coverage is still rejected.
         self.independent_rejection(promote(r), raw)
 
     def test_13_cli_unknown_invalid_negative_and_budget(self):
@@ -298,7 +333,7 @@ class NegativeEvidenceTests(unittest.TestCase):
         self.assertTrue(any("W4" in u for u in r["assessment"]["cuts"][0]["unknowns"]))
         self.independent_rejection(promote(r), raw)
 
-    def test_15_frontier_and_same_P_cut_do_not_use_identity_fallback(self):
+    def test_15_frontier_stays_unknown_and_same_P_cut_is_acyclic(self):
         # Reuse I01's parse-only synthetic fixtures, not its verdicts/oracles.
         spec = importlib.util.spec_from_file_location(
             "i01_fixtures", ROOT / "tests/wait-dependencies.py"
@@ -323,8 +358,11 @@ class NegativeEvidenceTests(unittest.TestCase):
                 )
                 self.assertEqual(self.build(raw, s)["assessment"]["result"], NEGATIVE)
                 fixture.scenarios.cut(s, raw, "incomplete", ["a2"], [])
+                self.assert_source_exclusion(raw, s, s["cuts"][0], [])
                 r = self.build(raw, s)
-                self.assertEqual(r["assessment"]["result"], "UNKNOWN")
+                self.assertEqual(r["assessment"]["result"], NEGATIVE)
+                self.assertEqual(r["coverage"]["status"], "INCOMPLETE")
+                # No lock/runtime completeness follows from same-P acyclicity.
                 self.independent_rejection(promote(r), raw)
         finally:
             fixture.WaitTests.tearDownClass()
