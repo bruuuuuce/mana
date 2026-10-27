@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "/bin/bash",
+    "/Users/zel/projects/mana/scripts/mana-repair.sh",
+    "--exact-request",
+    "/private/tmp/mana-exact-negative-reserved-grant-jcfflpyr/request.json",
+    "--host-grant",
+    "/private/tmp/mana-exact-negative-reserved-grant-jcfflpyr/authority/grant.json",
+    "--provider",
+    "none",
+    "--json"
+  ],
+  "exit": 2,
+  "stdout": "{\"application_started\": false, \"applied\": false, \"provider_calls\": 0, \"schema\": \"mana.exact-result/v1\", \"status\": \"BLOCKED\", \"stop_reason\": \"AUTHORIZATION_CONSUMED\"}\n",
+  "stderr": "",
+  "result": {
+    "application_started": false,
+    "applied": false,
+    "provider_calls": 0,
+    "schema": "mana.exact-result/v1",
+    "status": "BLOCKED",
+    "stop_reason": "AUTHORIZATION_CONSUMED"
+  },
+  "no_execution_effects": true,
+  "case": "reserved-canonical-grant",
+  "synthetic_test_reservation": true
+}

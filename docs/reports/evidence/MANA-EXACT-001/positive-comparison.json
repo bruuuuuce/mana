@@ -1,0 +1,36 @@
+{
+  "after_exit": [
+    0,
+    0
+  ],
+  "applied_diff": "--- a/src/main/java/example/ShippingPolicy.java\n+++ b/src/main/java/example/ShippingPolicy.java\n@@ -7,6 +7,6 @@\n         if (subtotalCents < 0) {\n             throw new IllegalArgumentException(\"Subtotal must be nonnegative\");\n         }\n-        return subtotalCents > 5000 ? 0 : 500;\n+        return subtotalCents >= 5000 ? 0 : 500;\n     }\n }\n",
+  "baseline_exit": [
+    0,
+    1
+  ],
+  "changed_paths": [
+    "src/main/java/example/ShippingPolicy.java"
+  ],
+  "files": {
+    "README.md": {
+      "after": "4c785563346535587a02dc8876908c4929a6895e0aef7a70b2c020ba2399ec44",
+      "before": "4c785563346535587a02dc8876908c4929a6895e0aef7a70b2c020ba2399ec44",
+      "expected": "4c785563346535587a02dc8876908c4929a6895e0aef7a70b2c020ba2399ec44"
+    },
+    "src/main/java/example/ShippingPolicy.java": {
+      "after": "acdfdd17d5d53bad3e7abdfc59a43ff07da4158060899a19f28e2859e1ce1cc2",
+      "before": "6cf6343bfca268bdb0aff9be60894170a51e9919cca1ef828e0a2b09136998ee",
+      "expected": "acdfdd17d5d53bad3e7abdfc59a43ff07da4158060899a19f28e2859e1ce1cc2"
+    },
+    "src/test/java/example/ShippingPolicyTest.java": {
+      "after": "ae4668670b8814c7525bf66693ca3707938e3ddf18ec95cdf8c69a49195a883e",
+      "before": "ae4668670b8814c7525bf66693ca3707938e3ddf18ec95cdf8c69a49195a883e",
+      "expected": "ae4668670b8814c7525bf66693ca3707938e3ddf18ec95cdf8c69a49195a883e"
+    }
+  },
+  "four_cases_passed": true,
+  "replacement_byte_identical": true,
+  "result_status": "COMPLETE",
+  "runtime_unchanged_since_test": true,
+  "single_positive_invocation": true
+}

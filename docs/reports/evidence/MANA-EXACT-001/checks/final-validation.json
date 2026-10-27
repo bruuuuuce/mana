@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "/bin/bash",
+    "scripts/validate-repo.sh"
+  ],
+  "exit": 0,
+  "stdout": "Verification skills validation passed\nSkills validation passed\nAgents validation passed\nDivination metadata validation passed\nOutput standard validation passed\nStory trace validation passed\nDeveloper choice log validation passed\nRepository validation passed\n",
+  "stderr": "",
+  "seconds": 15.045298957964405
+}
