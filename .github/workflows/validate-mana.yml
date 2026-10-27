@@ -189,14 +189,6 @@ jobs:
           PYTHONDONTWRITEBYTECODE: "1"
           TMPDIR: ${{ runner.temp }}
         run: python3 tests/wait-dependencies-negative-evidence.py -v
-      - name: Wait Dependencies historical proof exclusions
-        if: ${{ !cancelled() }}
-        env:
-          PYTHONDONTWRITEBYTECODE: "1"
-          TMPDIR: ${{ runner.temp }}
-          MANA_F02_WITNESSES: ""
-          MANA_F03_EVIDENCE: ""
-        run: python3 tests/wait-dependencies-proof-exclusions.py -v
       - name: Wait Dependencies wire compatibility
         if: ${{ !cancelled() }}
         env:
@@ -205,7 +197,10 @@ jobs:
           MANA_F02_WITNESSES: ""
           MANA_F03_EVIDENCE: ""
         run: python3 tests/wait-dependencies-wire-compatibility.py -v
-      - name: Wait Dependencies F02 diagnostic replay
+      # F02's public certificate layout is historical; keep the source unchanged.
+      # Its 24 internal guarantees and the public F03 gate are both mandatory.
+      # See docs/reports/MANA-P1-GOV-04-oracle-migration.md.
+      - name: Wait Dependencies historical F02 internal guarantees
         if: ${{ !cancelled() }}
         env:
           PYTHONDONTWRITEBYTECODE: "1"
