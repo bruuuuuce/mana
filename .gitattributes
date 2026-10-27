@@ -3,3 +3,6 @@ learning-kb/concept-index.tsv -whitespace
 
 # Git Bash must receive LF scripts even in Windows checkouts.
 *.sh text eol=lf
+
+# Frozen historical diff: preserve single-space blank context lines.
+docs/reports/evidence/MANA-EXACT-001/candidate.patch whitespace=-blank-at-eol
