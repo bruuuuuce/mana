@@ -82,3 +82,142 @@ jobs:
         run: tests/run-zero-token-acceptance.sh
       - name: Release readiness documentation
         run: tests/release-readiness.sh
+      - name: Added coverage dependencies and filesystem baseline
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: |
+          command -v python3 java javac javap
+          java -version
+          javac -version
+          javap -version
+          python3 tests/worktree-snapshot-test-only.py "$GITHUB_WORKSPACE" > "$RUNNER_TEMP/mana-coverage-before.jsonl"
+      - name: Resource Timeline
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/resource-timeline.py -v
+      - name: Resource Timeline binding
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/transaction-resource-binding.py -v
+      - name: Resource Timeline dispatch
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/transaction-resource-dispatch.py -v
+      - name: Resource Timeline leaves
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/transaction-resource-leaves.py -v
+      - name: Transaction self invocation compatibility
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/transaction-self-invocation.py -v
+      - name: Transaction context alternatives compatibility
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/transaction-context-alternatives.py -v
+      - name: Transaction physical lifetime compatibility
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/transaction-physical-lifetime.py -v
+      - name: Transaction entry parameters compatibility
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/transaction-entry-parameters.py -v
+      - name: Transaction type dependencies compatibility
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/transaction-type-dependencies.py -v
+      - name: Java member bindings compatibility
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/transaction-member-bindings.py -v
+      - name: Execution Dependencies
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/transaction-execution-dependencies.py -v
+      - name: Executable Contract
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/transaction-executable-contract.py -v
+      - name: Local Admission
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/transaction-local-admission.py -v
+      - name: Transaction Visualization
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/transaction-visualization.py -v
+      - name: Wait Dependencies
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/wait-dependencies.py -v
+      - name: Wait Dependencies negative evidence
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/wait-dependencies-negative-evidence.py -v
+      - name: Wait Dependencies historical proof exclusions
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+          MANA_F02_WITNESSES: ""
+          MANA_F03_EVIDENCE: ""
+        run: python3 tests/wait-dependencies-proof-exclusions.py -v
+      - name: Wait Dependencies wire compatibility
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+          MANA_F02_WITNESSES: ""
+          MANA_F03_EVIDENCE: ""
+        run: python3 tests/wait-dependencies-wire-compatibility.py -v
+      - name: Wait Dependencies F02 diagnostic replay
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+          MANA_F02_WITNESSES: ""
+          MANA_F03_EVIDENCE: ""
+        run: python3 tests/wait-dependencies-wire-compatibility.py --diagnostic-replay -v
+      - name: Added coverage filesystem preservation
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          TMPDIR: ${{ runner.temp }}
+        run: |
+          python3 tests/worktree-snapshot-test-only.py "$GITHUB_WORKSPACE" > "$RUNNER_TEMP/mana-coverage-after.jsonl"
+          cmp "$RUNNER_TEMP/mana-coverage-before.jsonl" "$RUNNER_TEMP/mana-coverage-after.jsonl"
