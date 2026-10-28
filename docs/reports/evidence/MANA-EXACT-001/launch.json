@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/bin/bash",
+    "/Users/zel/projects/mana/scripts/mana-repair.sh",
+    "--exact-request",
+    "/private/tmp/mana-exact-MANA-EXACT-001-positive-tkg6f6g7/request.json",
+    "--host-grant",
+    "/private/tmp/mana-exact-MANA-EXACT-001-positive-tkg6f6g7/authority/grant.json",
+    "--provider",
+    "none",
+    "--json"
+  ],
+  "exit": 0,
+  "native_outer_tool_sandbox_removed": true,
+  "origin": "public MANA repair CLI; host-issued public-fixture test authority; one invocation"
+}

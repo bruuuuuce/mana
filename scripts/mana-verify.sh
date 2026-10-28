@@ -4,13 +4,20 @@
 set -u
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
+# Exact mode is a separate effect contract, dispatched before provider libraries.
+for mana_arg in "$@"; do
+  if [ "$mana_arg" = --exact-request ]; then
+    exec python3 -I -B "$root/scripts/lib/exact_repair.py" "$@" --entry verify
+  fi
+done
 . "$root/scripts/lib/verification.sh"
 . "$root/scripts/lib/runtime-events.sh"
 
 project_root="$(pwd)"; dry_run=false; explain=false; json=false; list_only=false
 base=""; explicit_skills=""; rerun_file=""; rerun_check=""; rerun_path=""; rerun_digest=""; rerun_reference=""; rerun_run=""; newline=$'\n'; tab=$'\t'
 usage() { cat <<'USAGE'
-Usage: mana verify [--skill <id>] [--list] [--dry-run] [--explain] [--json] [--base <ref>]
+Usage: mana verify --exact-request <absolute.json> --host-grant <private.json> --provider none [--json]
+       mana verify [--skill <id>] [--list] [--dry-run] [--explain] [--json] [--base <ref>]
        mana verify --rerun <verification-result.json> --check <check-id> [--json]
 
 Runs bounded deterministic Verification Skills. It never starts Codex, Claude,

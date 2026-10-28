@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "bash",
+    "tests/bounded-repair.sh"
+  ],
+  "exit": 2,
+  "stdout": "",
+  "stderr": "/Users/zel/projects/mana/scripts/mana-verify.sh: line 296: /private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-repair-tests.EKkNph/unsupported/.mana/features/manual/evidence/verification/verification-20261026T193231Z-81367: Is a directory\nERROR: verification run identity collision: verification-20261026T193231Z-81367\njq: error: Could not open file : No such file or directory\n",
+  "seconds": 15.406233499990776
+}

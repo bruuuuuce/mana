@@ -1,0 +1,314 @@
+[
+  {
+    "argv": [
+      "/bin/bash",
+      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "--exact-request",
+      "/private/tmp/mana-exact-negative-missing-ztnochip/request.json",
+      "--host-grant",
+      "/private/tmp/mana-exact-negative-missing-ztnochip/authority/grant.json",
+      "--provider",
+      "none",
+      "--json"
+    ],
+    "exit": 2,
+    "stdout": "{\"application_started\": false, \"applied\": false, \"provider_calls\": 0, \"schema\": \"mana.exact-result/v1\", \"status\": \"BLOCKED\", \"stop_reason\": \"[Errno 2] No such file or directory: '/private/tmp/mana-exact-negative-missing-ztnochip/authority/grant.json'\"}\n",
+    "stderr": "",
+    "result": {
+      "application_started": false,
+      "applied": false,
+      "provider_calls": 0,
+      "schema": "mana.exact-result/v1",
+      "status": "BLOCKED",
+      "stop_reason": "[Errno 2] No such file or directory: '/private/tmp/mana-exact-negative-missing-ztnochip/authority/grant.json'"
+    },
+    "case": "missing",
+    "no_execution_effects": true
+  },
+  {
+    "argv": [
+      "/bin/bash",
+      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "--exact-request",
+      "/private/tmp/mana-exact-negative-denied-xkz9hzh3/request.json",
+      "--host-grant",
+      "/private/tmp/mana-exact-negative-denied-xkz9hzh3/authority/grant.json",
+      "--provider",
+      "none",
+      "--json"
+    ],
+    "exit": 2,
+    "stdout": "{\"application_started\": false, \"applied\": false, \"provider_calls\": 0, \"schema\": \"mana.exact-result/v1\", \"status\": \"BLOCKED\", \"stop_reason\": \"AUTHORIZATION_ABSENT_OR_DENIED\"}\n",
+    "stderr": "",
+    "result": {
+      "application_started": false,
+      "applied": false,
+      "provider_calls": 0,
+      "schema": "mana.exact-result/v1",
+      "status": "BLOCKED",
+      "stop_reason": "AUTHORIZATION_ABSENT_OR_DENIED"
+    },
+    "case": "denied",
+    "no_execution_effects": true
+  },
+  {
+    "argv": [
+      "/bin/bash",
+      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "--exact-request",
+      "/private/tmp/mana-exact-negative-other-effects-7ibohi3i/request.json",
+      "--host-grant",
+      "/private/tmp/mana-exact-negative-other-effects-7ibohi3i/authority/grant.json",
+      "--provider",
+      "none",
+      "--json"
+    ],
+    "exit": 2,
+    "stdout": "{\"application_started\": false, \"applied\": false, \"provider_calls\": 0, \"schema\": \"mana.exact-result/v1\", \"status\": \"BLOCKED\", \"stop_reason\": \"AUTHORIZATION_EFFECTS_MISMATCH\"}\n",
+    "stderr": "",
+    "result": {
+      "application_started": false,
+      "applied": false,
+      "provider_calls": 0,
+      "schema": "mana.exact-result/v1",
+      "status": "BLOCKED",
+      "stop_reason": "AUTHORIZATION_EFFECTS_MISMATCH"
+    },
+    "case": "other-effects",
+    "no_execution_effects": true
+  },
+  {
+    "argv": [
+      "/bin/bash",
+      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "--exact-request",
+      "/private/tmp/mana-exact-negative-proposal-jssd5sts/request.json",
+      "--host-grant",
+      "/private/tmp/mana-exact-negative-proposal-jssd5sts/authority/grant.json",
+      "--provider",
+      "none",
+      "--json"
+    ],
+    "exit": 2,
+    "stdout": "{\"application_started\": false, \"applied\": false, \"provider_calls\": 0, \"schema\": \"mana.exact-result/v1\", \"status\": \"BLOCKED\", \"stop_reason\": \"PROPOSAL_FINGERPRINT\"}\n",
+    "stderr": "",
+    "result": {
+      "application_started": false,
+      "applied": false,
+      "provider_calls": 0,
+      "schema": "mana.exact-result/v1",
+      "status": "BLOCKED",
+      "stop_reason": "PROPOSAL_FINGERPRINT"
+    },
+    "case": "proposal",
+    "no_execution_effects": true
+  },
+  {
+    "argv": [
+      "/bin/bash",
+      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "--exact-request",
+      "/private/tmp/mana-exact-negative-base-saaumpod/request.json",
+      "--host-grant",
+      "/private/tmp/mana-exact-negative-base-saaumpod/authority/grant.json",
+      "--provider",
+      "none",
+      "--json"
+    ],
+    "exit": 2,
+    "stdout": "{\"application_started\": false, \"applied\": false, \"provider_calls\": 0, \"schema\": \"mana.exact-result/v1\", \"status\": \"BLOCKED\", \"stop_reason\": \"BASE_MISMATCH\"}\n",
+    "stderr": "",
+    "result": {
+      "application_started": false,
+      "applied": false,
+      "provider_calls": 0,
+      "schema": "mana.exact-result/v1",
+      "status": "BLOCKED",
+      "stop_reason": "BASE_MISMATCH"
+    },
+    "case": "base",
+    "no_execution_effects": true
+  },
+  {
+    "argv": [
+      "/bin/bash",
+      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "--exact-request",
+      "/private/tmp/mana-exact-negative-result-e6ew38kp/request.json",
+      "--host-grant",
+      "/private/tmp/mana-exact-negative-result-e6ew38kp/authority/grant.json",
+      "--provider",
+      "none",
+      "--json"
+    ],
+    "exit": 2,
+    "stdout": "{\"application_started\": false, \"applied\": false, \"provider_calls\": 0, \"schema\": \"mana.exact-result/v1\", \"status\": \"BLOCKED\", \"stop_reason\": \"RESULT_HASH\"}\n",
+    "stderr": "",
+    "result": {
+      "application_started": false,
+      "applied": false,
+      "provider_calls": 0,
+      "schema": "mana.exact-result/v1",
+      "status": "BLOCKED",
+      "stop_reason": "RESULT_HASH"
+    },
+    "case": "result",
+    "no_execution_effects": true
+  },
+  {
+    "argv": [
+      "/bin/bash",
+      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "--exact-request",
+      "/private/tmp/mana-exact-negative-destination-9mg0utmh/request.json",
+      "--host-grant",
+      "/private/tmp/mana-exact-negative-destination-9mg0utmh/authority/grant.json",
+      "--provider",
+      "none",
+      "--json"
+    ],
+    "exit": 2,
+    "stdout": "{\"application_started\": false, \"applied\": false, \"provider_calls\": 0, \"schema\": \"mana.exact-result/v1\", \"status\": \"BLOCKED\", \"stop_reason\": \"PRIVATE_HOST_PATH_REQUIRED\"}\n",
+    "stderr": "",
+    "result": {
+      "application_started": false,
+      "applied": false,
+      "provider_calls": 0,
+      "schema": "mana.exact-result/v1",
+      "status": "BLOCKED",
+      "stop_reason": "PRIVATE_HOST_PATH_REQUIRED"
+    },
+    "case": "destination",
+    "no_execution_effects": true
+  },
+  {
+    "argv": [
+      "/bin/bash",
+      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "--exact-request",
+      "/private/tmp/mana-exact-negative-revision-n1bir5x_/request.json",
+      "--host-grant",
+      "/private/tmp/mana-exact-negative-revision-n1bir5x_/authority/grant.json",
+      "--provider",
+      "none",
+      "--json"
+    ],
+    "exit": 2,
+    "stdout": "{\"application_started\": false, \"applied\": false, \"provider_calls\": 0, \"schema\": \"mana.exact-result/v1\", \"status\": \"BLOCKED\", \"stop_reason\": \"REVISION_NOT_ADMITTED\"}\n",
+    "stderr": "",
+    "result": {
+      "application_started": false,
+      "applied": false,
+      "provider_calls": 0,
+      "schema": "mana.exact-result/v1",
+      "status": "BLOCKED",
+      "stop_reason": "REVISION_NOT_ADMITTED"
+    },
+    "case": "revision",
+    "no_execution_effects": true
+  },
+  {
+    "argv": [
+      "/bin/bash",
+      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "--exact-request",
+      "/private/tmp/mana-exact-negative-budget-ocasidk4/request.json",
+      "--host-grant",
+      "/private/tmp/mana-exact-negative-budget-ocasidk4/authority/grant.json",
+      "--provider",
+      "none",
+      "--json"
+    ],
+    "exit": 2,
+    "stdout": "{\"application_started\": false, \"applied\": false, \"provider_calls\": 0, \"schema\": \"mana.exact-result/v1\", \"status\": \"BLOCKED\", \"stop_reason\": \"BUDGET_EXHAUSTED_OR_INVALID\"}\n",
+    "stderr": "",
+    "result": {
+      "application_started": false,
+      "applied": false,
+      "provider_calls": 0,
+      "schema": "mana.exact-result/v1",
+      "status": "BLOCKED",
+      "stop_reason": "BUDGET_EXHAUSTED_OR_INVALID"
+    },
+    "case": "budget",
+    "no_execution_effects": true
+  },
+  {
+    "argv": [
+      "/bin/bash",
+      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "--exact-request",
+      "/private/tmp/mana-exact-negative-symlink-nrc6p3we/request.json",
+      "--host-grant",
+      "/private/tmp/mana-exact-negative-symlink-nrc6p3we/authority/grant.json",
+      "--provider",
+      "none",
+      "--json"
+    ],
+    "exit": 2,
+    "stdout": "{\"application_started\": false, \"applied\": false, \"provider_calls\": 0, \"schema\": \"mana.exact-result/v1\", \"status\": \"BLOCKED\", \"stop_reason\": \"SYMLINK\"}\n",
+    "stderr": "",
+    "result": {
+      "application_started": false,
+      "applied": false,
+      "provider_calls": 0,
+      "schema": "mana.exact-result/v1",
+      "status": "BLOCKED",
+      "stop_reason": "SYMLINK"
+    },
+    "case": "symlink",
+    "no_execution_effects": true
+  },
+  {
+    "argv": [
+      "/bin/bash",
+      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "--exact-request",
+      "/private/tmp/mana-exact-negative-test-edit-0me3t5gv/request.json",
+      "--host-grant",
+      "/private/tmp/mana-exact-negative-test-edit-0me3t5gv/authority/grant.json",
+      "--provider",
+      "none",
+      "--json"
+    ],
+    "exit": 2,
+    "stdout": "{\"application_started\": false, \"applied\": false, \"provider_calls\": 0, \"schema\": \"mana.exact-result/v1\", \"status\": \"BLOCKED\", \"stop_reason\": \"SOURCE_SCOPE\"}\n",
+    "stderr": "",
+    "result": {
+      "application_started": false,
+      "applied": false,
+      "provider_calls": 0,
+      "schema": "mana.exact-result/v1",
+      "status": "BLOCKED",
+      "stop_reason": "SOURCE_SCOPE"
+    },
+    "case": "test-edit",
+    "no_execution_effects": true
+  },
+  {
+    "argv": [
+      "/bin/bash",
+      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "--exact-request",
+      "/private/tmp/mana-exact-negative-commands-2xvig8yy/request.json",
+      "--host-grant",
+      "/private/tmp/mana-exact-negative-commands-2xvig8yy/authority/grant.json",
+      "--provider",
+      "none",
+      "--json"
+    ],
+    "exit": 2,
+    "stdout": "{\"application_started\": false, \"applied\": false, \"provider_calls\": 0, \"schema\": \"mana.exact-result/v1\", \"status\": \"BLOCKED\", \"stop_reason\": \"VERIFIER_FIELDS\"}\n",
+    "stderr": "",
+    "result": {
+      "application_started": false,
+      "applied": false,
+      "provider_calls": 0,
+      "schema": "mana.exact-result/v1",
+      "status": "BLOCKED",
+      "stop_reason": "VERIFIER_FIELDS"
+    },
+    "case": "commands",
+    "no_execution_effects": true
+  }
+]

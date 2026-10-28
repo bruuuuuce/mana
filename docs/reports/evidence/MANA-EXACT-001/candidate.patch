@@ -1,0 +1,1158 @@
+diff --git a/scripts/mana-repair.sh b/scripts/mana-repair.sh
+index 7ce1b6f..99bca50 100755
+--- a/scripts/mana-repair.sh
++++ b/scripts/mana-repair.sh
+@@ -4,6 +4,12 @@
+ set -u
+ 
+ root="$(cd "$(dirname "$0")/.." && pwd)"
++# Exact mode is a separate effect contract, dispatched before provider libraries.
++for mana_arg in "$@"; do
++  if [ "$mana_arg" = --exact-request ]; then
++    exec python3 -I -B "$root/scripts/lib/exact_repair.py" "$@" --entry repair
++  fi
++done
+ . "$root/scripts/lib/verification.sh"
+ . "$root/scripts/lib/repair.sh"
+ . "$root/scripts/lib/repair-containment.sh"
+@@ -12,7 +18,8 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
+ 
+ project_root="$(pwd)"; from=""; check_id=""; allow_path=""; provider=""; once=false; max_iterations=1; max_iterations_set=false; dry_run=false; explain=false; json=false
+ usage() { cat <<'USAGE'
+-Usage: mana repair --from <verification-result.json> [--check <id>]
++Usage: mana repair --exact-request <absolute.json> --host-grant <private.json> --provider none [--json]
++       mana repair --from <verification-result.json> [--check <id>]
+        --allow-path <repository-relative-file> --runner <codex|claude|opencode>
+        [--max-iterations <1|2>] [--dry-run] [--explain] [--json]
+ 
+diff --git a/scripts/mana-verify.sh b/scripts/mana-verify.sh
+index 1492aee..02c0655 100755
+--- a/scripts/mana-verify.sh
++++ b/scripts/mana-verify.sh
+@@ -4,13 +4,20 @@
+ set -u
+ 
+ root="$(cd "$(dirname "$0")/.." && pwd)"
++# Exact mode is a separate effect contract, dispatched before provider libraries.
++for mana_arg in "$@"; do
++  if [ "$mana_arg" = --exact-request ]; then
++    exec python3 -I -B "$root/scripts/lib/exact_repair.py" "$@" --entry verify
++  fi
++done
+ . "$root/scripts/lib/verification.sh"
+ . "$root/scripts/lib/runtime-events.sh"
+ 
+ project_root="$(pwd)"; dry_run=false; explain=false; json=false; list_only=false
+ base=""; explicit_skills=""; rerun_file=""; rerun_check=""; rerun_path=""; rerun_digest=""; rerun_reference=""; rerun_run=""; newline=$'\n'; tab=$'\t'
+ usage() { cat <<'USAGE'
+-Usage: mana verify [--skill <id>] [--list] [--dry-run] [--explain] [--json] [--base <ref>]
++Usage: mana verify --exact-request <absolute.json> --host-grant <private.json> --provider none [--json]
++       mana verify [--skill <id>] [--list] [--dry-run] [--explain] [--json] [--base <ref>]
+        mana verify --rerun <verification-result.json> --check <check-id> [--json]
+ 
+ Runs bounded deterministic Verification Skills. It never starts Codex, Claude,
+diff --git a/scripts/lib/exact_repair.py b/scripts/lib/exact_repair.py
+new file mode 100644
+index 0000000..fd0099a
+--- /dev/null
++++ b/scripts/lib/exact_repair.py
+@@ -0,0 +1,691 @@
++#!/usr/bin/env python3
++"""Narrow exact single-source repair admission. Stdlib; never imports a provider.
++
++Authority is a private host-issued, single-use PUBLIC FIXTURE TEST grant.
++This is deliberately not a human approval or a general execution facility.
++"""
++
++import argparse
++import hashlib
++import json
++import os
++import re
++import resource
++import stat
++import subprocess
++import sys
++import time
++from pathlib import Path, PurePosixPath
++
++ROOT = Path(__file__).resolve().parents[2]
++IMPLEMENTATION = (
++    "scripts/mana-repair.sh",
++    "scripts/mana-verify.sh",
++    "scripts/lib/exact_repair.py",
++    "scripts/lib/verification-exec.pl",
++)
++LIMIT = 262144
++
++
++class Rejected(Exception):
++    pass
++
++
++def require(ok, reason):
++    if not ok:
++        raise Rejected(reason)
++
++
++def encoded(value):
++    return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
++
++
++def digest(data):
++    return hashlib.sha256(data).hexdigest()
++
++
++def identity(value):
++    return digest(encoded(value))
++
++
++def pairs(items):
++    result = {}
++    for key, value in items:
++        require(key not in result, "DUPLICATE_KEY")
++        result[key] = value
++    return result
++
++
++def safe_absolute(raw):
++    p = Path(raw)
++    require(p.is_absolute() and str(p) == raw and ".." not in p.parts, "ABSOLUTE_PATH")
++    for part in (p, *p.parents):
++        require(not part.is_symlink(), "SYMLINK")
++    require(p.resolve() == p, "NONCANONICAL_PATH")
++    return p
++
++
++def relative(raw):
++    require(type(raw) is str and re.fullmatch(r"[A-Za-z0-9_./-]+", raw), "PATH")
++    p = PurePosixPath(raw)
++    require(
++        not p.is_absolute() and str(p) == raw and all(x not in (".", "..") for x in p.parts), "PATH"
++    )
++    return raw
++
++
++def read_file(path, limit=1048576, unique=True):
++    p = safe_absolute(str(path))
++    fd = os.open(p, os.O_RDONLY | os.O_NOFOLLOW)
++    try:
++        s = os.fstat(fd)
++        require(
++            stat.S_ISREG(s.st_mode) and (not unique or s.st_nlink == 1) and s.st_size <= limit,
++            "FILE_LIMIT_OR_TYPE",
++        )
++        with os.fdopen(fd, "rb", closefd=False) as f:
++            data = f.read(limit + 1)
++        require(len(data) <= limit, "FILE_LIMIT")
++        return data
++    finally:
++        os.close(fd)
++
++
++def load(path):
++    return json.loads(
++        read_file(path),
++        object_pairs_hook=pairs,
++        parse_constant=lambda _: require(False, "NONFINITE"),
++    )
++
++
++def private(path, directory=False):
++    p = safe_absolute(str(path))
++    s = p.stat()
++    require(s.st_uid == os.getuid() and s.st_mode & 0o077 == 0, "PRIVATE_HOST_PATH_REQUIRED")
++    require(stat.S_ISDIR(s.st_mode) if directory else stat.S_ISREG(s.st_mode), "HOST_PATH_TYPE")
++    if not directory:
++        require(s.st_nlink == 1, "HOST_HARDLINK")
++    return p
++
++
++def runtime():
++    base = subprocess.check_output(
++        ["/usr/bin/git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True
++    ).strip()
++    files = {p: digest(read_file(ROOT / p)) for p in IMPLEMENTATION}
++    jdk = safe_absolute(subprocess.check_output(["/usr/libexec/java_home"], text=True).strip())
++    tools = {
++        p: digest(read_file(Path(p).resolve(), 67108864, unique=False))
++        for p in (
++            sys.executable,
++            str(Path(sys.base_prefix) / "Resources/Python.app/Contents/MacOS/Python"),
++            "/usr/bin/perl",
++            "/usr/bin/sandbox-exec",
++            "/usr/bin/javac",
++            "/usr/bin/java",
++            str(jdk / "bin/java"),
++            str(jdk / "bin/javac"),
++        )
++    }
++    return {
++        "base_revision": base,
++        "files": files,
++        "changes_identity": identity(files),
++        "jdk_home": str(jdk),
++        "tools": tools,
++    }
++
++
++def commands(request):
++    """Fixed catalog: no executable, options or shell text from the proposal."""
++    v = request["verification"]
++    require(set(v) == {"catalog", "test_path", "main_class"}, "VERIFIER_FIELDS")
++    require(v["catalog"] == "java-jdk-pair/v1", "CATALOG")
++    test = relative(v["test_path"])
++    require(test.startswith("src/test/java/") and test.endswith(".java"), "TEST_PATH")
++    require(
++        re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_$]*(\.[A-Za-z_$][A-Za-z0-9_$]*)*", v["main_class"]),
++        "MAIN_CLASS",
++    )
++    dest = Path(request["destination"])
++    build = str(Path(request["outputs"]) / "classes")
++    return [
++        [
++            "/usr/bin/javac",
++            "-d",
++            build,
++            str(dest / request["proposal"]["edit"]["path"]),
++            str(dest / test),
++        ],
++        ["/usr/bin/java", "-cp", build, v["main_class"]],
++    ]
++
++
++def validate(request, grant_path, actual_runtime):
++    require(
++        set(request)
++        == {
++            "schema",
++            "id",
++            "proposal",
++            "destination",
++            "destination_identity",
++            "outputs",
++            "result_sha256",
++            "verification",
++            "budget",
++            "runtime",
++            "authorization_reference",
++            "protected_files",
++            "provider",
++            "operation",
++            "baseline",
++        },
++        "REQUEST_FIELDS",
++    )
++    require(request["operation"] in ("repair-verify", "verify"), "OPERATION")
++    require(
++        request["schema"] == "mana.exact-request/v1" and request["provider"] == "none",
++        "EXPLICIT_NO_PROVIDER",
++    )
++    require(
++        type(request["id"]) is str and re.fullmatch(r"[A-Za-z0-9_-]{1,80}", request["id"]),
++        "REQUEST_ID",
++    )
++    require(request["runtime"] == actual_runtime, "REVISION_NOT_ADMITTED")
++    p = request["proposal"]
++    require(
++        p["schema"] == "mom.operator.offline-proposal/v1"
++        and p["status"] == "HUMAN_REQUIRED"
++        and p["executable"] is False,
++        "HISTORICAL_PROPOSAL",
++    )
++    require(
++        p["fingerprint"] == identity({k: v for k, v in p.items() if k != "fingerprint"}),
++        "PROPOSAL_FINGERPRINT",
++    )
++    h = p["handoff"]
++    require(
++        h["schema"] == "mom.operator.offline-handoff/v1" and h["mission"] and h["request"], "ORIGIN"
++    )
++    snapshot = h["snapshot"]
++    require(h["snapshot_sha256"] == identity(snapshot), "SNAPSHOT_HASH")
++    require(set(p["edit"]) == {"path", "replacement"}, "EDIT_FIELDS")
++    source = relative(p["edit"]["path"])
++    require(
++        source.startswith("src/main/java/")
++        and source.endswith(".java")
++        and not any(
++            x.lower() in ("test", "tests", "config", "configuration")
++            for x in PurePosixPath(source).parts
++        ),
++        "SOURCE_SCOPE",
++    )
++    text = p["edit"]["replacement"]
++    require(
++        type(text) is str and 0 < len(text.encode()) <= LIMIT and "\0" not in text, "REPLACEMENT"
++    )
++    require(digest(text.encode()) == request["result_sha256"], "RESULT_HASH")
++    require(source in snapshot and text != snapshot[source]["text"], "EMPTY_OR_UNBASED_EDIT")
++    dest = private(request["destination"], True)
++    out = private(request["outputs"], True)
++    require(not list(out.iterdir()), "OUTPUT_NOT_EMPTY")
++    # Deliberately restricted to private, disposable external test copies.
++    require(
++        dest.is_relative_to(Path("/private/tmp")) and out.is_relative_to(Path("/private/tmp")),
++        "DISPOSABLE_DESTINATION_REQUIRED",
++    )
++    require(not dest.is_relative_to(out) and not out.is_relative_to(dest), "OUTPUT_OVERLAP")
++    ds = dest.stat()
++    require(
++        request["destination_identity"] == {"device": ds.st_dev, "inode": ds.st_ino},
++        "DESTINATION_IDENTITY",
++    )
++    files = {}
++    for file in dest.rglob("*"):
++        require(not file.is_symlink(), "SYMLINK")
++        if not file.is_dir():
++            files[str(file.relative_to(dest))] = digest(read_file(file, LIMIT))
++    require(set(files) == set(snapshot), "DESTINATION_SCOPE")
++    for name, record in snapshot.items():
++        relative(name)
++        require(digest(record["text"].encode()) == record["sha256"] == files[name], "BASE_MISMATCH")
++    baseline = request["baseline"]
++    require(
++        set(baseline) == {"test_exit", "stdout_sha256"}
++        and type(baseline["test_exit"]) is int
++        and 0 <= baseline["test_exit"] <= 255
++        and re.fullmatch(r"[0-9a-f]{64}", baseline["stdout_sha256"]),
++        "BASELINE_CONTRACT",
++    )
++    argv = commands(request)
++    require(
++        request["verification"]["test_path"] == h["regression_test"]
++        and request["verification"]["test_path"] in snapshot,
++        "FROZEN_TEST",
++    )
++    b = request["budget"]
++    require(
++        set(b)
++        == {
++            "attempts",
++            "verification_commands",
++            "timeout_seconds",
++            "total_seconds",
++            "output_bytes",
++            "file_bytes",
++        },
++        "BUDGET_FIELDS",
++    )
++    require(
++        all(type(v) is int for v in b.values())
++        and b["attempts"] == 1
++        and b["verification_commands"] == (4 if request["operation"] == "repair-verify" else 2)
++        and 1 <= b["timeout_seconds"] <= 30
++        and 1 <= b["total_seconds"] <= 180
++        and 1024 <= b["output_bytes"] <= 65536
++        and 1024 <= b["file_bytes"] <= 1048576,
++        "BUDGET_EXHAUSTED_OR_INVALID",
++    )
++    require(b["total_seconds"] >= b["timeout_seconds"] * 6, "TOTAL_BUDGET")
++    protected = request["protected_files"]
++    require(type(protected) is list and 1 <= len(protected) <= 32, "PROTECTED_FILES")
++    for name in protected:
++        file = safe_absolute(name)
++        require(not file.is_relative_to(dest) and not file.is_relative_to(out), "PROTECTED_OVERLAP")
++        read_file(file)
++    gp = private(grant_path)
++    private(gp.parent, True)
++    require(not gp.is_relative_to(dest) and not gp.is_relative_to(out), "AUTHORITY_OVERLAP")
++    g = load(gp)
++    require(
++        set(g) == {"schema", "id", "authority", "approved", "request_sha256", "expires_at", "uses"},
++        "GRANT_FIELDS",
++    )
++    require(
++        g["schema"] == "mana.exact-host-grant/v1"
++        and g["authority"] == "explicit-public-fixture-test",
++        "TEST_AUTHORITY_REQUIRED",
++    )
++    require(
++        g["approved"] is True and g["id"] == request["authorization_reference"],
++        "AUTHORIZATION_ABSENT_OR_DENIED",
++    )
++    require(g["request_sha256"] == identity(request), "AUTHORIZATION_EFFECTS_MISMATCH")
++    require(
++        g["uses"] == 1
++        and type(g["expires_at"]) is int
++        and time.time() < g["expires_at"] <= time.time() + 3600,
++        "AUTHORIZATION_EXPIRED_OR_BUDGET",
++    )
++    require(not Path(str(gp) + ".used").exists(), "AUTHORIZATION_CONSUMED")
++    require(
++        sys.platform == "darwin" and Path("/usr/bin/sandbox-exec").is_file(), "SEATBELT_REQUIRED"
++    )
++    return {"request": request, "grant": g, "grant_path": gp, "files": files, "argv": argv}
++
++
++def policy(request):
++    """Specific Seatbelt policy; no child creation, network or general write grant."""
++    q = json.dumps
++    dest, out = Path(request["destination"]), Path(request["outputs"])
++    source = dest / request["proposal"]["edit"]["path"]
++    reads = [
++        "/System",
++        "/usr",
++        "/Library/Java",
++        str(Path(sys.base_prefix).resolve()),
++        str(Path(sys.executable).resolve().parent.parent),
++        request["runtime"]["jdk_home"],
++        str(dest),
++        str(out / "classes"),
++    ]
++    return "\n".join(
++        [
++            "(version 1)",
++            "(deny default)",
++            "(deny network*)",
++            "(deny process-fork)",
++            "(allow process-exec "
++            + " ".join(
++                "(literal " + q(str(Path(p).resolve())) + ")"
++                for p in (
++                    sys.executable,
++                    str(Path(sys.base_prefix) / "Resources/Python.app/Contents/MacOS/Python"),
++                    "/usr/bin/java",
++                    "/usr/bin/javac",
++                    request["runtime"]["jdk_home"] + "/bin/java",
++                    request["runtime"]["jdk_home"] + "/bin/javac",
++                )
++            )
++            + ")",
++            "(allow sysctl-read)",
++            "(allow file-read-metadata)",
++            "(allow file-read* " + " ".join("(subpath " + q(p) + ")" for p in reads) + ")",
++            "(allow file-read* (literal " + q(str(Path(__file__).resolve())) + "))",
++            '(allow file-read* (literal "/dev/urandom") (literal "/dev/random") (literal "/"))',
++            '(allow file-read* file-write-data (literal "/dev/null"))',
++            "(allow file-write-data (literal " + q(str(source)) + "))",
++            "(allow file-write* (subpath " + q(str(out / "classes")) + "))",
++        ]
++    )
++
++
++def environment(request):
++    return {
++        "PATH": "/usr/bin:/bin",
++        "HOME": request["outputs"] + "/classes",
++        "TMPDIR": request["outputs"] + "/classes",
++        "LANG": "C",
++        "LC_ALL": "C",
++        "PYTHONDONTWRITEBYTECODE": "1",
++        "PYTHONNOUSERSITE": "1",
++        "JAVA_HOME": request["runtime"]["jdk_home"],
++    }
++
++
++def supervise(request, argv, label, sandbox=True):
++    out = Path(request["outputs"])
++    b = request["budget"]
++    cmd = [
++        "/usr/bin/perl",
++        str(ROOT / "scripts/lib/verification-exec.pl"),
++        "--timeout",
++        str(b["timeout_seconds"]),
++        "--output-cap",
++        str(b["output_bytes"]),
++        "--stdout",
++        str(out / (label + ".stdout")),
++        "--stderr",
++        str(out / (label + ".stderr")),
++        "--status",
++        str(out / (label + ".status")),
++        "--",
++    ]
++    if sandbox:
++        cmd += ["/usr/bin/sandbox-exec", "-p", policy(request)]
++    cmd += argv
++
++    def limits():
++        resource.setrlimit(resource.RLIMIT_FSIZE, (b["file_bytes"], b["file_bytes"]))
++        resource.setrlimit(resource.RLIMIT_CPU, (b["timeout_seconds"], b["timeout_seconds"] + 1))
++        os.umask(0o077)
++
++    completed = subprocess.run(
++        cmd,
++        cwd=request["destination"],
++        env=environment(request),
++        stdin=subprocess.DEVNULL,
++        stdout=subprocess.DEVNULL,
++        stderr=subprocess.PIPE,
++        preexec_fn=limits,
++        timeout=b["timeout_seconds"] + 5,
++    )
++    require(
++        completed.returncode == 0,
++        "SUPERVISOR_FAILED:" + completed.stderr.decode(errors="replace")[:500],
++    )
++    status = [int(x) for x in (out / (label + ".status")).read_text().split()]
++    return {
++        "argv": argv,
++        "cwd": request["destination"],
++        "exit": status[0],
++        "signal": status[1],
++        "timeout": bool(status[2]),
++        "descendants_terminated": bool(status[3]),
++        "stdout_bytes": status[4],
++        "stderr_bytes": status[5],
++        "duration_ms": status[6],
++        "stdout": (out / (label + ".stdout")).read_text(errors="replace"),
++        "stderr": (out / (label + ".stderr")).read_text(errors="replace"),
++    }
++
++
++def passed(result):
++    return result["exit"] == 0 and not result["timeout"] and not result["descendants_terminated"]
++
++
++def probe(request):
++    protected = (
++        request["protected_files"]
++        + [str(ROOT / p) for p in IMPLEMENTATION]
++        + [request["outputs"] + "/control.json"]
++        + [
++            str(Path(request["destination"]) / p)
++            for p in request["proposal"]["handoff"]["snapshot"]
++            if p != request["proposal"]["edit"]["path"]
++        ]
++    )
++    code = """import os,socket,json,errno
++r={}
++for p in PROTECTED:
++ try:
++  fd=os.open(p,os.O_WRONLY);os.close(fd);r[p]=False
++ except OSError as e:r[p]=e.errno in (errno.EACCES,errno.EPERM)
++for i,p in enumerate(PROTECTED):
++ alias=BUILD+'/alias-'+str(i)
++ try:
++  os.symlink(p,alias)
++  try:
++   fd=os.open(alias,os.O_WRONLY);os.close(fd);r['symlink-'+str(i)]=False
++  except OSError as e:r['symlink-'+str(i)]=e.errno in (errno.EACCES,errno.EPERM)
++ finally:
++  if os.path.lexists(alias):os.unlink(alias)
++try:
++ s=socket.socket();s.connect(('127.0.0.1',9));r['network']=False
++except OSError as e:r['network']=e.errno in (errno.EACCES,errno.EPERM)
++try:
++ pid=os.fork()
++ if pid==0:os._exit(0)
++ os.waitpid(pid,0);r['fork_denied']=False
++except OSError as e:r['fork_denied']=e.errno in (errno.EACCES,errno.EPERM)
++try:
++ pid=os.posix_spawn('/usr/bin/java',['/usr/bin/java','-version'],{})
++ os.waitpid(pid,0);r['spawn_denied']=False
++except OSError as e:r['spawn_denied']=e.errno in (errno.EACCES,errno.EPERM)
++fd=os.open(SOURCE,os.O_WRONLY);os.close(fd);r['source_write_open']=True
++p=BUILD+'/probe';open(p,'xb').write(b'allowed');os.unlink(p);r['build_write']=True
++print(json.dumps(r,sort_keys=True))
++raise SystemExit(0 if all(r.values()) else 1)
++"""
++    code = (
++        "PROTECTED="
++        + repr(protected)
++        + "\nSOURCE="
++        + repr(str(Path(request["destination"]) / request["proposal"]["edit"]["path"]))
++        + "\nBUILD="
++        + repr(request["outputs"] + "/classes")
++        + "\n"
++        + code
++    )
++    result = supervise(request, [sys.executable, "-I", "-B", "-c", code], "boundary-probe")
++    if passed(result):
++        bounded = dict(request, budget=dict(request["budget"], timeout_seconds=1))
++        timeout = supervise(
++            bounded,
++            [sys.executable, "-I", "-B", "-c", "import time;time.sleep(10)"],
++            "timeout-probe",
++        )
++        result["timeout_probe"] = timeout
++        if not timeout["timeout"] or timeout["exit"] == 0:
++            result["exit"] = 1
++    return result
++
++
++def apply(request):
++    # The only replacement originates from the original package, not a patch translator.
++    source = str(Path(request["destination"]) / request["proposal"]["edit"]["path"])
++    code = """import os,hashlib
++fd=os.open(PATH,os.O_RDWR|os.O_NOFOLLOW)
++try:
++ s=os.fstat(fd)
++ assert s.st_nlink==1
++ data=os.read(fd,262145)
++ assert hashlib.sha256(data).hexdigest()==BASE
++ os.lseek(fd,0,0)
++ with os.fdopen(fd,'wb',closefd=False) as f:
++  f.write(TEXT);f.truncate();f.flush();os.fsync(fd)
++finally:os.close(fd)
++"""
++    code = (
++        "PATH="
++        + repr(source)
++        + "\nBASE="
++        + repr(
++            request["proposal"]["handoff"]["snapshot"][request["proposal"]["edit"]["path"]][
++                "sha256"
++            ]
++        )
++        + "\nTEXT="
++        + repr(request["proposal"]["edit"]["replacement"].encode())
++        + "\n"
++        + code
++    )
++    return supervise(request, [sys.executable, "-I", "-B", "-c", code], "apply")
++
++
++def execute(admitted, runner=supervise, qualifier=probe, applier=apply):
++    """Injected functions are unit-test doubles only; no CLI/environment override."""
++    r = admitted["request"]
++    out = Path(r["outputs"])
++    gp = admitted["grant_path"]
++    # Exclusive persistent reservation; no refund or retry, including failed probes.
++    fd = os.open(str(gp) + ".used", os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
++    with os.fdopen(fd, "wb") as f:
++        f.write(encoded({"request_sha256": identity(r), "reserved_at": time.time()}))
++        f.flush()
++        os.fsync(f.fileno())
++    receipt = {
++        "schema": "mana.exact-result/v1",
++        "request_sha256": identity(r),
++        "request_id": r["id"],
++        "proposal_fingerprint": r["proposal"]["fingerprint"],
++        "runtime": r["runtime"],
++        "authorization": admitted["grant"],
++        "human_approval": False,
++        "provider_calls": 0,
++        "status": "BLOCKED",
++        "applied": False,
++        "application_started": False,
++        "steps": {},
++        "initial": admitted["files"],
++        "final": {},
++        "stop_reason": None,
++    }
++    started = time.monotonic()
++    try:
++        (out / "classes").mkdir(mode=0o700)
++        with (out / "control.json").open("x") as f:
++            os.fchmod(f.fileno(), 0o600)
++            f.write(identity(r) + "\n")
++        result = qualifier(r)
++        receipt["steps"]["boundary"] = result
++        require(passed(result), "NATIVE_BOUNDARY_UNQUALIFIED")
++        # Qualification must be per invocation, never loaded from an old receipt.
++        for phase in ("baseline", "after") if r["operation"] == "repair-verify" else ("verify",):
++            if phase == "after":
++                require(
++                    time.monotonic() - started
++                    < r["budget"]["total_seconds"] - 3 * r["budget"]["timeout_seconds"],
++                    "TOTAL_BUDGET_EXHAUSTED",
++                )
++                receipt["application_started"] = True
++                result = applier(r)
++                receipt["steps"]["apply"] = result
++                receipt["applied"] = (
++                    digest(read_file(Path(r["destination"]) / r["proposal"]["edit"]["path"]))
++                    == r["result_sha256"]
++                )
++                require(
++                    passed(result) and receipt["applied"], "APPLICATION_FAILED_PARTIAL_POSSIBLE"
++                )
++            for index, argv in enumerate(admitted["argv"]):
++                require(
++                    time.monotonic() - started
++                    < r["budget"]["total_seconds"] - r["budget"]["timeout_seconds"],
++                    "TOTAL_BUDGET_EXHAUSTED",
++                )
++                result = runner(r, argv, phase + "-" + str(index))
++                receipt["steps"][phase + "-" + str(index)] = result
++                # Baseline test may fail; compilation may not. No fixture rule in executor.
++                require(
++                    not result["timeout"] and not result["descendants_terminated"],
++                    "VERIFICATION_TIMEOUT_OR_DESCENDANTS",
++                )
++                if phase == "baseline" and index == 1:
++                    require(
++                        result["exit"] == r["baseline"]["test_exit"]
++                        and digest(result["stdout"].encode()) == r["baseline"]["stdout_sha256"],
++                        "BASELINE_NOT_REPRODUCED",
++                    )
++                else:
++                    require(result["exit"] == 0, "COMPILATION_OR_TEST_FAILED")
++        receipt["status"] = "COMPLETE"
++    except (Rejected, OSError, subprocess.SubprocessError) as e:
++        receipt["stop_reason"] = str(e)
++        receipt["status"] = "PARTIAL" if receipt["application_started"] else "BLOCKED"
++    finally:
++        try:
++            for file in Path(r["destination"]).rglob("*"):
++                require(not file.is_symlink(), "FINAL_SYMLINK")
++                if not file.is_dir():
++                    receipt["final"][str(file.relative_to(r["destination"]))] = digest(
++                        read_file(file)
++                    )
++            expected = dict(admitted["files"])
++            if receipt["applied"]:
++                expected[r["proposal"]["edit"]["path"]] = r["result_sha256"]
++            require(receipt["final"] == expected, "FINAL_CONTENT_MISMATCH")
++        except (Rejected, OSError) as e:
++            receipt["status"] = "PARTIAL"
++            receipt["stop_reason"] = str(e)
++        receipt["duration_ms"] = round((time.monotonic() - started) * 1000)
++        data = encoded(receipt) + b"\n"
++        with (out / "result.json").open("xb") as f:
++            os.fchmod(f.fileno(), 0o600)
++            f.write(data)
++        with (out / "result.sha256").open("x") as f:
++            os.fchmod(f.fileno(), 0o600)
++            f.write(digest(data) + "\n")
++    return receipt
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--entry", choices=["repair", "verify"], required=True)
++    parser.add_argument("--exact-request", required=True)
++    parser.add_argument("--host-grant", required=True)
++    parser.add_argument("--provider", choices=["none"], required=True)
++    parser.add_argument(
++        "--project-root"
++    )  # public wrapper compatibility; must equal bound destination
++    parser.add_argument("--json", action="store_true")
++    args = parser.parse_args()
++    try:
++        r = load(safe_absolute(args.exact_request))
++        require(
++            r["operation"] == ("repair-verify" if args.entry == "repair" else "verify"),
++            "ENTRY_OPERATION_MISMATCH",
++        )
++        require(
++            args.project_root is None or args.project_root == r["destination"],
++            "PROJECT_ROOT_MISMATCH",
++        )
++        admitted = validate(r, safe_absolute(args.host_grant), runtime())
++        result = execute(admitted)
++    except (Rejected, OSError, KeyError, TypeError, ValueError, subprocess.SubprocessError) as e:
++        result = {
++            "schema": "mana.exact-result/v1",
++            "status": "BLOCKED",
++            "stop_reason": str(e),
++            "application_started": False,
++            "applied": False,
++            "provider_calls": 0,
++        }
++    print(json.dumps(result, sort_keys=True))
++    return 0 if result["status"] == "COMPLETE" else 2
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff --git a/tests/exact-repair.py b/tests/exact-repair.py
+new file mode 100644
+index 0000000..556a803
+--- /dev/null
++++ b/tests/exact-repair.py
+@@ -0,0 +1,402 @@
++#!/usr/bin/env python3
++"""Component tests use explicit doubles; they do NOT qualify native execution."""
++
++import copy
++import importlib.util
++import json
++import os
++import shutil
++import sys
++import tempfile
++import time
++import unittest
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++spec = importlib.util.spec_from_file_location("exact", ROOT / "scripts/lib/exact_repair.py")
++x = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(x)
++
++
++def result(exit=0, timeout=False):
++    return {
++        "exit": exit,
++        "timeout": timeout,
++        "descendants_terminated": False,
++        "stdout": "",
++        "stderr": "",
++        "argv": [],
++        "duration_ms": 0,
++    }
++
++
++class Contract(unittest.TestCase):
++    def setUp(self):
++        self.tmp = Path(tempfile.mkdtemp(prefix="mana-exact-unit-", dir="/private/tmp")).resolve()
++        self.addCleanup(shutil.rmtree, self.tmp)
++        self.dest = self.tmp / "copy"
++        self.out = self.tmp / "outputs"
++        self.host = self.tmp / "host"
++        for p in (self.dest, self.out, self.host):
++            p.mkdir(mode=0o700)
++        self.source = "src/main/java/example/Example.java"
++        self.test = "src/test/java/example/ExampleTest.java"
++        snapshot = {}
++        for name, text in [
++            (self.source, "class Example {}\n"),
++            (self.test, "class ExampleTest {}\n"),
++            ("README.md", "public test fixture\n"),
++        ]:
++            p = self.dest / name
++            p.parent.mkdir(parents=True, exist_ok=True)
++            p.write_text(text)
++            snapshot[name] = {"text": text, "sha256": x.digest(text.encode())}
++        self.protected = self.host / "protected"
++        self.protected.write_text("original")
++        proposal = {
++            "schema": "mom.operator.offline-proposal/v1",
++            "status": "HUMAN_REQUIRED",
++            "executable": False,
++            "edit": {"path": self.source, "replacement": "final class Example {}\n"},
++            "handoff": {
++                "schema": "mom.operator.offline-handoff/v1",
++                "mission": "test-origin",
++                "request": "exact edit",
++                "snapshot": snapshot,
++                "snapshot_sha256": x.identity(snapshot),
++                "regression_test": self.test,
++            },
++        }
++        proposal["fingerprint"] = x.identity(proposal)
++        ds = self.dest.stat()
++        self.r = {
++            "schema": "mana.exact-request/v1",
++            "id": "unit",
++            "proposal": proposal,
++            "destination": str(self.dest),
++            "destination_identity": {"device": ds.st_dev, "inode": ds.st_ino},
++            "outputs": str(self.out),
++            "result_sha256": x.digest(proposal["edit"]["replacement"].encode()),
++            "verification": {
++                "catalog": "java-jdk-pair/v1",
++                "test_path": self.test,
++                "main_class": "example.ExampleTest",
++            },
++            "budget": {
++                "attempts": 1,
++                "verification_commands": 4,
++                "timeout_seconds": 1,
++                "total_seconds": 12,
++                "output_bytes": 16384,
++                "file_bytes": 1048576,
++            },
++            "runtime": {"test": "component double only"},
++            "authorization_reference": "test-grant",
++            "protected_files": [str(self.protected)],
++            "provider": "none",
++            "operation": "repair-verify",
++            "baseline": {"test_exit": 0, "stdout_sha256": x.digest(b"")},
++        }
++        self.gp = self.host / "grant.json"
++        self.grant = {
++            "schema": "mana.exact-host-grant/v1",
++            "id": "test-grant",
++            "authority": "explicit-public-fixture-test",
++            "approved": True,
++            "request_sha256": x.identity(self.r),
++            "expires_at": int(time.time()) + 300,
++            "uses": 1,
++        }
++        self.write_grant()
++        self.calls = []
++
++    def write_grant(self):
++        self.gp.write_bytes(x.encoded(self.grant))
++        self.gp.chmod(0o600)
++
++    def rebind(self):
++        self.grant["request_sha256"] = x.identity(self.r)
++        self.write_grant()
++
++    def validate(self):
++        return x.validate(self.r, self.gp, {"test": "component double only"})
++
++    def qualifier(self, request):
++        self.calls.append("simulated-boundary")
++        return result()
++
++    def applier(self, request):
++        self.calls.append("simulated-apply")
++        (self.dest / self.source).write_text(request["proposal"]["edit"]["replacement"])
++        return result()
++
++    def runner(self, request, argv, label):
++        self.calls.append(label)
++        return result()
++
++    def run_double(self, runner=None, applier=None):
++        return x.execute(
++            self.validate(),
++            runner=runner or self.runner,
++            qualifier=self.qualifier,
++            applier=applier or self.applier,
++        )
++
++    def reject(self, reason=None):
++        with self.assertRaises(x.Rejected) as caught:
++            self.validate()
++        if reason:
++            self.assertIn(reason, str(caught.exception))
++        self.assertEqual(self.calls, [])
++        self.assertEqual(list(self.out.iterdir()), [])
++        self.assertFalse(Path(str(self.gp) + ".used").exists())
++
++    def test_exact_transformation_simulated_executor(self):
++        r = self.run_double()
++        self.assertEqual(r["status"], "COMPLETE")
++        self.assertTrue(r["applied"])
++        self.assertEqual(r["provider_calls"], 0)
++        self.assertFalse(r["human_approval"])
++        self.assertEqual(
++            (self.dest / self.source).read_bytes(),
++            self.r["proposal"]["edit"]["replacement"].encode(),
++        )
++        self.assertEqual([p for p in r["final"] if r["initial"][p] != r["final"][p]], [self.source])
++        self.assertEqual(
++            self.calls,
++            [
++                "simulated-boundary",
++                "baseline-0",
++                "baseline-1",
++                "simulated-apply",
++                "after-0",
++                "after-1",
++            ],
++        )
++        self.assertEqual(
++            x.digest((self.out / "result.json").read_bytes()),
++            (self.out / "result.sha256").read_text().strip(),
++        )
++
++    def test_base_mismatch(self):
++        (self.dest / self.source).write_text("stale")
++        self.reject("BASE_MISMATCH")
++
++    def test_protected_base_mismatch(self):
++        (self.dest / self.test).write_text("altered test")
++        self.reject("BASE_MISMATCH")
++
++    def test_modified_proposal(self):
++        self.r["proposal"]["edit"]["replacement"] += "other"
++        self.reject("PROPOSAL_FINGERPRINT")
++
++    def test_result_inconsistent(self):
++        self.r["result_sha256"] = "0" * 64
++        self.reject("RESULT_HASH")
++
++    def test_missing_authority(self):
++        self.gp.unlink()
++        with self.assertRaises(FileNotFoundError):
++            self.validate()
++        self.assertEqual(self.calls, [])
++
++    def test_denied_authority(self):
++        self.grant["approved"] = False
++        self.write_grant()
++        self.reject("AUTHORIZATION")
++
++    def test_other_effects(self):
++        self.grant["request_sha256"] = "0" * 64
++        self.write_grant()
++        self.reject("EFFECTS")
++
++    def test_no_human_impersonation(self):
++        self.grant["authority"] = "human"
++        self.write_grant()
++        self.reject("TEST_AUTHORITY")
++
++    def test_expired(self):
++        self.grant["expires_at"] = int(time.time()) - 1
++        self.write_grant()
++        self.reject("EXPIRED")
++
++    def test_no_sharing_or_provider_fallback(self):
++        self.r["provider"] = "codex"
++        self.reject("NO_PROVIDER")
++
++    def test_revision(self):
++        self.r["runtime"] = {"base_revision": "other"}
++        self.reject("REVISION_NOT_ADMITTED")
++
++    def test_budget_exhausted(self):
++        self.r["budget"]["attempts"] = 0
++        self.reject("BUDGET")
++
++    def test_single_use(self):
++        self.run_double()
++        # Fresh empty output path still cannot replay the same authorization.
++        other = self.tmp / "other"
++        other.mkdir(mode=0o700)
++        self.r["outputs"] = str(other)
++        self.rebind()
++        with self.assertRaises(x.Rejected):
++            self.validate()
++        self.assertEqual(self.calls.count("simulated-apply"), 1)
++
++    def test_path_escape(self):
++        self.r["proposal"]["edit"]["path"] = "../outside"
++        self.refingerprint()
++        self.reject("PATH")
++
++    def test_test_mutation(self):
++        self.r["proposal"]["edit"]["path"] = self.test
++        self.refingerprint()
++        self.reject("SOURCE_SCOPE")
++
++    def test_config_mutation(self):
++        self.r["proposal"]["edit"]["path"] = "src/main/java/config/Setting.java"
++        self.refingerprint()
++        self.reject("SOURCE_SCOPE")
++
++    def refingerprint(self):
++        p = self.r["proposal"]
++        p["fingerprint"] = x.identity({k: v for k, v in p.items() if k != "fingerprint"})
++
++    def test_symlink_file(self):
++        p = self.dest / self.source
++        p.unlink()
++        p.symlink_to(self.protected)
++        self.reject("SYMLINK")
++
++    def test_symlink_ancestor(self):
++        parent = self.dest / "src/main/java/example"
++        shutil.rmtree(parent)
++        parent.symlink_to(self.host)
++        self.reject("SYMLINK")
++
++    def test_hardlink(self):
++        p = self.dest / self.source
++        p.unlink()
++        os.link(self.protected, p)
++        self.reject("TYPE")
++
++    def test_extra_file(self):
++        (self.dest / "extra").write_text("extra")
++        self.reject("DESTINATION_SCOPE")
++
++    def test_destination_identity(self):
++        self.r["destination_identity"]["inode"] += 1
++        self.reject("DESTINATION_IDENTITY")
++
++    def test_unauthorized_destination(self):
++        self.r["destination"] = str(ROOT)
++        self.reject()
++
++    def test_shell_command_rejected(self):
++        self.r["verification"]["command"] = "touch /tmp/no"
++        self.reject("VERIFIER_FIELDS")
++
++    def test_no_native_boundary_simulated(self):
++        r = x.execute(
++            self.validate(), runner=self.runner, qualifier=lambda _: result(1), applier=self.applier
++        )
++        self.assertEqual(r["status"], "BLOCKED")
++        self.assertEqual(self.calls, [])
++
++    def test_compilation_failure_simulated(self):
++        r = self.run_double(runner=lambda *args: result(2))
++        self.assertEqual(r["status"], "BLOCKED")
++        self.assertFalse(r["applied"])
++        self.assertNotIn("simulated-apply", self.calls)
++
++    def test_test_failure_simulated_partial(self):
++        def runner(req, argv, label):
++            return result(1 if label == "after-1" else 0)
++
++        r = self.run_double(runner=runner)
++        self.assertEqual(r["status"], "PARTIAL")
++        self.assertTrue(r["applied"])
++
++    def test_timeout_simulated_partial(self):
++        def runner(req, argv, label):
++            return result(143, True) if label == "after-0" else result()
++
++        r = self.run_double(runner=runner)
++        self.assertEqual(r["status"], "PARTIAL")
++        self.assertTrue(r["applied"])
++
++    def test_failed_apply_records_partial(self):
++        def apply(req):
++            (self.dest / self.source).write_text("partial")
++            raise OSError("simulated partial write")
++
++        r = self.run_double(applier=apply)
++        self.assertEqual(r["status"], "PARTIAL")
++        self.assertFalse(r["applied"])
++        self.assertEqual((self.dest / self.source).read_text(), "partial")
++
++    def test_mismatched_final_result_simulated(self):
++        def apply(req):
++            (self.dest / self.source).write_text("wrong")
++            return result()
++
++        r = self.run_double(applier=apply)
++        self.assertEqual(r["status"], "PARTIAL")
++        self.assertNotIn("after-0", self.calls)
++
++    def test_verify_only_simulated(self):
++        self.r["operation"] = "verify"
++        self.r["budget"]["verification_commands"] = 2
++        self.rebind()
++        r = self.run_double()
++        self.assertEqual(r["status"], "COMPLETE")
++        self.assertFalse(r["applied"])
++        self.assertNotIn("simulated-apply", self.calls)
++
++    def test_baseline_not_reproduced_stops_before_apply(self):
++        def runner(req, argv, label):
++            return result(1 if label == "baseline-1" else 0)
++
++        r = self.run_double(runner=runner)
++        self.assertEqual(r["status"], "BLOCKED")
++        self.assertFalse(r["applied"])
++        self.assertIn("BASELINE_NOT_REPRODUCED", r["stop_reason"])
++        self.assertNotIn("simulated-apply", self.calls)
++
++    def test_native_supervisor_timeout_and_descendant_cleanup(self):
++        # Native supervisor only, no fixture/candidate application or sandbox claim.
++        r = copy.deepcopy(self.r)
++        r["runtime"]["jdk_home"] = "/no-java-needed"
++        pidfile = self.out / "child.pid"
++        code = (
++            "import os,time;pid=os.fork();"
++            "open(" + repr(str(pidfile)) + ',"w").write(str(pid)) if pid else None;'
++            "time.sleep(30)"
++        )
++        res = x.supervise(
++            r, [sys.executable, "-I", "-B", "-c", code], "native-timeout", sandbox=False
++        )
++        self.assertTrue(res["timeout"])
++        self.assertNotEqual(res["exit"], 0)
++        pid = int(pidfile.read_text())
++        state = x.subprocess.run(
++            ["/bin/ps", "-p", str(pid), "-o", "stat="], capture_output=True, text=True
++        ).stdout.strip()
++        self.assertTrue(not state or state.startswith("Z"), state)
++
++    def test_duplicate_keys(self):
++        with self.assertRaises(x.Rejected):
++            json.loads('{"a":1,"a":2}', object_pairs_hook=x.pairs)
++
++    def test_provider_imports_absent(self):
++        import ast
++
++        source = (ROOT / "scripts/lib/exact_repair.py").read_text()
++        tree = ast.parse(source)
++        imports = [n for n in ast.walk(tree) if isinstance(n, (ast.Import, ast.ImportFrom))]
++        self.assertFalse(any("provider" in ast.unparse(n) for n in imports))
++        self.assertNotIn("MANA_REPAIR_ALLOW_STUB", source)
++
++
++if __name__ == "__main__":
++    unittest.main(verbosity=2)

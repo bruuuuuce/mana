@@ -1,0 +1,5 @@
+PASS input=4999 expected=500 observed=500
+PASS input=5000 expected=0 observed=0
+PASS input=5001 expected=0 observed=0
+PASS input=-1 expected=IllegalArgumentException observed=IllegalArgumentException
+PASS all 4 cases

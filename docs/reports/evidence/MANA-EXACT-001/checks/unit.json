@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "python3",
+    "-I",
+    "-B",
+    "tests/exact-repair.py"
+  ],
+  "exit": 0,
+  "native_supervisor_test": true,
+  "other_executor_tests": "explicit doubles",
+  "stderr_artifact": "unit.stderr",
+  "stdout_artifact": "unit.stdout",
+  "tests": 35
+}

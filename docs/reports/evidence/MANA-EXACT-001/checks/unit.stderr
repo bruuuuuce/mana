@@ -1,0 +1,40 @@
+test_base_mismatch (__main__.Contract.test_base_mismatch) ... ok
+test_baseline_not_reproduced_stops_before_apply (__main__.Contract.test_baseline_not_reproduced_stops_before_apply) ... ok
+test_budget_exhausted (__main__.Contract.test_budget_exhausted) ... ok
+test_compilation_failure_simulated (__main__.Contract.test_compilation_failure_simulated) ... ok
+test_config_mutation (__main__.Contract.test_config_mutation) ... ok
+test_denied_authority (__main__.Contract.test_denied_authority) ... ok
+test_destination_identity (__main__.Contract.test_destination_identity) ... ok
+test_duplicate_keys (__main__.Contract.test_duplicate_keys) ... ok
+test_exact_transformation_simulated_executor (__main__.Contract.test_exact_transformation_simulated_executor) ... ok
+test_expired (__main__.Contract.test_expired) ... ok
+test_extra_file (__main__.Contract.test_extra_file) ... ok
+test_failed_apply_records_partial (__main__.Contract.test_failed_apply_records_partial) ... ok
+test_hardlink (__main__.Contract.test_hardlink) ... ok
+test_mismatched_final_result_simulated (__main__.Contract.test_mismatched_final_result_simulated) ... ok
+test_missing_authority (__main__.Contract.test_missing_authority) ... ok
+test_modified_proposal (__main__.Contract.test_modified_proposal) ... ok
+test_native_supervisor_timeout_and_descendant_cleanup (__main__.Contract.test_native_supervisor_timeout_and_descendant_cleanup) ... ok
+test_no_human_impersonation (__main__.Contract.test_no_human_impersonation) ... ok
+test_no_native_boundary_simulated (__main__.Contract.test_no_native_boundary_simulated) ... ok
+test_no_sharing_or_provider_fallback (__main__.Contract.test_no_sharing_or_provider_fallback) ... ok
+test_other_effects (__main__.Contract.test_other_effects) ... ok
+test_path_escape (__main__.Contract.test_path_escape) ... ok
+test_protected_base_mismatch (__main__.Contract.test_protected_base_mismatch) ... ok
+test_provider_imports_absent (__main__.Contract.test_provider_imports_absent) ... ok
+test_result_inconsistent (__main__.Contract.test_result_inconsistent) ... ok
+test_revision (__main__.Contract.test_revision) ... ok
+test_shell_command_rejected (__main__.Contract.test_shell_command_rejected) ... ok
+test_single_use (__main__.Contract.test_single_use) ... ok
+test_symlink_ancestor (__main__.Contract.test_symlink_ancestor) ... ok
+test_symlink_file (__main__.Contract.test_symlink_file) ... ok
+test_test_failure_simulated_partial (__main__.Contract.test_test_failure_simulated_partial) ... ok
+test_test_mutation (__main__.Contract.test_test_mutation) ... ok
+test_timeout_simulated_partial (__main__.Contract.test_timeout_simulated_partial) ... ok
+test_unauthorized_destination (__main__.Contract.test_unauthorized_destination) ... ok
+test_verify_only_simulated (__main__.Contract.test_verify_only_simulated) ... ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 1.169s
+
+OK

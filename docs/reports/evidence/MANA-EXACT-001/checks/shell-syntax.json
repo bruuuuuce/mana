@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "/bin/bash",
+    "-c",
+    "bash -n scripts/*.sh hooks/pre-commit hooks/pre-push"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": "",
+  "seconds": 0.006167791958432645
+}

@@ -1,0 +1,8 @@
+{
+  "proposal_fingerprint": "ec98005da9eac3b620f3d203c1cb6fe39a7a632eda3d44db7f82a98eda5b9d5b",
+  "review_matches": true,
+  "replacement_sha256": "acdfdd17d5d53bad3e7abdfc59a43ff07da4158060899a19f28e2859e1ce1cc2",
+  "snapshot_matches_original": true,
+  "diff": "--- a/src/main/java/example/ShippingPolicy.java\n+++ b/src/main/java/example/ShippingPolicy.java\n@@ -7,6 +7,6 @@\n         if (subtotalCents < 0) {\n             throw new IllegalArgumentException(\"Subtotal must be nonnegative\");\n         }\n-        return subtotalCents > 5000 ? 0 : 500;\n+        return subtotalCents >= 5000 ? 0 : 500;\n     }\n }\n",
+  "proposal_file_sha256": "c0761893364401161bee1c5d433c12451030910042590c5516f11f20ea3faab0"
+}

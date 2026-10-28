@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "/Users/zel/projects/mana-o-matic/.venv/bin/ruff",
+    "format",
+    "--check",
+    "--isolated",
+    "--no-cache",
+    "--line-length",
+    "100",
+    "scripts/lib/exact_repair.py",
+    "tests/exact-repair.py"
+  ],
+  "exit": 0,
+  "stdout": "2 files already formatted\n",
+  "stderr": "",
+  "seconds": 0.010988624999299645
+}

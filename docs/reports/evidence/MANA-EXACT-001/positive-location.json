@@ -1,0 +1,7 @@
+{
+  "root": "/private/tmp/mana-exact-MANA-EXACT-001-positive-tkg6f6g7",
+  "request": "/private/tmp/mana-exact-MANA-EXACT-001-positive-tkg6f6g7/request.json",
+  "grant": "/private/tmp/mana-exact-MANA-EXACT-001-positive-tkg6f6g7/authority/grant.json",
+  "outputs": "/private/tmp/mana-exact-MANA-EXACT-001-positive-tkg6f6g7/outputs",
+  "destination": "/private/tmp/mana-exact-MANA-EXACT-001-positive-tkg6f6g7/fixture"
+}

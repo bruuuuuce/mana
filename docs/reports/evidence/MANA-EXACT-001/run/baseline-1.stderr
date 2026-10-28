@@ -1,0 +1,2 @@
+Exception in thread "main" java.lang.AssertionError: Failed cases: 1
+	at example.ShippingPolicyTest.main(ShippingPolicyTest.java:17)
