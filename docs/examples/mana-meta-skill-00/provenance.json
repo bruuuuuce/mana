@@ -1,0 +1,26 @@
+{
+  "source": "Spring PetClinic local checkout",
+  "sourceRoot": "/private/tmp/mom-qual004-x92n0bvj/spring-petclinic",
+  "sourceRemote": "https://github.com/spring-projects/spring-petclinic.git",
+  "before": {
+    "fileCount": 132,
+    "contentDigest": "7cd602986575faa0589f0b9e2177c45ecd682ceae6fd97d04666c0da36b91851",
+    "gitHead": "500158f732419217507c7656904b8e6aa1bcc0d6",
+    "gitStatus": ""
+  },
+  "after": {
+    "fileCount": 132,
+    "contentDigest": "7cd602986575faa0589f0b9e2177c45ecd682ceae6fd97d04666c0da36b91851",
+    "gitHead": "500158f732419217507c7656904b8e6aa1bcc0d6",
+    "gitStatus": ""
+  },
+  "sourceMutation": "none observed",
+  "generationExitCode": 0,
+  "generationResult": {
+    "approval": "pending",
+    "executable": false,
+    "skillId": "java-spring-transaction-analysis",
+    "status": "valid"
+  },
+  "scope": "Factory generation only; transaction analysis not implemented"
+}

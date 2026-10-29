@@ -1,0 +1,12 @@
+{
+  "schema": "mana.transaction-context/v1",
+  "initialState": "NO_TRANSACTION",
+  "entryThroughProxy": true,
+  "managerCapabilities": {
+    "tx": {
+      "suspend": true,
+      "savepoints": true
+    }
+  },
+  "resourceLeafPolicy": "JDBC_LITERAL_V1"
+}

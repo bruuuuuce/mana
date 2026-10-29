@@ -1,0 +1,26 @@
+test_01_required_preserves_active_p1 (__main__.ContextAlternativeTests) ... ok
+test_02_required_without_initial_transaction (__main__.ContextAlternativeTests) ... ok
+test_03_requires_new_has_no_common_identity (__main__.ContextAlternativeTests) ... ok
+test_04_nested_has_conditional_savepoint_on_same_p1 (__main__.ContextAlternativeTests) ... ok
+test_05_nested_unknown_and_false_capability (__main__.ContextAlternativeTests) ... ok
+test_06_ambiguous_manager_does_not_preserve_false_identity (__main__.ContextAlternativeTests) ... ok
+test_07_caller_context_and_following_call_preserved (__main__.ContextAlternativeTests) ... ok
+test_08_rejects_falsely_deterministic_physical_identity (__main__.ContextAlternativeTests) ... ok
+test_09_validator_accepts_unknown_advice_active_p1 (__main__.ContextAlternativeTests) ... ok
+test_10_diagram_separates_known_context_conditional_scope_and_savepoint (__main__.ContextAlternativeTests) ... ok
+test_async_and_programmatic_hazards_cannot_use_composition (__main__.ContextAlternativeTests) ... ok
+test_composition_labels_reject_directive_injection (__main__.ContextAlternativeTests) ... ok
+test_historical_models_remain_valid (__main__.ContextAlternativeTests) ... ok
+test_nonempty_body_does_not_claim_return_context_or_follow_calls (__main__.ContextAlternativeTests) ... ok
+test_original_r2_source_and_context_exact_cli_regression (__main__.ContextAlternativeTests) ... ok
+test_plantuml_syntax_and_svg (__main__.ContextAlternativeTests) ... ok
+test_requires_new_unknown_capability_is_unresolved (__main__.ContextAlternativeTests) ... ok
+test_validator_rejects_conditional_scope_materialized_unconditionally (__main__.ContextAlternativeTests) ... ok
+test_validator_rejects_false_capability_and_premises (__main__.ContextAlternativeTests) ... ok
+test_validator_rejects_forged_applied_branch_and_missing_bypass (__main__.ContextAlternativeTests) ... ok
+test_validator_rejects_wrong_caller_identity_and_manager (__main__.ContextAlternativeTests) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 3.856s
+
+OK

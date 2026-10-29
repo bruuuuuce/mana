@@ -432,6 +432,7 @@ a custom profile.
 
 | Skill | Description | Risk | Owner | Agent |
 |---|---|---|---|---|
+| [`specialist-skill-factory`](../skills/specialist-skill-factory/SKILL.md) | Generate and validate an untrusted Java/Spring specialist candidate from Maven/source evidence; no promotion or analysis. | medium | Architect / Team Leader | explicit invocation |
 | [`post-merge-incident-learning`](../skills/post-merge-incident-learning/SKILL.md) | Close the loop after incidents by identifying missed signals and updating future guardrails. | medium | Team Leader / Architect | `learning-agent` |
 | [`rule-update-suggestion`](../skills/rule-update-suggestion/SKILL.md) | Convert lessons into proposed governance updates without automatically changing enforced rules. | medium | Architect / Team Leader | `learning-agent` |
 

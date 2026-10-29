@@ -1,0 +1,224 @@
+{
+  "review": "MANA-META-SKILL-00-R1",
+  "date": "2026-10-19",
+  "verdict": "NEEDS_FIX",
+  "branch": "feature/mana-meta-skill-00",
+  "baseline": "ad8730ebe70f494ac24a80fbf32fcf2b30cdef35",
+  "commit": null,
+  "indexUnchangedAndEmpty": true,
+  "initialFiles": {
+    ".github/workflows/validate-mana.yml": {
+      "sha256": "2ba936a29115c08929a1a22e305adddbd9039e6cb45dddc44fee4f9961b61e03",
+      "mode": "0o644"
+    },
+    "docs/examples/mana-meta-skill-00/java-spring-transaction-analysis/SKILL.md": {
+      "sha256": "145dfe1b5452de8a7055457bfdd834d8328dde3f3222faa86b271dd6304edf3c",
+      "mode": "0o644"
+    },
+    "docs/examples/mana-meta-skill-00/java-spring-transaction-analysis/candidate.json": {
+      "sha256": "546ec314a1a5a0961054e4583c8e2b13b40b42a03b698a776f783705945930f9",
+      "mode": "0o644"
+    },
+    "docs/examples/mana-meta-skill-00/provenance.json": {
+      "sha256": "a7a61027110b6626395e87d8ac867c63cd03d75fce3f9ae1a818fd52cc349966",
+      "mode": "0o644"
+    },
+    "docs/reports/MANA-META-SKILL-00.md": {
+      "sha256": "f83ab87e2a95719610125021954865c2abed6e3589b9b2dac8d298f8ac2ade06",
+      "mode": "0o644"
+    },
+    "docs/roadmap/TRANSACTION-01.md": {
+      "sha256": "f3efe4dd1c036ab3c0bedf6717be1966fd7da05737cc5d5fec104fba46203545",
+      "mode": "0o644"
+    },
+    "docs/skills-catalog.md": {
+      "sha256": "9ce2eefc1f37c8e1c3e03b589378dffeccc04ec354f1220271b8abc67bd08b38",
+      "mode": "0o644"
+    },
+    "docs/workflow/specialist-skill-factory.md": {
+      "sha256": "d7bc4466bd4e85a6d1389d348fd3c59869c26f50a7499e7b7f4a5dc08795dfe7",
+      "mode": "0o644"
+    },
+    "scripts/mana-skill-factory.py": {
+      "sha256": "50fc3b081ee97c13f43289a36b684b20f662e98078e4051472eb712112bfcaa9",
+      "mode": "0o755"
+    },
+    "scripts/validate-repo.sh": {
+      "sha256": "725f6e415f94be7fdb1e90536c97adcc4657bda2b27f7aa1cb29fa6321be8bed",
+      "mode": "0o755"
+    },
+    "skills/index.yaml": {
+      "sha256": "9615439bd89db14df90ab41f8cbbf475c12db342cd896f9798d8248dab8e8550",
+      "mode": "0o644"
+    },
+    "skills/specialist-skill-factory/SKILL.md": {
+      "sha256": "2a9fb8fb9c7181e1ad5a8dcfc8db286bad08bf0b7696fc99f8cecfbf99f299e5",
+      "mode": "0o644"
+    },
+    "templates/skill-factory/java-spring-transaction-analysis.md": {
+      "sha256": "145dfe1b5452de8a7055457bfdd834d8328dde3f3222faa86b271dd6304edf3c",
+      "mode": "0o644"
+    },
+    "tests/mana-skill-factory.py": {
+      "sha256": "e3f9352a65d117cf451e3792fe371207ae8e785b071064441ed8e7844b687670",
+      "mode": "0o755"
+    },
+    "tests/run-zero-token-acceptance.sh": {
+      "sha256": "dd2fcdf609826a3bed9f7c205e9b212e184e18533480f92496dc4de9fbc8e4e4",
+      "mode": "0o700"
+    }
+  },
+  "initialFilesPreserved": {
+    ".github/workflows/validate-mana.yml": true,
+    "docs/examples/mana-meta-skill-00/java-spring-transaction-analysis/SKILL.md": true,
+    "docs/examples/mana-meta-skill-00/java-spring-transaction-analysis/candidate.json": true,
+    "docs/examples/mana-meta-skill-00/provenance.json": true,
+    "docs/reports/MANA-META-SKILL-00.md": true,
+    "docs/roadmap/TRANSACTION-01.md": true,
+    "docs/skills-catalog.md": true,
+    "docs/workflow/specialist-skill-factory.md": true,
+    "scripts/mana-skill-factory.py": true,
+    "scripts/validate-repo.sh": true,
+    "skills/index.yaml": true,
+    "skills/specialist-skill-factory/SKILL.md": true,
+    "templates/skill-factory/java-spring-transaction-analysis.md": true,
+    "tests/mana-skill-factory.py": true,
+    "tests/run-zero-token-acceptance.sh": true
+  },
+  "checks": {
+    "focused": {
+      "command": "python3 tests/mana-skill-factory.py -v",
+      "exitCode": 0,
+      "output": "test_candidate_not_discovered_or_accepted_by_profile_compiler (__main__.FactoryTests) ... ok\ntest_duplicate_json_keys_rejected (__main__.FactoryTests) ... ok\ntest_evidence_native_contract_read_only_and_no_activation (__main__.FactoryTests) ... ok\ntest_malformed_unsafe_and_oversized_evidence (__main__.FactoryTests) ... ok\ntest_module_locality_and_multimodule_support (__main__.FactoryTests) ... ok\ntest_no_approval_activation_or_analysis_cli (__main__.FactoryTests) ... ok\ntest_no_java_or_symlink_or_generated_evidence (__main__.FactoryTests) ... ok\ntest_project_wrappers_are_never_run (__main__.FactoryTests) ... ok\ntest_reject_target_and_discovery_output_and_symlink_alias (__main__.FactoryTests) ... ok\ntest_stale_evidence_and_overwrite_rejected (__main__.FactoryTests) ... ok\ntest_tampering_cannot_create_trust_or_executable_tools (__main__.FactoryTests) ... ok\ntest_unsupported_and_false_positive_technologies (__main__.FactoryTests) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 3.536s\n\nOK\n"
+    },
+    "native": {
+      "command": "scripts/validate-repo.sh",
+      "exitCode": 0,
+      "output": "Verification skills validation passed\nSkills validation passed\nAgents validation passed\nDivination metadata validation passed\nOutput standard validation passed\nStory trace validation passed\nDeveloper choice log validation passed\nRepository validation passed\n"
+    },
+    "activation": {
+      "command": "tests/profile-skill-activation.sh",
+      "exitCode": 0,
+      "output": "Profile skill activation tests passed\n"
+    },
+    "lint": {
+      "command": "ruff check scripts/mana-skill-factory.py tests/mana-skill-factory.py",
+      "exitCode": 0,
+      "output": "All checks passed!\n"
+    },
+    "format": {
+      "command": "ruff format --check scripts/mana-skill-factory.py tests/mana-skill-factory.py",
+      "exitCode": 0,
+      "output": "2 files already formatted\n"
+    },
+    "diff": {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "output": ""
+    }
+  },
+  "probes": {
+    "petclinic": {
+      "generation": {
+        "exitCode": 0,
+        "stdout": "{\"approval\": \"pending\", \"executable\": false, \"skillId\": \"java-spring-transaction-analysis\", \"status\": \"valid\"}\n",
+        "stderr": ""
+      },
+      "validation": {
+        "exitCode": 0,
+        "stdout": "{\"approval\": \"pending\", \"executable\": false, \"skillId\": \"java-spring-transaction-analysis\", \"status\": \"valid\"}\n",
+        "stderr": ""
+      },
+      "before": {
+        "files": 132,
+        "digest": "7cd602986575faa0589f0b9e2177c45ecd682ceae6fd97d04666c0da36b91851"
+      },
+      "after": {
+        "files": 132,
+        "digest": "7cd602986575faa0589f0b9e2177c45ecd682ceae6fd97d04666c0da36b91851"
+      },
+      "gitBefore": {
+        "head": "500158f732419217507c7656904b8e6aa1bcc0d6",
+        "status": ""
+      },
+      "gitAfter": {
+        "head": "500158f732419217507c7656904b8e6aa1bcc0d6",
+        "status": ""
+      },
+      "identicalToDelivered": {
+        "SKILL.md": true,
+        "candidate.json": true
+      }
+    },
+    "alternateJavaSpring": {
+      "fixture": "FactoryTests.setUp/POM: example Service + direct spring-context",
+      "generation": {
+        "exitCode": 0,
+        "stdout": "{\"approval\": \"pending\", \"executable\": false, \"skillId\": \"java-spring-transaction-analysis\", \"status\": \"valid\"}\n",
+        "stderr": ""
+      },
+      "before": {
+        "files": 2,
+        "digest": "a1dabda3a2df202eec3dda524a1d9a5431abdc7bed8e91a1f9451f8628de117d"
+      },
+      "after": {
+        "files": 2,
+        "digest": "a1dabda3a2df202eec3dda524a1d9a5431abdc7bed8e91a1f9451f8628de117d"
+      },
+      "templateEqualsPetclinic": true,
+      "technologyClaims": "declared dependency and source presence only; resolved versions and runtime use unknown"
+    },
+    "negativeTechnology": {
+      "generation": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "{\"status\": \"blocked\", \"reason\": \"unsupported or unproven technology: need a direct Spring dependency and Java source in the same conventional Maven module\", \"executable\": false}\n"
+      },
+      "projectUnchanged": true,
+      "outputAbsent": true
+    },
+    "temporaryIsolationFailure": {
+      "environment": "TMPDIR/TEMP/TMP point to analyzed disposable project; fresh interpreter",
+      "observed": {
+        "result": {
+          "status": "valid",
+          "skillId": "java-spring-transaction-analysis",
+          "approval": "pending",
+          "executable": false
+        },
+        "staging": [
+          {
+            "path": "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-skill-dijkgq16/project/mana-skill-contract-w1skytn7",
+            "insideTarget": true,
+            "filesPresent": [
+              "mana-skill-contract-w1skytn7/skills/java-spring-transaction-analysis/SKILL.md"
+            ]
+          },
+          {
+            "path": "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-skill-dijkgq16/project/mana-skill-contract-98uno7e_",
+            "insideTarget": true,
+            "filesPresent": [
+              "mana-skill-contract-98uno7e_/skills/java-spring-transaction-analysis/SKILL.md"
+            ]
+          }
+        ]
+      },
+      "exitCode": 0,
+      "finalSnapshotUnchanged": true,
+      "actualTransientTargetWrites": true
+    },
+    "nestedUntrustedJson": {
+      "bytes": 4011,
+      "exitCode": 1,
+      "exception": "RecursionError",
+      "structuredBlockedResponse": false,
+      "stderrTail": "RecursionError: maximum recursion depth exceeded while decoding a JSON array from a unicode string"
+    },
+    "index": {
+      "matchesGenerated": true,
+      "candidateDiscovered": false
+    }
+  },
+  "boundedReproductionSource": "import hashlib\nimport importlib.util\nimport json\nimport os\nfrom pathlib import Path\nimport subprocess\nimport sys\n\nROOT=Path('/Users/zel/projects/mana')\nREVIEW=Path(__file__).resolve().parent\nCLI=ROOT/'scripts/mana-skill-factory.py'\n\ndef load(name,path):\n    spec=importlib.util.spec_from_file_location(name,path)\n    module=importlib.util.module_from_spec(spec)\n    spec.loader.exec_module(module)\n    return module\n\ndef state(project):\n    entries={}\n    for directory,dirs,names in os.walk(project,followlinks=False):\n        dirs[:]=sorted(d for d in dirs if d!='.git')\n        for name in sorted(names):\n            p=Path(directory)/name\n            entries[p.relative_to(project).as_posix()]=('symlink:'+os.readlink(p)) if p.is_symlink() else hashlib.sha256(p.read_bytes()).hexdigest()\n    return {'files':len(entries),'digest':hashlib.sha256(json.dumps(entries,sort_keys=True).encode()).hexdigest()}\n\ndef invoke(project,candidate,command='generate'):\n    argv=[sys.executable,str(CLI),command,'--project-root',str(project),'--candidate-dir',str(candidate)]\n    if command=='generate': argv+=['--request','transaction-analysis']\n    r=subprocess.run(argv,capture_output=True,text=True)\n    return {'exitCode':r.returncode,'stdout':r.stdout,'stderr':r.stderr}\n\nresults={}\nproject=Path('/private/tmp/mom-qual004-x92n0bvj/spring-petclinic')\ndef git(*args):\n    return subprocess.check_output(['git','-C',str(project),*args],env={**os.environ,'GIT_OPTIONAL_LOCKS':'0'},text=True).strip()\nbefore=state(project)\ngit_before={'head':git('rev-parse','HEAD'),'status':git('status','--porcelain=v1')}\ngenerated=REVIEW/'petclinic-candidate'\nr=invoke(project,generated)\nassert r['exitCode']==0,r\nvalidation=invoke(project,ROOT/'docs/examples/mana-meta-skill-00/java-spring-transaction-analysis','validate')\nassert validation['exitCode']==0,validation\nsame={name:(generated/name).read_bytes()==(ROOT/'docs/examples/mana-meta-skill-00/java-spring-transaction-analysis'/name).read_bytes() for name in ['SKILL.md','candidate.json']}\nassert all(same.values())\nafter=state(project)\ngit_after={'head':git('rev-parse','HEAD'),'status':git('status','--porcelain=v1')}\nassert before==after and git_before==git_after\nresults['petclinic']={'generation':r,'validation':validation,'before':before,'after':after,'gitBefore':git_before,'gitAfter':git_after,'identicalToDelivered':same}\n\nfixture=load('factory_fixture',ROOT/'tests/mana-skill-factory.py')\ntest=fixture.FactoryTests()\ntest.setUp()\ntry:\n    baseline=state(test.project)\n    r=invoke(test.project,test.candidate)\n    assert r['exitCode']==0,r\n    candidate=json.loads((test.candidate/'candidate.json').read_text())\n    assert candidate['evidence'][0]['declarations']==['org.springframework:spring-context']\n    assert baseline==state(test.project)\n    results['alternateJavaSpring']={'fixture':'FactoryTests.setUp/POM: example Service + direct spring-context','generation':r,'before':baseline,'after':state(test.project),'templateEqualsPetclinic':(test.candidate/'SKILL.md').read_bytes()==(generated/'SKILL.md').read_bytes(),'technologyClaims':candidate['technologyClaim']}\n    (test.project/'pom.xml').write_text(fixture.POM.replace('org.springframework','com.example'))\n    negative_baseline=state(test.project)\n    negative=invoke(test.project,test.base/'negative-candidate')\n    assert negative['exitCode']==2 and not (test.base/'negative-candidate').exists()\n    assert negative_baseline==state(test.project)\n    results['negativeTechnology']={'generation':negative,'projectUnchanged':True,'outputAbsent':True}\n    (test.project/'pom.xml').write_text(fixture.POM)\n    # Start a fresh interpreter so tempfile honors the same environment as the CLI.\n    probe=r'''\nimport importlib.util,json,sys\nfrom pathlib import Path\nspec=importlib.util.spec_from_file_location('factory',sys.argv[1])\nf=importlib.util.module_from_spec(spec); spec.loader.exec_module(f)\nproject=Path(sys.argv[2]); candidate=Path(sys.argv[3])\nactual=f.subprocess.run; staging=[]\ndef observed(argv,*args,**kwargs):\n    stage=Path(argv[-1])\n    staging.append({'path':str(stage),'insideTarget':project in stage.parents,'filesPresent':[str(p.relative_to(project)) for p in stage.rglob('*') if p.is_file()]})\n    return actual(argv,*args,**kwargs)\nf.subprocess.run=observed\nresult=f.generate(project,candidate)\nprint(json.dumps({'result':result,'staging':staging}))\n'''\n    before=state(test.project)\n    observed=subprocess.run([sys.executable,'-c',probe,str(CLI),str(test.project),str(test.base/'tmpdir-candidate')],env={**os.environ,'TMPDIR':str(test.project),'TEMP':str(test.project),'TMP':str(test.project)},capture_output=True,text=True)\n    assert observed.returncode==0,(observed.stdout,observed.stderr)\n    observation=json.loads(observed.stdout)\n    assert observation['staging'] and all(s['insideTarget'] for s in observation['staging'])\n    assert state(test.project)==before\n    results['temporaryIsolationFailure']={'environment':'TMPDIR/TEMP/TMP point to analyzed disposable project; fresh interpreter','observed':observation,'exitCode':observed.returncode,'finalSnapshotUnchanged':True,'actualTransientTargetWrites':True}\n    nested='{\"extra\":'+ '['*2000+'0'+']'*2000+'}'\n    (test.candidate/'candidate.json').write_text(nested)\n    bad=invoke(test.project,test.candidate,'validate')\n    assert bad['exitCode']==1 and 'RecursionError' in bad['stderr'],bad\n    results['nestedUntrustedJson']={'bytes':len(nested),'exitCode':bad['exitCode'],'exception':'RecursionError','structuredBlockedResponse':False,'stderrTail':bad['stderr'].splitlines()[-1]}\nfinally:\n    test.doCleanups()\nindex=subprocess.run(['bash',str(ROOT/'scripts/build-skill-index.sh')],capture_output=True)\nassert index.returncode==0\nassert index.stdout==(ROOT/'skills/index.yaml').read_bytes()\nassert b'id: java-spring-transaction-analysis\\n' not in index.stdout\nresults['index']={'matchesGenerated':True,'candidateDiscovered':False}\n(REVIEW/'probes.json').write_text(json.dumps(results,indent=2)+'\\n')\nprint(json.dumps(results,indent=2))\n",
+  "scope": "Review evidence only; no implementation fixes, candidate approval or activation"
+}

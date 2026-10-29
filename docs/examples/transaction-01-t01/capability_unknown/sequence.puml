@@ -1,0 +1,35 @@
+@startuml
+hide footbox
+title Conditional static transaction scenario - runtime identity UNKNOWN
+actor "Scenario entry" as Entry
+participant "fixture.A" as B1
+participant "fixture.B" as B2
+legend left
+All P identifiers are SYMBOLIC_SCENARIO; actual runtime identity UNKNOWN.
+L = TRANSACTION_LOGICAL_SCOPE; P = TRANSACTION_PHYSICAL
+S = TRANSACTION_SUSPENDED; SP = TRANSACTION_SAVEPOINT
+Green: shared physical context / logical scope
+Blue: independent physical scope; outer P retained while SUSPENDED
+Yellow: nested SAVEPOINT on the SAME P
+Gray: NO_TRANSACTION; red: UNKNOWN / unsupported path
+Groups show method nesting. BEGIN/END notes define physical lifetimes.
+Suspended lifetime overlap is explicit in SUSPEND/RESUME notes.
+endlegend
+Entry -> B1: fixture.A#ambiguous() / CONDITIONAL_CALL
+group #CCE5FF F1 REQUIRED L1 P1
+note right of B1: proxy=SCENARIO_PROXY_CALL; manager=tx
+note over B1: 2 PHYSICAL_BEGIN P1 
+note over B1: 3 LOGICAL_BEGIN L1 
+B1 -> B2: fixture.B#nested() / CANDIDATE_ATTEMPT
+group #FFCCCC F2 NESTED L2 UNKNOWN
+note right of B2: proxy=SCENARIO_PROXY_CALL; manager=tx
+note right of B2 #FFCCCC: UNKNOWN SAVEPOINT_CAPABILITY_UNKNOWN; body NOT ASSERTED
+note over B2: 5 LOGICAL_BEGIN L2 
+note over B2: 6 LOGICAL_END L2 
+end
+B2 --> B1: attempt/path end UNKNOWN
+note over B1: 8 LOGICAL_END L1 
+note over B1: 9 PHYSICAL_END_OUTCOME_UNKNOWN P1 
+end
+B1 --> Entry: attempt/path end UNKNOWN
+@enduml

@@ -1,0 +1,457 @@
+{
+  "context" : {
+    "font" : "serif 12",
+    "language" : "c",
+    "base-gravity" : "south",
+    "gravity-hint" : "natural",
+    "base-dir" : "ltr",
+    "round-glyph-positions" : true,
+    "transform" : [
+      1,
+      0,
+      0,
+      1,
+      0,
+      0
+    ]
+  },
+  "text" : "MIXED / RESUME_REQUIRES_COMPLETION",
+  "font" : "sans-serif 13",
+  "wrap" : "word-char",
+  "output" : {
+    "is-wrapped" : false,
+    "is-ellipsized" : false,
+    "unknown-glyphs" : 0,
+    "width" : 284672,
+    "height" : 14336,
+    "log-attrs" : [
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "word-start" : true,
+        "sentence-boundary" : true,
+        "sentence-start" : true,
+        "backspace-deletes-character" : true,
+        "word-boundary" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "white" : true,
+        "cursor-position" : true,
+        "word-end" : true,
+        "expandable-space" : true,
+        "word-boundary" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "word-boundary" : true
+      },
+      {
+        "char-break" : true,
+        "white" : true,
+        "cursor-position" : true,
+        "expandable-space" : true,
+        "word-boundary" : true
+      },
+      {
+        "line-break" : true,
+        "char-break" : true,
+        "cursor-position" : true,
+        "word-start" : true,
+        "word-boundary" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "word-end" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "word-start" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "word-end" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "word-start" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "char-break" : true,
+        "cursor-position" : true,
+        "break-inserts-hyphen" : true
+      },
+      {
+        "line-break" : true,
+        "mandatory-break" : true,
+        "char-break" : true,
+        "white" : true,
+        "cursor-position" : true,
+        "word-end" : true,
+        "sentence-boundary" : true,
+        "sentence-end" : true,
+        "word-boundary" : true
+      }
+    ],
+    "lines" : [
+      {
+        "start-index" : 0,
+        "length" : 34,
+        "paragraph-start" : true,
+        "direction" : "ltr",
+        "runs" : [
+          {
+            "offset" : 0,
+            "length" : 34,
+            "text" : "MIXED / RESUME_REQUIRES_COMPLETION",
+            "bidi-level" : 0,
+            "gravity" : "south",
+            "language" : "c",
+            "script" : "latin",
+            "font" : {
+              "description" : "Helvetica 9.75",
+              "checksum" : "8329ee3756730bd2240b2f6403ffcff1595f0e935f13261e268d8f60f47989a3"
+            },
+            "flags" : 0,
+            "y-offset" : 0,
+            "start-x-offset" : 0,
+            "end-x-offset" : 0,
+            "glyphs" : [
+              {
+                "glyph" : 48,
+                "width" : 11264,
+                "is-cluster-start" : true,
+                "log-cluster" : 0
+              },
+              {
+                "glyph" : 44,
+                "width" : 4096,
+                "is-cluster-start" : true,
+                "log-cluster" : 1
+              },
+              {
+                "glyph" : 59,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 2
+              },
+              {
+                "glyph" : 40,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 3
+              },
+              {
+                "glyph" : 39,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 4
+              },
+              {
+                "glyph" : 3,
+                "width" : 4096,
+                "is-cluster-start" : true,
+                "log-cluster" : 5
+              },
+              {
+                "glyph" : 18,
+                "width" : 4096,
+                "is-cluster-start" : true,
+                "log-cluster" : 6
+              },
+              {
+                "glyph" : 3,
+                "width" : 4096,
+                "is-cluster-start" : true,
+                "log-cluster" : 7
+              },
+              {
+                "glyph" : 53,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 8
+              },
+              {
+                "glyph" : 40,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 9
+              },
+              {
+                "glyph" : 54,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 10
+              },
+              {
+                "glyph" : 56,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 11
+              },
+              {
+                "glyph" : 48,
+                "width" : 11264,
+                "is-cluster-start" : true,
+                "log-cluster" : 12
+              },
+              {
+                "glyph" : 40,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 13
+              },
+              {
+                "glyph" : 66,
+                "width" : 7168,
+                "is-cluster-start" : true,
+                "log-cluster" : 14
+              },
+              {
+                "glyph" : 53,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 15
+              },
+              {
+                "glyph" : 40,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 16
+              },
+              {
+                "glyph" : 52,
+                "width" : 10240,
+                "is-cluster-start" : true,
+                "log-cluster" : 17
+              },
+              {
+                "glyph" : 56,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 18
+              },
+              {
+                "glyph" : 44,
+                "width" : 4096,
+                "is-cluster-start" : true,
+                "log-cluster" : 19
+              },
+              {
+                "glyph" : 53,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 20
+              },
+              {
+                "glyph" : 40,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 21
+              },
+              {
+                "glyph" : 54,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 22
+              },
+              {
+                "glyph" : 66,
+                "width" : 7168,
+                "is-cluster-start" : true,
+                "log-cluster" : 23
+              },
+              {
+                "glyph" : 38,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 24
+              },
+              {
+                "glyph" : 50,
+                "width" : 10240,
+                "is-cluster-start" : true,
+                "log-cluster" : 25
+              },
+              {
+                "glyph" : 48,
+                "width" : 11264,
+                "is-cluster-start" : true,
+                "log-cluster" : 26
+              },
+              {
+                "glyph" : 51,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 27
+              },
+              {
+                "glyph" : 47,
+                "width" : 7168,
+                "is-cluster-start" : true,
+                "log-cluster" : 28
+              },
+              {
+                "glyph" : 40,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 29
+              },
+              {
+                "glyph" : 55,
+                "width" : 8192,
+                "is-cluster-start" : true,
+                "log-cluster" : 30
+              },
+              {
+                "glyph" : 44,
+                "width" : 4096,
+                "is-cluster-start" : true,
+                "log-cluster" : 31
+              },
+              {
+                "glyph" : 50,
+                "width" : 10240,
+                "is-cluster-start" : true,
+                "log-cluster" : 32
+              },
+              {
+                "glyph" : 49,
+                "width" : 9216,
+                "is-cluster-start" : true,
+                "log-cluster" : 33
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

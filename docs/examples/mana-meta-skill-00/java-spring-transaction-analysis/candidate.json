@@ -1,0 +1,115 @@
+{
+  "schema": "mana.skill-candidate/v1",
+  "skillId": "java-spring-transaction-analysis",
+  "status": "candidate",
+  "trustOrigin": "generated",
+  "trusted": false,
+  "executable": false,
+  "registered": false,
+  "approval": {
+    "required": true,
+    "status": "pending",
+    "ownerRole": "Architect / Team Leader"
+  },
+  "request": "transaction-analysis",
+  "supportedTechnologies": [
+    "java",
+    "spring",
+    "maven"
+  ],
+  "evidence": [
+    {
+      "path": "pom.xml",
+      "sha256": "7e61df0a43d538a5404e8130a55b8085541ec8e841fcf39f81bb6d3d81dcd2f4",
+      "kind": "maven-direct-dependency",
+      "declarations": [
+        "org.springframework.boot:spring-boot-devtools",
+        "org.springframework.boot:spring-boot-starter-actuator",
+        "org.springframework.boot:spring-boot-starter-cache",
+        "org.springframework.boot:spring-boot-starter-data-jpa",
+        "org.springframework.boot:spring-boot-starter-thymeleaf",
+        "org.springframework.boot:spring-boot-starter-validation",
+        "org.springframework.boot:spring-boot-starter-webmvc"
+      ]
+    },
+    {
+      "path": "src/main/java/org/springframework/samples/petclinic/PetClinicApplication.java",
+      "sha256": "9d99b4b59cc6e185e9a27964b24ede04180ca34211a7e19f968249ee3dac9df3",
+      "kind": "java-source"
+    }
+  ],
+  "technologyClaim": "declared dependency and source presence only; resolved versions and runtime use unknown",
+  "offeredCapabilities": [
+    "reviewable-future-analysis-contract"
+  ],
+  "futureCapabilities": [
+    {
+      "id": "transactional-method-identification",
+      "status": "not_implemented"
+    },
+    {
+      "id": "spring-propagation",
+      "status": "not_implemented"
+    },
+    {
+      "id": "reused-independent-nested-transactions",
+      "status": "not_implemented"
+    },
+    {
+      "id": "transaction-boundaries",
+      "status": "not_implemented"
+    },
+    {
+      "id": "sequence-diagram-overlapping-regions",
+      "status": "not_implemented"
+    },
+    {
+      "id": "static-uncertainty-reporting",
+      "status": "not_implemented"
+    }
+  ],
+  "usableEvidence": [
+    "java-source",
+    "maven-direct-dependency",
+    "explicit-project-configuration",
+    "approved-runtime-evidence"
+  ],
+  "applicability": [
+    "explicit transaction-analysis request",
+    "Java source and direct Spring dependency in the same Maven module",
+    "human approval and implemented analyzers required before future analysis"
+  ],
+  "requiredTools": [
+    {
+      "id": "read_files",
+      "status": "framework_declared"
+    },
+    {
+      "id": "code_search",
+      "status": "framework_declared"
+    },
+    {
+      "id": "transaction-analyzer",
+      "status": "not_implemented"
+    }
+  ],
+  "knowledgeReferences": [
+    "docs/policies/verification-execution-policy.md",
+    "docs/standards/agent-skill-output-standard.md",
+    "templates/skill-factory/java-spring-transaction-analysis.md"
+  ],
+  "limits": [
+    "No transaction analysis or diagram generation",
+    "No dependency resolution or runtime claims",
+    "No Gradle, inherited-only dependencies, profiles or nonstandard source roots",
+    "No promotion, registration, approval recording or execution API"
+  ],
+  "verificationCriteria": [
+    "recompute source evidence hashes",
+    "validate Mana skill metadata",
+    "reject changed candidate content",
+    "require pending approval and generated untrusted non-executable state",
+    "require future capabilities to remain not_implemented"
+  ],
+  "skillSha256": "145dfe1b5452de8a7055457bfdd834d8328dde3f3222faa86b271dd6304edf3c"
+}

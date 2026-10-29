@@ -1,0 +1,2788 @@
+{
+  "task": "MANA-TRANSACTION-01-T01-F01",
+  "date": "2026-10-20",
+  "verdict": "FIX_READY_FOR_REVIEW",
+  "scope": "Conditional static T01 self-invocation remediation; no runtime weaving qualification",
+  "checks": {
+    "f01": {
+      "command": [
+        "python3",
+        "tests/transaction-self-invocation.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "test_01_proxy_required_inactive (__main__.SelfInvocationTests) ... ok\ntest_02_proxy_required_active (__main__.SelfInvocationTests) ... ok\ntest_03_proxy_requires_new_active (__main__.SelfInvocationTests) ... ok\ntest_04_aspectj_required_conditional (__main__.SelfInvocationTests) ... ok\ntest_05_aspectj_requires_new_conditional (__main__.SelfInvocationTests) ... ok\ntest_06_aspectj_nested_conditional (__main__.SelfInvocationTests) ... ok\ntest_07_aspectj_weaving_unproven (__main__.SelfInvocationTests) ... ok\ntest_08_unknown_mode (__main__.SelfInvocationTests) ... ok\ntest_aspectj_required_joins_active_context (__main__.SelfInvocationTests) ... ok\ntest_cli_does_not_change_analyzed_projects (__main__.SelfInvocationTests) ... ok\ntest_context_rejects_weaving_truth_claims_and_unknown_fields (__main__.SelfInvocationTests) ... ok\ntest_missing_capabilities_do_not_invent_aspectj_boundaries (__main__.SelfInvocationTests) ... ok\ntest_original_r1_counterexample_stays_unknown (__main__.SelfInvocationTests) ... ok\ntest_plantuml_syntax_and_svg_for_f01_and_historical_models (__main__.SelfInvocationTests) ... ok\ntest_unknown_prior_context_is_not_inactive_after_bypass (__main__.SelfInvocationTests) ... ok\ntest_validator_rejects_conflated_context_and_interception (__main__.SelfInvocationTests) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 7.235s\n\nOK\n"
+    },
+    "originalEngine": {
+      "command": [
+        "python3",
+        "tests/transaction-boundaries.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "test_ambiguous_managers_visibility_async_and_control_flow_are_unknown (__main__.TransactionTests) ... ok\ntest_annotation_is_not_interception_and_direct_entry_bypasses (__main__.TransactionTests) ... ok\ntest_eight_independent_oracles (__main__.TransactionTests) ... ok\ntest_evidence_is_exact_and_call_site_is_in_caller (__main__.TransactionTests) ... ok\ntest_intermediate_unannotated_call_and_class_annotation (__main__.TransactionTests) ... ok\ntest_java_parser_does_not_treat_comments_or_strings_as_calls (__main__.TransactionTests) ... ok\ntest_jdk_proxy_dynamic_dispatch_and_unresolved_call_do_not_invent_edges (__main__.TransactionTests) ... ok\ntest_missing_prior_context_never_creates_certain_physical_identity (__main__.TransactionTests) ... ok\ntest_nested_reuses_physical_and_false_capability_is_unsupported (__main__.TransactionTests) ... ok\ntest_parser_temporary_isolation_and_no_target_build (__main__.TransactionTests) ... ok\ntest_pipeline_write_observation_and_jdk_arguments (__main__.TransactionTests) ... ok\ntest_plantuml_syntax_and_svg_for_all_oracles (__main__.TransactionTests) ... ok\ntest_reflection_unknown_continuation_and_suspension_capability (__main__.TransactionTests) ... ok\ntest_renderer_contains_explicit_identity_and_no_injected_directive (__main__.TransactionTests) ... ok\ntest_requires_new_suspends_before_begin_and_resumes_after_end (__main__.TransactionTests) ... ok\ntest_validator_rejects_wrong_identity_and_unbalanced_trace (__main__.TransactionTests) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 4.685s\n\nOK\n"
+    },
+    "factory": {
+      "command": [
+        "python3",
+        "tests/mana-skill-factory.py",
+        "-v"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "test_adapter_boundary_extends_same_technology_without_core_changes (__main__.FactoryTests) ... ok\ntest_candidate_not_discovered_or_accepted_by_profile_compiler (__main__.FactoryTests) ... ok\ntest_duplicate_json_keys_rejected (__main__.FactoryTests) ... ok\ntest_evidence_native_contract_read_only_and_no_activation (__main__.FactoryTests) ... ok\ntest_external_temporary_paths_spaces_symlinks_and_child_writes (__main__.FactoryTests) ... ok\ntest_internal_temp_cli_returns_diagnostic_without_output (__main__.FactoryTests) ... ok\ntest_json_malformed_and_deep_cli_block_without_writes (__main__.FactoryTests) ... ok\ntest_json_size_depth_and_token_boundaries (__main__.FactoryTests) ... ok\ntest_malformed_unsafe_and_oversized_evidence (__main__.FactoryTests) ... ok\ntest_module_locality_and_multimodule_support (__main__.FactoryTests) ... ok\ntest_native_validation_failure_precedes_output_writes (__main__.FactoryTests) ... ok\ntest_no_approval_activation_or_analysis_cli (__main__.FactoryTests) ... ok\ntest_no_java_or_symlink_or_generated_evidence (__main__.FactoryTests) ... ok\ntest_overcomplex_generated_manifest_rejected_before_output (__main__.FactoryTests) ... ok\ntest_project_wrappers_are_never_run (__main__.FactoryTests) ... ok\ntest_quoted_brackets_and_escapes_do_not_consume_depth_budget (__main__.FactoryTests) ... ok\ntest_reject_target_and_discovery_output_and_symlink_alias (__main__.FactoryTests) ... ok\ntest_stale_evidence_and_overwrite_rejected (__main__.FactoryTests) ... ok\ntest_tampering_cannot_create_trust_or_executable_tools (__main__.FactoryTests) ... ok\ntest_temporary_environment_fallbacks_without_host_changes (__main__.FactoryTests) ... ok\ntest_unsafe_or_missing_temporary_parent_blocks_before_any_write (__main__.FactoryTests) ... ok\ntest_unsupported_and_false_positive_technologies (__main__.FactoryTests) ... ok\ntest_unsupported_requests_and_adapter_governance_override_block (__main__.FactoryTests) ... ok\n\n----------------------------------------------------------------------\nRan 23 tests in 5.955s\n\nOK\n"
+    },
+    "repository": {
+      "command": [
+        "scripts/validate-repo.sh"
+      ],
+      "exitCode": 0,
+      "stdout": "Verification skills validation passed\nSkills validation passed\nAgents validation passed\nDivination metadata validation passed\nOutput standard validation passed\nStory trace validation passed\nDeveloper choice log validation passed\nRepository validation passed\n",
+      "stderr": ""
+    },
+    "profiles": {
+      "command": [
+        "tests/profile-skill-activation.sh"
+      ],
+      "exitCode": 0,
+      "stdout": "Profile skill activation tests passed\n",
+      "stderr": ""
+    },
+    "ruff": {
+      "command": [
+        "ruff",
+        "check",
+        "scripts/mana-transaction.py",
+        "scripts/skill_factory",
+        "tests/mana-skill-factory.py",
+        "tests/transaction-boundaries.py",
+        "tests/transaction-self-invocation.py"
+      ],
+      "exitCode": 0,
+      "stdout": "All checks passed!\n",
+      "stderr": ""
+    },
+    "format": {
+      "command": [
+        "ruff",
+        "format",
+        "--check",
+        "scripts/mana-transaction.py",
+        "scripts/skill_factory",
+        "tests/mana-skill-factory.py",
+        "tests/transaction-boundaries.py",
+        "tests/transaction-self-invocation.py"
+      ],
+      "exitCode": 0,
+      "stdout": "11 files already formatted\n",
+      "stderr": ""
+    },
+    "diff": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "examples": {
+    "cases": {
+      "proxy_required_inactive": {
+        "command": [
+          "python3",
+          "scripts/mana-transaction.py",
+          "--project-root",
+          "/Users/zel/projects/mana/tests/fixtures/transaction-self-invocation/proxy",
+          "--context",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples/proxy_required_inactive-context.json",
+          "--entry",
+          "selftest.Calls#outsideRequired()",
+          "--output-dir",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples-final/proxy_required_inactive"
+        ],
+        "exitCode": 0,
+        "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"frames\": 2, \"uncertainties\": 0, \"candidateActivated\": false}\n",
+        "stderr": "",
+        "model": {
+          "schema": "mana.transaction-model/v1",
+          "entry": "selftest.Calls#outsideRequired()",
+          "status": "CONDITIONAL_STATIC_SCENARIO",
+          "proxyMode": "CLASS",
+          "interceptionMode": "PROXY",
+          "aspectjWeaving": {
+            "application": "UNKNOWN",
+            "runtimeApplication": "UNKNOWN"
+          },
+          "assumptions": [
+            "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+            "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+            "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+            "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+            "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven."
+          ],
+          "context": {
+            "schema": "mana.transaction-context/v1",
+            "initialState": "NO_TRANSACTION",
+            "entryThroughProxy": true,
+            "managerCapabilities": {
+              "tx": {
+                "suspend": true,
+                "savepoints": true
+              }
+            }
+          },
+          "managers": [
+            {
+              "id": "tx",
+              "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 547,
+                "end": 640,
+                "line": 13,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "capabilities": {
+                "suspend": true,
+                "savepoints": true
+              },
+              "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+            }
+          ],
+          "frames": [
+            {
+              "id": "F1",
+              "callerMethod": null,
+              "calleeMethod": "selftest.Calls#outsideRequired()",
+              "callSite": null,
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "CLASS",
+                "crossed": true,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 527,
+                    "line": 11,
+                    "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+                  }
+                ],
+                "reason": "NO_TRANSACTIONAL_ANNOTATION"
+              },
+              "manager": null,
+              "configuration": null,
+              "logicalScope": null,
+              "previousState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "duringState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "afterState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 670,
+                "end": 720,
+                "line": 17,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "depth": 0,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 643,
+                "end": 1133,
+                "line": 15,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "BYPASSED",
+                "reason": "NO_TRANSACTIONAL_ANNOTATION"
+              },
+              "effectiveContext": {
+                "before": "INACTIVE",
+                "during": "INACTIVE",
+                "after": "INACTIVE"
+              }
+            },
+            {
+              "id": "F2",
+              "callerMethod": "selftest.Calls#outsideRequired()",
+              "calleeMethod": "selftest.Calls#required()",
+              "callSite": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 702,
+                "end": 717,
+                "line": 17,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "CLASS",
+                "crossed": false,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 527,
+                    "line": 11,
+                    "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+                  }
+                ],
+                "reason": "SELF_OR_DIRECT_CALL"
+              },
+              "manager": null,
+              "configuration": {
+                "propagation": "REQUIRED",
+                "managerQualifier": "",
+                "attributes": {},
+                "evidence": {
+                  "file": "src/main/java/selftest/Calls.java",
+                  "start": 926,
+                  "end": 940,
+                  "line": 21,
+                  "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+                },
+                "origin": "method",
+                "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+                "unmodeledAttributes": []
+              },
+              "logicalScope": null,
+              "previousState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "duringState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "afterState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 926,
+                "end": 966,
+                "line": 21,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "depth": 1,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 643,
+                "end": 1133,
+                "line": 15,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "BYPASSED",
+                "reason": "SELF_OR_DIRECT_CALL"
+              },
+              "effectiveContext": {
+                "before": "INACTIVE",
+                "during": "INACTIVE",
+                "after": "INACTIVE"
+              },
+              "receiverBindingEvidence": null
+            }
+          ],
+          "logicalScopes": [],
+          "physicalTransactions": [],
+          "suspensions": [],
+          "savepoints": [],
+          "events": [
+            {
+              "sequence": 1,
+              "kind": "FRAME_ENTER",
+              "frame": "F1"
+            },
+            {
+              "sequence": 2,
+              "kind": "FRAME_ENTER",
+              "frame": "F2"
+            },
+            {
+              "sequence": 3,
+              "kind": "FRAME_EXIT",
+              "frame": "F2"
+            },
+            {
+              "sequence": 4,
+              "kind": "FRAME_EXIT",
+              "frame": "F1"
+            }
+          ],
+          "uncertainties": [],
+          "evidence": [
+            {
+              "path": "pom.xml",
+              "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347"
+            },
+            {
+              "path": "src/main/java/selftest/Calls.java",
+              "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+            }
+          ],
+          "contextEvidence": {
+            "sha256": "c488880742b63454f9bb6798567346ad0ac363fd88d9074f46ed7395cae9c07e",
+            "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+            "path": "EXTERNAL_CONTEXT"
+          }
+        },
+        "plantuml": "@startuml\nhide footbox\ntitle Conditional static transaction scenario - runtime identity UNKNOWN\nactor \"Scenario entry\" as Entry\nparticipant \"selftest.Calls\" as B1\nlegend left\nAll P identifiers are SYMBOLIC_SCENARIO; actual runtime identity UNKNOWN.\nL = TRANSACTION_LOGICAL_SCOPE; P = TRANSACTION_PHYSICAL\nS = TRANSACTION_SUSPENDED; SP = TRANSACTION_SAVEPOINT\nGreen: shared physical context / logical scope\nBlue: independent physical scope; outer P retained while SUSPENDED\nYellow: nested SAVEPOINT on the SAME P\nGray: NO_TRANSACTION; red: UNKNOWN / unsupported path\nGroups show method nesting. BEGIN/END notes define physical lifetimes.\nSuspended lifetime overlap is explicit in SUSPEND/RESUME notes.\nInterception: APPLIED / BYPASSED / UNKNOWN; context: ACTIVE / INACTIVE / UNKNOWN.\nINHERITED physical context does not require interception of this method.\nAspectJ ASSUMED_APPLIED is a conditional premise, never runtime weaving proof.\nendlegend\nEntry -> B1: selftest.Calls#outsideRequired() / CONDITIONAL_CALL\ngroup #EEEEEE F1 UNANNOTATED METHOD_EXECUTION NO_TRANSACTION\nnote right of B1: interception=BYPASSED; context=INACTIVE; NO_TRANSACTION\nnote right of B1: advice=NO_TRANSACTIONAL_ANNOTATION; manager=UNKNOWN_OR_NOT_USED\nB1 -> B1: selftest.Calls#required() / CONDITIONAL_CALL\ngroup #EEEEEE F2 REQUIRED METHOD_EXECUTION NO_TRANSACTION\nnote right of B1: interception=BYPASSED; context=INACTIVE; NO_TRANSACTION\nnote right of B1: advice=SELF_OR_DIRECT_CALL; manager=UNKNOWN_OR_NOT_USED\nend\nB1 --> B1: scope exit / outcome UNKNOWN\nend\nB1 --> Entry: scope exit / outcome UNKNOWN\n@enduml\n",
+        "modelSha256": "1a0660d3e9a35da01e1133ed51ced797432884c9833ae340b129130875aa9264",
+        "plantumlSha256": "3617948445b6a432a6c07f9d31d5357a802248b61910d5542383e5a3ad6e2c5f"
+      },
+      "proxy_required_active": {
+        "command": [
+          "python3",
+          "scripts/mana-transaction.py",
+          "--project-root",
+          "/Users/zel/projects/mana/tests/fixtures/transaction-self-invocation/proxy",
+          "--context",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples/proxy_required_active-context.json",
+          "--entry",
+          "selftest.Calls#activeRequired()",
+          "--output-dir",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples-final/proxy_required_active"
+        ],
+        "exitCode": 0,
+        "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"frames\": 2, \"uncertainties\": 0, \"candidateActivated\": false}\n",
+        "stderr": "",
+        "model": {
+          "schema": "mana.transaction-model/v1",
+          "entry": "selftest.Calls#activeRequired()",
+          "status": "CONDITIONAL_STATIC_SCENARIO",
+          "proxyMode": "CLASS",
+          "interceptionMode": "PROXY",
+          "aspectjWeaving": {
+            "application": "UNKNOWN",
+            "runtimeApplication": "UNKNOWN"
+          },
+          "assumptions": [
+            "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+            "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+            "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+            "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+            "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven."
+          ],
+          "context": {
+            "schema": "mana.transaction-context/v1",
+            "initialState": "NO_TRANSACTION",
+            "entryThroughProxy": true,
+            "managerCapabilities": {
+              "tx": {
+                "suspend": true,
+                "savepoints": true
+              }
+            }
+          },
+          "managers": [
+            {
+              "id": "tx",
+              "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 547,
+                "end": 640,
+                "line": 13,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "capabilities": {
+                "suspend": true,
+                "savepoints": true
+              },
+              "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+            }
+          ],
+          "frames": [
+            {
+              "id": "F1",
+              "callerMethod": null,
+              "calleeMethod": "selftest.Calls#activeRequired()",
+              "callSite": null,
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "CLASS",
+                "crossed": true,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 527,
+                    "line": 11,
+                    "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+                  }
+                ],
+                "reason": "SCENARIO_PROXY_CALL"
+              },
+              "manager": "tx",
+              "configuration": {
+                "propagation": "REQUIRED",
+                "managerQualifier": "",
+                "attributes": {},
+                "evidence": {
+                  "file": "src/main/java/selftest/Calls.java",
+                  "start": 725,
+                  "end": 739,
+                  "line": 18,
+                  "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+                },
+                "origin": "method",
+                "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+                "unmodeledAttributes": []
+              },
+              "logicalScope": "L1",
+              "previousState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "duringState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "afterState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 725,
+                "end": 789,
+                "line": 18,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "depth": 0,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 643,
+                "end": 1133,
+                "line": 15,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "APPLIED",
+                "reason": "SCENARIO_PROXY_CALL"
+              },
+              "effectiveContext": {
+                "before": "INACTIVE",
+                "during": "ACTIVE",
+                "after": "INACTIVE"
+              }
+            },
+            {
+              "id": "F2",
+              "callerMethod": "selftest.Calls#activeRequired()",
+              "calleeMethod": "selftest.Calls#required()",
+              "callSite": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 771,
+                "end": 786,
+                "line": 18,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "CLASS",
+                "crossed": false,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 527,
+                    "line": 11,
+                    "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+                  }
+                ],
+                "reason": "SELF_OR_DIRECT_CALL"
+              },
+              "manager": null,
+              "configuration": {
+                "propagation": "REQUIRED",
+                "managerQualifier": "",
+                "attributes": {},
+                "evidence": {
+                  "file": "src/main/java/selftest/Calls.java",
+                  "start": 926,
+                  "end": 940,
+                  "line": 21,
+                  "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+                },
+                "origin": "method",
+                "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+                "unmodeledAttributes": []
+              },
+              "logicalScope": null,
+              "previousState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "duringState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "afterState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 926,
+                "end": 966,
+                "line": 21,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "depth": 1,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 643,
+                "end": 1133,
+                "line": 15,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "BYPASSED",
+                "reason": "SELF_OR_DIRECT_CALL"
+              },
+              "effectiveContext": {
+                "before": "ACTIVE",
+                "during": "ACTIVE",
+                "after": "ACTIVE"
+              },
+              "receiverBindingEvidence": null
+            }
+          ],
+          "logicalScopes": [
+            {
+              "id": "L1",
+              "kind": "TRANSACTION_LOGICAL_SCOPE",
+              "frame": "F1",
+              "certainty": "CONDITIONAL",
+              "physicalId": "P1"
+            }
+          ],
+          "physicalTransactions": [
+            {
+              "id": "P1",
+              "kind": "TRANSACTION_PHYSICAL",
+              "manager": "tx",
+              "beginFrame": "F1",
+              "endFrame": "F1",
+              "identity": "SYMBOLIC_SCENARIO",
+              "runtimeIdentity": "UNKNOWN",
+              "certainty": "CONDITIONAL",
+              "outcome": "UNKNOWN"
+            }
+          ],
+          "suspensions": [],
+          "savepoints": [],
+          "events": [
+            {
+              "sequence": 1,
+              "kind": "FRAME_ENTER",
+              "frame": "F1"
+            },
+            {
+              "sequence": 2,
+              "kind": "PHYSICAL_BEGIN",
+              "frame": "F1",
+              "entity": "P1"
+            },
+            {
+              "sequence": 3,
+              "kind": "LOGICAL_BEGIN",
+              "frame": "F1",
+              "entity": "L1"
+            },
+            {
+              "sequence": 4,
+              "kind": "FRAME_ENTER",
+              "frame": "F2"
+            },
+            {
+              "sequence": 5,
+              "kind": "FRAME_EXIT",
+              "frame": "F2"
+            },
+            {
+              "sequence": 6,
+              "kind": "LOGICAL_END",
+              "frame": "F1",
+              "entity": "L1"
+            },
+            {
+              "sequence": 7,
+              "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+              "frame": "F1",
+              "entity": "P1"
+            },
+            {
+              "sequence": 8,
+              "kind": "FRAME_EXIT",
+              "frame": "F1"
+            }
+          ],
+          "uncertainties": [],
+          "evidence": [
+            {
+              "path": "pom.xml",
+              "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347"
+            },
+            {
+              "path": "src/main/java/selftest/Calls.java",
+              "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+            }
+          ],
+          "contextEvidence": {
+            "sha256": "c488880742b63454f9bb6798567346ad0ac363fd88d9074f46ed7395cae9c07e",
+            "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+            "path": "EXTERNAL_CONTEXT"
+          }
+        },
+        "plantuml": "@startuml\nhide footbox\ntitle Conditional static transaction scenario - runtime identity UNKNOWN\nactor \"Scenario entry\" as Entry\nparticipant \"selftest.Calls\" as B1\nlegend left\nAll P identifiers are SYMBOLIC_SCENARIO; actual runtime identity UNKNOWN.\nL = TRANSACTION_LOGICAL_SCOPE; P = TRANSACTION_PHYSICAL\nS = TRANSACTION_SUSPENDED; SP = TRANSACTION_SAVEPOINT\nGreen: shared physical context / logical scope\nBlue: independent physical scope; outer P retained while SUSPENDED\nYellow: nested SAVEPOINT on the SAME P\nGray: NO_TRANSACTION; red: UNKNOWN / unsupported path\nGroups show method nesting. BEGIN/END notes define physical lifetimes.\nSuspended lifetime overlap is explicit in SUSPEND/RESUME notes.\nInterception: APPLIED / BYPASSED / UNKNOWN; context: ACTIVE / INACTIVE / UNKNOWN.\nINHERITED physical context does not require interception of this method.\nAspectJ ASSUMED_APPLIED is a conditional premise, never runtime weaving proof.\nendlegend\nEntry -> B1: selftest.Calls#activeRequired() / CONDITIONAL_CALL\ngroup #CCE5FF F1 REQUIRED L1 P1\nnote right of B1: interception=APPLIED; context=ACTIVE; INDEPENDENT P1\nnote right of B1: advice=SCENARIO_PROXY_CALL; manager=tx\nnote over B1: 2 PHYSICAL_BEGIN P1 \nnote over B1: 3 LOGICAL_BEGIN L1 \nB1 -> B1: selftest.Calls#required() / CONDITIONAL_CALL\ngroup #D6F5D6 F2 REQUIRED METHOD_EXECUTION P1\nnote right of B1: interception=BYPASSED; context=ACTIVE; INHERITED P1\nnote right of B1: advice=SELF_OR_DIRECT_CALL; manager=UNKNOWN_OR_NOT_USED\nend\nB1 --> B1: scope exit / outcome UNKNOWN\nnote over B1: 6 LOGICAL_END L1 \nnote over B1: 7 PHYSICAL_END_OUTCOME_UNKNOWN P1 \nend\nB1 --> Entry: scope exit / outcome UNKNOWN\n@enduml\n",
+        "modelSha256": "8547f4f496b00bf98afa89ae2b7b1131722bc566f68de5c2ccfe80f0cabd3215",
+        "plantumlSha256": "90f21ab4737e459731eab2debd972f8157b000ea9f327be316199dee932a2242"
+      },
+      "proxy_requires_new_active": {
+        "command": [
+          "python3",
+          "scripts/mana-transaction.py",
+          "--project-root",
+          "/Users/zel/projects/mana/tests/fixtures/transaction-self-invocation/proxy",
+          "--context",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples/proxy_requires_new_active-context.json",
+          "--entry",
+          "selftest.Calls#activeNew()",
+          "--output-dir",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples-final/proxy_requires_new_active"
+        ],
+        "exitCode": 0,
+        "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"frames\": 2, \"uncertainties\": 0, \"candidateActivated\": false}\n",
+        "stderr": "",
+        "model": {
+          "schema": "mana.transaction-model/v1",
+          "entry": "selftest.Calls#activeNew()",
+          "status": "CONDITIONAL_STATIC_SCENARIO",
+          "proxyMode": "CLASS",
+          "interceptionMode": "PROXY",
+          "aspectjWeaving": {
+            "application": "UNKNOWN",
+            "runtimeApplication": "UNKNOWN"
+          },
+          "assumptions": [
+            "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+            "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+            "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+            "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+            "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven."
+          ],
+          "context": {
+            "schema": "mana.transaction-context/v1",
+            "initialState": "NO_TRANSACTION",
+            "entryThroughProxy": true,
+            "managerCapabilities": {
+              "tx": {
+                "suspend": true,
+                "savepoints": true
+              }
+            }
+          },
+          "managers": [
+            {
+              "id": "tx",
+              "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 547,
+                "end": 640,
+                "line": 13,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "capabilities": {
+                "suspend": true,
+                "savepoints": true
+              },
+              "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+            }
+          ],
+          "frames": [
+            {
+              "id": "F1",
+              "callerMethod": null,
+              "calleeMethod": "selftest.Calls#activeNew()",
+              "callSite": null,
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "CLASS",
+                "crossed": true,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 527,
+                    "line": 11,
+                    "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+                  }
+                ],
+                "reason": "SCENARIO_PROXY_CALL"
+              },
+              "manager": "tx",
+              "configuration": {
+                "propagation": "REQUIRED",
+                "managerQualifier": "",
+                "attributes": {},
+                "evidence": {
+                  "file": "src/main/java/selftest/Calls.java",
+                  "start": 794,
+                  "end": 808,
+                  "line": 19,
+                  "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+                },
+                "origin": "method",
+                "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+                "unmodeledAttributes": []
+              },
+              "logicalScope": "L1",
+              "previousState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "duringState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "afterState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 794,
+                "end": 856,
+                "line": 19,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "depth": 0,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 643,
+                "end": 1133,
+                "line": 15,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "APPLIED",
+                "reason": "SCENARIO_PROXY_CALL"
+              },
+              "effectiveContext": {
+                "before": "INACTIVE",
+                "during": "ACTIVE",
+                "after": "INACTIVE"
+              }
+            },
+            {
+              "id": "F2",
+              "callerMethod": "selftest.Calls#activeNew()",
+              "calleeMethod": "selftest.Calls#independent()",
+              "callSite": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 835,
+                "end": 853,
+                "line": 19,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "CLASS",
+                "crossed": false,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 527,
+                    "line": 11,
+                    "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+                  }
+                ],
+                "reason": "SELF_OR_DIRECT_CALL"
+              },
+              "manager": null,
+              "configuration": {
+                "propagation": "REQUIRES_NEW",
+                "managerQualifier": "",
+                "attributes": {
+                  "propagation": {
+                    "kind": "MEMBER_SELECT",
+                    "literal": null,
+                    "text": "org.springframework.transaction.annotation.Propagation.REQUIRES_NEW"
+                  }
+                },
+                "evidence": {
+                  "file": "src/main/java/selftest/Calls.java",
+                  "start": 971,
+                  "end": 1025,
+                  "line": 22,
+                  "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+                },
+                "origin": "method",
+                "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+                "unmodeledAttributes": []
+              },
+              "logicalScope": null,
+              "previousState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "duringState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "afterState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 971,
+                "end": 1054,
+                "line": 22,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "depth": 1,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 643,
+                "end": 1133,
+                "line": 15,
+                "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "BYPASSED",
+                "reason": "SELF_OR_DIRECT_CALL"
+              },
+              "effectiveContext": {
+                "before": "ACTIVE",
+                "during": "ACTIVE",
+                "after": "ACTIVE"
+              },
+              "receiverBindingEvidence": null
+            }
+          ],
+          "logicalScopes": [
+            {
+              "id": "L1",
+              "kind": "TRANSACTION_LOGICAL_SCOPE",
+              "frame": "F1",
+              "certainty": "CONDITIONAL",
+              "physicalId": "P1"
+            }
+          ],
+          "physicalTransactions": [
+            {
+              "id": "P1",
+              "kind": "TRANSACTION_PHYSICAL",
+              "manager": "tx",
+              "beginFrame": "F1",
+              "endFrame": "F1",
+              "identity": "SYMBOLIC_SCENARIO",
+              "runtimeIdentity": "UNKNOWN",
+              "certainty": "CONDITIONAL",
+              "outcome": "UNKNOWN"
+            }
+          ],
+          "suspensions": [],
+          "savepoints": [],
+          "events": [
+            {
+              "sequence": 1,
+              "kind": "FRAME_ENTER",
+              "frame": "F1"
+            },
+            {
+              "sequence": 2,
+              "kind": "PHYSICAL_BEGIN",
+              "frame": "F1",
+              "entity": "P1"
+            },
+            {
+              "sequence": 3,
+              "kind": "LOGICAL_BEGIN",
+              "frame": "F1",
+              "entity": "L1"
+            },
+            {
+              "sequence": 4,
+              "kind": "FRAME_ENTER",
+              "frame": "F2"
+            },
+            {
+              "sequence": 5,
+              "kind": "FRAME_EXIT",
+              "frame": "F2"
+            },
+            {
+              "sequence": 6,
+              "kind": "LOGICAL_END",
+              "frame": "F1",
+              "entity": "L1"
+            },
+            {
+              "sequence": 7,
+              "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+              "frame": "F1",
+              "entity": "P1"
+            },
+            {
+              "sequence": 8,
+              "kind": "FRAME_EXIT",
+              "frame": "F1"
+            }
+          ],
+          "uncertainties": [],
+          "evidence": [
+            {
+              "path": "pom.xml",
+              "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347"
+            },
+            {
+              "path": "src/main/java/selftest/Calls.java",
+              "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970"
+            }
+          ],
+          "contextEvidence": {
+            "sha256": "c488880742b63454f9bb6798567346ad0ac363fd88d9074f46ed7395cae9c07e",
+            "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+            "path": "EXTERNAL_CONTEXT"
+          }
+        },
+        "plantuml": "@startuml\nhide footbox\ntitle Conditional static transaction scenario - runtime identity UNKNOWN\nactor \"Scenario entry\" as Entry\nparticipant \"selftest.Calls\" as B1\nlegend left\nAll P identifiers are SYMBOLIC_SCENARIO; actual runtime identity UNKNOWN.\nL = TRANSACTION_LOGICAL_SCOPE; P = TRANSACTION_PHYSICAL\nS = TRANSACTION_SUSPENDED; SP = TRANSACTION_SAVEPOINT\nGreen: shared physical context / logical scope\nBlue: independent physical scope; outer P retained while SUSPENDED\nYellow: nested SAVEPOINT on the SAME P\nGray: NO_TRANSACTION; red: UNKNOWN / unsupported path\nGroups show method nesting. BEGIN/END notes define physical lifetimes.\nSuspended lifetime overlap is explicit in SUSPEND/RESUME notes.\nInterception: APPLIED / BYPASSED / UNKNOWN; context: ACTIVE / INACTIVE / UNKNOWN.\nINHERITED physical context does not require interception of this method.\nAspectJ ASSUMED_APPLIED is a conditional premise, never runtime weaving proof.\nendlegend\nEntry -> B1: selftest.Calls#activeNew() / CONDITIONAL_CALL\ngroup #CCE5FF F1 REQUIRED L1 P1\nnote right of B1: interception=APPLIED; context=ACTIVE; INDEPENDENT P1\nnote right of B1: advice=SCENARIO_PROXY_CALL; manager=tx\nnote over B1: 2 PHYSICAL_BEGIN P1 \nnote over B1: 3 LOGICAL_BEGIN L1 \nB1 -> B1: selftest.Calls#independent() / CONDITIONAL_CALL\ngroup #D6F5D6 F2 REQUIRES_NEW METHOD_EXECUTION P1\nnote right of B1: interception=BYPASSED; context=ACTIVE; INHERITED P1\nnote right of B1: advice=SELF_OR_DIRECT_CALL; manager=UNKNOWN_OR_NOT_USED\nend\nB1 --> B1: scope exit / outcome UNKNOWN\nnote over B1: 6 LOGICAL_END L1 \nnote over B1: 7 PHYSICAL_END_OUTCOME_UNKNOWN P1 \nend\nB1 --> Entry: scope exit / outcome UNKNOWN\n@enduml\n",
+        "modelSha256": "b67e47f3ef79fb54edbcb21bd13310109163a309d1e6db9f85c4a8352ef284e2",
+        "plantumlSha256": "fc518579d54245988032adb97310f3b23e2f0204e86de781572e79aad60fbf56"
+      },
+      "aspectj_required_conditional": {
+        "command": [
+          "python3",
+          "scripts/mana-transaction.py",
+          "--project-root",
+          "/Users/zel/projects/mana/tests/fixtures/transaction-self-invocation/aspectj",
+          "--context",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples/aspectj_required_conditional-context.json",
+          "--entry",
+          "selftest.Calls#outsideRequired()",
+          "--output-dir",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples-final/aspectj_required_conditional"
+        ],
+        "exitCode": 0,
+        "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"frames\": 2, \"uncertainties\": 0, \"candidateActivated\": false}\n",
+        "stderr": "",
+        "model": {
+          "schema": "mana.transaction-model/v1",
+          "entry": "selftest.Calls#outsideRequired()",
+          "status": "CONDITIONAL_STATIC_SCENARIO",
+          "proxyMode": "UNKNOWN",
+          "interceptionMode": "ASPECTJ",
+          "aspectjWeaving": {
+            "application": "ASSUMED_APPLIED",
+            "runtimeApplication": "UNKNOWN"
+          },
+          "assumptions": [
+            "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+            "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+            "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+            "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+            "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven.",
+            "AspectJ weaving application is an explicit conditional scenario assumption, not statically demonstrated or runtime-proven."
+          ],
+          "context": {
+            "schema": "mana.transaction-context/v1",
+            "initialState": "NO_TRANSACTION",
+            "entryThroughProxy": false,
+            "managerCapabilities": {
+              "tx": {
+                "suspend": true,
+                "savepoints": true
+              }
+            },
+            "aspectjWeaving": "ASSUMED_APPLIED"
+          },
+          "managers": [
+            {
+              "id": "tx",
+              "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 588,
+                "end": 681,
+                "line": 13,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "capabilities": {
+                "suspend": true,
+                "savepoints": true
+              },
+              "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+            }
+          ],
+          "frames": [
+            {
+              "id": "F1",
+              "callerMethod": null,
+              "calleeMethod": "selftest.Calls#outsideRequired()",
+              "callSite": null,
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "UNKNOWN",
+                "crossed": false,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 568,
+                    "line": 11,
+                    "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                  }
+                ],
+                "reason": "NOT_APPLICABLE_ASPECTJ"
+              },
+              "manager": null,
+              "configuration": null,
+              "logicalScope": null,
+              "previousState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "duringState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "afterState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 711,
+                "end": 761,
+                "line": 17,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "depth": 0,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 684,
+                "end": 1174,
+                "line": 15,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "BYPASSED",
+                "reason": "NO_TRANSACTIONAL_ANNOTATION"
+              },
+              "effectiveContext": {
+                "before": "INACTIVE",
+                "during": "INACTIVE",
+                "after": "INACTIVE"
+              }
+            },
+            {
+              "id": "F2",
+              "callerMethod": "selftest.Calls#outsideRequired()",
+              "calleeMethod": "selftest.Calls#required()",
+              "callSite": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 743,
+                "end": 758,
+                "line": 17,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "UNKNOWN",
+                "crossed": false,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 568,
+                    "line": 11,
+                    "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                  }
+                ],
+                "reason": "NOT_APPLICABLE_ASPECTJ"
+              },
+              "manager": "tx",
+              "configuration": {
+                "propagation": "REQUIRED",
+                "managerQualifier": "",
+                "attributes": {},
+                "evidence": {
+                  "file": "src/main/java/selftest/Calls.java",
+                  "start": 967,
+                  "end": 981,
+                  "line": 21,
+                  "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                },
+                "origin": "method",
+                "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+                "unmodeledAttributes": []
+              },
+              "logicalScope": "L1",
+              "previousState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "duringState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "afterState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 967,
+                "end": 1007,
+                "line": 21,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "depth": 1,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 684,
+                "end": 1174,
+                "line": 15,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "APPLIED",
+                "reason": "ASPECTJ_WEAVING_ASSUMED_APPLIED"
+              },
+              "effectiveContext": {
+                "before": "INACTIVE",
+                "during": "ACTIVE",
+                "after": "INACTIVE"
+              },
+              "receiverBindingEvidence": null
+            }
+          ],
+          "logicalScopes": [
+            {
+              "id": "L1",
+              "kind": "TRANSACTION_LOGICAL_SCOPE",
+              "frame": "F2",
+              "certainty": "CONDITIONAL",
+              "physicalId": "P1"
+            }
+          ],
+          "physicalTransactions": [
+            {
+              "id": "P1",
+              "kind": "TRANSACTION_PHYSICAL",
+              "manager": "tx",
+              "beginFrame": "F2",
+              "endFrame": "F2",
+              "identity": "SYMBOLIC_SCENARIO",
+              "runtimeIdentity": "UNKNOWN",
+              "certainty": "CONDITIONAL",
+              "outcome": "UNKNOWN"
+            }
+          ],
+          "suspensions": [],
+          "savepoints": [],
+          "events": [
+            {
+              "sequence": 1,
+              "kind": "FRAME_ENTER",
+              "frame": "F1"
+            },
+            {
+              "sequence": 2,
+              "kind": "FRAME_ENTER",
+              "frame": "F2"
+            },
+            {
+              "sequence": 3,
+              "kind": "PHYSICAL_BEGIN",
+              "frame": "F2",
+              "entity": "P1"
+            },
+            {
+              "sequence": 4,
+              "kind": "LOGICAL_BEGIN",
+              "frame": "F2",
+              "entity": "L1"
+            },
+            {
+              "sequence": 5,
+              "kind": "LOGICAL_END",
+              "frame": "F2",
+              "entity": "L1"
+            },
+            {
+              "sequence": 6,
+              "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+              "frame": "F2",
+              "entity": "P1"
+            },
+            {
+              "sequence": 7,
+              "kind": "FRAME_EXIT",
+              "frame": "F2"
+            },
+            {
+              "sequence": 8,
+              "kind": "FRAME_EXIT",
+              "frame": "F1"
+            }
+          ],
+          "uncertainties": [],
+          "evidence": [
+            {
+              "path": "pom.xml",
+              "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347"
+            },
+            {
+              "path": "src/main/java/selftest/Calls.java",
+              "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+            }
+          ],
+          "contextEvidence": {
+            "sha256": "3f89b87836ec9da93fad982c881319d73ad598583d01e5a02795b34e02f2f6d8",
+            "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+            "path": "EXTERNAL_CONTEXT"
+          }
+        },
+        "plantuml": "@startuml\nhide footbox\ntitle Conditional static transaction scenario - runtime identity UNKNOWN\nactor \"Scenario entry\" as Entry\nparticipant \"selftest.Calls\" as B1\nlegend left\nAll P identifiers are SYMBOLIC_SCENARIO; actual runtime identity UNKNOWN.\nL = TRANSACTION_LOGICAL_SCOPE; P = TRANSACTION_PHYSICAL\nS = TRANSACTION_SUSPENDED; SP = TRANSACTION_SAVEPOINT\nGreen: shared physical context / logical scope\nBlue: independent physical scope; outer P retained while SUSPENDED\nYellow: nested SAVEPOINT on the SAME P\nGray: NO_TRANSACTION; red: UNKNOWN / unsupported path\nGroups show method nesting. BEGIN/END notes define physical lifetimes.\nSuspended lifetime overlap is explicit in SUSPEND/RESUME notes.\nInterception: APPLIED / BYPASSED / UNKNOWN; context: ACTIVE / INACTIVE / UNKNOWN.\nINHERITED physical context does not require interception of this method.\nAspectJ ASSUMED_APPLIED is a conditional premise, never runtime weaving proof.\nendlegend\nEntry -> B1: selftest.Calls#outsideRequired() / CONDITIONAL_CALL\ngroup #EEEEEE F1 UNANNOTATED METHOD_EXECUTION NO_TRANSACTION\nnote right of B1: interception=BYPASSED; context=INACTIVE; NO_TRANSACTION\nnote right of B1: ASPECTJ weaving=ASSUMED_APPLIED / conditional scenario\nnote right of B1: advice=NO_TRANSACTIONAL_ANNOTATION; manager=UNKNOWN_OR_NOT_USED\nB1 -> B1: selftest.Calls#required() / CONDITIONAL_CALL\ngroup #CCE5FF F2 REQUIRED L1 P1\nnote right of B1: interception=APPLIED; context=ACTIVE; INDEPENDENT P1\nnote right of B1: ASPECTJ weaving=ASSUMED_APPLIED / conditional scenario\nnote right of B1: advice=ASPECTJ_WEAVING_ASSUMED_APPLIED; manager=tx\nnote over B1: 3 PHYSICAL_BEGIN P1 \nnote over B1: 4 LOGICAL_BEGIN L1 \nnote over B1: 5 LOGICAL_END L1 \nnote over B1: 6 PHYSICAL_END_OUTCOME_UNKNOWN P1 \nend\nB1 --> B1: scope exit / outcome UNKNOWN\nend\nB1 --> Entry: scope exit / outcome UNKNOWN\n@enduml\n",
+        "modelSha256": "ae92060e8a1ec195ce6991ad75af108a899a10383e747a2844d2ae7967bc42d1",
+        "plantumlSha256": "cc9f5a1b160c3bb3bf5478e6ff510eaee88d466a4dd643720c12c773673f50b2"
+      },
+      "aspectj_requires_new_conditional": {
+        "command": [
+          "python3",
+          "scripts/mana-transaction.py",
+          "--project-root",
+          "/Users/zel/projects/mana/tests/fixtures/transaction-self-invocation/aspectj",
+          "--context",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples/aspectj_requires_new_conditional-context.json",
+          "--entry",
+          "selftest.Calls#activeNew()",
+          "--output-dir",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples-final/aspectj_requires_new_conditional"
+        ],
+        "exitCode": 0,
+        "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"frames\": 2, \"uncertainties\": 0, \"candidateActivated\": false}\n",
+        "stderr": "",
+        "model": {
+          "schema": "mana.transaction-model/v1",
+          "entry": "selftest.Calls#activeNew()",
+          "status": "CONDITIONAL_STATIC_SCENARIO",
+          "proxyMode": "UNKNOWN",
+          "interceptionMode": "ASPECTJ",
+          "aspectjWeaving": {
+            "application": "ASSUMED_APPLIED",
+            "runtimeApplication": "UNKNOWN"
+          },
+          "assumptions": [
+            "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+            "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+            "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+            "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+            "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven.",
+            "AspectJ weaving application is an explicit conditional scenario assumption, not statically demonstrated or runtime-proven."
+          ],
+          "context": {
+            "schema": "mana.transaction-context/v1",
+            "initialState": "NO_TRANSACTION",
+            "entryThroughProxy": false,
+            "managerCapabilities": {
+              "tx": {
+                "suspend": true,
+                "savepoints": true
+              }
+            },
+            "aspectjWeaving": "ASSUMED_APPLIED"
+          },
+          "managers": [
+            {
+              "id": "tx",
+              "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 588,
+                "end": 681,
+                "line": 13,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "capabilities": {
+                "suspend": true,
+                "savepoints": true
+              },
+              "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+            }
+          ],
+          "frames": [
+            {
+              "id": "F1",
+              "callerMethod": null,
+              "calleeMethod": "selftest.Calls#activeNew()",
+              "callSite": null,
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "UNKNOWN",
+                "crossed": false,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 568,
+                    "line": 11,
+                    "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                  }
+                ],
+                "reason": "NOT_APPLICABLE_ASPECTJ"
+              },
+              "manager": "tx",
+              "configuration": {
+                "propagation": "REQUIRED",
+                "managerQualifier": "",
+                "attributes": {},
+                "evidence": {
+                  "file": "src/main/java/selftest/Calls.java",
+                  "start": 835,
+                  "end": 849,
+                  "line": 19,
+                  "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                },
+                "origin": "method",
+                "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+                "unmodeledAttributes": []
+              },
+              "logicalScope": "L1",
+              "previousState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "duringState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "afterState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 835,
+                "end": 897,
+                "line": 19,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "depth": 0,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 684,
+                "end": 1174,
+                "line": 15,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "APPLIED",
+                "reason": "ASPECTJ_WEAVING_ASSUMED_APPLIED"
+              },
+              "effectiveContext": {
+                "before": "INACTIVE",
+                "during": "ACTIVE",
+                "after": "INACTIVE"
+              }
+            },
+            {
+              "id": "F2",
+              "callerMethod": "selftest.Calls#activeNew()",
+              "calleeMethod": "selftest.Calls#independent()",
+              "callSite": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 876,
+                "end": 894,
+                "line": 19,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "UNKNOWN",
+                "crossed": false,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 568,
+                    "line": 11,
+                    "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                  }
+                ],
+                "reason": "NOT_APPLICABLE_ASPECTJ"
+              },
+              "manager": "tx",
+              "configuration": {
+                "propagation": "REQUIRES_NEW",
+                "managerQualifier": "",
+                "attributes": {
+                  "propagation": {
+                    "kind": "MEMBER_SELECT",
+                    "literal": null,
+                    "text": "org.springframework.transaction.annotation.Propagation.REQUIRES_NEW"
+                  }
+                },
+                "evidence": {
+                  "file": "src/main/java/selftest/Calls.java",
+                  "start": 1012,
+                  "end": 1066,
+                  "line": 22,
+                  "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                },
+                "origin": "method",
+                "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+                "unmodeledAttributes": []
+              },
+              "logicalScope": "L2",
+              "previousState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "duringState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P2",
+                "manager": "tx"
+              },
+              "afterState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 1012,
+                "end": 1095,
+                "line": 22,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "depth": 1,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 684,
+                "end": 1174,
+                "line": 15,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "APPLIED",
+                "reason": "ASPECTJ_WEAVING_ASSUMED_APPLIED"
+              },
+              "effectiveContext": {
+                "before": "ACTIVE",
+                "during": "ACTIVE",
+                "after": "ACTIVE"
+              },
+              "receiverBindingEvidence": null
+            }
+          ],
+          "logicalScopes": [
+            {
+              "id": "L1",
+              "kind": "TRANSACTION_LOGICAL_SCOPE",
+              "frame": "F1",
+              "certainty": "CONDITIONAL",
+              "physicalId": "P1"
+            },
+            {
+              "id": "L2",
+              "kind": "TRANSACTION_LOGICAL_SCOPE",
+              "frame": "F2",
+              "certainty": "CONDITIONAL",
+              "physicalId": "P2"
+            }
+          ],
+          "physicalTransactions": [
+            {
+              "id": "P1",
+              "kind": "TRANSACTION_PHYSICAL",
+              "manager": "tx",
+              "beginFrame": "F1",
+              "endFrame": "F1",
+              "identity": "SYMBOLIC_SCENARIO",
+              "runtimeIdentity": "UNKNOWN",
+              "certainty": "CONDITIONAL",
+              "outcome": "UNKNOWN"
+            },
+            {
+              "id": "P2",
+              "kind": "TRANSACTION_PHYSICAL",
+              "manager": "tx",
+              "beginFrame": "F2",
+              "endFrame": "F2",
+              "identity": "SYMBOLIC_SCENARIO",
+              "runtimeIdentity": "UNKNOWN",
+              "certainty": "CONDITIONAL",
+              "outcome": "UNKNOWN"
+            }
+          ],
+          "suspensions": [
+            {
+              "id": "S1",
+              "kind": "TRANSACTION_SUSPENDED",
+              "physicalId": "P1",
+              "replacementPhysicalId": "P2",
+              "frame": "F2",
+              "certainty": "CONDITIONAL"
+            }
+          ],
+          "savepoints": [],
+          "events": [
+            {
+              "sequence": 1,
+              "kind": "FRAME_ENTER",
+              "frame": "F1"
+            },
+            {
+              "sequence": 2,
+              "kind": "PHYSICAL_BEGIN",
+              "frame": "F1",
+              "entity": "P1"
+            },
+            {
+              "sequence": 3,
+              "kind": "LOGICAL_BEGIN",
+              "frame": "F1",
+              "entity": "L1"
+            },
+            {
+              "sequence": 4,
+              "kind": "FRAME_ENTER",
+              "frame": "F2"
+            },
+            {
+              "sequence": 5,
+              "kind": "SUSPEND",
+              "frame": "F2",
+              "entity": "S1",
+              "physicalId": "P1"
+            },
+            {
+              "sequence": 6,
+              "kind": "PHYSICAL_BEGIN",
+              "frame": "F2",
+              "entity": "P2"
+            },
+            {
+              "sequence": 7,
+              "kind": "LOGICAL_BEGIN",
+              "frame": "F2",
+              "entity": "L2"
+            },
+            {
+              "sequence": 8,
+              "kind": "LOGICAL_END",
+              "frame": "F2",
+              "entity": "L2"
+            },
+            {
+              "sequence": 9,
+              "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+              "frame": "F2",
+              "entity": "P2"
+            },
+            {
+              "sequence": 10,
+              "kind": "RESUME_CONDITIONAL",
+              "frame": "F2",
+              "entity": "S1",
+              "physicalId": "P1"
+            },
+            {
+              "sequence": 11,
+              "kind": "FRAME_EXIT",
+              "frame": "F2"
+            },
+            {
+              "sequence": 12,
+              "kind": "LOGICAL_END",
+              "frame": "F1",
+              "entity": "L1"
+            },
+            {
+              "sequence": 13,
+              "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+              "frame": "F1",
+              "entity": "P1"
+            },
+            {
+              "sequence": 14,
+              "kind": "FRAME_EXIT",
+              "frame": "F1"
+            }
+          ],
+          "uncertainties": [],
+          "evidence": [
+            {
+              "path": "pom.xml",
+              "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347"
+            },
+            {
+              "path": "src/main/java/selftest/Calls.java",
+              "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+            }
+          ],
+          "contextEvidence": {
+            "sha256": "3f89b87836ec9da93fad982c881319d73ad598583d01e5a02795b34e02f2f6d8",
+            "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+            "path": "EXTERNAL_CONTEXT"
+          }
+        },
+        "plantuml": "@startuml\nhide footbox\ntitle Conditional static transaction scenario - runtime identity UNKNOWN\nactor \"Scenario entry\" as Entry\nparticipant \"selftest.Calls\" as B1\nlegend left\nAll P identifiers are SYMBOLIC_SCENARIO; actual runtime identity UNKNOWN.\nL = TRANSACTION_LOGICAL_SCOPE; P = TRANSACTION_PHYSICAL\nS = TRANSACTION_SUSPENDED; SP = TRANSACTION_SAVEPOINT\nGreen: shared physical context / logical scope\nBlue: independent physical scope; outer P retained while SUSPENDED\nYellow: nested SAVEPOINT on the SAME P\nGray: NO_TRANSACTION; red: UNKNOWN / unsupported path\nGroups show method nesting. BEGIN/END notes define physical lifetimes.\nSuspended lifetime overlap is explicit in SUSPEND/RESUME notes.\nInterception: APPLIED / BYPASSED / UNKNOWN; context: ACTIVE / INACTIVE / UNKNOWN.\nINHERITED physical context does not require interception of this method.\nAspectJ ASSUMED_APPLIED is a conditional premise, never runtime weaving proof.\nendlegend\nEntry -> B1: selftest.Calls#activeNew() / CONDITIONAL_CALL\ngroup #CCE5FF F1 REQUIRED L1 P1\nnote right of B1: interception=APPLIED; context=ACTIVE; INDEPENDENT P1\nnote right of B1: ASPECTJ weaving=ASSUMED_APPLIED / conditional scenario\nnote right of B1: advice=ASPECTJ_WEAVING_ASSUMED_APPLIED; manager=tx\nnote over B1: 2 PHYSICAL_BEGIN P1 \nnote over B1: 3 LOGICAL_BEGIN L1 \nB1 -> B1: selftest.Calls#independent() / CONDITIONAL_CALL\ngroup #CCE5FF F2 REQUIRES_NEW L2 P2\nnote right of B1: interception=APPLIED; context=ACTIVE; INDEPENDENT P2\nnote right of B1: ASPECTJ weaving=ASSUMED_APPLIED / conditional scenario\nnote right of B1: advice=ASPECTJ_WEAVING_ASSUMED_APPLIED; manager=tx\nnote over B1: 5 SUSPEND S1 P1\nnote over B1: 6 PHYSICAL_BEGIN P2 \nnote over B1: 7 LOGICAL_BEGIN L2 \nnote over B1: 8 LOGICAL_END L2 \nnote over B1: 9 PHYSICAL_END_OUTCOME_UNKNOWN P2 \nnote over B1: 10 RESUME_CONDITIONAL S1 P1\nend\nB1 --> B1: scope exit / outcome UNKNOWN\nnote over B1: 12 LOGICAL_END L1 \nnote over B1: 13 PHYSICAL_END_OUTCOME_UNKNOWN P1 \nend\nB1 --> Entry: scope exit / outcome UNKNOWN\n@enduml\n",
+        "modelSha256": "37730004264b0840ef127ea29d7f8bf788728fae239854cc4da240d461def380",
+        "plantumlSha256": "c8b20dcfa770e01b7246452ef624c946296f9599471e1bbc910208ba19d4e3ff"
+      },
+      "aspectj_nested_conditional": {
+        "command": [
+          "python3",
+          "scripts/mana-transaction.py",
+          "--project-root",
+          "/Users/zel/projects/mana/tests/fixtures/transaction-self-invocation/aspectj",
+          "--context",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples/aspectj_nested_conditional-context.json",
+          "--entry",
+          "selftest.Calls#activeNested()",
+          "--output-dir",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples-final/aspectj_nested_conditional"
+        ],
+        "exitCode": 0,
+        "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"frames\": 2, \"uncertainties\": 0, \"candidateActivated\": false}\n",
+        "stderr": "",
+        "model": {
+          "schema": "mana.transaction-model/v1",
+          "entry": "selftest.Calls#activeNested()",
+          "status": "CONDITIONAL_STATIC_SCENARIO",
+          "proxyMode": "UNKNOWN",
+          "interceptionMode": "ASPECTJ",
+          "aspectjWeaving": {
+            "application": "ASSUMED_APPLIED",
+            "runtimeApplication": "UNKNOWN"
+          },
+          "assumptions": [
+            "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+            "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+            "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+            "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+            "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven.",
+            "AspectJ weaving application is an explicit conditional scenario assumption, not statically demonstrated or runtime-proven."
+          ],
+          "context": {
+            "schema": "mana.transaction-context/v1",
+            "initialState": "NO_TRANSACTION",
+            "entryThroughProxy": false,
+            "managerCapabilities": {
+              "tx": {
+                "suspend": true,
+                "savepoints": true
+              }
+            },
+            "aspectjWeaving": "ASSUMED_APPLIED"
+          },
+          "managers": [
+            {
+              "id": "tx",
+              "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 588,
+                "end": 681,
+                "line": 13,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "capabilities": {
+                "suspend": true,
+                "savepoints": true
+              },
+              "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+            }
+          ],
+          "frames": [
+            {
+              "id": "F1",
+              "callerMethod": null,
+              "calleeMethod": "selftest.Calls#activeNested()",
+              "callSite": null,
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "UNKNOWN",
+                "crossed": false,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 568,
+                    "line": 11,
+                    "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                  }
+                ],
+                "reason": "NOT_APPLICABLE_ASPECTJ"
+              },
+              "manager": "tx",
+              "configuration": {
+                "propagation": "REQUIRED",
+                "managerQualifier": "",
+                "attributes": {},
+                "evidence": {
+                  "file": "src/main/java/selftest/Calls.java",
+                  "start": 902,
+                  "end": 916,
+                  "line": 20,
+                  "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                },
+                "origin": "method",
+                "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+                "unmodeledAttributes": []
+              },
+              "logicalScope": "L1",
+              "previousState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "duringState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "afterState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 902,
+                "end": 962,
+                "line": 20,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "depth": 0,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 684,
+                "end": 1174,
+                "line": 15,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "APPLIED",
+                "reason": "ASPECTJ_WEAVING_ASSUMED_APPLIED"
+              },
+              "effectiveContext": {
+                "before": "INACTIVE",
+                "during": "ACTIVE",
+                "after": "INACTIVE"
+              }
+            },
+            {
+              "id": "F2",
+              "callerMethod": "selftest.Calls#activeNested()",
+              "calleeMethod": "selftest.Calls#nested()",
+              "callSite": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 946,
+                "end": 959,
+                "line": 20,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "UNKNOWN",
+                "crossed": false,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 568,
+                    "line": 11,
+                    "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                  }
+                ],
+                "reason": "NOT_APPLICABLE_ASPECTJ"
+              },
+              "manager": "tx",
+              "configuration": {
+                "propagation": "NESTED",
+                "managerQualifier": "",
+                "attributes": {
+                  "propagation": {
+                    "kind": "MEMBER_SELECT",
+                    "literal": null,
+                    "text": "org.springframework.transaction.annotation.Propagation.NESTED"
+                  }
+                },
+                "evidence": {
+                  "file": "src/main/java/selftest/Calls.java",
+                  "start": 1100,
+                  "end": 1148,
+                  "line": 23,
+                  "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                },
+                "origin": "method",
+                "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+                "unmodeledAttributes": []
+              },
+              "logicalScope": "L2",
+              "previousState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "duringState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "afterState": {
+                "kind": "TRANSACTION_PHYSICAL",
+                "physicalId": "P1",
+                "manager": "tx"
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 1100,
+                "end": 1172,
+                "line": 23,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "depth": 1,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 684,
+                "end": 1174,
+                "line": 15,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "APPLIED",
+                "reason": "ASPECTJ_WEAVING_ASSUMED_APPLIED"
+              },
+              "effectiveContext": {
+                "before": "ACTIVE",
+                "during": "ACTIVE",
+                "after": "ACTIVE"
+              },
+              "receiverBindingEvidence": null
+            }
+          ],
+          "logicalScopes": [
+            {
+              "id": "L1",
+              "kind": "TRANSACTION_LOGICAL_SCOPE",
+              "frame": "F1",
+              "certainty": "CONDITIONAL",
+              "physicalId": "P1"
+            },
+            {
+              "id": "L2",
+              "kind": "TRANSACTION_LOGICAL_SCOPE",
+              "frame": "F2",
+              "certainty": "CONDITIONAL",
+              "physicalId": "P1"
+            }
+          ],
+          "physicalTransactions": [
+            {
+              "id": "P1",
+              "kind": "TRANSACTION_PHYSICAL",
+              "manager": "tx",
+              "beginFrame": "F1",
+              "endFrame": "F1",
+              "identity": "SYMBOLIC_SCENARIO",
+              "runtimeIdentity": "UNKNOWN",
+              "certainty": "CONDITIONAL",
+              "outcome": "UNKNOWN"
+            }
+          ],
+          "suspensions": [],
+          "savepoints": [
+            {
+              "id": "SP1",
+              "kind": "TRANSACTION_SAVEPOINT",
+              "physicalId": "P1",
+              "frame": "F2",
+              "certainty": "CONDITIONAL"
+            }
+          ],
+          "events": [
+            {
+              "sequence": 1,
+              "kind": "FRAME_ENTER",
+              "frame": "F1"
+            },
+            {
+              "sequence": 2,
+              "kind": "PHYSICAL_BEGIN",
+              "frame": "F1",
+              "entity": "P1"
+            },
+            {
+              "sequence": 3,
+              "kind": "LOGICAL_BEGIN",
+              "frame": "F1",
+              "entity": "L1"
+            },
+            {
+              "sequence": 4,
+              "kind": "FRAME_ENTER",
+              "frame": "F2"
+            },
+            {
+              "sequence": 5,
+              "kind": "LOGICAL_BEGIN",
+              "frame": "F2",
+              "entity": "L2"
+            },
+            {
+              "sequence": 6,
+              "kind": "SAVEPOINT_CREATE",
+              "frame": "F2",
+              "entity": "SP1",
+              "physicalId": "P1"
+            },
+            {
+              "sequence": 7,
+              "kind": "SAVEPOINT_RELEASE_CONDITIONAL",
+              "frame": "F2",
+              "entity": "SP1",
+              "physicalId": "P1"
+            },
+            {
+              "sequence": 8,
+              "kind": "LOGICAL_END",
+              "frame": "F2",
+              "entity": "L2"
+            },
+            {
+              "sequence": 9,
+              "kind": "FRAME_EXIT",
+              "frame": "F2"
+            },
+            {
+              "sequence": 10,
+              "kind": "LOGICAL_END",
+              "frame": "F1",
+              "entity": "L1"
+            },
+            {
+              "sequence": 11,
+              "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+              "frame": "F1",
+              "entity": "P1"
+            },
+            {
+              "sequence": 12,
+              "kind": "FRAME_EXIT",
+              "frame": "F1"
+            }
+          ],
+          "uncertainties": [],
+          "evidence": [
+            {
+              "path": "pom.xml",
+              "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347"
+            },
+            {
+              "path": "src/main/java/selftest/Calls.java",
+              "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+            }
+          ],
+          "contextEvidence": {
+            "sha256": "3f89b87836ec9da93fad982c881319d73ad598583d01e5a02795b34e02f2f6d8",
+            "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+            "path": "EXTERNAL_CONTEXT"
+          }
+        },
+        "plantuml": "@startuml\nhide footbox\ntitle Conditional static transaction scenario - runtime identity UNKNOWN\nactor \"Scenario entry\" as Entry\nparticipant \"selftest.Calls\" as B1\nlegend left\nAll P identifiers are SYMBOLIC_SCENARIO; actual runtime identity UNKNOWN.\nL = TRANSACTION_LOGICAL_SCOPE; P = TRANSACTION_PHYSICAL\nS = TRANSACTION_SUSPENDED; SP = TRANSACTION_SAVEPOINT\nGreen: shared physical context / logical scope\nBlue: independent physical scope; outer P retained while SUSPENDED\nYellow: nested SAVEPOINT on the SAME P\nGray: NO_TRANSACTION; red: UNKNOWN / unsupported path\nGroups show method nesting. BEGIN/END notes define physical lifetimes.\nSuspended lifetime overlap is explicit in SUSPEND/RESUME notes.\nInterception: APPLIED / BYPASSED / UNKNOWN; context: ACTIVE / INACTIVE / UNKNOWN.\nINHERITED physical context does not require interception of this method.\nAspectJ ASSUMED_APPLIED is a conditional premise, never runtime weaving proof.\nendlegend\nEntry -> B1: selftest.Calls#activeNested() / CONDITIONAL_CALL\ngroup #CCE5FF F1 REQUIRED L1 P1\nnote right of B1: interception=APPLIED; context=ACTIVE; INDEPENDENT P1\nnote right of B1: ASPECTJ weaving=ASSUMED_APPLIED / conditional scenario\nnote right of B1: advice=ASPECTJ_WEAVING_ASSUMED_APPLIED; manager=tx\nnote over B1: 2 PHYSICAL_BEGIN P1 \nnote over B1: 3 LOGICAL_BEGIN L1 \nB1 -> B1: selftest.Calls#nested() / CONDITIONAL_CALL\ngroup #FFF0AA F2 NESTED L2 P1\nnote right of B1: interception=APPLIED; context=ACTIVE; INHERITED P1\nnote right of B1: ASPECTJ weaving=ASSUMED_APPLIED / conditional scenario\nnote right of B1: advice=ASPECTJ_WEAVING_ASSUMED_APPLIED; manager=tx\nnote over B1: 5 LOGICAL_BEGIN L2 \nnote over B1: 6 SAVEPOINT_CREATE SP1 P1\nnote over B1: 7 SAVEPOINT_RELEASE_CONDITIONAL SP1 P1\nnote over B1: 8 LOGICAL_END L2 \nend\nB1 --> B1: scope exit / outcome UNKNOWN\nnote over B1: 10 LOGICAL_END L1 \nnote over B1: 11 PHYSICAL_END_OUTCOME_UNKNOWN P1 \nend\nB1 --> Entry: scope exit / outcome UNKNOWN\n@enduml\n",
+        "modelSha256": "170bff57a1d37366002300c362474c27bcd7c035e3211137d438492eca300d5c",
+        "plantumlSha256": "4006a1c2f0b27799d350a976d478a8cd2fb3557814cd93185a9722a9b6784b7d"
+      },
+      "aspectj_weaving_unproven": {
+        "command": [
+          "python3",
+          "scripts/mana-transaction.py",
+          "--project-root",
+          "/Users/zel/projects/mana/tests/fixtures/transaction-self-invocation/aspectj",
+          "--context",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples/aspectj_weaving_unproven-context.json",
+          "--entry",
+          "selftest.Calls#outsideRequired()",
+          "--output-dir",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples-final/aspectj_weaving_unproven"
+        ],
+        "exitCode": 0,
+        "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"frames\": 2, \"uncertainties\": 1, \"candidateActivated\": false}\n",
+        "stderr": "",
+        "model": {
+          "schema": "mana.transaction-model/v1",
+          "entry": "selftest.Calls#outsideRequired()",
+          "status": "CONDITIONAL_STATIC_SCENARIO",
+          "proxyMode": "UNKNOWN",
+          "interceptionMode": "ASPECTJ",
+          "aspectjWeaving": {
+            "application": "UNKNOWN",
+            "runtimeApplication": "UNKNOWN"
+          },
+          "assumptions": [
+            "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+            "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+            "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+            "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+            "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven."
+          ],
+          "context": {
+            "schema": "mana.transaction-context/v1",
+            "initialState": "NO_TRANSACTION",
+            "entryThroughProxy": false,
+            "managerCapabilities": {
+              "tx": {
+                "suspend": true,
+                "savepoints": true
+              }
+            }
+          },
+          "managers": [
+            {
+              "id": "tx",
+              "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 588,
+                "end": 681,
+                "line": 13,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "capabilities": {
+                "suspend": true,
+                "savepoints": true
+              },
+              "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+            }
+          ],
+          "frames": [
+            {
+              "id": "F1",
+              "callerMethod": null,
+              "calleeMethod": "selftest.Calls#outsideRequired()",
+              "callSite": null,
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "UNKNOWN",
+                "crossed": false,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 568,
+                    "line": 11,
+                    "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                  }
+                ],
+                "reason": "NOT_APPLICABLE_ASPECTJ"
+              },
+              "manager": null,
+              "configuration": null,
+              "logicalScope": null,
+              "previousState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "duringState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "afterState": {
+                "kind": "UNKNOWN",
+                "physicalId": null,
+                "manager": null
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 711,
+                "end": 761,
+                "line": 17,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "depth": 0,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 684,
+                "end": 1174,
+                "line": 15,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "BYPASSED",
+                "reason": "NO_TRANSACTIONAL_ANNOTATION"
+              },
+              "continuation": "UNKNOWN",
+              "effectiveContext": {
+                "before": "INACTIVE",
+                "during": "INACTIVE",
+                "after": "UNKNOWN"
+              }
+            },
+            {
+              "id": "F2",
+              "callerMethod": "selftest.Calls#outsideRequired()",
+              "calleeMethod": "selftest.Calls#required()",
+              "callSite": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 743,
+                "end": 758,
+                "line": 17,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "UNKNOWN",
+                "crossed": false,
+                "configurationEvidence": [
+                  {
+                    "file": "src/main/java/selftest/Calls.java",
+                    "start": 474,
+                    "end": 568,
+                    "line": 11,
+                    "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                  }
+                ],
+                "reason": "NOT_APPLICABLE_ASPECTJ"
+              },
+              "manager": null,
+              "configuration": {
+                "propagation": "REQUIRED",
+                "managerQualifier": "",
+                "attributes": {},
+                "evidence": {
+                  "file": "src/main/java/selftest/Calls.java",
+                  "start": 967,
+                  "end": 981,
+                  "line": 21,
+                  "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+                },
+                "origin": "method",
+                "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+                "unmodeledAttributes": []
+              },
+              "logicalScope": null,
+              "previousState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "duringState": {
+                "kind": "UNKNOWN",
+                "physicalId": null,
+                "manager": null
+              },
+              "afterState": {
+                "kind": "UNKNOWN",
+                "physicalId": null,
+                "manager": null
+              },
+              "certainty": "UNKNOWN",
+              "bodyTraversal": "NOT_ASSERTED",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 967,
+                "end": 1007,
+                "line": 21,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "depth": 1,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 684,
+                "end": 1174,
+                "line": 15,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "UNKNOWN",
+                "reason": "ASPECTJ_WEAVING_NOT_ESTABLISHED"
+              },
+              "reason": "ASPECTJ_WEAVING_NOT_ESTABLISHED",
+              "effectiveContext": {
+                "before": "INACTIVE",
+                "during": "UNKNOWN",
+                "after": "UNKNOWN"
+              },
+              "receiverBindingEvidence": null
+            }
+          ],
+          "logicalScopes": [],
+          "physicalTransactions": [],
+          "suspensions": [],
+          "savepoints": [],
+          "events": [
+            {
+              "sequence": 1,
+              "kind": "FRAME_ENTER",
+              "frame": "F1"
+            },
+            {
+              "sequence": 2,
+              "kind": "FRAME_ENTER",
+              "frame": "F2"
+            },
+            {
+              "sequence": 3,
+              "kind": "FRAME_EXIT",
+              "frame": "F2"
+            },
+            {
+              "sequence": 4,
+              "kind": "FRAME_EXIT",
+              "frame": "F1"
+            }
+          ],
+          "uncertainties": [
+            {
+              "frame": "F2",
+              "reason": "ASPECTJ_WEAVING_NOT_ESTABLISHED",
+              "classification": "UNKNOWN",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 967,
+                "end": 1007,
+                "line": 21,
+                "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+              }
+            }
+          ],
+          "evidence": [
+            {
+              "path": "pom.xml",
+              "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347"
+            },
+            {
+              "path": "src/main/java/selftest/Calls.java",
+              "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc"
+            }
+          ],
+          "contextEvidence": {
+            "sha256": "7f76cc343b95973b23774e4e6f33805702b1fa0ecbe5c6be27bcb9495dc8e1d0",
+            "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+            "path": "EXTERNAL_CONTEXT"
+          }
+        },
+        "plantuml": "@startuml\nhide footbox\ntitle Conditional static transaction scenario - runtime identity UNKNOWN\nactor \"Scenario entry\" as Entry\nparticipant \"selftest.Calls\" as B1\nlegend left\nAll P identifiers are SYMBOLIC_SCENARIO; actual runtime identity UNKNOWN.\nL = TRANSACTION_LOGICAL_SCOPE; P = TRANSACTION_PHYSICAL\nS = TRANSACTION_SUSPENDED; SP = TRANSACTION_SAVEPOINT\nGreen: shared physical context / logical scope\nBlue: independent physical scope; outer P retained while SUSPENDED\nYellow: nested SAVEPOINT on the SAME P\nGray: NO_TRANSACTION; red: UNKNOWN / unsupported path\nGroups show method nesting. BEGIN/END notes define physical lifetimes.\nSuspended lifetime overlap is explicit in SUSPEND/RESUME notes.\nInterception: APPLIED / BYPASSED / UNKNOWN; context: ACTIVE / INACTIVE / UNKNOWN.\nINHERITED physical context does not require interception of this method.\nAspectJ ASSUMED_APPLIED is a conditional premise, never runtime weaving proof.\nendlegend\nEntry -> B1: selftest.Calls#outsideRequired() / CONDITIONAL_CALL\ngroup #EEEEEE F1 UNANNOTATED METHOD_EXECUTION NO_TRANSACTION\nnote right of B1: interception=BYPASSED; context=INACTIVE; NO_TRANSACTION\nnote right of B1: ASPECTJ weaving=UNKNOWN / conditional scenario\nnote right of B1: advice=NO_TRANSACTIONAL_ANNOTATION; manager=UNKNOWN_OR_NOT_USED\nB1 -> B1: selftest.Calls#required() / CANDIDATE_ATTEMPT\ngroup #FFCCCC F2 REQUIRED METHOD_EXECUTION UNKNOWN\nnote right of B1: interception=UNKNOWN; context=UNKNOWN; UNKNOWN\nnote right of B1: ASPECTJ weaving=UNKNOWN / conditional scenario\nnote right of B1: advice=ASPECTJ_WEAVING_NOT_ESTABLISHED; manager=UNKNOWN_OR_NOT_USED\nnote right of B1 #FFCCCC: UNKNOWN ASPECTJ_WEAVING_NOT_ESTABLISHED; body NOT ASSERTED\nend\nB1 --> B1: attempt/path end UNKNOWN\nend\nB1 --> Entry: attempt/path end UNKNOWN\n@enduml\n",
+        "modelSha256": "1425b08e898f62727901401d798d1e0cfd02aa5dbc7eccdf6f753fcb8be74c23",
+        "plantumlSha256": "ca6fd0c8b77ca8904bf75769d9a50b275985d8f6ca790e017bd97edb7a9c3976"
+      },
+      "unknown_mode": {
+        "command": [
+          "python3",
+          "scripts/mana-transaction.py",
+          "--project-root",
+          "/Users/zel/projects/mana/tests/fixtures/transaction-self-invocation/unknown",
+          "--context",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples/unknown_mode-context.json",
+          "--entry",
+          "selftest.Calls#outsideRequired()",
+          "--output-dir",
+          "/private/tmp/mana-t01-f01-217k6s2a/examples-final/unknown_mode"
+        ],
+        "exitCode": 0,
+        "stdout": "{\"status\": \"CONDITIONAL_STATIC_SCENARIO\", \"frames\": 2, \"uncertainties\": 1, \"candidateActivated\": false}\n",
+        "stderr": "",
+        "model": {
+          "schema": "mana.transaction-model/v1",
+          "entry": "selftest.Calls#outsideRequired()",
+          "status": "CONDITIONAL_STATIC_SCENARIO",
+          "proxyMode": "UNKNOWN",
+          "interceptionMode": "UNKNOWN",
+          "aspectjWeaving": {
+            "application": "UNKNOWN",
+            "runtimeApplication": "UNKNOWN"
+          },
+          "assumptions": [
+            "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+            "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+            "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+            "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+            "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven."
+          ],
+          "context": {
+            "schema": "mana.transaction-context/v1",
+            "initialState": "NO_TRANSACTION",
+            "entryThroughProxy": false,
+            "managerCapabilities": {
+              "tx": {
+                "suspend": true,
+                "savepoints": true
+              }
+            },
+            "aspectjWeaving": "ASSUMED_APPLIED"
+          },
+          "managers": [
+            {
+              "id": "tx",
+              "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 494,
+                "end": 587,
+                "line": 13,
+                "sha256": "b1b2fd4c9149b39d37eef00b93697c6e6eababa539d479501fc75bbba314f3db"
+              },
+              "capabilities": {
+                "suspend": true,
+                "savepoints": true
+              },
+              "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+            }
+          ],
+          "frames": [
+            {
+              "id": "F1",
+              "callerMethod": null,
+              "calleeMethod": "selftest.Calls#outsideRequired()",
+              "callSite": null,
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "UNKNOWN",
+                "crossed": false,
+                "configurationEvidence": [],
+                "reason": "NO_TRANSACTIONAL_ANNOTATION"
+              },
+              "manager": null,
+              "configuration": null,
+              "logicalScope": null,
+              "previousState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "duringState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "afterState": {
+                "kind": "UNKNOWN",
+                "physicalId": null,
+                "manager": null
+              },
+              "certainty": "CONDITIONAL",
+              "bodyTraversal": "STRAIGHT_LINE",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 617,
+                "end": 667,
+                "line": 17,
+                "sha256": "b1b2fd4c9149b39d37eef00b93697c6e6eababa539d479501fc75bbba314f3db"
+              },
+              "depth": 0,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 590,
+                "end": 1080,
+                "line": 15,
+                "sha256": "b1b2fd4c9149b39d37eef00b93697c6e6eababa539d479501fc75bbba314f3db"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "BYPASSED",
+                "reason": "NO_TRANSACTIONAL_ANNOTATION"
+              },
+              "continuation": "UNKNOWN",
+              "effectiveContext": {
+                "before": "INACTIVE",
+                "during": "INACTIVE",
+                "after": "UNKNOWN"
+              }
+            },
+            {
+              "id": "F2",
+              "callerMethod": "selftest.Calls#outsideRequired()",
+              "calleeMethod": "selftest.Calls#required()",
+              "callSite": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 649,
+                "end": 664,
+                "line": 17,
+                "sha256": "b1b2fd4c9149b39d37eef00b93697c6e6eababa539d479501fc75bbba314f3db"
+              },
+              "bean": "selftest.Calls",
+              "proxy": {
+                "mode": "UNKNOWN",
+                "crossed": false,
+                "configurationEvidence": [],
+                "reason": "PROXY_OR_ASPECTJ_MODE_NOT_ESTABLISHED"
+              },
+              "manager": null,
+              "configuration": {
+                "propagation": "REQUIRED",
+                "managerQualifier": "",
+                "attributes": {},
+                "evidence": {
+                  "file": "src/main/java/selftest/Calls.java",
+                  "start": 873,
+                  "end": 887,
+                  "line": 21,
+                  "sha256": "b1b2fd4c9149b39d37eef00b93697c6e6eababa539d479501fc75bbba314f3db"
+                },
+                "origin": "method",
+                "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+                "unmodeledAttributes": []
+              },
+              "logicalScope": null,
+              "previousState": {
+                "kind": "NO_TRANSACTION",
+                "physicalId": null,
+                "manager": null
+              },
+              "duringState": {
+                "kind": "UNKNOWN",
+                "physicalId": null,
+                "manager": null
+              },
+              "afterState": {
+                "kind": "UNKNOWN",
+                "physicalId": null,
+                "manager": null
+              },
+              "certainty": "UNKNOWN",
+              "bodyTraversal": "NOT_ASSERTED",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 873,
+                "end": 913,
+                "line": 21,
+                "sha256": "b1b2fd4c9149b39d37eef00b93697c6e6eababa539d479501fc75bbba314f3db"
+              },
+              "depth": 1,
+              "beanEvidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 590,
+                "end": 1080,
+                "line": 15,
+                "sha256": "b1b2fd4c9149b39d37eef00b93697c6e6eababa539d479501fc75bbba314f3db"
+              },
+              "beanName": "calls",
+              "interception": {
+                "status": "UNKNOWN",
+                "reason": "PROXY_OR_ASPECTJ_MODE_NOT_ESTABLISHED"
+              },
+              "reason": "PROXY_OR_ASPECTJ_MODE_NOT_ESTABLISHED",
+              "effectiveContext": {
+                "before": "INACTIVE",
+                "during": "UNKNOWN",
+                "after": "UNKNOWN"
+              },
+              "receiverBindingEvidence": null
+            }
+          ],
+          "logicalScopes": [],
+          "physicalTransactions": [],
+          "suspensions": [],
+          "savepoints": [],
+          "events": [
+            {
+              "sequence": 1,
+              "kind": "FRAME_ENTER",
+              "frame": "F1"
+            },
+            {
+              "sequence": 2,
+              "kind": "FRAME_ENTER",
+              "frame": "F2"
+            },
+            {
+              "sequence": 3,
+              "kind": "FRAME_EXIT",
+              "frame": "F2"
+            },
+            {
+              "sequence": 4,
+              "kind": "FRAME_EXIT",
+              "frame": "F1"
+            }
+          ],
+          "uncertainties": [
+            {
+              "frame": "F2",
+              "reason": "PROXY_OR_ASPECTJ_MODE_NOT_ESTABLISHED",
+              "classification": "UNKNOWN",
+              "evidence": {
+                "file": "src/main/java/selftest/Calls.java",
+                "start": 873,
+                "end": 913,
+                "line": 21,
+                "sha256": "b1b2fd4c9149b39d37eef00b93697c6e6eababa539d479501fc75bbba314f3db"
+              }
+            }
+          ],
+          "evidence": [
+            {
+              "path": "pom.xml",
+              "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347"
+            },
+            {
+              "path": "src/main/java/selftest/Calls.java",
+              "sha256": "b1b2fd4c9149b39d37eef00b93697c6e6eababa539d479501fc75bbba314f3db"
+            }
+          ],
+          "contextEvidence": {
+            "sha256": "3f89b87836ec9da93fad982c881319d73ad598583d01e5a02795b34e02f2f6d8",
+            "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+            "path": "EXTERNAL_CONTEXT"
+          }
+        },
+        "plantuml": "@startuml\nhide footbox\ntitle Conditional static transaction scenario - runtime identity UNKNOWN\nactor \"Scenario entry\" as Entry\nparticipant \"selftest.Calls\" as B1\nlegend left\nAll P identifiers are SYMBOLIC_SCENARIO; actual runtime identity UNKNOWN.\nL = TRANSACTION_LOGICAL_SCOPE; P = TRANSACTION_PHYSICAL\nS = TRANSACTION_SUSPENDED; SP = TRANSACTION_SAVEPOINT\nGreen: shared physical context / logical scope\nBlue: independent physical scope; outer P retained while SUSPENDED\nYellow: nested SAVEPOINT on the SAME P\nGray: NO_TRANSACTION; red: UNKNOWN / unsupported path\nGroups show method nesting. BEGIN/END notes define physical lifetimes.\nSuspended lifetime overlap is explicit in SUSPEND/RESUME notes.\nInterception: APPLIED / BYPASSED / UNKNOWN; context: ACTIVE / INACTIVE / UNKNOWN.\nINHERITED physical context does not require interception of this method.\nAspectJ ASSUMED_APPLIED is a conditional premise, never runtime weaving proof.\nendlegend\nEntry -> B1: selftest.Calls#outsideRequired() / CONDITIONAL_CALL\ngroup #EEEEEE F1 UNANNOTATED METHOD_EXECUTION NO_TRANSACTION\nnote right of B1: interception=BYPASSED; context=INACTIVE; NO_TRANSACTION\nnote right of B1: advice=NO_TRANSACTIONAL_ANNOTATION; manager=UNKNOWN_OR_NOT_USED\nB1 -> B1: selftest.Calls#required() / CANDIDATE_ATTEMPT\ngroup #FFCCCC F2 REQUIRED METHOD_EXECUTION UNKNOWN\nnote right of B1: interception=UNKNOWN; context=UNKNOWN; UNKNOWN\nnote right of B1: advice=PROXY_OR_ASPECTJ_MODE_NOT_ESTABLISHED; manager=UNKNOWN_OR_NOT_USED\nnote right of B1 #FFCCCC: UNKNOWN PROXY_OR_ASPECTJ_MODE_NOT_ESTABLISHED; body NOT ASSERTED\nend\nB1 --> B1: attempt/path end UNKNOWN\nend\nB1 --> Entry: attempt/path end UNKNOWN\n@enduml\n",
+        "modelSha256": "2aa83ae5ce8912afead77037a7118de0ec7e6b2c6d11aba3446c4a3b416d5ff1",
+        "plantumlSha256": "f84eb93a5fa23316477c57511139c7de16b6f980db08570b6bfaeb6b6c410c64"
+      }
+    },
+    "historicalCompatibility": {
+      "capability_unknown": "PASS: identity, temporal events and before/during/after state unchanged",
+      "inherited": "PASS: identity, temporal events and before/during/after state unchanged",
+      "nested": "PASS: identity, temporal events and before/during/after state unchanged",
+      "outside": "PASS: identity, temporal events and before/during/after state unchanged",
+      "required": "PASS: identity, temporal events and before/during/after state unchanged",
+      "requires_new": "PASS: identity, temporal events and before/during/after state unchanged",
+      "self_invocation": "PASS: identity, temporal events and before/during/after state unchanged",
+      "unsupported_propagation": "PASS: identity, temporal events and before/during/after state unchanged"
+    },
+    "targetUnchanged": true,
+    "renderCommands": [
+      {
+        "flag": "-checkonly",
+        "inputCount": 16,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "flag": "-tsvg",
+        "inputCount": 16,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "flag": "-tpng",
+        "inputCount": 8,
+        "exitCode": 0,
+        "stdout": "CodeCache: size=131072Kb used=6690Kb max_used=6690Kb free=124381Kb\n bounds [0x0000000108474000, 0x0000000108b04000, 0x0000000110474000]\n total_blobs=1950 nmethods=1441 adapters=422\n compilation: disabled (not enough contiguous free space left)\n",
+        "stderr": "OpenJDK 64-Bit Server VM warning: CodeCache is full. Compiler has been disabled.\nOpenJDK 64-Bit Server VM warning: Try increasing the code cache size using -XX:ReservedCodeCacheSize=\n"
+      }
+    ],
+    "renderedDirectory": "/private/tmp/mana-t01-f01-217k6s2a/rendered-final",
+    "plantumlJarSha256": "b88519d2f37c089a470ee7044ec011a72d130e70a61f7fcaa424179f1c1f4641",
+    "visualInspection": "Eight final F01 PNGs; original eight retain validated identity/state/events and render as SVG"
+  },
+  "diff": {
+    "command": [
+      "git",
+      "apply",
+      "--reverse",
+      "--check",
+      "docs/reports/MANA-TRANSACTION-01-T01-F01.patch"
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": "",
+    "sha256": "1b05a89487a0b50b74aad58d817a77f819a80931be8d502e9fbfb8a7cb84d59b"
+  },
+  "implementationFiles": {
+    "docs/standards/transaction-model-v1.md": {
+      "sha256": "86934e1372e7c8866f3e3f90d48fdd9ee43607ae903381fa36fcc0e9392e2134",
+      "beforeSha256": "3563e5df01f7984a21affcf6c1d8a4b98f8349d1cdf88dd81c10ea6f9c1430e3"
+    },
+    "scripts/mana-transaction.py": {
+      "sha256": "49345a34714b9c7d25b7f4cf76415f0de8b380ae272646079999860007cad557",
+      "beforeSha256": "e9d6332d8ce408b494c3fc60be2a20d1f750caf2dadcc3c7eb8e0b248d46a8d1"
+    },
+    "scripts/skill_factory/transactions/model.py": {
+      "sha256": "45bface47f53ebea6dbd12332dd40a0be9d2e0674e39f479bf65d0a10ad721fe",
+      "beforeSha256": "1e608d0a2949661b8e61067ac66c03ef53f942d95c0cb3a40907db7a7c158bcb"
+    },
+    "scripts/skill_factory/transactions/plantuml.py": {
+      "sha256": "c45f842649516d2c511799afa801b45f8dc33b638a452a035259e85a13be80ea",
+      "beforeSha256": "44a623543de5d245cbe75205c335856ca37b151eb3223d51a4c53397cb6c4eca"
+    },
+    "tests/transaction-self-invocation.py": {
+      "sha256": "8d32af02674f427b61eb819a96e3588707d78ac17f95d3ecbee3141d8c07b4c0",
+      "beforeSha256": null
+    },
+    "tests/fixtures/transaction-self-invocation/README.md": {
+      "sha256": "7dea1c3b3476107a080d089029a2bffa98fb048d795abb9d154820adcb293c6d",
+      "beforeSha256": null
+    },
+    "tests/fixtures/transaction-self-invocation/aspectj/pom.xml": {
+      "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347",
+      "beforeSha256": null
+    },
+    "tests/fixtures/transaction-self-invocation/aspectj/src/main/java/selftest/Calls.java": {
+      "sha256": "50b5ef06349f85bc8d804015c84a51199d94597d29952a52f0785b87790188cc",
+      "beforeSha256": null
+    },
+    "tests/fixtures/transaction-self-invocation/oracles.json": {
+      "sha256": "9c1be80e9971484626258a6d6872a712252f6b2d94e594d30cc3812392b1a675",
+      "beforeSha256": null
+    },
+    "tests/fixtures/transaction-self-invocation/proxy/pom.xml": {
+      "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347",
+      "beforeSha256": null
+    },
+    "tests/fixtures/transaction-self-invocation/proxy/src/main/java/selftest/Calls.java": {
+      "sha256": "4b5b5f2b8c362711009e7eb859b1384808cb0ed0ee3ff9783c7f4ba77d570970",
+      "beforeSha256": null
+    },
+    "tests/fixtures/transaction-self-invocation/unknown/pom.xml": {
+      "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347",
+      "beforeSha256": null
+    },
+    "tests/fixtures/transaction-self-invocation/unknown/src/main/java/selftest/Calls.java": {
+      "sha256": "b1b2fd4c9149b39d37eef00b93697c6e6eababa539d479501fc75bbba314f3db",
+      "beforeSha256": null
+    }
+  },
+  "preservation": {
+    "initialFileCount": 1192,
+    "changedPreexistingPaths": [
+      "docs/standards/transaction-model-v1.md",
+      "scripts/mana-transaction.py",
+      "scripts/skill_factory/transactions/model.py",
+      "scripts/skill_factory/transactions/plantuml.py"
+    ],
+    "allOtherOriginalBytesAndModesUnchanged": true,
+    "historicalReportsExamplesAndOriginalTestsUnchanged": true,
+    "initialSnapshotSha256": "38349f57f777d6caeffadf5e235d5b693397b09176ccc0cb4ea586d4dc95b812",
+    "newFiles": [
+      "docs/reports/MANA-TRANSACTION-01-T01-F01-results.json",
+      "docs/reports/MANA-TRANSACTION-01-T01-F01.md",
+      "docs/reports/MANA-TRANSACTION-01-T01-F01.patch",
+      "tests/fixtures/transaction-self-invocation/README.md",
+      "tests/fixtures/transaction-self-invocation/aspectj/pom.xml",
+      "tests/fixtures/transaction-self-invocation/aspectj/src/main/java/selftest/Calls.java",
+      "tests/fixtures/transaction-self-invocation/oracles.json",
+      "tests/fixtures/transaction-self-invocation/proxy/pom.xml",
+      "tests/fixtures/transaction-self-invocation/proxy/src/main/java/selftest/Calls.java",
+      "tests/fixtures/transaction-self-invocation/unknown/pom.xml",
+      "tests/fixtures/transaction-self-invocation/unknown/src/main/java/selftest/Calls.java",
+      "tests/transaction-self-invocation.py"
+    ]
+  },
+  "candidate": {
+    "trustOrigin": "generated",
+    "trusted": false,
+    "registered": false,
+    "executable": false,
+    "approval": {
+      "required": true,
+      "status": "pending",
+      "ownerRole": "Architect / Team Leader"
+    }
+  },
+  "git": {
+    "branch": "feature/mana-transaction-01",
+    "head": "378243883adb101a7a41feef71e2a66b76e7f508",
+    "develop": "378243883adb101a7a41feef71e2a66b76e7f508",
+    "indexEmpty": true,
+    "commitCreated": null,
+    "merged": false,
+    "pushed": false,
+    "finalStatus": " M .github/workflows/validate-mana.yml\n M docs/roadmap/TRANSACTION-01.md\n M docs/workflow/specialist-skill-factory.md\n M scripts/skill_factory/java_spring.py\n M scripts/validate-repo.sh\n M skills/specialist-skill-factory/SKILL.md\n M templates/skill-factory/java-spring-transaction-analysis.md\n M tests/mana-skill-factory.py\n M tests/run-zero-token-acceptance.sh\n?? docs/examples/transaction-01-t01/\n?? docs/reports/MANA-TRANSACTION-01-T01-F01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01-F01.md\n?? docs/reports/MANA-TRANSACTION-01-T01-F01.patch\n?? docs/reports/MANA-TRANSACTION-01-T01-R1-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01-R1.md\n?? docs/reports/MANA-TRANSACTION-01-T01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01.md\n?? docs/roadmap/TRANSACTION-01-T02.md\n?? docs/standards/transaction-model-v1.md\n?? scripts/mana-transaction.py\n?? scripts/skill_factory/transactions/\n?? tests/fixtures/transaction-boundaries/\n?? tests/fixtures/transaction-self-invocation/\n?? tests/transaction-boundaries.py\n?? tests/transaction-self-invocation.py\n"
+  },
+  "reportSha256": "a5ac960099a0a198d448f40f927603577ad171ec7872dd8d8b923d60fc1b8181",
+  "limits": [
+    "ASSUMED_APPLIED is an explicit conditional premise, not statically demonstrated or runtime-proven weaving",
+    "Existing public concrete-method T01 subset only",
+    "No full Spring/AspectJ runtime, CI, cross-platform, or broad QA campaign run",
+    "Original R1 remains historical NEEDS_FIX pending independent review of F01"
+  ]
+}

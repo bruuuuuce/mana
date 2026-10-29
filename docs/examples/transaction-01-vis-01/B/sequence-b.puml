@@ -1,0 +1,45 @@
+@startuml
+hide footbox
+title Conditional static transaction scenario - runtime identity UNKNOWN
+actor "Scenario entry" as Entry
+participant "fixture.Paths" as B1
+legend left
+All P identifiers are SYMBOLIC_SCENARIO; actual runtime identity UNKNOWN.
+L = TRANSACTION_LOGICAL_SCOPE; P = TRANSACTION_PHYSICAL
+S = TRANSACTION_SUSPENDED; SP = TRANSACTION_SAVEPOINT
+Green: shared physical context / logical scope
+Blue: independent physical scope; outer P retained while SUSPENDED
+Yellow: nested SAVEPOINT on the SAME P
+Gray: NO_TRANSACTION; red: UNKNOWN / unsupported path
+Groups show method nesting. BEGIN/END notes define physical lifetimes.
+Suspended lifetime overlap is explicit in SUSPEND/RESUME notes.
+Interception: APPLIED / BYPASSED / UNKNOWN; context: ACTIVE / INACTIVE / UNKNOWN.
+INHERITED physical context does not require interception of this method.
+AspectJ ASSUMED_APPLIED is a conditional premise, never runtime weaving proof.
+endlegend
+note over Entry #FFF0AA
+Scenario synthetic_O_B01 / participant b
+Local causal order only; panels are not a global concurrent schedule.
+SUSPEND retains lifetime; neither END nor suspension proves lock release.
+KNOWN / VERIFIED = validated static structure only; execution CONDITIONAL.
+UNKNOWN is not absence. Runtime NOT_RUN; locks and waits are not observed.
+P IDs are participant-local symbolic identities; no confirmed deadlock claim.
+Coverage: INCOMPLETE
+Assessment: NO_CYCLE_IN_MODELED_SCENARIO
+end note
+Entry -> B1: fixture.Paths#xy() / CONDITIONAL_CALL
+group #CCE5FF F1 REQUIRED L1 P1
+note right of B1: interception=APPLIED; context=ACTIVE; INDEPENDENT P1
+note right of B1: advice=SCENARIO_PROXY_CALL; manager=tx
+note right of B1: bean=paths proxy=CLASS crossed=True\nsource=src/main/java/fixture/Waits.java:22 / VERIFIED static reference
+note over B1: 2 PHYSICAL_BEGIN P1 
+note over B1: 3 LOGICAL_BEGIN L1 
+note right of B1 #D6F5D6: JDBC O1 jdbc.update WRITE X\nCONDITIONAL timeline=4 before T01=4 context=P1 manager=tx\nsrc/main/java/fixture/Waits.java:22 / lockAcquired=UNKNOWN
+note right of B1 #CCE5FF: RESOURCE_LEAF_CALL T01=4 / witness in evidence.json\nContinuation IF normal return / context preserved under catalog premises\nRuntime execution UNKNOWN
+note right of B1 #D6F5D6: JDBC O2 jdbc.update WRITE Y\nCONDITIONAL timeline=6 before T01=5 context=P1 manager=tx\nsrc/main/java/fixture/Waits.java:22 / lockAcquired=UNKNOWN
+note right of B1 #CCE5FF: RESOURCE_LEAF_CALL T01=5 / witness in evidence.json\nContinuation IF normal return / context preserved under catalog premises\nRuntime execution UNKNOWN
+note over B1: 6 LOGICAL_END L1 
+note over B1: 7 PHYSICAL_END_OUTCOME_UNKNOWN P1 
+end
+B1 --> Entry: scope exit / outcome UNKNOWN
+@enduml

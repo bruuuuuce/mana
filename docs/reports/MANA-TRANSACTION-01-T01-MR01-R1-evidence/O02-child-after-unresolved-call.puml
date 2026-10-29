@@ -1,0 +1,40 @@
+@startuml
+hide footbox
+title Conditional static transaction scenario - runtime identity UNKNOWN
+actor "Scenario entry" as Entry
+participant "Other" as B1
+participant "Review" as B2
+legend left
+All P identifiers are SYMBOLIC_SCENARIO; actual runtime identity UNKNOWN.
+L = TRANSACTION_LOGICAL_SCOPE; P = TRANSACTION_PHYSICAL
+S = TRANSACTION_SUSPENDED; SP = TRANSACTION_SAVEPOINT
+Green: shared physical context / logical scope
+Blue: independent physical scope; outer P retained while SUSPENDED
+Yellow: nested SAVEPOINT on the SAME P
+Gray: NO_TRANSACTION; red: UNKNOWN / unsupported path
+Groups show method nesting. BEGIN/END notes define physical lifetimes.
+Suspended lifetime overlap is explicit in SUSPEND/RESUME notes.
+Interception: APPLIED / BYPASSED / UNKNOWN; context: ACTIVE / INACTIVE / UNKNOWN.
+INHERITED physical context does not require interception of this method.
+AspectJ ASSUMED_APPLIED is a conditional premise, never runtime weaving proof.
+endlegend
+Entry -> B2: Review#outer() / CONDITIONAL_CALL
+group #CCE5FF F1 REQUIRED L1 P1
+note right of B2: interception=APPLIED; context=ACTIVE; INDEPENDENT P1
+note right of B2: advice=SCENARIO_PROXY_CALL; manager=tx
+note over B2: 2 PHYSICAL_BEGIN P1 
+note over B2: 3 LOGICAL_BEGIN L1 
+note right of B2 #FFCCCC: UNKNOWN call System.gc; remaining order NOT ASSERTED
+B2 -> B1: Other#inner() / CONDITIONAL_CALL
+group #D6F5D6 F2 REQUIRED L2 P1
+note right of B1: interception=APPLIED; context=ACTIVE; INHERITED P1
+note right of B1: advice=SCENARIO_PROXY_CALL; manager=tx
+note over B1: 6 LOGICAL_BEGIN L2 
+note over B1: 7 LOGICAL_END L2 
+end
+B1 --> B2: scope exit / outcome UNKNOWN
+note over B2: 9 LOGICAL_END L1 
+note over B2: 10 PHYSICAL_END_OUTCOME_UNKNOWN P1 
+end
+B2 --> Entry: attempt/path end UNKNOWN
+@enduml

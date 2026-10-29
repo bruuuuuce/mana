@@ -1,0 +1,14 @@
+{
+  "provenance": "Manually specified source/path expectations for S01; never generated from engine output.",
+  "cases": [
+    {"entry": "fixture.Entry#required()", "physicalId": "P1", "manager": "tx", "type": "WRITE", "resource": "accounts", "placement": "T01_FRONTIER", "physicalCount": 1, "suspensions": 0, "savepoints": 0},
+    {"entry": "fixture.Entry#independent()", "physicalId": "P2", "manager": "tx", "type": "WRITE", "resource": "ledger", "placement": "T01_FRONTIER", "physicalCount": 2, "suspensions": 1, "savepoints": 0},
+    {"entry": "fixture.Entry#nested()", "physicalId": "P1", "manager": "tx", "type": "EXPLICIT_LOCK_REQUEST", "resource": "accounts", "placement": "T01_FRONTIER", "physicalCount": 1, "suspensions": 0, "savepoints": 1},
+    {"entry": "fixture.Entry#outside()", "physicalId": null, "manager": null, "type": "READ", "resource": "accounts", "placement": "T01_FRONTIER", "physicalCount": 0, "suspensions": 0, "savepoints": 0},
+    {"entry": "fixture.Operations#read()", "initialState": "UNKNOWN", "physicalId": null, "manager": null, "type": "READ", "resource": "accounts", "placement": "UNPLACED", "physicalCount": 0, "suspensions": 0, "savepoints": 0},
+    {"entry": "fixture.Entry#async()", "physicalId": null, "manager": null, "type": "WRITE", "resource": "accounts", "placement": "UNPLACED", "physicalCount": 0, "suspensions": 0, "savepoints": 0},
+    {"entry": "fixture.Operations#ambiguousDatasource()", "physicalId": null, "manager": null, "type": "UNKNOWN", "resource": null, "placement": "T01_FRONTIER", "physicalCount": 0, "suspensions": 0, "savepoints": 0},
+    {"entry": "fixture.Operations#unsupportedSql()", "physicalId": null, "manager": null, "type": "UNKNOWN", "resource": null, "placement": "T01_FRONTIER", "physicalCount": 0, "suspensions": 0, "savepoints": 0},
+    {"entry": "fixture.Operations#unknownApi()", "physicalId": null, "manager": null, "type": "UNKNOWN", "resource": null, "placement": "T01_FRONTIER", "physicalCount": 0, "suspensions": 0, "savepoints": 0}
+  ]
+}

@@ -1,0 +1,1084 @@
+diff --git a/docs/standards/resource-leaf-extension-v1.md b/docs/standards/resource-leaf-extension-v1.md
+--- a/docs/standards/resource-leaf-extension-v1.md
++++ b/docs/standards/resource-leaf-extension-v1.md
+@@ -1,4 +1,4 @@
+-# Resource Leaf Extension v1 — T02-S01-D02
++# Resource Leaf Extension v1 — T02-S01-D02-F02
+ 
+ Status: implemented, conditional static scenario; pending independent review.
+ This additive capability belongs to Transaction Model v1. It does not change
+@@ -23,7 +23,7 @@
+ ```json
+ "resourceLeafExtension": {
+   "schema": "mana.transaction-resource-leaves/v1",
+-  "sourceFacts": {"classes": [], "errors": []}
++  "sourceFacts": {"classes": [], "errors": [], "sources": {}}
+ }
+ ```
+ 
+@@ -59,10 +59,10 @@
+ | Witness field | Contract |
+ |---|---|
+ | `schema` | `mana.resource-leaf-witness/v1` |
+-| `rule` | `{id: spring-jdbc-template-literal, version: 1}`; fixed Mana rule |
++| `rule` | `{id: spring-jdbc-template-literal, version: 2}`; fixed Mana rule |
+ | `signature` | Exact catalog owner, name, argument and erased return type |
+ | `receiverType` | `org.springframework.jdbc.core.JdbcTemplate` |
+-| `callSite`, `methodEvidence`, `bindingEvidence`, `argumentEvidence` | Source-linked invocation, enclosing method, injected field and literal argument |
++| `callSite`, `methodEvidence`, `bindingEvidence`, `argumentEvidence` | Source-linked invocation, enclosing method, allocated field and literal argument |
+ | `sourceCallOrdinal` | 1-based ordinal among the enclosing method's parsed calls |
+ | `t01Sequence` | Must equal the event's causal sequence |
+ | `normalReturnDependencies` | Sequence IDs of all earlier resource leaves on this single modeled path |
+@@ -98,90 +98,103 @@
+ This is a versioned analysis rule, not identification of the target's installed
+ Spring binary or certification of every compatible implementation.
+ 
+-Eligibility requires all of the following: one direct, noninitialized,
+-unqualified `@Autowired JdbcTemplate` field with no annotation arguments; no
+-declared parents on its owning class; a supported zero-argument method without
+-AST hazards; a public, nonstatic/nonabstract caller with only catalogued stereotype,
+-transactional or standard Override/Deprecated annotations; receiver exactly `field`
+-or `this.field`; a standalone invocation;
+-exactly one AST string literal argument; and a whole-string match of the existing
+-closed Resource Timeline SQL grammar, compatible with the invoked API.
+-
+-Only the supported SELECT/UPDATE/INSERT/DELETE forms qualify. SQL demarcation
+-(`COMMIT`, `ROLLBACK`, autocommit), DDL, stored procedure calls, compound SQL,
+-dynamic expressions and SQL outside that grammar do not qualify. SQL semantics,
+-database objects, triggers and driver behavior are not resolved by a text match.
+-
+-An observed JdbcTemplate subclass, local type shadow or source factory returning
+-JdbcTemplate invalidates standard-dispatch classification. Identity of the
+-catalog declaration, the receiver's static type and the possible dynamic target
+-are distinct: a matching signature or imported field type alone is insufficient.
+-The authoritative bounded dispatch screen must also succeed on the same source
+-snapshot. Each newly parsed class records `dispatchHazards`; only an explicitly
+-empty list can support a leaf. Member, static member, local, anonymous and more
+-deeply nested classes are not resolved: their omission is recorded as
+-`UNEXTRACTED_APPLICATION_TYPE`, and existing
+-`UNKNOWN_NESTED_CLASS_OR_INITIALIZER` markers also prevent certification. Older
+-facts lacking this screen cannot justify a new leaf; ordinary legacy IR without
+-the enabled extension remains valid.
+-
+-The screen rejects any source JdbcTemplate subtype, including subtypes that
+-inherit the catalog overload but override a virtual library hook. Absence of a
+-callback argument does not exclude such application dispatch. Unknown source
+-supertypes also prevent certification, since their compatibility cannot be
+-excluded by this parse-only adapter. Source `@Bean` implementations are not
+-dynamically resolved: any return type except the existing, disjoint
+-DataSourceTransactionManager declaration stops leaf classification. This includes
+-Object/interface/subtype returns, factories, proxies and decorators. These are
+-deliberately conservative whole-inventory exclusions; an unrelated nested type,
+-supertype or bean can also prevent a leaf. They do not implement general Java
+-dispatch or Spring bean resolution. A missing or contradictory screen leaves
+-`UNRESOLVED_CALL`, a motivated dispatch uncertainty and an unplaced suffix.
+-Unmodeled class/method/field annotations also prevent certification: imports,
+-registrars, composed bean annotations and source advisors may introduce a provider
+-without a direct source `@Bean`. Only the existing catalog/Spring annotation
+-vocabulary is accepted by this screen; no meta-annotation resolver is introduced.
+-
+-Interface/alias/optional
+-or qualified binding, initialized fields, unknown receiver types, callback
+-overloads and arbitrary methods named `execute` or `update` are not leaf proofs.
+-Nested calls in arguments and conditional expressions cannot form a standalone
+-leaf sequence. Async, unknown annotations/interception, unknown context and
+-unsupported control flow keep the existing T01 traversal limits. Programmatic
+-transactions and manual Connection operations retain unresolved frontiers; there
+-is no automatic continuation through an opaque call.
+-
+-The selected scenario explicitly assumes the catalogued standard implementation
+-dispatch, absence of external overriding advisors, normal synchronous return for
+-continuation, and no unmodeled transaction-context changes by library, driver or
+-database along that path. Observable contradictory source shapes are rejected.
+-This closed scenario assumption cannot override an incomplete or contradictory
+-source dispatch screen. A positive leaf remains conditional on the selected
+-standard library behavior; it is not an observed concrete Spring bean identity.
+-This closed scenario assumption is not runtime dispatch resolution. If external
+-implementation/advisor/driver behavior cannot be assumed for the intended
+-scenario, leave the capability disabled; source presence alone does not prove it.
++Positive certification requires both **TYPE_BINDING_PROVEN** and
++**DISPATCH_PROVEN**. These are conceptual obligations, not new witness fields.
++Rule version 2 replaces the original rule; the event and witness schemas stay v1.
++A compatible spelling, import, signature or selected policy alone proves neither.
++
++The deliberately small certifiable subset is a direct `private final JdbcTemplate`
++field, without annotations, initialized at its declaration by exactly
++`new JdbcTemplate()` (no arguments, anonymous body or alternate spelling).
++`JdbcTemplate` must come from one explicit, nonstatic single-type import of
++`org.springframework.jdbc.core.JdbcTemplate`. The owning class has no parents,
++is a concrete top-level class, and has no omitted lexical scope. The allocated
++class and the declared field type must bind through that same import. The library
++declaration/API on the target classpath is an explicit authenticity premise; the
++adapter does not identify or qualify the installed Spring binary.
++
++The AST screen rejects all class or method type parameters, static or ambiguous
++imports, application homonyms, unresolved parents, omitted nested/member/local/
++anonymous classes and initializers. Generic bounds are not resolved: even a
++Spring bound does not prove the exact allocated implementation. A type parameter
++must not be replaced by an imported declaration; such field facts instead carry
++`UNKNOWN_TYPE_PARAMETER:<name>`. Existing `dispatchHazards` carry the scope limits.
++The screen still excludes source subtypes, implementation factories and unmodeled
++wiring annotations conservatively over the whole source inventory. It does not
++claim that this inventory contains all runtime implementations.
++
++A fully qualified Java type is examined but remains uncertifiable in this bounded
++adapter: package/type prefix attribution against the target classpath is absent.
++Even when a separate javac oracle proves that particular fixture's binding, this
++producer does not infer that proof from a dotted spelling. Wildcard-only imports,
++generic aliases/bounds, inheritance and overload attribution are also UNKNOWN.
++This intentional coverage reduction avoids a general Java resolver.
++
++A directly allocated exact class, retained by a private final field, excludes
++application receiver subclasses and their virtual overrides on ordinary Java
++execution paths. An injected receiver, factory/proxy/decorator result, mutable
++field or merely Spring static type does not establish that identity and remains
++`UNRESOLVED_CALL`. Reflection/Unsafe mutation, bytecode rewriting, external advisors
++and classpath substitution are outside the declared scenario. This is not a
++closed-world assumption about Spring bean implementations. The earlier premise
++that standard dispatch could simply be assumed for injected fields is withdrawn.
++Library/driver/database behavior remains conditional as below; no concrete bean,
++connection or datasource runtime identity is inferred.
++
++The existing call restrictions also apply: a public nonstatic/nonabstract
++zero-argument method, catalogued annotations, no AST hazards, receiver exactly
++`field` or `this.field`, a standalone invocation, exactly one AST string literal
++argument, and the supported API/SQL combination. With an exact receiver class and
++a String literal, only the listed catalog overloads qualify; arbitrary overloads,
++callbacks, dynamic expressions and unsupported methods remain unresolved.
++
++Only the supported SELECT/UPDATE/INSERT/DELETE forms qualify. SQL demarcation,
++DDL, stored procedures, compound SQL and SQL outside the closed grammar do not.
++No SQL success, execution, datasource identity, lock or runtime transaction effect
++is proved. Normal synchronous return conditions any continuation; unmodeled
++transaction-context changes by library, driver or database are excluded by the
++fixed scenario premises. Async, unknown annotations/interception/context and
++unsupported control flow retain the original T01 frontier and causal cut.
+ 
+ ## Verification and trust boundary
+ 
+-`validate_model` verifies the capability/version, source snapshot hash linkage,
+-unique owning methods, call-site prefix order and completeness until a justified
+-frontier, and exact witness equality after authoritative catalog reclassification.
+-Both validators use this same dispatch screen and catalog. An authentic source
+-dispatch blocker rejects even a structurally valid, source-linked standard
+-witness; the producer's claim cannot authorize itself.
+-It replays the current T01 context and physical lifetime; it does not use a
+-project-supplied safety bit. Missing, modified, mismatched or unsupported witnesses
+-are rejected, as are omitted/reordered calls, leaf events after unresolved order,
+-and references to suspended or terminated P identities. The source facts used by
+-T02 must equal T01's extension snapshot.
+-
+-Like the base v1 validator, imported JSON validation checks semantic consistency
+-of supplied facts; it does not authenticate a coordinated fabrication of facts,
+-hashes and IR against independently retrieved source bytes. The read-only CLI
+-provides fresh parse provenance from one source snapshot and checks that source
+-and context do not change during analysis. Reanalyze the original project to
+-refresh source authenticity. No live Spring or database probe is performed.
++Both validators use the same authoritative catalog and binding/dispatch screen.
++For any claimed leaf, `validate_model` also reparses the bounded source snapshot
++from `sourceFacts.sources`, checks its UTF-8 byte hashes against the report's source
++evidence and compares all regenerated AST facts. The original target is neither
++read nor built during imported-JSON validation. The adapter parses only, disables
++processors and never attributes, generates or runs target classes. Its helper is
++compiled in an external temporary directory. Cached reparsing is keyed by source
++content, not producer hashes or proof booleans. T01's derived `bindingEvidence`
++pointers are separately checked against the receiver field before comparison.
++Initializer shape and field modifiers are necessary internal AST facts; neither
++conceptual proof property is added as a public assertion to the witness.
++
++A valid report with rule-2 leaf events means certification is supported within
++these premises. A valid report with `UNRESOLVED_CALL` and a
++`RESOURCE_LEAF_TYPE_BINDING_UNPROVEN`, `RESOURCE_LEAF_DISPATCH_UNPROVEN` or source
++screen reason means the invocation is recognized but uncertifiable. A claimed
++leaf with missing/incompatible source proof or a forged witness raises the
++existing validation error (CLI error behavior/exit codes are preserved). A policy
++flag cannot turn the second or third result into certification. Old injected
++leaf artifacts must be reanalyzed; they are no longer accepted as certified.
++Legacy IR without the extension remains valid.
++
++Validation also checks source method identity, containment, exact witness equality,
++call prefix order/completeness, current T01 context, dependencies and physical
++lifetimes. T02 validates T01 before projection and uses the identical source facts.
++A source scope blocker rejects a standard witness even when its shape is valid.
++An unresolved invocation preserves its known frontier context and cuts the suffix.
++A type-parameter receiver's untraversed syntax is retained as an UNKNOWN observation.
++
++Embedded source bytes and their hashes are consistency evidence, not independent
++authentication of a coordinated replacement of source, hashes, facts and IR.
++The read-only CLI checks one fresh source/context snapshot before publication.
++Imported reports requiring source authenticity must be regenerated against the
++original project. No Spring/database runtime, classpath attribution or bean
++resolution is claimed. A future dedicated Java semantic frontend could provide
++classpath-backed type/overload identity; runtime implementation selection would
++still require allocation or wiring evidence beyond the static type alone.
+ 
+ Facts are embedded only for the enabled capability. Existing 4 MiB publication
+ limits still apply; the larger representation can hit that budget sooner and is
+@@ -197,6 +210,6 @@
+ runtime resource identity, JDBC enlistment, acquired lock and granularity remain
+ UNKNOWN. FOR UPDATE is still request syntax, not a lock acquisition.
+ 
+-Run `python3 tests/transaction-resource-leaves.py -v` plus the existing T01/S01
++Run `python3 tests/transaction-resource-leaves.py -v` and `python3 tests/transaction-resource-binding.py -v`, plus the existing T01/S01
+ suites. The additional fixture oracles are hand-authored in
+ `tests/fixtures/resource-timeline/resource-leaf-oracles.json`.
+diff --git a/scripts/skill_factory/transactions/JavaFacts.java b/scripts/skill_factory/transactions/JavaFacts.java
+--- a/scripts/skill_factory/transactions/JavaFacts.java
++++ b/scripts/skill_factory/transactions/JavaFacts.java
+@@ -12,6 +12,7 @@
+     static Trees trees;
+     static CompilationUnitTree unit;
+     static Map<String,String> imports;
++    static Set<String> typeParameters = new HashSet<String>();
+     static List<Object> classes = new ArrayList<Object>();
+     static Object jsonValue(Object value) { return value; }
+     static Map<String,Object> obj(Object... args) {
+@@ -20,6 +21,7 @@
+         return m;
+     }
+     static String qualify(String name) {
++        if (typeParameters.contains(name)) return "UNKNOWN_TYPE_PARAMETER:"+name;
+         if (imports.containsKey(name)) return imports.get(name);
+         int dot=name.indexOf('.');
+         if (dot>0 && imports.containsKey(name.substring(0,dot)))
+@@ -58,6 +60,18 @@
+     static void parseClass(ClassTree cls, String pkg) {
+         List<Object> fields=new ArrayList<Object>(), methods=new ArrayList<Object>();
+         final List<String> dispatchHazards=new ArrayList<String>();
++        typeParameters=new HashSet<String>();
++        for (TypeParameterTree parameter:cls.getTypeParameters())
++            typeParameters.add(parameter.getName().toString());
++        if (!typeParameters.isEmpty()) dispatchHazards.add("UNRESOLVED_TYPE_PARAMETERS");
++        if (unit.getImports().stream().anyMatch(im -> im.isStatic()))
++            dispatchHazards.add("UNRESOLVED_STATIC_IMPORT");
++        Set<String> importedNames=new HashSet<String>();
++        for (ImportTree im:unit.getImports()) {
++            String name=im.getQualifiedIdentifier().toString();
++            if (!name.endsWith(".*") && !importedNames.add(name.substring(name.lastIndexOf('.')+1)))
++                dispatchHazards.add("AMBIGUOUS_IMPORT");
++        }
+         // Do not resolve nested/local/anonymous types. Record their omission even
+         // in field initializers and method bodies, where parseClass never visits.
+         new TreeScanner<Void,Void>() {
+@@ -75,11 +89,24 @@
+         for (Tree member:cls.getMembers()) {
+             if (member instanceof VariableTree) {
+                 VariableTree f=(VariableTree)member;
+-                fields.add(obj("name",f.getName().toString(),"type",qualify(f.getType().toString()),
++                NewClassTree allocation=f.getInitializer() instanceof NewClassTree?(NewClassTree)f.getInitializer():null;
++                String spelling=f.getType().toString();
++                // Only a single-type import has priority independent of unobserved
++                // same-package classpath types. Qualified package/type prefixes
++                // require attribution; do not guess their namespace here.
++                boolean explicit=spelling.equals("JdbcTemplate") &&
++                    "org.springframework.jdbc.core.JdbcTemplate".equals(imports.get(spelling));
++                fields.add(obj("name",f.getName().toString(),"type",qualify(spelling),
++                    "flags",flags(f.getModifiers()),
++                    "allocation",allocation==null?null:obj("type",qualify(allocation.getIdentifier().toString()),
++                        "explicitType",explicit && allocation.getIdentifier().toString().equals(spelling),
++                        "arity",allocation.getArguments().size(),"anonymous",allocation.getClassBody()!=null,
++                        "evidence",position(allocation)),
+                     "annotations",annotations(f.getModifiers()),"initialized",f.getInitializer()!=null,
+                     "evidence",position(f)));
+             } else if (member instanceof MethodTree) {
+                 MethodTree m=(MethodTree)member;
++                if (!m.getTypeParameters().isEmpty()) dispatchHazards.add("UNRESOLVED_TYPE_PARAMETERS");
+                 final List<Object> calls=new ArrayList<Object>();
+                 final Set<MethodInvocationTree> statementCalls=Collections.newSetFromMap(new IdentityHashMap<MethodInvocationTree,Boolean>());
+                 List<String> hazards=new ArrayList<String>();
+diff --git a/scripts/skill_factory/transactions/model.py b/scripts/skill_factory/transactions/model.py
+--- a/scripts/skill_factory/transactions/model.py
++++ b/scripts/skill_factory/transactions/model.py
+@@ -587,7 +587,8 @@
+                 elif (
+                     leaf_policy == resource_leaf.POLICY
+                     and call["name"] in resource_leaf.SIGNATURES
+-                    and (blocker := resource_leaf.dispatch_blocker(facts)) is not None
++                    and (blocker := resource_leaf.call_blocker(facts, cls, call))
++                    is not None
+                 ):
+                     reason = blocker
+                 target_key = (
+diff --git a/scripts/skill_factory/transactions/resource_leaf.py b/scripts/skill_factory/transactions/resource_leaf.py
+--- a/scripts/skill_factory/transactions/resource_leaf.py
++++ b/scripts/skill_factory/transactions/resource_leaf.py
+@@ -2,13 +2,15 @@
+ 
+ import copy
+ import re
++
++from .source import verify_leaf_snapshot
+ 
+ JDBC = "org.springframework.jdbc.core.JdbcTemplate"
+ AUTOWIRED = "org.springframework.beans.factory.annotation.Autowired"
+ POLICY = "JDBC_LITERAL_V1"
+ MAX_LEAVES = 128
+ EXTENSION = "mana.transaction-resource-leaves/v1"
+-RULE = {"id": "spring-jdbc-template-literal", "version": 1}
++RULE = {"id": "spring-jdbc-template-literal", "version": 2}
+ SIGNATURES = {
+     "execute": JDBC + "#execute(java.lang.String):void",
+     "update": JDBC + "#update(java.lang.String):int",
+@@ -25,8 +27,8 @@
+     "java.lang.Deprecated",
+ }
+ PREMISES = [
+-    "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+-    "The bounded source dispatch screen is complete and has no unresolved implementation provider or application subtype.",
++    "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
++    "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+     "Normal synchronous return is assumed only for continuation of this path.",
+     "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+     "The catalogued overload has no application callback argument.",
+@@ -73,7 +75,7 @@
+             p.startswith("UNKNOWN_") for p in cls["parents"]
+         ):
+             return "RESOURCE_LEAF_SOURCE_DISPATCH_INCOMPLETE"
+-        if cls["name"] == JDBC or cls["simpleName"] == "JdbcTemplate":
++        if cls["name"] == JDBC or cls["simpleName"] in {"JdbcTemplate", "org"}:
+             return "RESOURCE_LEAF_APPLICATION_TYPE_SHADOW"
+         if any(p in {JDBC, "JdbcTemplate"} for p in cls["parents"]):
+             return "RESOURCE_LEAF_APPLICATION_SUBTYPE"
+@@ -129,6 +131,41 @@
+     if len(matches) != 1:
+         raise ValueError("resource leaf has no unique source method")
+     return matches[0]
++
++
++def binding_blocker(field):
++    """Positive allocation identity; an injected static API type proves no target."""
++    if field.get("type") != JDBC:
++        return "RESOURCE_LEAF_TYPE_BINDING_UNPROVEN"
++    allocation = field.get("allocation")
++    if isinstance(allocation, dict) and allocation.get("explicitType") is not True:
++        return "RESOURCE_LEAF_TYPE_BINDING_UNPROVEN"
++    if (
++        not field.get("initialized")
++        or set(field.get("flags", [])) != {"private", "final"}
++        or field.get("annotations") != []
++        or not isinstance(allocation, dict)
++        or allocation.get("type") != JDBC
++        or allocation.get("explicitType") is not True
++        or allocation.get("arity") != 0
++        or allocation.get("anonymous") is not False
++    ):
++        return "RESOURCE_LEAF_DISPATCH_UNPROVEN"
++    return None
++
++
++def call_blocker(facts, cls, call):
++    blocker = dispatch_blocker(facts)
++    if blocker is not None:
++        return blocker
++    fields = [
++        f for f in cls["fields"] if f["name"] == call["receiver"].removeprefix("this.")
++    ]
++    return (
++        binding_blocker(fields[0])
++        if len(fields) == 1
++        else "RESOURCE_LEAF_TYPE_BINDING_UNPROVEN"
++    )
+ 
+ 
+ def classify(facts, cls, method, call, state, sequence, dependencies):
+@@ -162,13 +199,7 @@
+     ):
+         return None
+     field = fields[0]
+-    if (
+-        field["type"] != JDBC
+-        or field["initialized"]
+-        or len(field["annotations"]) != 1
+-        or field["annotations"][0]["type"] != AUTOWIRED
+-        or field["annotations"][0]["args"]
+-    ):
++    if binding_blocker(field) is not None:
+         return None
+ 
+     def inside(child, parent):
+@@ -248,6 +279,11 @@
+                 verify(item)
+ 
+     verify(facts)
++    if leaves:
++        blocker = dispatch_blocker(facts)
++        if blocker is not None:
++            raise ValueError("resource leaf dispatch not demonstrated: " + blocker)
++        verify_leaf_snapshot(facts, hashes)
+     stack, parent_of = [], {}
+     for event in report["events"]:
+         if event["kind"] == "FRAME_ENTER":
+diff --git a/scripts/skill_factory/transactions/resources.py b/scripts/skill_factory/transactions/resources.py
+--- a/scripts/skill_factory/transactions/resources.py
++++ b/scripts/skill_factory/transactions/resources.py
+@@ -3,7 +3,7 @@
+ import copy
+ 
+ from .model import validate_model
+-from .resource_leaf import AUTOWIRED, JDBC, sql_operation
++from .resource_leaf import AUTOWIRED, JDBC, binding_blocker, sql_operation
+ 
+ LIMITS = [
+     "Observed syntax is not proof of execution, enlistment or an acquired lock.",
+@@ -12,6 +12,15 @@
+     "No database query, runtime capture, commit/rollback or lock release is inferred.",
+     "Only a direct unqualified Autowired JdbcTemplate field and one SQL literal argument are supported.",
+ ]
++
++
++LEAF_LIMITS = LIMITS[:-1] + [
++    "Only a direct JdbcTemplate field (injected observation or positively bound allocation) and one SQL literal argument are supported."
++]
++
++
++def _limits(transaction):
++    return LEAF_LIMITS if "resourceLeafExtension" in transaction else LIMITS
+ 
+ 
+ def _method(facts, frame):
+@@ -36,11 +45,16 @@
+     binding = bool(
+         field
+         and field["type"] == JDBC
+-        and not field["initialized"]
+         and not cls["parents"]
+-        and len(annotations) == 1
+-        and annotations[0]["type"] == AUTOWIRED
+-        and not annotations[0]["args"]
++        and (
++            binding_blocker(field) is None
++            or (
++                not field["initialized"]
++                and len(annotations) == 1
++                and annotations[0]["type"] == AUTOWIRED
++                and not annotations[0]["args"]
++            )
++        )
+         and receiver in {field_name, "this." + field_name}
+         and not method["hazards"]
+     )
+@@ -179,7 +193,11 @@
+                 continue
+             field_name = call["receiver"].removeprefix("this.")
+             if not any(
+-                f["name"] == field_name and f["type"] == JDBC for f in cls["fields"]
++                f["name"] == field_name
++                and (
++                    f["type"] == JDBC or f["type"].startswith("UNKNOWN_TYPE_PARAMETER:")
++                )
++                for f in cls["fields"]
+             ):
+                 continue
+             observation = _observation(
+@@ -206,7 +224,7 @@
+         "sourceFacts": copy.deepcopy(facts),
+         "observations": observations,
+         "timeline": timeline,
+-        "limits": list(LIMITS),
++        "limits": list(_limits(transaction)),
+     }
+ 
+ 
+@@ -226,8 +244,10 @@
+         or report["schema"] != "mana.resource-timeline/v1"
+     ):
+         raise ValueError("invalid resource timeline schema")
+-    if report["status"] != "CONDITIONAL_STATIC_SCENARIO" or report["limits"] != LIMITS:
++    observations, timeline = _project(report["transactionModel"], report["sourceFacts"])
++    if report["status"] != "CONDITIONAL_STATIC_SCENARIO" or report["limits"] != _limits(
++        report["transactionModel"]
++    ):
+         raise ValueError("invalid resource timeline certainty/limits")
+-    observations, timeline = _project(report["transactionModel"], report["sourceFacts"])
+     if report["observations"] != observations or report["timeline"] != timeline:
+         raise ValueError("resource timeline differs from T01 causal/source projection")
+diff --git a/scripts/skill_factory/transactions/source.py b/scripts/skill_factory/transactions/source.py
+--- a/scripts/skill_factory/transactions/source.py
++++ b/scripts/skill_factory/transactions/source.py
+@@ -1,5 +1,8 @@
+ """Framework-only JDK parse adapter; target bytes never reach a build or processor."""
+ 
++import copy
++import hashlib
++from functools import lru_cache
+ import json
+ import os
+ from pathlib import Path
+@@ -120,4 +123,68 @@
+                     attach(item)
+ 
+         attach(facts)
++        facts["sources"] = {p: raw.decode("utf-8") for p, raw in sources.items()}
+         return facts
++
++
++class _SnapshotHost:
++    """Only the parse adapter's host operations; never accesses the original target."""
++
++    FactoryError = ValueError
++
++    @staticmethod
++    def digest(raw):
++        return hashlib.sha256(raw).hexdigest()
++
++    @staticmethod
++    def temporary_parent(project):
++        return Path("/tmp").resolve()
++
++
++@lru_cache(maxsize=8)
++def _reparse_snapshot(sources):
++    return java_facts(
++        _SnapshotHost, None, {p: raw.encode("utf-8") for p, raw in sources}
++    )
++
++
++def verify_leaf_snapshot(facts, hashes):
++    """Reparse supplied source bytes, not producer-authored proof booleans.
++
++    Cached by source content, never by a claimed hash or mutable facts. This is
++    parse-only, with the same source budgets and no target build/classpath.
++    """
++    sources = facts.get("sources")
++    if (
++        not isinstance(sources, dict)
++        or not sources
++        or any(
++            not isinstance(p, str)
++            or not isinstance(raw, str)
++            or hashes.get(p) != hashlib.sha256(raw.encode("utf-8")).hexdigest()
++            for p, raw in sources.items()
++        )
++    ):
++        raise ValueError("resource leaf lacks hash-linked source bytes")
++    # T01 decorates traversed injected calls with an evidence pointer. It is
++    # derived metadata, not a parser fact; verify that pointer before removing it.
++    parsed = _reparse_snapshot(tuple(sorted(sources.items())))
++    supplied = copy.deepcopy(facts)
++    for cls in supplied.get("classes", []):
++        for method in cls["methods"]:
++            for call in method["calls"]:
++                if "bindingEvidence" in call:
++                    fields = [
++                        f
++                        for f in cls["fields"]
++                        if f["name"] == call["receiver"].removeprefix("this.")
++                    ]
++                    if (
++                        len(fields) != 1
++                        or call.pop("bindingEvidence") != fields[0]["evidence"]
++                    ):
++                        raise ValueError(
++                            "resource leaf invalid derived binding evidence"
++                        )
++    if parsed != supplied:
++        raise ValueError("resource leaf source facts contradict reparsed source bytes")
+diff --git a/tests/transaction-resource-dispatch.py b/tests/transaction-resource-dispatch.py
+--- a/tests/transaction-resource-dispatch.py
++++ b/tests/transaction-resource-dispatch.py
+@@ -136,6 +136,13 @@
+             ),
+         )
+         for name, text in sources.items():
++            # F02 positive controls use an exact allocation. NEGATIVES retain
++            # their historical sources, including the byte-identical R1 HIGH.
++            if name in {"standard", "three"}:
++                text = text.replace(
++                    "@Autowired JdbcTemplate jdbc;",
++                    "private final JdbcTemplate jdbc = new JdbcTemplate();",
++                )
+             project = cls.stage / name
+             shutil.copytree(FIXTURE, project)
+             (project / "src/main/java/fixture/Resources.java").write_text(text)
+@@ -339,7 +346,7 @@
+             next(f for f in cls["fields"] if f["name"] == "jdbc")["type"] = (
+                 "app.Arbitrary"
+             )
+-        self.reject_both(report, "authoritative classification")
++        self.reject_both(report, "reparsed source bytes")
+ 
+     def test_older_incomplete_dispatch_facts_cannot_certify_new_leaf(self):
+         report = copy.deepcopy(self.reports["standard"])
+diff --git a/tests/transaction-resource-leaves.py b/tests/transaction-resource-leaves.py
+--- a/tests/transaction-resource-leaves.py
++++ b/tests/transaction-resource-leaves.py
+@@ -57,17 +57,23 @@
+         cls.tmp = tempfile.TemporaryDirectory()
+         cls.stage = Path(cls.tmp.name).resolve()
+         cls.context = json.loads((FIXTURE / "context.json").read_text())
+-        cls.projects = {"original": FIXTURE}
+-        for name in ["r1", "variants"]:
++        # F02: explicitly migrate positive path fixtures to a proven allocation.
++        # Historical injected-source oracles remain unchanged on disk and are
++        # independently rerun as degraded cases in transaction-resource-binding.
++        cls.projects = {}
++        for name in ["original", "r1", "variants"]:
+             project = cls.stage / name
+             shutil.copytree(FIXTURE, project)
+             source = project / "src/main/java/fixture/Resources.java"
+-            text = source.read_text()
++            text = source.read_text().replace(
++                "@Autowired JdbcTemplate jdbc;",
++                "private final JdbcTemplate jdbc = new JdbcTemplate();",
++            )
+             if name == "r1":
+                 text = text.replace(
+                     "public void sequence()", "@Transactional public void sequence()"
+                 )
+-            else:
++            elif name == "variants":
+                 text = text.replace(
+                     "class Operations {", "class Operations {" + VARIANTS
+                 )
+@@ -168,7 +174,7 @@
+                         ORACLES["signatures"][leaf["method"]],
+                     )
+ 
+-    def test_call_sites_match_exact_r1_source_and_owner(self):
++    def test_call_sites_match_migrated_r1_source_and_owner(self):
+         report = self.model()
+         self.assertEqual(len(report["transactionModel"]["frames"]), 1)
+         for leaf, expected in zip(
+@@ -181,7 +187,7 @@
+             site = leaf["callSite"]
+             self.assertEqual(
+                 (site["start"], site["end"]),
+-                (2630, 2668) if leaf["method"] == "execute" else (2670, 2703),
++                (2654, 2692) if leaf["method"] == "execute" else (2694, 2727),
+             )
+             raw = (self.projects["r1"] / site["file"]).read_bytes()
+             self.assertEqual(site["sha256"], hashlib.sha256(raw).hexdigest())
+@@ -345,7 +351,9 @@
+                         }
+                     )
+                 elif change == "initialized":
+-                    field["initialized"] = True
++                    # F02 requires a direct initialized final field; an absent
++                    # allocation is the corresponding negative now.
++                    field["initialized"] = False
+                 else:
+                     field["type"] = "opaque.JdbcTemplate"
+                 self.assertFalse(self.leaves(self.model(facts=facts)))
+@@ -430,7 +438,7 @@
+         )["calls"][0]
+         call["arguments"][0]["kind"] = "IDENTIFIER"
+         call["safe"] = True
+-        with self.assertRaisesRegex(ValueError, "authoritative classification"):
++        with self.assertRaisesRegex(ValueError, "reparsed source bytes"):
+             cli.t01.validate_model(tx)
+ 
+     def test_coordinated_call_span_outside_owner_is_rejected(self):
+@@ -508,9 +516,7 @@
+             event["witness"]["t01Sequence"] = ordinal + 3
+             event["witness"]["sourceCallOrdinal"] = ordinal
+             event["witness"]["normalReturnDependencies"] = [] if ordinal == 1 else [4]
+-        with self.assertRaisesRegex(
+-            ValueError, "statement order contradicts source spans"
+-        ):
++        with self.assertRaisesRegex(ValueError, "reparsed source bytes"):
+             cli.t01.validate_model(tx)
+ 
+     def test_leaf_after_real_unresolved_call_cannot_restore_order(self):
+diff --git a/tests/transaction-resource-binding.py b/tests/transaction-resource-binding.py
+new file mode 100644
+--- /dev/null
++++ b/tests/transaction-resource-binding.py
+@@ -0,0 +1,398 @@
++#!/usr/bin/env python3
++"""F02 literal binding/dispatch oracles; javac compiles only these isolated fixtures."""
++
++import copy
++import hashlib
++import importlib.util
++import json
++import os
++from pathlib import Path
++import shutil
++import subprocess
++import tempfile
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++FIXTURE = ROOT / "tests/fixtures/resource-timeline"
++REVIEWS = {
++    n: json.loads(
++        (
++            ROOT / f"docs/reports/MANA-TRANSACTION-01-T02-S01-D02-{n}-results.json"
++        ).read_text()
++    )
++    for n in ["R1", "R2"]
++}
++# The actual R2 source is independently retained as a mandatory negative.
++R2 = REVIEWS["R2"]["counterexample"]["source"]
++BASE = (
++    R2.split("\n@Service\nclass ApplicationJdbc", 1)[0]
++    .replace(
++        "class Operations<JdbcTemplate extends ApplicationJdbc>", "class Operations"
++    )
++    .replace(
++        "@Autowired JdbcTemplate jdbc;",
++        "private final JdbcTemplate jdbc = new JdbcTemplate();",
++    )
++)
++DYNAMIC = BASE.replace(
++    "private final JdbcTemplate jdbc = new JdbcTemplate();",
++    "@Autowired JdbcTemplate jdbc;",
++)
++SUBCLASS = "\nclass CustomJdbc extends JdbcTemplate { @Override public void execute(String sql) {} }\n"
++# Literal expectations; neither source expectations nor javap owners come from Mana.
++CASES = {
++    "import_allocation": (BASE, 2),
++    "qualified": (
++        BASE.replace(
++            "private final JdbcTemplate jdbc = new JdbcTemplate();",
++            "private final org.springframework.jdbc.core.JdbcTemplate jdbc = new org.springframework.jdbc.core.JdbcTemplate();",
++        ),
++        0,
++    ),
++    "generic_shadow": (R2, 0),
++    "application_homonym": (
++        DYNAMIC.replace("import org.springframework.jdbc.core.JdbcTemplate;", "")
++        + "\nclass JdbcTemplate { public void execute(String sql) {} public int update(String sql) { return 0; } }",
++        0,
++    ),
++    "override": (DYNAMIC + SUBCLASS, 0),
++    "dynamic": (DYNAMIC, 0),
++    "overload": (
++        BASE.replace(
++            'jdbc.execute("SELECT * FROM accounts")',
++            'jdbc.execute("SELECT * FROM accounts", "extra")',
++        ),
++        0,
++    ),
++    "three": (
++        BASE.replace(
++            'jdbc.update("DELETE FROM ledger");',
++            'jdbc.update("DELETE FROM ledger"); jdbc.update("INSERT INTO audit (id) VALUES (1)");',
++        ),
++        3,
++    ),
++    "member": (DYNAMIC + "\nclass CustomConfig { static " + SUBCLASS + " }", 0),
++    "local": (DYNAMIC + "\nclass Provider { void create() { " + SUBCLASS + " } }", 0),
++    "generic_bound_spring": (
++        DYNAMIC.replace(
++            "class Operations",
++            "class Operations<JdbcTemplate extends org.springframework.jdbc.core.JdbcTemplate>",
++        ),
++        0,
++    ),
++    "method_generic": (
++        BASE.replace("public void sequence()", "public <JdbcTemplate> void sequence()"),
++        0,
++    ),
++    "mutable": (BASE.replace("private final JdbcTemplate", "private JdbcTemplate"), 0),
++    "anonymous": (
++        BASE.replace(
++            "new JdbcTemplate();",
++            "new JdbcTemplate() { @Override public void execute(String sql) {} };",
++        ),
++        0,
++    ),
++}
++STUBS = {
++    "org/springframework/jdbc/core/JdbcTemplate.java": "package org.springframework.jdbc.core; public class JdbcTemplate { public void execute(String sql) {} public void execute(String sql, String extra) {} public int update(String sql) { return 0; } }",
++    "org/springframework/jdbc/datasource/DataSourceTransactionManager.java": "package org.springframework.jdbc.datasource; public class DataSourceTransactionManager {}",
++}
++for package, names in {
++    "org.springframework.stereotype": ["Service"],
++    "org.springframework.beans.factory.annotation": ["Autowired"],
++    "org.springframework.transaction.annotation": [
++        "Transactional",
++        "EnableTransactionManagement",
++    ],
++    "org.springframework.context.annotation": ["Configuration", "Bean"],
++}.items():
++    for name in names:
++        STUBS[package.replace(".", "/") + "/" + name + ".java"] = (
++            f"package {package}; public @interface {name} {{ boolean proxyTargetClass() default false; }}"
++        )
++
++
++def snapshot(project):
++    return {
++        str(p.relative_to(project)): hashlib.sha256(p.read_bytes()).hexdigest()
++        for p in project.rglob("*")
++        if p.is_file()
++    }
++
++
++class BindingTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.tmp = tempfile.TemporaryDirectory(prefix="mana-binding-")
++        cls.stage = Path(cls.tmp.name).resolve()
++        spec = importlib.util.spec_from_file_location(
++            "binding_cli", ROOT / "scripts/mana-resource-timeline.py"
++        )
++        cls.cli = importlib.util.module_from_spec(spec)
++        spec.loader.exec_module(cls.cli)
++        cls.oracle_results = {}
++        cls.reports = {}
++        cls.projects = {}
++        for name, (source, _) in {
++            **CASES,
++            "historical_r1": (REVIEWS["R1"]["counterexample"]["source"], 0),
++        }.items():
++            project = cls.stage / name
++            path = project / "src/main/java/fixture/Resources.java"
++            path.parent.mkdir(parents=True)
++            path.write_text(source)
++            shutil.copyfile(FIXTURE / "pom.xml", project / "pom.xml")
++            context = json.loads((FIXTURE / "context.json").read_text())
++            context["resourceLeafPolicy"] = "JDBC_LITERAL_V1"
++            (project / "context.json").write_text(json.dumps(context))
++            before = snapshot(project)
++            cls.reports[name] = cls.cli.analyze(
++                project, project / "context.json", "fixture.Operations#sequence()"
++            )
++            if snapshot(project) != before:
++                raise AssertionError("analysis modified target")
++            cls.projects[name] = project
++
++    @classmethod
++    def tearDownClass(cls):
++        cls.tmp.cleanup()
++
++    def leaves(self, name):
++        return [
++            e
++            for e in self.reports[name]["transactionModel"]["events"]
++            if e["kind"] == "RESOURCE_LEAF_CALL"
++        ]
++
++    def reject_both(self, report, message="resource leaf"):
++        with self.assertRaisesRegex(ValueError, message):
++            self.cli.t01.validate_model(report["transactionModel"])
++        with self.assertRaisesRegex(ValueError, message):
++            self.cli.validate_timeline(report)
++
++    def test_literal_matrix(self):
++        for name, (_, expected) in CASES.items():
++            with self.subTest(case=name):
++                report = self.reports[name]
++                self.cli.t01.validate_model(report["transactionModel"])
++                self.cli.validate_timeline(report)
++                self.assertEqual(len(self.leaves(name)), expected)
++
++    def test_two_consecutive_certified_leaves(self):
++        leaves = self.leaves("import_allocation")
++        self.assertEqual([e["sequence"] for e in leaves], [4, 5])
++        self.assertEqual(
++            [e["witness"]["normalReturnDependencies"] for e in leaves], [[], [4]]
++        )
++        self.assertEqual(
++            [
++                o["transactionContext"]["physicalId"]
++                for o in self.reports["import_allocation"]["observations"]
++            ],
++            ["P1", "P1"],
++        )
++
++    def test_three_consecutive_certified_leaves(self):
++        leaves = self.leaves("three")
++        self.assertEqual([e["sequence"] for e in leaves], [4, 5, 6])
++        self.assertEqual(
++            [e["witness"]["normalReturnDependencies"] for e in leaves],
++            [[], [4], [4, 5]],
++        )
++
++    def test_dynamic_receiver_has_no_false_continuation(self):
++        report = self.reports["dynamic"]
++        self.assertEqual(
++            [o["placement"]["status"] for o in report["observations"]],
++            ["T01_FRONTIER", "UNPLACED"],
++        )
++        self.assertEqual(
++            [o["transactionContext"]["physicalId"] for o in report["observations"]],
++            ["P1", None],
++        )
++        self.assertIn(
++            "RESOURCE_LEAF_DISPATCH_UNPROVEN",
++            [u["reason"] for u in report["transactionModel"]["uncertainties"]],
++        )
++
++    def test_both_historical_high_sources_and_witnesses(self):
++        for review, case in [("R1", "historical_r1"), ("R2", "generic_shadow")]:
++            with self.subTest(review=review):
++                counterexample = REVIEWS[review]["counterexample"]
++                raw = (self.projects[case] / counterexample["sourcePath"]).read_bytes()
++                self.assertEqual(
++                    hashlib.sha256(raw).hexdigest(), counterexample["sourceSha256"]
++                )
++                self.assertEqual(self.leaves(case), [])
++                report = self.reports[case]
++                self.assertEqual(
++                    [o["placement"]["status"] for o in report["observations"]],
++                    ["T01_FRONTIER", "UNPLACED"],
++                )
++                self.reject_both(copy.deepcopy(counterexample["fullReport"]))
++
++    def test_forged_witness(self):
++        report = copy.deepcopy(self.reports["import_allocation"])
++        report["transactionModel"]["events"][3]["witness"]["signature"] = (
++            "app.JdbcTemplate#execute(java.lang.String):void"
++        )
++        self.reject_both(report)
++
++    def test_forged_producer_facts_conflict_with_source_bytes(self):
++        report = copy.deepcopy(self.reports["import_allocation"])
++        facts = report["transactionModel"]["resourceLeafExtension"]["sourceFacts"]
++        next(c for c in facts["classes"] if c["simpleName"] == "Operations")["fields"][
++            0
++        ]["allocation"]["explicitType"] = False
++        report["sourceFacts"] = copy.deepcopy(facts)
++        self.reject_both(report, "reparsed source bytes")
++
++    def test_forged_proof_on_authentic_dynamic_source(self):
++        report = copy.deepcopy(self.reports["import_allocation"])
++        facts = copy.deepcopy(self.reports["dynamic"]["sourceFacts"])
++        field = next(c for c in facts["classes"] if c["simpleName"] == "Operations")[
++            "fields"
++        ][0]
++        positive = self.reports["import_allocation"]["sourceFacts"]
++        proof = next(c for c in positive["classes"] if c["simpleName"] == "Operations")[
++            "fields"
++        ][0]
++        for key in ["flags", "allocation", "initialized", "annotations"]:
++            field[key] = copy.deepcopy(proof[key])
++        # Genuine negative bytes and matching declared hashes; only the proof facts lie.
++        digest = hashlib.sha256(DYNAMIC.encode()).hexdigest()
++
++        def rehash(value):
++            if isinstance(value, dict):
++                if "sha256" in value:
++                    value["sha256"] = digest
++                for item in value.values():
++                    rehash(item)
++            elif isinstance(value, list):
++                for item in value:
++                    rehash(item)
++
++        rehash(report)
++        rehash(facts)
++        report["transactionModel"]["resourceLeafExtension"]["sourceFacts"] = facts
++        report["sourceFacts"] = copy.deepcopy(facts)
++        self.reject_both(report, "reparsed source bytes")
++
++    def test_missing_source_bytes_cannot_certify(self):
++        report = copy.deepcopy(self.reports["import_allocation"])
++        del report["transactionModel"]["resourceLeafExtension"]["sourceFacts"][
++            "sources"
++        ]
++        self.reject_both(report, "source bytes")
++
++    def test_javac_javap_independent_binding_oracles(self):
++        # Compile these tiny fixtures only. No class, processor or target is run.
++        expected_owners = {
++            "generic_shadow": "fixture/ApplicationJdbc",
++            "application_homonym": "fixture/JdbcTemplate",
++        }
++        for name in CASES:
++            with self.subTest(case=name):
++                stage = self.stage / ("oracle-" + name)
++                stage.mkdir()
++                files = {**STUBS, "fixture/Resources.java": CASES[name][0]}
++                for relative, source in files.items():
++                    path = stage / relative
++                    path.parent.mkdir(parents=True, exist_ok=True)
++                    path.write_text(source)
++                classes = stage / "classes"
++                classes.mkdir()
++                env = {
++                    k: v
++                    for k, v in os.environ.items()
++                    if k
++                    not in {
++                        "CLASSPATH",
++                        "JAVA_TOOL_OPTIONS",
++                        "_JAVA_OPTIONS",
++                        "JDK_JAVA_OPTIONS",
++                        "JDK_JAVAC_OPTIONS",
++                    }
++                }
++                compile_result = subprocess.run(
++                    [
++                        "javac",
++                        "-proc:none",
++                        "-cp",
++                        str(classes),
++                        "-d",
++                        str(classes),
++                        *[str(stage / p) for p in files],
++                    ],
++                    cwd=stage,
++                    env=env,
++                    capture_output=True,
++                    text=True,
++                    timeout=30,
++                )
++                self.assertEqual(compile_result.returncode, 0, compile_result.stderr)
++                result = subprocess.run(
++                    [
++                        "javap",
++                        "-c",
++                        "-p",
++                        "-s",
++                        "-classpath",
++                        str(classes),
++                        "fixture.Operations",
++                    ],
++                    cwd=stage,
++                    env=env,
++                    capture_output=True,
++                    text=True,
++                    timeout=30,
++                )
++                self.assertEqual(result.returncode, 0, result.stderr)
++                self.oracle_results[name] = {
++                    "sources": files,
++                    "javacExit": compile_result.returncode,
++                    "javacStderr": compile_result.stderr,
++                    "javapExit": result.returncode,
++                    "javapOutput": result.stdout,
++                }
++                owner = expected_owners.get(
++                    name, "org/springframework/jdbc/core/JdbcTemplate"
++                )
++                self.assertIn(owner + ".execute:", result.stdout)
++                self.assertIn(owner + ".update:(Ljava/lang/String;)I", result.stdout)
++                if name == "generic_shadow":
++                    self.assertIn(
++                        "descriptor: Lfixture/ApplicationJdbc;", result.stdout
++                    )
++                if name in {"import_allocation", "three"}:
++                    self.assertIn(
++                        "private final org.springframework.jdbc.core.JdbcTemplate jdbc;",
++                        result.stdout,
++                    )
++                    self.assertIn('JdbcTemplate."<init>":()V', result.stdout)
++                if name in {"override", "member", "local", "anonymous"}:
++                    # A Spring symbolic invokevirtual owner alone does not prove
++                    # the dynamic implementation. Inspect the application override.
++                    target = {
++                        "override": "fixture.CustomJdbc",
++                        "member": "fixture.CustomConfig$CustomJdbc",
++                        "local": "fixture.Provider$1CustomJdbc",
++                        "anonymous": "fixture.Operations$1",
++                    }[name]
++                    override = subprocess.run(
++                        ["javap", "-c", "-p", "-s", "-classpath", str(classes), target],
++                        cwd=stage,
++                        env=env,
++                        capture_output=True,
++                        text=True,
++                        timeout=30,
++                    )
++                    self.assertEqual(override.returncode, 0, override.stderr)
++                    self.assertIn(
++                        "public void execute(java.lang.String);", override.stdout
++                    )
++                    self.oracle_results[name]["overrideOutput"] = override.stdout
++
++
++if __name__ == "__main__":
++    unittest.main()

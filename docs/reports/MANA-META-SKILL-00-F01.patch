@@ -1,0 +1,1164 @@
+--- a/docs/workflow/specialist-skill-factory.md
++++ b/docs/workflow/specialist-skill-factory.md
+@@ -28,6 +28,24 @@
+ The only persistent writes are the explicitly selected candidate directory and
+ any missing parent directories. Mana metadata validation uses an isolated,
+ automatically removed temporary directory.
++
++### Temporary isolation (F01)
++
++The factory selects the first nonempty `TMPDIR`, `TEMP`, or `TMP`; without these,
++POSIX uses `/tmp`. Other platforms require an explicitly configured parent.
++Selection never calls `tempfile.gettempdir()`, whose discovery can itself write
++probe files. Relative paths resolve from the caller's working directory. Before
++creating anything, the factory canonicalizes the project and selected parent,
++resolves symlinks and rejects a parent inside the project or a discovery/configuration
++surface. The parent must already exist; invalid or missing parents block with
++exit 2 and a diagnostic naming the selected location, without fallback or mkdir.
++External symlink aliases are used only through their validated canonical target.
++
++The native validator receives an external staging directory as both cwd and
++`TMPDIR`/`TEMP`/`TMP`. Shell startup variables `BASH_ENV` and `ENV` are removed for
++that subprocess. No host-global temporary-directory setting is changed. Local
++adapter imports suppress bytecode cache writes. These rules apply to both
++generation and validation; cleanup is not the immutability proof.
+ 
+ ## Workflow And Evidence Contract
+ 
+@@ -65,6 +83,56 @@
+ additional or changed fields, duplicate keys, changed Markdown and extra bundle
+ files. It is intentionally not a general arbitrary-skill validator.
+ 
++## Factory / Adapter Boundary (F01)
++
++`scripts/mana-skill-factory.py` owns bounded file inventory, request selection,
++bundle generation, native validation, canonical output/temp paths, error handling
++and pending/untrusted governance. It contains no Java/Spring recipe, template path
++or specialist request constant.
++
++`scripts/skill_factory/contracts.py` defines `SkillAdapter`: `skill_id`, `request`,
++`template`, evidence filename/suffix filters, and `specialize(files)`. Requests
++must select one adapter unambiguously; skill identifiers must be safe lowercase
++hyphenated names of at most 63 characters. The factory
++supplies bounded, read-only file bytes; the adapter must return exactly the
++declared domain fields or reject applicability. These fields cover evidence,
++technology claims, offered/future capabilities, tools, knowledge references,
++prerequisites, limits and verification criteria. They cannot override lifecycle,
++approval, registration, executability or trust fields owned by the factory.
++
++The sole production adapter, `java_spring.py`, holds the existing Maven detection
++and curated transaction recipe. `skill_factory/__init__.py` is a small static tuple
++of trusted framework adapters. A future adapter can implement the protocol and
++be added there without changing factory orchestration/validation. No discovery
++or import from the analyzed project is allowed. A test-only second recipe uses
++the same Java/Spring technology to exercise this seam; it adds no supported domain.
++
++Generation is explicitly template based. Project-derived information remains
++dependency/source observations and hashes; it is not dynamically generated
++transaction knowledge. The candidate format and existing Java/Spring template
++are unchanged.
++
++## JSON Complexity Contract (F01)
++
++Candidate JSON and generated manifests have three independent limits:
++
++| Budget | Maximum | Reason |
++|---|---|---|
++| Encoded size | 1 MiB, inclusive | Preserves the existing per-file cap and bounds lexical/parser memory |
++| Container depth | 32 open objects/arrays, inclusive | Well above the shallow candidate manifest; below Python parser/encoder recursion limits |
++| Lexical complexity | 20,000 tokens, inclusive | Bounds collection/key/value work independently of file size |
++
++An iterative preflight counts one token per string (including keys), scalar atom
++and punctuation character (`{}[]:,`), excluding whitespace and string contents.
++Escaped quotes/brackets inside strings do not affect nesting. Only then is the
++standard JSON parser used, with duplicate keys and non-JSON constants rejected.
++Malformed input and parser value/recursion failures produce a controlled blocked
++diagnostic and exit 2, never an uncaught traceback. Limits apply before native
++validation or candidate output writes; oversized generated manifests also block
++before any staging/output creation. Existing valid manifests, including equivalent
++JSON with whitespace up to the byte cap, remain compatible. Closed-contract
++validation still rejects semantically changed fields even when JSON budgets pass.
++
+ ## Governance And Existing Extensions
+ 
+ | Existing mechanism | Extension used |
+@@ -95,7 +163,13 @@
+ 
+ Filesystem checks guard normal local use, not hostile concurrent filesystem
+ replacement. Detection/validation should run against a stable checkout. The
+-factory is not a system-wide policy preventing someone from manually installing
++validator and local toolchain are trusted framework components; setting their
++temporary environment/cwd is not an OS sandbox for arbitrary hostile executables.
++Write instrumentation in the existing regression suite observes parent filesystem
++operations (including descriptor-relative cleanup) and actual temporary/cwd writes
++from a controlled child before invoking the real validator. Qualification is local;
++the instrumentation uses macOS descriptor paths or Linux `/proc/self/fd`.
++The factory is not a system-wide policy preventing someone from manually installing
+ files through unrelated tools. Human review must precede any future manual
+ registration; this version has no supported installation path and approval alone
+ does not implement the missing analyzer.
+--- a/scripts/mana-skill-factory.py
++++ b/scripts/mana-skill-factory.py
+@@ -8,14 +8,19 @@
+ import json
+ import os
+ from pathlib import Path
++import re
+ import subprocess
+ import sys
+ import tempfile
+-import xml.etree.ElementTree as ET
+-
++
++# Prevent local adapter bytecode caches from writing into an analyzed Mana checkout.
++sys.dont_write_bytecode = True
+ ROOT = Path(__file__).resolve().parents[1]
+-ID = "java-spring-transaction-analysis"
+-TEMPLATE = ROOT / "templates" / "skill-factory" / "java-spring-transaction-analysis.md"
++# Also support programmatic loading from a host outside scripts/.
++sys.path.insert(0, str(ROOT / "scripts"))
++from skill_factory import ADAPTERS  # noqa: E402 - suppress caches before local imports
++from skill_factory.contracts import DOMAIN_FIELDS, FactoryError, SkillAdapter  # noqa: E402
++
+ FORBIDDEN = {
+     "skills",
+     "agents",
+@@ -30,22 +35,22 @@
+ MAX_FILES = 5000
+ MAX_BYTES = 1024 * 1024
+ MAX_TOTAL = 32 * MAX_BYTES
+-FUTURE = [
+-    "transactional-method-identification",
+-    "spring-propagation",
+-    "reused-independent-nested-transactions",
+-    "transaction-boundaries",
+-    "sequence-diagram-overlapping-regions",
+-    "static-uncertainty-reporting",
+-]
+-
+-
+-class FactoryError(ValueError):
+-    pass
++MAX_JSON_DEPTH = 32
++MAX_JSON_TOKENS = 20000
+ 
+ 
+ def digest(raw: bytes) -> str:
+     return hashlib.sha256(raw).hexdigest()
++
++
++def canonical_project(project: Path) -> Path:
++    try:
++        project = project.resolve(strict=True)
++    except (OSError, RuntimeError) as exc:
++        raise FactoryError("project root cannot be resolved") from exc
++    if not project.is_dir():
++        raise FactoryError("project root must be a directory")
++    return project
+ 
+ 
+ def read_file(path: Path) -> bytes:
+@@ -59,8 +64,8 @@
+     return raw
+ 
+ 
+-def evidence(project: Path) -> list[dict]:
+-    """Conventional Maven modules only; declarations are not resolved dependencies."""
++def project_files(project: Path, adapter: SkillAdapter) -> dict[str, bytes]:
++    """Bounded read-only inventory, filtered by the selected trusted adapter."""
+     files = {}
+     count = total = 0
+     for directory, dirs, names in os.walk(project, followlinks=False):
+@@ -80,7 +85,10 @@
+                     "file inventory budget exceeded; no partial detection"
+                 )
+             path = Path(directory) / name
+-            if name != "pom.xml" and path.suffix != ".java":
++            if (
++                name not in adapter.evidence_names
++                and path.suffix not in adapter.evidence_suffixes
++            ):
+                 continue
+             if path.is_symlink():
+                 continue
+@@ -89,65 +97,108 @@
+             if total > MAX_TOTAL:
+                 raise FactoryError("read budget exceeded; no partial detection")
+             files[path.relative_to(project).as_posix()] = raw
+-    result = []
+-    for relative, raw in sorted(files.items()):
+-        if Path(relative).name != "pom.xml":
++    return files
++
++
++def candidate_location(path: Path, project: Path) -> Path:
++    absolute = path.absolute()
++    # Check lexical and resolved paths, including symlink aliases to discovery roots.
++    resolved = absolute.resolve()
++    if (set(absolute.parts) | set(resolved.parts)) & FORBIDDEN:
++        raise FactoryError(
++            "candidate location intersects a discovery/configuration surface"
++        )
++    if resolved == project or project in resolved.parents:
++        raise FactoryError("candidate output must be outside the analyzed project")
++    if any(p.is_symlink() for p in [absolute, *absolute.parents]):
++        # /tmp is a standard macOS alias; callers should pass its canonical path.
++        raise FactoryError(
++            "candidate location must not contain symlinks; use a canonical path"
++        )
++    return resolved
++
++
++def adapter_for(request: str | None) -> SkillAdapter:
++    matches = [a for a in ADAPTERS if request is None or a.request == request]
++    if len(matches) != 1:
++        raise FactoryError(f"unsupported or ambiguous specialist request: {request!r}")
++    adapter = matches[0]
++    if (
++        not isinstance(adapter.skill_id, str)
++        or len(adapter.skill_id) > 63
++        or re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", adapter.skill_id) is None
++    ):
++        raise FactoryError("adapter skill_id must be a safe lowercase skill identifier")
++    return adapter
++
++
++def bounded_json(raw: bytes):
++    """Iterative lexical budgets before the standard, depth-bounded JSON parser."""
++    if len(raw) > MAX_BYTES:
++        raise FactoryError(f"JSON byte limit exceeded: {MAX_BYTES}")
++    text = raw.decode("utf-8")
++    depth = tokens = 0
++    quoted = escaped = atom = False
++    for char in text:
++        if quoted:
++            if escaped:
++                escaped = False
++            elif char == "\\":
++                escaped = True
++            elif char == '"':
++                quoted = False
+             continue
+-        # No DTDs/entities, parent resolution, profiles, plugins or build execution.
+-        if b"<!DOCTYPE" in raw.upper() or b"<!ENTITY" in raw.upper():
+-            raise FactoryError(f"DTD/entity declaration forbidden: {relative}")
+-        try:
+-            pom = ET.fromstring(raw)
+-        except ET.ParseError as exc:
+-            raise FactoryError(f"malformed Maven descriptor: {relative}") from exc
+-        if pom.tag not in {"project", "{http://maven.apache.org/POM/4.0.0}project"}:
+-            raise FactoryError(f"unsupported Maven root: {relative}")
+-        ns = "{http://maven.apache.org/POM/4.0.0}" if pom.tag.startswith("{") else ""
+-        dependencies = []
+-        for dep in pom.findall(f"{ns}dependencies/{ns}dependency"):
+-            group = (dep.findtext(f"{ns}groupId") or "").strip()
+-            artifact = (dep.findtext(f"{ns}artifactId") or "").strip()
+-            scope = (dep.findtext(f"{ns}scope") or "compile").strip()
+-            if scope not in {"compile", "runtime", "provided"}:
+-                continue
+-            if (group == "org.springframework" and artifact.startswith("spring-")) or (
+-                group == "org.springframework.boot"
+-                and artifact.startswith("spring-boot-")
+-            ):
+-                if not all(c.isalnum() or c in "-." for c in artifact):
+-                    continue
+-                dependencies.append(f"{group}:{artifact}")
+-        source_prefix = (Path(relative).parent / "src/main/java").as_posix() + "/"
+-        sources = [
+-            p
+-            for p, data in sorted(files.items())
+-            if p.startswith(source_prefix) and p.endswith(".java") and data.strip()
+-        ]
+-        if dependencies and sources:
+-            result.append(
+-                {
+-                    "path": relative,
+-                    "sha256": digest(raw),
+-                    "kind": "maven-direct-dependency",
+-                    "declarations": sorted(set(dependencies)),
+-                }
+-            )
+-            source = sources[0]
+-            result.append(
+-                {"path": source, "sha256": digest(files[source]), "kind": "java-source"}
+-            )
+-    if not result:
+-        raise FactoryError(
+-            "unsupported or unproven technology: need a direct Spring dependency and Java source in the same conventional Maven module"
+-        )
+-    return result
+-
+-
+-def manifest(project: Path) -> dict:
+-    facts = evidence(project)
++        if char.isspace():
++            atom = False
++            continue
++        if char == '"':
++            quoted = True
++            atom = False
++            tokens += 1
++        elif char in "{}[]:,":
++            atom = False
++            tokens += 1
++            if char in "{[":
++                depth += 1
++                if depth > MAX_JSON_DEPTH:
++                    raise FactoryError(f"JSON depth limit exceeded: {MAX_JSON_DEPTH}")
++            elif char in "}]":
++                depth -= 1
++        elif not atom:
++            tokens += 1
++            atom = True
++        if tokens > MAX_JSON_TOKENS:
++            raise FactoryError(f"JSON token limit exceeded: {MAX_JSON_TOKENS}")
++
++    def unique_keys(pairs):
++        value = {}
++        for key, item in pairs:
++            if key in value:
++                raise FactoryError(f"duplicate JSON key: {key}")
++            value[key] = item
++        return value
++
++    def invalid_constant(value):
++        raise FactoryError(f"invalid JSON constant: {value}")
++
++    try:
++        return json.loads(
++            text, object_pairs_hook=unique_keys, parse_constant=invalid_constant
++        )
++    except FactoryError:
++        raise
++    except (ValueError, RecursionError) as exc:
++        raise FactoryError("malformed or excessively complex JSON") from exc
++
++
++def manifest(project: Path, adapter: SkillAdapter) -> dict:
++    domain = adapter.specialize(project_files(project, adapter))
++    if set(domain) != DOMAIN_FIELDS:
++        raise FactoryError("adapter contract has missing or unexpected domain fields")
++    # Only the host owns lifecycle/trust fields, never the selected domain recipe.
+     return {
+         "schema": "mana.skill-candidate/v1",
+-        "skillId": ID,
++        "skillId": adapter.skill_id,
+         "status": "candidate",
+         "trustOrigin": "generated",
+         "trusted": False,
+@@ -158,64 +209,60 @@
+             "status": "pending",
+             "ownerRole": "Architect / Team Leader",
+         },
+-        "request": "transaction-analysis",
+-        "supportedTechnologies": ["java", "spring", "maven"],
+-        "evidence": facts,
+-        "technologyClaim": "declared dependency and source presence only; resolved versions and runtime use unknown",
+-        "offeredCapabilities": ["reviewable-future-analysis-contract"],
+-        "futureCapabilities": [
+-            {"id": item, "status": "not_implemented"} for item in FUTURE
+-        ],
+-        "usableEvidence": [
+-            "java-source",
+-            "maven-direct-dependency",
+-            "explicit-project-configuration",
+-            "approved-runtime-evidence",
+-        ],
+-        "applicability": [
+-            "explicit transaction-analysis request",
+-            "Java source and direct Spring dependency in the same Maven module",
+-            "human approval and implemented analyzers required before future analysis",
+-        ],
+-        "requiredTools": [
+-            {"id": "read_files", "status": "framework_declared"},
+-            {"id": "code_search", "status": "framework_declared"},
+-            {"id": "transaction-analyzer", "status": "not_implemented"},
+-        ],
+-        "knowledgeReferences": [
+-            "docs/policies/verification-execution-policy.md",
+-            "docs/standards/agent-skill-output-standard.md",
+-            "templates/skill-factory/java-spring-transaction-analysis.md",
+-        ],
+-        "limits": [
+-            "No transaction analysis or diagram generation",
+-            "No dependency resolution or runtime claims",
+-            "No Gradle, inherited-only dependencies, profiles or nonstandard source roots",
+-            "No promotion, registration, approval recording or execution API",
+-        ],
+-        "verificationCriteria": [
+-            "recompute source evidence hashes",
+-            "validate Mana skill metadata",
+-            "reject changed candidate content",
+-            "require pending approval and generated untrusted non-executable state",
+-            "require future capabilities to remain not_implemented",
+-        ],
+-        "skillSha256": digest(TEMPLATE.read_bytes()),
++        "request": adapter.request,
++        **domain,
++        "skillSha256": digest(read_file(adapter.template)),
+     }
+ 
+ 
+-def check_mana_contract(skill: bytes) -> None:
+-    # Reuse the authoritative Mana validator without adding the candidate to discovery.
+-    with tempfile.TemporaryDirectory(prefix="mana-skill-contract-") as temporary:
++def temporary_parent(project: Path) -> Path:
++    # tempfile.gettempdir() probes candidates by WRITING. Resolve/check first instead.
++    project = canonical_project(project)
++    selected = next(
++        (os.environ[k] for k in ("TMPDIR", "TEMP", "TMP") if os.environ.get(k)), None
++    )
++    if selected is None:
++        if os.name != "posix":
++            raise FactoryError(
++                "configure an existing external temporary parent with TMPDIR"
++            )
++        selected = "/tmp"
++    lexical = Path(selected).absolute()
++    try:
++        parent = lexical.resolve()
++    except (OSError, RuntimeError) as exc:
++        raise FactoryError(f"temporary parent cannot be resolved: {lexical}") from exc
++    if parent == project or project in parent.parents:
++        raise FactoryError(f"temporary parent is inside analyzed project: {parent}")
++    if (set(lexical.parts) | set(parent.parts)) & FORBIDDEN:
++        raise FactoryError(
++            f"temporary parent intersects discovery/configuration surface: {parent}"
++        )
++    if not parent.is_dir():
++        raise FactoryError(f"temporary parent must already exist: {parent}")
++    return parent
++
++
++def check_mana_contract(skill: bytes, project: Path, adapter: SkillAdapter) -> None:
++    parent = temporary_parent(project)
++    with tempfile.TemporaryDirectory(
++        prefix="mana-skill-contract-", dir=parent
++    ) as temporary:
+         stage = Path(temporary)
+-        directory = stage / "skills" / ID
++        directory = stage / "skills" / adapter.skill_id
+         directory.mkdir(parents=True)
+         (directory / "SKILL.md").write_bytes(skill)
++        # Subprocesses get the same isolated canonical temp and working directory.
++        # No host-global environment mutation, shell startup instructions or target cwd.
++        env = {k: v for k, v in os.environ.items() if k not in {"BASH_ENV", "ENV"}}
++        env.update({"TMPDIR": str(stage), "TEMP": str(stage), "TMP": str(stage)})
+         result = subprocess.run(
+             ["bash", str(ROOT / "scripts/validate-skills.sh"), str(stage)],
+             capture_output=True,
+             text=True,
+             check=False,
++            cwd=stage,
++            env=env,
+         )
+         if result.returncode:
+             raise FactoryError(
+@@ -223,25 +270,8 @@
+             )
+ 
+ 
+-def candidate_location(path: Path, project: Path) -> Path:
+-    absolute = path.absolute()
+-    # Check lexical and resolved paths, including symlink aliases to discovery roots.
+-    resolved = absolute.resolve()
+-    if (set(absolute.parts) | set(resolved.parts)) & FORBIDDEN:
+-        raise FactoryError(
+-            "candidate location intersects a discovery/configuration surface"
+-        )
+-    if resolved == project or project in resolved.parents:
+-        raise FactoryError("candidate output must be outside the analyzed project")
+-    if any(p.is_symlink() for p in [absolute, *absolute.parents]):
+-        # /tmp is a standard macOS alias; callers should pass its canonical path.
+-        raise FactoryError(
+-            "candidate location must not contain symlinks; use a canonical path"
+-        )
+-    return resolved
+-
+-
+ def validate(project: Path, directory: Path) -> dict:
++    project = canonical_project(project)
+     directory = candidate_location(directory, project)
+     if not directory.is_dir() or {p.name for p in directory.iterdir()} != {
+         "SKILL.md",
+@@ -251,52 +281,44 @@
+             "candidate bundle must contain only SKILL.md and candidate.json"
+         )
+     skill = read_file(directory / "SKILL.md")
+-    raw = read_file(directory / "candidate.json")
+-
+-    def unique_keys(pairs):
+-        value = {}
+-        for key, item in pairs:
+-            if key in value:
+-                raise FactoryError(f"duplicate JSON key: {key}")
+-            value[key] = item
+-        return value
+-
+-    candidate = json.loads(raw, object_pairs_hook=unique_keys)
+-    expected = manifest(project)
+-    # This bounded v1 accepts only its curated contract, never repository/model instructions.
+-    if (
+-        json.dumps(candidate, sort_keys=True) != json.dumps(expected, sort_keys=True)
+-        or skill != TEMPLATE.read_bytes()
+-    ):
++    candidate = bounded_json(read_file(directory / "candidate.json"))
++    if not isinstance(candidate, dict) or not isinstance(candidate.get("request"), str):
++        raise FactoryError("candidate must be an object with a specialist request")
++    adapter = adapter_for(candidate["request"])
++    expected = manifest(project, adapter)
++    if json.dumps(candidate, sort_keys=True) != json.dumps(
++        expected, sort_keys=True
++    ) or skill != read_file(adapter.template):
+         raise FactoryError(
+             "candidate contract or source evidence changed; regenerate for review"
+         )
+-    check_mana_contract(skill)
++    check_mana_contract(skill, project, adapter)
+     return {
+         "status": "valid",
+-        "skillId": ID,
++        "skillId": adapter.skill_id,
+         "approval": "pending",
+         "executable": False,
+     }
+ 
+ 
+-def generate(project: Path, directory: Path) -> dict:
++def generate(project: Path, directory: Path, request: str | None = None) -> dict:
++    project = canonical_project(project)
+     directory = candidate_location(directory, project)
+     if directory.exists():
+         raise FactoryError("candidate output already exists; refusing overwrite")
+-    value = manifest(project)
+-    skill = TEMPLATE.read_bytes()
+-    check_mana_contract(skill)
++    adapter = adapter_for(request)
++    value = manifest(project, adapter)
++    payload = (json.dumps(value, indent=2) + "\n").encode("utf-8")
++    bounded_json(payload)
++    skill = read_file(adapter.template)
++    check_mana_contract(skill, project, adapter)
+     directory.parent.mkdir(parents=True, exist_ok=True)
+     directory.mkdir(mode=0o700)
+     try:
+         (directory / "SKILL.md").write_bytes(skill)
+-        (directory / "candidate.json").write_text(
+-            json.dumps(value, indent=2) + "\n", encoding="utf-8"
+-        )
++        (directory / "candidate.json").write_bytes(payload)
+         return validate(project, directory)
+     except Exception:
+-        # Remove only files this invocation created in its fresh directory.
+         for name in ("SKILL.md", "candidate.json"):
+             (directory / name).unlink(missing_ok=True)
+         directory.rmdir()
+@@ -311,20 +333,17 @@
+         child.add_argument("--project-root", required=True, type=Path)
+         child.add_argument("--candidate-dir", required=True, type=Path)
+         if command == "generate":
+-            child.add_argument(
+-                "--request", required=True, choices=["transaction-analysis"]
+-            )
++            child.add_argument("--request", required=True)
+     args = parser.parse_args()
+     try:
+-        project = args.project_root.resolve(strict=True)
+-        if not project.is_dir():
+-            raise FactoryError("project root must be a directory")
+-        result = (generate if args.command == "generate" else validate)(
+-            project, args.candidate_dir
+-        )
++        project = canonical_project(args.project_root)
++        if args.command == "generate":
++            result = generate(project, args.candidate_dir, args.request)
++        else:
++            result = validate(project, args.candidate_dir)
+         print(json.dumps(result, sort_keys=True))
+         return 0
+-    except (FactoryError, OSError, UnicodeError, ValueError) as exc:
++    except (FactoryError, OSError, UnicodeError, ValueError, RecursionError) as exc:
+         print(
+             json.dumps({"status": "blocked", "reason": str(exc), "executable": False}),
+             file=sys.stderr,
+--- /dev/null
++++ b/scripts/skill_factory/__init__.py
+@@ -0,0 +1,5 @@
++"""Static, framework-owned adapter selection. Never import target-project code."""
++
++from .java_spring import JavaSpringAdapter
++
++ADAPTERS = (JavaSpringAdapter(),)
+--- /dev/null
++++ b/scripts/skill_factory/contracts.py
+@@ -0,0 +1,37 @@
++"""Minimal trusted adapter boundary; adapters never own output or trust state."""
++
++from pathlib import Path
++from typing import Protocol
++
++
++class FactoryError(ValueError):
++    pass
++
++
++DOMAIN_FIELDS = frozenset(
++    {
++        "supportedTechnologies",
++        "evidence",
++        "technologyClaim",
++        "offeredCapabilities",
++        "futureCapabilities",
++        "usableEvidence",
++        "applicability",
++        "requiredTools",
++        "knowledgeReferences",
++        "limits",
++        "verificationCriteria",
++    }
++)
++
++
++class SkillAdapter(Protocol):
++    skill_id: str
++    request: str
++    template: Path
++    evidence_names: frozenset[str]
++    evidence_suffixes: frozenset[str]
++
++    def specialize(self, files: dict[str, bytes]) -> dict:
++        """Return exactly DOMAIN_FIELDS, including applicability evidence or a rejection."""
++        ...
+--- /dev/null
++++ b/scripts/skill_factory/java_spring.py
+@@ -0,0 +1,135 @@
++"""The sole production adapter: curated Java/Spring contract plus Maven evidence."""
++
++import hashlib
++from pathlib import Path
++import xml.etree.ElementTree as ET
++
++from .contracts import FactoryError
++
++FUTURE = [
++    "transactional-method-identification",
++    "spring-propagation",
++    "reused-independent-nested-transactions",
++    "transaction-boundaries",
++    "sequence-diagram-overlapping-regions",
++    "static-uncertainty-reporting",
++]
++
++
++class JavaSpringAdapter:
++    skill_id = "java-spring-transaction-analysis"
++    request = "transaction-analysis"
++    evidence_names = frozenset({"pom.xml"})
++    evidence_suffixes = frozenset({".java"})
++    template = (
++        Path(__file__).resolve().parents[2]
++        / "templates/skill-factory/java-spring-transaction-analysis.md"
++    )
++
++    def evidence(self, files: dict[str, bytes]) -> list[dict]:
++        result = []
++        for relative, raw in sorted(files.items()):
++            if Path(relative).name != "pom.xml":
++                continue
++            # No DTDs/entities, parent resolution, profiles, plugins or build execution.
++            if b"<!DOCTYPE" in raw.upper() or b"<!ENTITY" in raw.upper():
++                raise FactoryError(f"DTD/entity declaration forbidden: {relative}")
++            try:
++                pom = ET.fromstring(raw)
++            except ET.ParseError as exc:
++                raise FactoryError(f"malformed Maven descriptor: {relative}") from exc
++            if pom.tag not in {"project", "{http://maven.apache.org/POM/4.0.0}project"}:
++                raise FactoryError(f"unsupported Maven root: {relative}")
++            ns = (
++                "{http://maven.apache.org/POM/4.0.0}" if pom.tag.startswith("{") else ""
++            )
++            dependencies = []
++            for dep in pom.findall(f"{ns}dependencies/{ns}dependency"):
++                group = (dep.findtext(f"{ns}groupId") or "").strip()
++                artifact = (dep.findtext(f"{ns}artifactId") or "").strip()
++                scope = (dep.findtext(f"{ns}scope") or "compile").strip()
++                if scope not in {"compile", "runtime", "provided"}:
++                    continue
++                if (
++                    group == "org.springframework" and artifact.startswith("spring-")
++                ) or (
++                    group == "org.springframework.boot"
++                    and artifact.startswith("spring-boot-")
++                ):
++                    if not all(c.isalnum() or c in "-." for c in artifact):
++                        continue
++                    dependencies.append(f"{group}:{artifact}")
++            source_prefix = (Path(relative).parent / "src/main/java").as_posix() + "/"
++            sources = [
++                p
++                for p, data in sorted(files.items())
++                if p.startswith(source_prefix) and p.endswith(".java") and data.strip()
++            ]
++            if dependencies and sources:
++                result.append(
++                    {
++                        "path": relative,
++                        "sha256": hashlib.sha256(raw).hexdigest(),
++                        "kind": "maven-direct-dependency",
++                        "declarations": sorted(set(dependencies)),
++                    }
++                )
++                source = sources[0]
++                result.append(
++                    {
++                        "path": source,
++                        "sha256": hashlib.sha256(files[source]).hexdigest(),
++                        "kind": "java-source",
++                    }
++                )
++        if not result:
++            raise FactoryError(
++                "unsupported or unproven technology: need a direct Spring dependency and Java source in the same conventional Maven module"
++            )
++        return result
++
++    def specialize(self, files: dict[str, bytes]) -> dict:
++        facts = self.evidence(files)
++        return {
++            "supportedTechnologies": ["java", "spring", "maven"],
++            "evidence": facts,
++            "technologyClaim": "declared dependency and source presence only; resolved versions and runtime use unknown",
++            "offeredCapabilities": ["reviewable-future-analysis-contract"],
++            "futureCapabilities": [
++                {"id": item, "status": "not_implemented"} for item in FUTURE
++            ],
++            "usableEvidence": [
++                "java-source",
++                "maven-direct-dependency",
++                "explicit-project-configuration",
++                "approved-runtime-evidence",
++            ],
++            "applicability": [
++                "explicit transaction-analysis request",
++                "Java source and direct Spring dependency in the same Maven module",
++                "human approval and implemented analyzers required before future analysis",
++            ],
++            "requiredTools": [
++                {"id": "read_files", "status": "framework_declared"},
++                {"id": "code_search", "status": "framework_declared"},
++                {"id": "transaction-analyzer", "status": "not_implemented"},
++            ],
++            "knowledgeReferences": [
++                "docs/policies/verification-execution-policy.md",
++                "docs/standards/agent-skill-output-standard.md",
++                "templates/skill-factory/java-spring-transaction-analysis.md",
++            ],
++            "limits": [
++                "No transaction analysis or diagram generation",
++                "No dependency resolution or runtime claims",
++                "No Gradle, inherited-only dependencies, profiles or nonstandard source roots",
++                "No promotion, registration, approval recording or execution API",
++            ],
++            "verificationCriteria": [
++                "recompute source evidence hashes",
++                "validate Mana skill metadata",
++                "reject changed candidate content",
++                "require pending approval and generated untrusted non-executable state",
++                "require future capabilities to remain not_implemented",
++            ],
++        }
+--- a/scripts/validate-repo.sh
++++ b/scripts/validate-repo.sh
+@@ -145,6 +145,11 @@
+   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1
+   elif [ ! -x "$root/$f" ]; then echo "ERROR: $f is not executable" >&2; status=1
+   else bash -n "$root/$f" || status=1
++  fi
++done
++for f in scripts/skill_factory/__init__.py scripts/skill_factory/contracts.py scripts/skill_factory/java_spring.py; do
++  if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1
++  else python3 -m py_compile "$root/$f" || status=1
+   fi
+ done
+ for f in scripts/mana-catalog.py scripts/mana-knowledge.py scripts/mana-actions.py scripts/mana-review-inbox.py scripts/mana-skill-factory.py tests/mana-catalog.py tests/mana-knowledge.py tests/mana-actions.py tests/mana-review-inbox.py tests/mana-skill-factory.py; do
+--- a/tests/mana-skill-factory.py
++++ b/tests/mana-skill-factory.py
+@@ -2,12 +2,16 @@
+ """Targeted offline acceptance for the candidate-only specialist factory."""
+ 
+ import hashlib
++from contextlib import contextmanager
++import importlib.util
+ import json
++import os
+ from pathlib import Path
+ import subprocess
+ import sys
+ import tempfile
+ import unittest
++from unittest import mock
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+ CLI = ROOT / "scripts/mana-skill-factory.py"
+@@ -16,6 +20,57 @@
+ <artifactId>demo</artifactId><version>1</version><dependencies><dependency>
+ <groupId>org.springframework</groupId><artifactId>spring-context</artifactId>
+ </dependency></dependencies></project>"""
++
++spec = importlib.util.spec_from_file_location("factory_under_test", CLI)
++factory = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(factory)
++OBSERVED_WRITES = None
++
++
++def observe_writes(event, args):
++    if OBSERVED_WRITES is None:
++        return
++    paths = []
++    if event == "open":
++        path, mode, flags = args
++        if flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND):
++            paths = [(path, None)]
++    elif event in {"os.mkdir", "os.remove", "os.rmdir", "os.chmod"}:
++        paths = [(args[0], args[-1])]
++    elif event in {"os.rename", "os.link"}:
++        paths = [(args[0], args[2]), (args[1], args[3])]
++    elif event == "os.symlink":
++        paths = [(args[1], args[2])]
++    for path, dir_fd in paths:
++        if isinstance(path, (str, bytes, os.PathLike)):
++            resolved = Path(os.fsdecode(path))
++            if not resolved.is_absolute() and isinstance(dir_fd, int) and dir_fd >= 0:
++                if sys.platform == "darwin":
++                    import fcntl
++
++                    parent = os.fsdecode(
++                        fcntl.fcntl(dir_fd, fcntl.F_GETPATH, b"\0" * 1024).split(
++                            b"\0", 1
++                        )[0]
++                    )
++                else:
++                    parent = os.readlink(f"/proc/self/fd/{dir_fd}")
++                resolved = Path(parent) / resolved
++            OBSERVED_WRITES.append((event, str(resolved.resolve())))
++
++
++sys.addaudithook(observe_writes)
++
++
++@contextmanager
++def recording_writes():
++    global OBSERVED_WRITES
++    events = []
++    OBSERVED_WRITES = events
++    try:
++        yield events
++    finally:
++        OBSERVED_WRITES = None
+ 
+ 
+ def snapshot(directory):
+@@ -252,6 +307,303 @@
+         self.assertNotEqual(result.returncode, 0)
+         self.assertIn("undeclared", result.stderr)
+ 
++    def assert_no_protected_writes(self, events):
++        protected = [self.project, ROOT / "skills", ROOT / "profiles", ROOT / "agents"]
++        self.assertFalse(
++            [
++                (event, path)
++                for event, path in events
++                if any(Path(path) == p or p in Path(path).parents for p in protected)
++            ]
++        )
++
++    def test_external_temporary_paths_spaces_symlinks_and_child_writes(self):
++        outside = self.base / "external temp with spaces"
++        outside.mkdir()
++        alias = self.base / "external alias"
++        alias.symlink_to(outside, target_is_directory=True)
++        wrapper = self.base / "bin/bash"
++        wrapper.parent.mkdir()
++        log = self.base / "child-writes.jsonl"
++        # Observe actual child writes, then run the existing authoritative validator.
++        wrapper.write_text(
++            f"#!{sys.executable}\n"
++            "import json,os,sys\nfrom pathlib import Path\n"
++            "paths=[]\n"
++            "for key in ['TMPDIR','TEMP','TMP','cwd']:\n"
++            " parent=Path.cwd() if key=='cwd' else Path(os.environ[key])\n"
++            " path=parent/('child-probe-'+key);path.write_text('probe');paths.append(str(path.resolve()))\n"
++            "with open(os.environ['F01_CHILD_LOG'],'a') as stream: stream.write(json.dumps(paths)+'\\n')\n"
++            "os.execv('/bin/bash',['/bin/bash',*sys.argv[1:]])\n"
++        )
++        wrapper.chmod(0o755)
++        startup = self.project / "startup.sh"
++        marker = self.project / "startup-executed"
++        startup.write_text(f"touch '{marker}'\n")
++        before = snapshot(self.project)
++        for i, temporary in enumerate([outside, alias, Path(os.path.relpath(outside))]):
++            with self.subTest(temporary=temporary):
++                candidate = self.base / f"candidate with spaces-{i}"
++                env = {
++                    "TMPDIR": str(temporary),
++                    "TEMP": str(self.project),
++                    "TMP": str(self.project),
++                    "PATH": str(wrapper.parent) + os.pathsep + os.environ["PATH"],
++                    "F01_CHILD_LOG": str(log),
++                    "BASH_ENV": str(startup),
++                    "ENV": str(startup),
++                }
++                with mock.patch.dict(os.environ, env), recording_writes() as events:
++                    factory.generate(self.project, candidate)
++                    factory.validate(self.project, candidate)
++                self.assert_no_protected_writes(events)
++                self.assertTrue(
++                    events, "write observer must see external output/staging writes"
++                )
++        self.assertEqual(snapshot(self.project), before)
++        self.assertFalse(marker.exists())
++        child_paths = [
++            Path(p) for line in log.read_text().splitlines() for p in json.loads(line)
++        ]
++        self.assertTrue(child_paths)
++        self.assertTrue(all(outside in p.parents for p in child_paths))
++
++    def test_unsafe_or_missing_temporary_parent_blocks_before_any_write(self):
++        self.invoke()
++        alias = self.base / "target alias"
++        alias.symlink_to(self.project, target_is_directory=True)
++        loop = self.base / "loop"
++        loop.symlink_to(loop)
++        discovery = self.base / "skills"
++        discovery.mkdir()
++        cases = [
++            self.project,
++            self.project / "missing with spaces",
++            alias,
++            alias / "missing",
++            Path(os.path.relpath(self.project)),
++            self.base / "missing external",
++            discovery,
++            loop,
++        ]
++        for temporary in cases:
++            for command in ("generate", "validate"):
++                with self.subTest(temporary=temporary, command=command):
++                    with mock.patch.dict(os.environ, {"TMPDIR": str(temporary)}):
++                        with (
++                            recording_writes() as events,
++                            mock.patch.object(factory.subprocess, "run") as child,
++                        ):
++                            with self.assertRaisesRegex(
++                                factory.FactoryError, "temporary parent"
++                            ):
++                                if command == "generate":
++                                    factory.generate(
++                                        self.project, self.base / "uncreated/child"
++                                    )
++                                else:
++                                    factory.validate(self.project, self.candidate)
++                            child.assert_not_called()
++                        self.assertEqual(events, [])
++                    self.assertFalse((self.base / "uncreated").exists())
++        # Canonical containment also applies when a host calls the API through an alias.
++        with (
++            mock.patch.dict(os.environ, {"TMPDIR": str(self.project)}),
++            recording_writes() as events,
++        ):
++            with self.assertRaisesRegex(factory.FactoryError, "temporary parent"):
++                factory.generate(alias, self.base / "alias-candidate")
++        self.assertEqual(events, [])
++
++    def test_internal_temp_cli_returns_diagnostic_without_output(self):
++        argv = [
++            sys.executable,
++            str(CLI),
++            "generate",
++            "--project-root",
++            str(self.project),
++            "--request",
++            "transaction-analysis",
++            "--candidate-dir",
++            str(self.candidate),
++        ]
++        result = subprocess.run(
++            argv,
++            capture_output=True,
++            text=True,
++            env={**os.environ, "TMPDIR": str(self.project)},
++        )
++        self.assertEqual(result.returncode, 2)
++        self.assertEqual(
++            json.loads(result.stderr)["reason"],
++            f"temporary parent is inside analyzed project: {self.project}",
++        )
++        self.assertFalse(self.candidate.exists())
++
++    def test_temporary_environment_fallbacks_without_host_changes(self):
++        before = dict(os.environ)
++        for env in [
++            {"TMPDIR": "", "TEMP": str(self.project), "TMP": str(self.base)},
++            {"TMPDIR": "", "TEMP": "", "TMP": str(self.project)},
++        ]:
++            with mock.patch.dict(os.environ, env), recording_writes() as events:
++                with self.assertRaisesRegex(
++                    factory.FactoryError, "inside analyzed project"
++                ):
++                    factory.generate(self.project, self.candidate)
++            self.assertEqual(events, [])
++        with (
++            mock.patch.dict(os.environ, {"TMPDIR": "", "TEMP": "", "TMP": ""}),
++            recording_writes() as events,
++        ):
++            if os.name == "posix":
++                self.assertEqual(
++                    factory.temporary_parent(self.project), Path("/tmp").resolve()
++                )
++        self.assertEqual(events, [])
++        self.assertEqual(dict(os.environ), before)
++
++    def test_native_validation_failure_precedes_output_writes(self):
++        failed = subprocess.CompletedProcess([], 1, "", "fixture validator failure")
++        with (
++            recording_writes() as events,
++            mock.patch.object(factory.subprocess, "run", return_value=failed),
++        ):
++            with self.assertRaisesRegex(
++                factory.FactoryError, "fixture validator failure"
++            ):
++                factory.generate(self.project, self.candidate)
++        self.assert_no_protected_writes(events)
++        self.assertFalse(self.candidate.exists())
++
++    def test_json_malformed_and_deep_cli_block_without_writes(self):
++        self.invoke()
++        path = self.candidate / "candidate.json"
++        for payload in [
++            b'{"bad":',
++            ('{"extra":' + "[" * 2000 + "0" + "]" * 2000 + "}").encode(),
++            ("[0," * 10).encode(),
++            b'{"number": NaN}',
++        ]:
++            with self.subTest(length=len(payload)):
++                path.write_bytes(payload)
++                before = snapshot(self.candidate)
++                with (
++                    recording_writes() as events,
++                    mock.patch.object(factory.subprocess, "run") as child,
++                ):
++                    with self.assertRaises(factory.FactoryError):
++                        factory.validate(self.project, self.candidate)
++                    child.assert_not_called()
++                self.assertEqual(events, [])
++                response = self.invoke("validate", expected=2)
++                self.assertEqual(response["status"], "blocked")
++                self.assertEqual(snapshot(self.candidate), before)
++
++    def test_json_size_depth_and_token_boundaries(self):
++        self.invoke()
++        path = self.candidate / "candidate.json"
++        original = path.read_bytes()
++        path.write_bytes(original + b" " * (factory.MAX_BYTES - len(original)))
++        self.invoke("validate")
++        path.write_bytes(path.read_bytes() + b" ")
++        self.invoke("validate", expected=2)
++        depth = factory.MAX_JSON_DEPTH
++        self.assertIsInstance(
++            factory.bounded_json(("[" * depth + "0" + "]" * depth).encode()), list
++        )
++        with self.assertRaisesRegex(factory.FactoryError, "depth limit"):
++            factory.bounded_json(("[" * (depth + 1) + "0" + "]" * (depth + 1)).encode())
++        # Arrays have one token per delimiter/comma/scalar: 2*n+1.
++        close_to_limit = b"[" + b",".join([b"0"] * 9999) + b"]"
++        self.assertEqual(len(factory.bounded_json(close_to_limit)), 9999)
++        with self.assertRaisesRegex(factory.FactoryError, "token limit"):
++            factory.bounded_json(b"[" + b",".join([b"0"] * 10000) + b"]")
++        with self.assertRaisesRegex(factory.FactoryError, "byte limit"):
++            factory.bounded_json(b" " * (factory.MAX_BYTES + 1))
++
++    def test_quoted_brackets_and_escapes_do_not_consume_depth_budget(self):
++        value = {"text": "[" * 2000 + '\\"' + "]" * 2000}
++        self.assertEqual(factory.bounded_json(json.dumps(value).encode()), value)
++
++    def test_adapter_boundary_extends_same_technology_without_core_changes(self):
++        existing = factory.ADAPTERS[0]
++        template = self.base / "fixture-contract.md"
++        template.write_text(
++            existing.template.read_text().replace(
++                existing.skill_id, "fixture-java-contract"
++            )
++        )
++
++        class FixtureRecipe(type(existing)):
++            request = "fixture-java-request"
++            skill_id = "fixture-java-contract"
++
++        adapter = FixtureRecipe()
++        adapter.template = template
++        with mock.patch.object(factory, "ADAPTERS", (adapter,)):
++            result = factory.generate(self.project, self.candidate, adapter.request)
++            self.assertEqual(result["skillId"], adapter.skill_id)
++            factory.validate(self.project, self.candidate)
++        value = json.loads((self.candidate / "candidate.json").read_text())
++        self.assertEqual(value["request"], adapter.request)
++        self.assertFalse(value["trusted"] or value["executable"] or value["registered"])
++        self.assertEqual(len(factory.ADAPTERS), 1)
++        self.assertEqual(factory.ADAPTERS[0].request, "transaction-analysis")
++
++    def test_unsupported_requests_and_adapter_governance_override_block(self):
++        with recording_writes() as events:
++            with self.assertRaisesRegex(factory.FactoryError, "unsupported"):
++                factory.generate(self.project, self.candidate, "unsupported-technology")
++        self.assertEqual(events, [])
++
++        class UnsafeRecipe(type(factory.ADAPTERS[0])):
++            skill_id = "../../project/unsafe"
++
++        with (
++            mock.patch.object(factory, "ADAPTERS", (UnsafeRecipe(),)),
++            recording_writes() as events,
++        ):
++            with self.assertRaisesRegex(factory.FactoryError, "adapter skill_id"):
++                factory.generate(self.project, self.candidate)
++        self.assertEqual(events, [])
++        adapter = mock.Mock(wraps=factory.ADAPTERS[0])
++        adapter.skill_id = factory.ADAPTERS[0].skill_id
++        adapter.evidence_names = frozenset({"pom.xml"})
++        adapter.evidence_suffixes = frozenset({".java"})
++        adapter.specialize.return_value = {
++            **factory.ADAPTERS[0].specialize(
++                factory.project_files(self.project, factory.ADAPTERS[0])
++            ),
++            "trusted": True,
++        }
++        with (
++            mock.patch.object(factory, "ADAPTERS", (adapter,)),
++            recording_writes() as events,
++        ):
++            with self.assertRaisesRegex(factory.FactoryError, "adapter contract"):
++                factory.generate(self.project, self.candidate)
++        self.assertEqual(events, [])
++        self.assertFalse(self.candidate.exists())
++
++    def test_overcomplex_generated_manifest_rejected_before_output(self):
++        existing = factory.ADAPTERS[0]
++
++        class OversizedRecipe(type(existing)):
++            def specialize(self, files):
++                domain = super().specialize(files)
++                domain["limits"] = ["unbounded"] * 10000
++                return domain
++
++        with (
++            mock.patch.object(factory, "ADAPTERS", (OversizedRecipe(),)),
++            recording_writes() as events,
++        ):
++            with self.assertRaisesRegex(factory.FactoryError, "token limit"):
++                factory.generate(self.project, self.base / "uncreated/child")
++        self.assertEqual(events, [])
++        self.assertFalse((self.base / "uncreated").exists())
++
+ 
+ if __name__ == "__main__":
+     unittest.main()

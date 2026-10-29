@@ -1,0 +1,62 @@
+@startuml
+top to bottom direction
+skinparam shadowing false
+title synthetic_O_A01 / MIXED DEPENDENCY / typed links
+rectangle "PHYSICAL a / P1" as N1 #CCE5FF
+rectangle "PHYSICAL b / P1" as N2 #CCE5FF
+N1 -[#B03030,dashed]-> N2: DATABASE DEPENDENCY C11\nCONDITIONAL\nresource=Y\ncut=common\ncandidate=W2
+note right of N1
+Claim C11 / evidence.json
+sources: a/O2, b/O1
+premises: Y_database, Y_object, Y_overlap
+premises: a2_binding, a2_request, b1_acquire
+premises: b1_binding, b1_request, b1_retain
+premises: blocking, concurrent, independent_a
+premises: independent_b
+end note
+N2 -[#B03030,dashed]-> N1: DATABASE DEPENDENCY C12\nCONDITIONAL\nresource=X\ncut=common\ncandidate=W3
+note right of N2
+Claim C12 / evidence.json
+sources: b/O2, a/O1
+premises: X_database, X_object, X_overlap
+premises: a1_acquire, a1_binding, a1_request
+premises: a1_retain, b2_binding, b2_request
+premises: blocking, concurrent, independent_a
+premises: independent_b
+end note
+rectangle "FRAME a / F1" as N3 #D6F5D6
+rectangle "FRAME b / F1" as N4 #D6F5D6
+N3 -[#8050A0,dotted]-> N1: MIXED / EXECUTES_IN\nCONDITIONAL / R1, R2, R3 / evidence.json
+N4 -[#8050A0,dotted]-> N2: MIXED / EXECUTES_IN\nCONDITIONAL / R4, R5, R6 / evidence.json
+legend left
+KNOWN / VERIFIED = validated static structure only; execution CONDITIONAL.
+UNKNOWN is not absence. Runtime NOT_RUN; locks and waits are not observed.
+P IDs are participant-local symbolic identities; no confirmed deadlock claim.
+Coverage: INCOMPLETE
+Assessment: CONDITIONAL_CYCLE_RISK
+INCOMPLETE: UNRESOLVED_DATA_OR_CAUSALITY
+Candidate W1 / cut=common / EXCLUDED
+UNKNOWN obligations: W3, W7; contradicted: W1
+Candidate W4 / cut=common / EXCLUDED
+UNKNOWN obligations: W3, W7; contradicted: W1
+No universal deadlock freedom. See evidence.json for full source references.
+DB dashed red = candidate wait; app solid blue = synchronous completion.
+Mixed dotted purple = typed relation, not an additional DB wait edge.
+Application/typed links are scenario-wide; only DB edges are filtered by cut.
+Cut common
+CONDITIONAL_CYCLE_RISK
+Exclusion is scoped; missing evidence remains UNKNOWN.
+CONFLICT C9 CONDITIONAL / UNORIENTED / holder UNKNOWN
+resource=X sources=a/O1, b/O2
+CONFLICT C10 CONDITIONAL / UNORIENTED / holder UNKNOWN
+resource=Y sources=a/O2, b/O1
+Candidate W1 EXCLUDED
+W1 CONTRADICTED
+W3 UNKNOWN
+W7 UNKNOWN
+Candidate W4 EXCLUDED
+W1 CONTRADICTED
+W3 UNKNOWN
+W7 UNKNOWN
+endlegend
+@enduml

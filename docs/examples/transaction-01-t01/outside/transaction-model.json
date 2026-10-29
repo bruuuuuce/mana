@@ -1,0 +1,271 @@
+{
+  "schema": "mana.transaction-model/v1",
+  "entry": "fixture.A#outside()",
+  "status": "CONDITIONAL_STATIC_SCENARIO",
+  "proxyMode": "CLASS",
+  "assumptions": [
+    "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+    "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+    "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+    "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+    "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven."
+  ],
+  "context": {
+    "schema": "mana.transaction-context/v1",
+    "initialState": "NO_TRANSACTION",
+    "entryThroughProxy": true,
+    "managerCapabilities": {
+      "tx": {
+        "suspend": true,
+        "savepoints": true
+      }
+    }
+  },
+  "managers": [
+    {
+      "id": "tx",
+      "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+      "evidence": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 665,
+        "end": 758,
+        "line": 15,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      },
+      "capabilities": {
+        "suspend": true,
+        "savepoints": true
+      },
+      "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+    }
+  ],
+  "frames": [
+    {
+      "id": "F1",
+      "callerMethod": null,
+      "calleeMethod": "fixture.A#outside()",
+      "callSite": null,
+      "bean": "fixture.A",
+      "proxy": {
+        "mode": "CLASS",
+        "crossed": true,
+        "configurationEvidence": [
+          {
+            "file": "src/main/java/fixture/Scenario.java",
+            "start": 592,
+            "end": 645,
+            "line": 13,
+            "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+          }
+        ],
+        "reason": "SCENARIO_PROXY_CALL"
+      },
+      "manager": null,
+      "configuration": null,
+      "logicalScope": null,
+      "previousState": {
+        "kind": "NO_TRANSACTION",
+        "physicalId": null,
+        "manager": null
+      },
+      "duringState": {
+        "kind": "NO_TRANSACTION",
+        "physicalId": null,
+        "manager": null
+      },
+      "afterState": {
+        "kind": "NO_TRANSACTION",
+        "physicalId": null,
+        "manager": null
+      },
+      "certainty": "CONDITIONAL",
+      "bodyTraversal": "STRAIGHT_LINE",
+      "evidence": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 986,
+        "end": 1025,
+        "line": 23,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      },
+      "depth": 0,
+      "beanEvidence": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 761,
+        "end": 1941,
+        "line": 17,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      },
+      "beanName": "a"
+    },
+    {
+      "id": "F2",
+      "callerMethod": "fixture.A#outside()",
+      "calleeMethod": "fixture.B#required()",
+      "callSite": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 1010,
+        "end": 1022,
+        "line": 23,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      },
+      "bean": "fixture.B",
+      "proxy": {
+        "mode": "CLASS",
+        "crossed": true,
+        "configurationEvidence": [
+          {
+            "file": "src/main/java/fixture/Scenario.java",
+            "start": 592,
+            "end": 645,
+            "line": 13,
+            "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+          }
+        ],
+        "reason": "SCENARIO_PROXY_CALL"
+      },
+      "manager": "tx",
+      "configuration": {
+        "propagation": "REQUIRED",
+        "managerQualifier": "",
+        "attributes": {},
+        "evidence": {
+          "file": "src/main/java/fixture/Scenario.java",
+          "start": 1985,
+          "end": 1999,
+          "line": 41,
+          "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+        },
+        "origin": "method",
+        "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+        "unmodeledAttributes": []
+      },
+      "logicalScope": "L1",
+      "previousState": {
+        "kind": "NO_TRANSACTION",
+        "physicalId": null,
+        "manager": null
+      },
+      "duringState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "afterState": {
+        "kind": "NO_TRANSACTION",
+        "physicalId": null,
+        "manager": null
+      },
+      "certainty": "CONDITIONAL",
+      "bodyTraversal": "STRAIGHT_LINE",
+      "evidence": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 1985,
+        "end": 2025,
+        "line": 41,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      },
+      "depth": 1,
+      "beanEvidence": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 1942,
+        "end": 2398,
+        "line": 38,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      },
+      "beanName": "b",
+      "receiverBindingEvidence": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 784,
+        "end": 799,
+        "line": 19,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      }
+    }
+  ],
+  "logicalScopes": [
+    {
+      "id": "L1",
+      "kind": "TRANSACTION_LOGICAL_SCOPE",
+      "frame": "F2",
+      "certainty": "CONDITIONAL",
+      "physicalId": "P1"
+    }
+  ],
+  "physicalTransactions": [
+    {
+      "id": "P1",
+      "kind": "TRANSACTION_PHYSICAL",
+      "manager": "tx",
+      "beginFrame": "F2",
+      "endFrame": "F2",
+      "identity": "SYMBOLIC_SCENARIO",
+      "runtimeIdentity": "UNKNOWN",
+      "certainty": "CONDITIONAL",
+      "outcome": "UNKNOWN"
+    }
+  ],
+  "suspensions": [],
+  "savepoints": [],
+  "events": [
+    {
+      "sequence": 1,
+      "kind": "FRAME_ENTER",
+      "frame": "F1"
+    },
+    {
+      "sequence": 2,
+      "kind": "FRAME_ENTER",
+      "frame": "F2"
+    },
+    {
+      "sequence": 3,
+      "kind": "PHYSICAL_BEGIN",
+      "frame": "F2",
+      "entity": "P1"
+    },
+    {
+      "sequence": 4,
+      "kind": "LOGICAL_BEGIN",
+      "frame": "F2",
+      "entity": "L1"
+    },
+    {
+      "sequence": 5,
+      "kind": "LOGICAL_END",
+      "frame": "F2",
+      "entity": "L1"
+    },
+    {
+      "sequence": 6,
+      "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+      "frame": "F2",
+      "entity": "P1"
+    },
+    {
+      "sequence": 7,
+      "kind": "FRAME_EXIT",
+      "frame": "F2"
+    },
+    {
+      "sequence": 8,
+      "kind": "FRAME_EXIT",
+      "frame": "F1"
+    }
+  ],
+  "uncertainties": [],
+  "evidence": [
+    {
+      "path": "pom.xml",
+      "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347"
+    },
+    {
+      "path": "src/main/java/fixture/Scenario.java",
+      "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+    }
+  ],
+  "contextEvidence": {
+    "sha256": "75c0b8d353ed8e6f80d35ac3f937c13f4620875bda84300b26c948990b947987",
+    "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+    "path": "context.json"
+  }
+}

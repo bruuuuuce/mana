@@ -1,0 +1,121 @@
+{
+  "schema": "mana.skill-candidate/v1",
+  "skillId": "java-spring-transaction-analysis",
+  "status": "candidate",
+  "trustOrigin": "generated",
+  "trusted": false,
+  "executable": false,
+  "registered": false,
+  "approval": {
+    "required": true,
+    "status": "pending",
+    "ownerRole": "Architect / Team Leader"
+  },
+  "request": "transaction-analysis",
+  "supportedTechnologies": [
+    "java",
+    "spring",
+    "maven"
+  ],
+  "evidence": [
+    {
+      "path": "pom.xml",
+      "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347",
+      "kind": "maven-direct-dependency",
+      "declarations": [
+        "org.springframework:spring-tx"
+      ]
+    },
+    {
+      "path": "src/main/java/fixture/Scenario.java",
+      "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901",
+      "kind": "java-source"
+    }
+  ],
+  "technologyClaim": "declared dependency and source presence only; resolved versions and runtime use unknown",
+  "offeredCapabilities": [
+    "reviewable-future-analysis-contract",
+    "conditional-required-requires-new-nested-boundaries-t01",
+    "java-ast-zero-argument-source-call-sites-t01",
+    "plantuml-logical-physical-scope-rendering-t01",
+    "transaction-model-invariant-validation-t01"
+  ],
+  "futureCapabilities": [
+    {
+      "id": "transactional-method-identification",
+      "status": "partially_implemented"
+    },
+    {
+      "id": "spring-propagation",
+      "status": "partially_implemented"
+    },
+    {
+      "id": "reused-independent-nested-transactions",
+      "status": "partially_implemented"
+    },
+    {
+      "id": "transaction-boundaries",
+      "status": "partially_implemented"
+    },
+    {
+      "id": "sequence-diagram-overlapping-regions",
+      "status": "partially_implemented"
+    },
+    {
+      "id": "static-uncertainty-reporting",
+      "status": "partially_implemented"
+    }
+  ],
+  "usableEvidence": [
+    "java-source",
+    "maven-direct-dependency",
+    "explicit-project-configuration",
+    "approved-runtime-evidence"
+  ],
+  "applicability": [
+    "explicit transaction-analysis request",
+    "Java source and direct Spring dependency in the same Maven module",
+    "human approval and implemented analyzers required before future analysis"
+  ],
+  "requiredTools": [
+    {
+      "id": "read_files",
+      "status": "framework_declared"
+    },
+    {
+      "id": "code_search",
+      "status": "framework_declared"
+    },
+    {
+      "id": "transaction-analyzer",
+      "status": "framework_declared"
+    },
+    {
+      "id": "jdk-java-and-javac",
+      "status": "environment_required"
+    }
+  ],
+  "knowledgeReferences": [
+    "docs/policies/verification-execution-policy.md",
+    "docs/standards/agent-skill-output-standard.md",
+    "templates/skill-factory/java-spring-transaction-analysis.md",
+    "docs/standards/transaction-model-v1.md",
+    "scripts/mana-transaction.py"
+  ],
+  "limits": [
+    "T01 conditional static scenarios only; no runtime transaction identity or commit/rollback proof",
+    "JDK parser, conventional Java and zero-argument straight-line methods only; unsupported paths remain UNKNOWN",
+    "Entry context and manager suspend/savepoint capabilities require explicit scenario inputs",
+    "No dependency resolution or runtime claims",
+    "No Gradle, inherited-only dependencies, profiles or nonstandard source roots",
+    "No promotion, registration, approval recording or execution API"
+  ],
+  "verificationCriteria": [
+    "recompute source evidence hashes",
+    "validate Mana skill metadata",
+    "reject changed candidate content",
+    "require pending approval and generated untrusted non-executable state",
+    "require future capabilities to remain not_implemented"
+  ],
+  "skillSha256": "43f72d10e8cef96fdc4b57748816aa73aaf9adb62032cb66b5a4ecb6f56d72cf"
+}

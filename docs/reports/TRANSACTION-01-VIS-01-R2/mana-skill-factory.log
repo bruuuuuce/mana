@@ -1,0 +1,28 @@
+test_adapter_boundary_extends_same_technology_without_core_changes (__main__.FactoryTests.test_adapter_boundary_extends_same_technology_without_core_changes) ... ok
+test_candidate_not_discovered_or_accepted_by_profile_compiler (__main__.FactoryTests.test_candidate_not_discovered_or_accepted_by_profile_compiler) ... ok
+test_duplicate_json_keys_rejected (__main__.FactoryTests.test_duplicate_json_keys_rejected) ... ok
+test_evidence_native_contract_read_only_and_no_activation (__main__.FactoryTests.test_evidence_native_contract_read_only_and_no_activation) ... ok
+test_external_temporary_paths_spaces_symlinks_and_child_writes (__main__.FactoryTests.test_external_temporary_paths_spaces_symlinks_and_child_writes) ... ok
+test_internal_temp_cli_returns_diagnostic_without_output (__main__.FactoryTests.test_internal_temp_cli_returns_diagnostic_without_output) ... ok
+test_json_malformed_and_deep_cli_block_without_writes (__main__.FactoryTests.test_json_malformed_and_deep_cli_block_without_writes) ... ok
+test_json_size_depth_and_token_boundaries (__main__.FactoryTests.test_json_size_depth_and_token_boundaries) ... ok
+test_malformed_unsafe_and_oversized_evidence (__main__.FactoryTests.test_malformed_unsafe_and_oversized_evidence) ... ok
+test_module_locality_and_multimodule_support (__main__.FactoryTests.test_module_locality_and_multimodule_support) ... ok
+test_native_validation_failure_precedes_output_writes (__main__.FactoryTests.test_native_validation_failure_precedes_output_writes) ... ok
+test_no_approval_activation_or_analysis_cli (__main__.FactoryTests.test_no_approval_activation_or_analysis_cli) ... ok
+test_no_java_or_symlink_or_generated_evidence (__main__.FactoryTests.test_no_java_or_symlink_or_generated_evidence) ... ok
+test_overcomplex_generated_manifest_rejected_before_output (__main__.FactoryTests.test_overcomplex_generated_manifest_rejected_before_output) ... ok
+test_project_wrappers_are_never_run (__main__.FactoryTests.test_project_wrappers_are_never_run) ... ok
+test_quoted_brackets_and_escapes_do_not_consume_depth_budget (__main__.FactoryTests.test_quoted_brackets_and_escapes_do_not_consume_depth_budget) ... ok
+test_reject_target_and_discovery_output_and_symlink_alias (__main__.FactoryTests.test_reject_target_and_discovery_output_and_symlink_alias) ... ok
+test_stale_evidence_and_overwrite_rejected (__main__.FactoryTests.test_stale_evidence_and_overwrite_rejected) ... ok
+test_tampering_cannot_create_trust_or_executable_tools (__main__.FactoryTests.test_tampering_cannot_create_trust_or_executable_tools) ... ok
+test_temporary_environment_fallbacks_without_host_changes (__main__.FactoryTests.test_temporary_environment_fallbacks_without_host_changes) ... ok
+test_unsafe_or_missing_temporary_parent_blocks_before_any_write (__main__.FactoryTests.test_unsafe_or_missing_temporary_parent_blocks_before_any_write) ... ok
+test_unsupported_and_false_positive_technologies (__main__.FactoryTests.test_unsupported_and_false_positive_technologies) ... ok
+test_unsupported_requests_and_adapter_governance_override_block (__main__.FactoryTests.test_unsupported_requests_and_adapter_governance_override_block) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 6.347s
+
+OK

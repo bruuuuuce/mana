@@ -1,0 +1,13 @@
+{
+  "verdict": "NEEDS_FIX",
+  "branch": "feature/mana-transaction-visualization",
+  "HEAD": "a222018fa50a3e1286a01f6da6c224a4dea242ed",
+  "develop": "a222018fa50a3e1286a01f6da6c224a4dea242ed",
+  "index": "",
+  "commit": "NOT_RUN: visual gate failed",
+  "integration": "NOT_RUN: visual gate failed",
+  "svgSHA256": "7c199e8586f5c481a94d8d3a82ea989faa4229850d91a6f4c373ed056282a796",
+  "rasterizer": "rsvg-convert 2.61.3; cairo 1.18.4; pango 1.57.0; harfbuzz 14.3.1; fontconfig 2.18.3",
+  "browserVerification": "UNAVAILABLE: iab and chrome unavailable; Safari capture error -3811",
+  "finding": "R1-V01: clipping of R6 label in librsvg rendering; complete string remains in SVG XML; browser behavior unqualified"
+}

@@ -1,0 +1,1909 @@
+{
+  "task": "MANA-TRANSACTION-01-T02-S01-D02",
+  "recordedAt": "2026-10-21T18:49:03.486675+00:00",
+  "verdict": "IMPLEMENTED_READY_FOR_REVIEW",
+  "independentSemanticReview": "NOT RUN; delivery is ready for review",
+  "publicContract": {
+    "path": "docs/standards/resource-leaf-extension-v1.md",
+    "schema": "mana.transaction-resource-leaves/v1",
+    "event": "RESOURCE_LEAF_CALL",
+    "witnessSchema": "mana.resource-leaf-witness/v1",
+    "rule": {
+      "id": "spring-jdbc-template-literal",
+      "version": 1
+    },
+    "activation": {
+      "field": "resourceLeafPolicy",
+      "value": "JDBC_LITERAL_V1",
+      "default": "DISABLED"
+    },
+    "maxLeaves": 128,
+    "newSourceFact": "statementCall",
+    "unresolvedCallMeaningUnchanged": true,
+    "MR00OraclesUnchanged": true,
+    "legacyIrValid": true,
+    "legacyConsumerResult": "Actual pre-D02 validator rejects new event; updated renderer rejects unknown event/extension versions.",
+    "normalPathOnly": true,
+    "exceptionalPathSuffixNotAsserted": true,
+    "noRuntimeSuccessClaim": true,
+    "callerConstraints": "Public nonstatic/nonabstract source caller, supported annotations only; async/opaque caller facts cannot be overridden by a witness."
+  },
+  "implementation": {
+    "files": [
+      {
+        "path": "docs/standards/resource-timeline-model-v1.md",
+        "new": false,
+        "added": 20,
+        "removed": 2,
+        "sha256": "e76b06565775fb64eed45d0a30e22e2c99c5d5f9c8a186e2b093cf7f94be4c83",
+        "bytes": 9813
+      },
+      {
+        "path": "docs/standards/transaction-model-v1.md",
+        "new": false,
+        "added": 8,
+        "removed": 0,
+        "sha256": "0edd6e9073a6d90649426dbbbd534f4721bb2f03278cd2c6cd4edf7d3fbf8fb6",
+        "bytes": 25999
+      },
+      {
+        "path": "scripts/mana-transaction.py",
+        "new": false,
+        "added": 8,
+        "removed": 1,
+        "sha256": "83214786029cbe4322ad1d17006f0b1f04b423277f30493410e9eb0ec9875832",
+        "bytes": 5845
+      },
+      {
+        "path": "scripts/skill_factory/transactions/JavaFacts.java",
+        "new": false,
+        "added": 5,
+        "removed": 1,
+        "sha256": "85c4f9f9c031602a9e33e819dd71e009b58c52f65082e0921d5b6229417d5705",
+        "bytes": 10677
+      },
+      {
+        "path": "scripts/skill_factory/transactions/model.py",
+        "new": false,
+        "added": 84,
+        "removed": 5,
+        "sha256": "ff5ef2130e3483f39c4d684332eb8a4e3e4fbc866249498e30f13f592e3b490b",
+        "bytes": 61831
+      },
+      {
+        "path": "scripts/skill_factory/transactions/plantuml.py",
+        "new": false,
+        "added": 30,
+        "removed": 1,
+        "sha256": "c4dcbfdce61b474d95fefc75352f63e9b7de3c4cb474c3dbf2e4ae9e023659e7",
+        "bytes": 10112
+      },
+      {
+        "path": "scripts/skill_factory/transactions/resources.py",
+        "new": false,
+        "added": 19,
+        "removed": 30,
+        "sha256": "61f7ca3d5e7285fed762309920b30276925ed8a2b447ce320a27b74163c61bd7",
+        "bytes": 9473
+      },
+      {
+        "path": "scripts/skill_factory/transactions/resource_leaf.py",
+        "new": true,
+        "added": 283,
+        "removed": 0,
+        "sha256": "a031c413e94ad6413279225fce536aaee33fabaef798d223d8236ed143eccd75",
+        "bytes": 11568
+      },
+      {
+        "path": "tests/transaction-resource-leaves.py",
+        "new": true,
+        "added": 659,
+        "removed": 0,
+        "sha256": "d4990a528a1b823457f4a110c0c305d9c227dcf6005e69de6d778f278078019a",
+        "bytes": 28627
+      },
+      {
+        "path": "tests/fixtures/resource-timeline/resource-leaf-oracles.json",
+        "new": true,
+        "added": 15,
+        "removed": 0,
+        "sha256": "c19d570943e7adf3848533d21e9942cb6e82f94c4b5e2992bdd06692efbdc3f6",
+        "bytes": 1645
+      },
+      {
+        "path": "docs/standards/resource-leaf-extension-v1.md",
+        "new": true,
+        "added": 167,
+        "removed": 0,
+        "sha256": "35100745e7648fac7cc3558fed95fa95c7e6bf9a196fd070f60a129c0b48b1bc",
+        "bytes": 9580
+      }
+    ],
+    "T01Authority": true,
+    "T02ReconstructsPropagation": false,
+    "witnessVerification": [
+      "Policy and extension version",
+      "Fixed catalog reclassification",
+      "Exact overload, binding, literal SQL and standalone-call eligibility",
+      "Snapshot hash linkage and unique method ownership",
+      "Method/field/call/argument containment",
+      "Source statement span order and call-site prefix completeness",
+      "Exact witness rule, signature, premises and limits",
+      "Current T01 context, physical lifetime and suspension",
+      "Normal-return dependencies",
+      "No continuation beyond a genuine unresolved event"
+    ],
+    "conservativeStops": [
+      "Callback overloads and lambdas",
+      "Observed override/subtype/type shadow/source factory",
+      "Unknown/qualified/initialized receiver",
+      "Unsupported API or SQL",
+      "TransactionTemplate and programmatic demarcation",
+      "Connection commit/rollback/autocommit",
+      "Opaque calls",
+      "Async/thread changes",
+      "Unproven order",
+      "Unknown context",
+      "Terminated/suspended physical identity",
+      "Leaf budget exhaustion"
+    ]
+  },
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "tests/transaction-boundaries.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 5.22,
+      "testsRun": 16,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/verified-check-1.log",
+      "logSha256": "c4f0798f9e783290c2fa0a536d731c2fdb2c48e95f6670d74c8e3866b8f47bb8"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-self-invocation.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 9.81,
+      "testsRun": 16,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/verified-check-2.log",
+      "logSha256": "0dfc97c87b812c86c21a41d8232582629b3875cf3fc25fa09836f14ceadd8b44"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-context-alternatives.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 6.92,
+      "testsRun": 21,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/verified-check-3.log",
+      "logSha256": "e48261062ffe6cd7f0457533dccb37b798f0f3563310500289268cce26cb268b"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-physical-lifetime.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 0.33,
+      "testsRun": 19,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/verified-check-4.log",
+      "logSha256": "047a323b1ae5a322769b931f99ca4b3be120b1ef51a81a3f0fe9f5c758d90d0a"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-transition-contract.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 0.25,
+      "testsRun": 64,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/verified-check-5.log",
+      "logSha256": "b682b11379aea65f5d0340dd3b2a4f2104d78a14e9dcf525b9405d4d72d89704"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-aop-causal-order.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 0.25,
+      "testsRun": 26,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/verified-check-6.log",
+      "logSha256": "6cd3e9fc8d080d2e3c8e23a4b34eb16a578b2d845b7d9abe354a7cc4868b3f5c"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/mana-skill-factory.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 14.47,
+      "testsRun": 23,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/verified-check-7.log",
+      "logSha256": "d78259df35ab7337bc9b3c9d8b442c5e8e15b2a701fce1ad40b3ab0474d8de52"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/resource-timeline.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 2.95,
+      "testsRun": 22,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/verified-check-8.log",
+      "logSha256": "c44890686a999588c770b7ef96c3caa9fa44eda2aef4623959fe66df4a0d1440"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-resource-leaves.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 3.98,
+      "testsRun": 31,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/verified-check-9.log",
+      "logSha256": "f27ab2340748a78cbacbd9dbdd61492a3a18f488d615c17e6ea4915d634a8fc6"
+    },
+    {
+      "command": [
+        "bash",
+        "scripts/validate-repo.sh"
+      ],
+      "exit": 0,
+      "seconds": 14.85,
+      "testsRun": null,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/verified-check-10.log",
+      "logSha256": "c55823da7a8e805733bd2e661697ca28c99922c321f39527f078f9486cc7b968"
+    },
+    {
+      "command": [
+        "ruff",
+        "check",
+        "scripts/mana-transaction.py",
+        "scripts/mana-resource-timeline.py",
+        "scripts/skill_factory/transactions/model.py",
+        "scripts/skill_factory/transactions/resource_leaf.py",
+        "scripts/skill_factory/transactions/resources.py",
+        "scripts/skill_factory/transactions/plantuml.py",
+        "tests/resource-timeline.py",
+        "tests/transaction-resource-leaves.py"
+      ],
+      "exit": 0,
+      "seconds": 0.01,
+      "testsRun": null,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/verified-check-11.log",
+      "logSha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "command": [
+        "ruff",
+        "format",
+        "--check",
+        "scripts/mana-transaction.py",
+        "scripts/mana-resource-timeline.py",
+        "scripts/skill_factory/transactions/model.py",
+        "scripts/skill_factory/transactions/resource_leaf.py",
+        "scripts/skill_factory/transactions/resources.py",
+        "scripts/skill_factory/transactions/plantuml.py",
+        "tests/resource-timeline.py",
+        "tests/transaction-resource-leaves.py"
+      ],
+      "exit": 0,
+      "seconds": 0.01,
+      "testsRun": null,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/verified-check-12.log",
+      "logSha256": "8e93d18ae56550d4eef2feac77e6630617c7e169246e56e39c75d58b46167985"
+    },
+    {
+      "command": [
+        "python3",
+        "/private/tmp/mana-t02-s01-d02-0ybf5ikr/replay.py"
+      ],
+      "exit": 0,
+      "seconds": 5.53,
+      "testsRun": null,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/verified-check-13.log",
+      "logSha256": "a062672fd200743f9bbcf83d203167aef49fdee15245f931244b5b98bcf00ff8"
+    }
+  ],
+  "testSummary": {
+    "legacyPassed": 207,
+    "newPassed": 31,
+    "totalPassed": 238,
+    "failed": 0,
+    "skipped": 0,
+    "replayPassed": 12,
+    "repositoryValidation": "PASS",
+    "ruffCheck": "PASS",
+    "ruffFormat": "PASS"
+  },
+  "oracles": {
+    "path": "tests/fixtures/resource-timeline/resource-leaf-oracles.json",
+    "origin": "Hand-authored literal source/MR00 expectations independent of generated engine outputs",
+    "tests": "tests/transaction-resource-leaves.py"
+  },
+  "replays": [
+    {
+      "case": "required-two",
+      "entry": "fixture.Operations#sequence()",
+      "project": "/private/tmp/mana-t02-s01-f01-eozx3kim/required-two",
+      "expectedIds": [
+        "P1",
+        "P1"
+      ],
+      "actualIds": [
+        "P1",
+        "P1"
+      ],
+      "expectedLeaves": 2,
+      "leafSequences": [
+        4,
+        5
+      ],
+      "placement": [
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 4
+        },
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 5
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/required-two-after.json",
+      "sha256": "a2ccd91d5b876b0d3837dabff1d85ab83ae1f917c5e7586cad8d4091f1ab666c"
+    },
+    {
+      "case": "required-three",
+      "entry": "fixture.Operations#sequence()",
+      "project": "/private/tmp/mana-t02-s01-f01-eozx3kim/required-three",
+      "expectedIds": [
+        "P1",
+        "P1",
+        "P1"
+      ],
+      "actualIds": [
+        "P1",
+        "P1",
+        "P1"
+      ],
+      "expectedLeaves": 3,
+      "leafSequences": [
+        4,
+        5,
+        6
+      ],
+      "placement": [
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 4
+        },
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 5
+        },
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 6
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/required-three-after.json",
+      "sha256": "9164a752576310da9f238ab2059b7fe31768d0280d4f84475853dec5bd3ca2dc"
+    },
+    {
+      "case": "requires-new",
+      "entry": "fixture.Entry#independent()",
+      "project": "/private/tmp/mana-t02-s01-f01-eozx3kim/requires-new",
+      "expectedIds": [
+        "P2"
+      ],
+      "actualIds": [
+        "P2"
+      ],
+      "expectedLeaves": 1,
+      "leafSequences": [
+        8
+      ],
+      "placement": [
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 8
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/requires-new-after.json",
+      "sha256": "db76d77cf5bb89b532687bf9d943cfdcef894952cd93700f5a9f7eaf911b9349"
+    },
+    {
+      "case": "nested",
+      "entry": "fixture.Entry#nested()",
+      "project": "/private/tmp/mana-t02-s01-f01-eozx3kim/nested",
+      "expectedIds": [
+        "P1"
+      ],
+      "actualIds": [
+        "P1"
+      ],
+      "expectedLeaves": 1,
+      "leafSequences": [
+        7
+      ],
+      "placement": [
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 7
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/nested-after.json",
+      "sha256": "2d8ec11109494838b4b504e145f28f392a65fb9a0527b1c78545283f87980fe8"
+    },
+    {
+      "case": "restored",
+      "entry": "fixture.Entry#afterIndependent()",
+      "project": "/private/tmp/mana-t02-s01-f01-eozx3kim/restored",
+      "expectedIds": [
+        "P1"
+      ],
+      "actualIds": [
+        "P1"
+      ],
+      "expectedLeaves": 1,
+      "leafSequences": [
+        13
+      ],
+      "placement": [
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 13
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/restored-after.json",
+      "sha256": "7e244398e546fd9edb1e2dcb60bfbcb6f4cde54aa74adbca1b0d0a35fa849abf"
+    },
+    {
+      "case": "terminated",
+      "entry": "fixture.Entry#afterTerminated()",
+      "project": "/private/tmp/mana-t02-s01-f01-eozx3kim/terminated",
+      "expectedIds": [
+        null
+      ],
+      "actualIds": [
+        null
+      ],
+      "expectedLeaves": 1,
+      "leafSequences": [
+        9
+      ],
+      "placement": [
+        {
+          "status": "T01_RESOURCE_LEAF",
+          "beforeT01Sequence": 9
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/terminated-after.json",
+      "sha256": "64bba9445aa6894a2a479fc396a03ec36077c0076c854eb53d34840df392ce6a"
+    },
+    {
+      "case": "unresolved-order",
+      "entry": "fixture.Operations#sequence()",
+      "project": "/private/tmp/mana-t02-s01-f01-eozx3kim/unresolved-order",
+      "expectedIds": [
+        null,
+        null
+      ],
+      "actualIds": [
+        null,
+        null
+      ],
+      "expectedLeaves": 0,
+      "leafSequences": [],
+      "placement": [
+        {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        },
+        {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/unresolved-order-after.json",
+      "sha256": "45536a788fef5a730d2183415459b3340c94f15defd93a62b3ceb78d469b6f63"
+    },
+    {
+      "case": "unknown-context",
+      "entry": "fixture.Operations#required()",
+      "project": "/private/tmp/mana-t02-s01-f01-eozx3kim/unknown-context",
+      "expectedIds": [
+        null
+      ],
+      "actualIds": [
+        null
+      ],
+      "expectedLeaves": 0,
+      "leafSequences": [],
+      "placement": [
+        {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/unknown-context-after.json",
+      "sha256": "bccb585632340e327f0ba4273eac44c8d10df9f9b3f45057253250ca4a03f2e0"
+    },
+    {
+      "case": "async",
+      "entry": "fixture.Entry#async()",
+      "project": "/private/tmp/mana-t02-s01-f01-eozx3kim/async",
+      "expectedIds": [
+        null
+      ],
+      "actualIds": [
+        null
+      ],
+      "expectedLeaves": 0,
+      "leafSequences": [],
+      "placement": [
+        {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/async-after.json",
+      "sha256": "fd81f0ccd782eb95d8cfbfd2e46b0e204f3313fc5b3d56c257cdccf8a05f9c6d"
+    },
+    {
+      "case": "programmatic-fixture",
+      "entry": "fixture.Operations#sequence()",
+      "project": "/private/tmp/mana-t02-s01-d01-jpdxfzi_/programmatic-fixture",
+      "expectedIds": [
+        null,
+        null
+      ],
+      "actualIds": [
+        null,
+        null
+      ],
+      "expectedLeaves": 0,
+      "leafSequences": [],
+      "placement": [
+        {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        },
+        {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        }
+      ],
+      "verdict": "PASS",
+      "sourceUnchanged": true,
+      "artifact": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/programmatic-fixture-after.json",
+      "sha256": "81c4083caece2cdb8c0800a4ebc83c9030ede2d1b051caf832cd54a048b11745"
+    },
+    {
+      "case": "R1 legacy replay and immutable historical report",
+      "verdict": "PASS",
+      "transactionModelAndObservationsAndTimelineIdentical": true,
+      "newSourceFactsMetadata": "statementCall only; historical facts and artifacts remain valid"
+    },
+    {
+      "case": "Actual pre-D02 T01 validator rejects new event",
+      "verdict": "PASS",
+      "reason": "unrecognized transaction event"
+    }
+  ],
+  "counterexample": {
+    "source": "Exact R1 external source; only @Transactional added to original fixture sequence()",
+    "entry": "fixture.Operations#sequence()",
+    "sourceSha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284",
+    "before": {
+      "observations": [
+        {
+          "frame": "F1",
+          "method": "fixture.Operations#sequence()",
+          "applicationOperation": {
+            "receiver": "jdbc",
+            "method": "execute"
+          },
+          "callSite": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2630,
+            "end": 2668,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          "operationType": "READ",
+          "sqlLiteral": "SELECT * FROM accounts",
+          "resource": {
+            "status": "LEXICAL_SQL_IDENTIFIER",
+            "name": "accounts",
+            "runtimeIdentity": "UNKNOWN",
+            "lockGranularity": "UNKNOWN"
+          },
+          "transactionContext": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "datasource": {
+            "status": "UNKNOWN",
+            "id": null
+          },
+          "enlistment": "UNKNOWN",
+          "lockAcquired": "UNKNOWN",
+          "certainty": "CONDITIONAL",
+          "placement": {
+            "status": "T01_FRONTIER",
+            "beforeT01Sequence": 4
+          },
+          "evidence": [
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2630,
+              "end": 2668,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1596,
+              "end": 1625,
+              "line": 34,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2643,
+              "end": 2667,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            }
+          ],
+          "premises": [
+            "T01 conditional path reaches this invocation syntax."
+          ],
+          "limits": [
+            "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+            "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+          ],
+          "id": "O1"
+        },
+        {
+          "frame": "F1",
+          "method": "fixture.Operations#sequence()",
+          "applicationOperation": {
+            "receiver": "jdbc",
+            "method": "update"
+          },
+          "callSite": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2670,
+            "end": 2703,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          "operationType": "WRITE",
+          "sqlLiteral": "DELETE FROM ledger",
+          "resource": {
+            "status": "LEXICAL_SQL_IDENTIFIER",
+            "name": "ledger",
+            "runtimeIdentity": "UNKNOWN",
+            "lockGranularity": "UNKNOWN"
+          },
+          "transactionContext": {
+            "kind": "UNKNOWN",
+            "physicalId": null,
+            "manager": null
+          },
+          "datasource": {
+            "status": "UNKNOWN",
+            "id": null
+          },
+          "enlistment": "UNKNOWN",
+          "lockAcquired": "UNKNOWN",
+          "certainty": "UNKNOWN",
+          "placement": {
+            "status": "UNPLACED",
+            "beforeT01Sequence": null
+          },
+          "evidence": [
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2670,
+              "end": 2703,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1596,
+              "end": 1625,
+              "line": 34,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2682,
+              "end": 2702,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            }
+          ],
+          "premises": [],
+          "limits": [
+            "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+            "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED",
+            "T01_BODY_OR_CONTINUATION_NOT_TRAVERSED"
+          ],
+          "id": "O2"
+        }
+      ],
+      "frames": [
+        {
+          "id": "F1",
+          "callerMethod": null,
+          "calleeMethod": "fixture.Operations#sequence()",
+          "callSite": null,
+          "bean": "fixture.Operations",
+          "proxy": {
+            "mode": "CLASS",
+            "crossed": true,
+            "configurationEvidence": [
+              {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 706,
+                "end": 759,
+                "line": 15,
+                "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+              }
+            ],
+            "reason": "SCENARIO_PROXY_CALL"
+          },
+          "manager": "tx",
+          "configuration": {
+            "propagation": "REQUIRED",
+            "managerQualifier": "",
+            "attributes": {},
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2590,
+              "end": 2604,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            "origin": "method",
+            "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+            "unmodeledAttributes": []
+          },
+          "logicalScope": "L1",
+          "previousState": {
+            "kind": "NO_TRANSACTION",
+            "physicalId": null,
+            "manager": null
+          },
+          "duringState": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "afterState": {
+            "kind": "UNKNOWN",
+            "physicalId": null,
+            "manager": null
+          },
+          "certainty": "CONDITIONAL",
+          "bodyTraversal": "STRAIGHT_LINE",
+          "evidence": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2590,
+            "end": 2706,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          "depth": 0,
+          "beanEvidence": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 1564,
+            "end": 3045,
+            "line": 32,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          "beanName": "operations",
+          "interception": {
+            "status": "APPLIED",
+            "reason": "SCENARIO_PROXY_CALL"
+          },
+          "continuation": "UNKNOWN",
+          "effectiveContext": {
+            "before": "INACTIVE",
+            "during": "ACTIVE",
+            "after": "UNKNOWN"
+          }
+        }
+      ],
+      "events": [
+        {
+          "sequence": 1,
+          "kind": "FRAME_ENTER",
+          "frame": "F1"
+        },
+        {
+          "sequence": 2,
+          "kind": "PHYSICAL_BEGIN",
+          "frame": "F1",
+          "entity": "P1"
+        },
+        {
+          "sequence": 3,
+          "kind": "LOGICAL_BEGIN",
+          "frame": "F1",
+          "entity": "L1"
+        },
+        {
+          "sequence": 4,
+          "kind": "UNRESOLVED_CALL",
+          "frame": "F1",
+          "callSite": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2630,
+            "end": 2668,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          "receiver": "jdbc",
+          "method": "execute"
+        },
+        {
+          "sequence": 5,
+          "kind": "LOGICAL_END",
+          "frame": "F1",
+          "entity": "L1"
+        },
+        {
+          "sequence": 6,
+          "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+          "frame": "F1",
+          "entity": "P1"
+        },
+        {
+          "sequence": 7,
+          "kind": "FRAME_EXIT",
+          "frame": "F1"
+        }
+      ]
+    },
+    "after": {
+      "context": {
+        "schema": "mana.transaction-context/v1",
+        "initialState": "NO_TRANSACTION",
+        "entryThroughProxy": true,
+        "managerCapabilities": {
+          "tx": {
+            "suspend": true,
+            "savepoints": true
+          }
+        },
+        "resourceLeafPolicy": "JDBC_LITERAL_V1"
+      },
+      "observations": [
+        {
+          "frame": "F1",
+          "method": "fixture.Operations#sequence()",
+          "applicationOperation": {
+            "receiver": "jdbc",
+            "method": "execute"
+          },
+          "callSite": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2630,
+            "end": 2668,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          "operationType": "READ",
+          "sqlLiteral": "SELECT * FROM accounts",
+          "resource": {
+            "status": "LEXICAL_SQL_IDENTIFIER",
+            "name": "accounts",
+            "runtimeIdentity": "UNKNOWN",
+            "lockGranularity": "UNKNOWN"
+          },
+          "transactionContext": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "datasource": {
+            "status": "UNKNOWN",
+            "id": null
+          },
+          "enlistment": "UNKNOWN",
+          "lockAcquired": "UNKNOWN",
+          "certainty": "CONDITIONAL",
+          "placement": {
+            "status": "T01_RESOURCE_LEAF",
+            "beforeT01Sequence": 4
+          },
+          "evidence": [
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2630,
+              "end": 2668,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1596,
+              "end": 1625,
+              "line": 34,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2643,
+              "end": 2667,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            }
+          ],
+          "premises": [
+            "T01 conditional path reaches this invocation syntax.",
+            "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+            "Normal synchronous return is assumed only for continuation of this path.",
+            "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+            "The catalogued overload has no application callback argument."
+          ],
+          "limits": [
+            "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+            "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+          ],
+          "id": "O1"
+        },
+        {
+          "frame": "F1",
+          "method": "fixture.Operations#sequence()",
+          "applicationOperation": {
+            "receiver": "jdbc",
+            "method": "update"
+          },
+          "callSite": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2670,
+            "end": 2703,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          "operationType": "WRITE",
+          "sqlLiteral": "DELETE FROM ledger",
+          "resource": {
+            "status": "LEXICAL_SQL_IDENTIFIER",
+            "name": "ledger",
+            "runtimeIdentity": "UNKNOWN",
+            "lockGranularity": "UNKNOWN"
+          },
+          "transactionContext": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "datasource": {
+            "status": "UNKNOWN",
+            "id": null
+          },
+          "enlistment": "UNKNOWN",
+          "lockAcquired": "UNKNOWN",
+          "certainty": "CONDITIONAL",
+          "placement": {
+            "status": "T01_RESOURCE_LEAF",
+            "beforeT01Sequence": 5
+          },
+          "evidence": [
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2670,
+              "end": 2703,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1596,
+              "end": 1625,
+              "line": 34,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2682,
+              "end": 2702,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            }
+          ],
+          "premises": [
+            "T01 conditional path reaches this invocation syntax.",
+            "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+            "Normal synchronous return is assumed only for continuation of this path.",
+            "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+            "The catalogued overload has no application callback argument.",
+            "Normal returns required from prior T01 resource leaf calls: [4]"
+          ],
+          "limits": [
+            "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+            "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+          ],
+          "id": "O2"
+        }
+      ],
+      "frames": [
+        {
+          "id": "F1",
+          "callerMethod": null,
+          "calleeMethod": "fixture.Operations#sequence()",
+          "callSite": null,
+          "bean": "fixture.Operations",
+          "proxy": {
+            "mode": "CLASS",
+            "crossed": true,
+            "configurationEvidence": [
+              {
+                "file": "src/main/java/fixture/Resources.java",
+                "start": 706,
+                "end": 759,
+                "line": 15,
+                "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+              }
+            ],
+            "reason": "SCENARIO_PROXY_CALL"
+          },
+          "manager": "tx",
+          "configuration": {
+            "propagation": "REQUIRED",
+            "managerQualifier": "",
+            "attributes": {},
+            "evidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2590,
+              "end": 2604,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            "origin": "method",
+            "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+            "unmodeledAttributes": []
+          },
+          "logicalScope": "L1",
+          "previousState": {
+            "kind": "NO_TRANSACTION",
+            "physicalId": null,
+            "manager": null
+          },
+          "duringState": {
+            "kind": "TRANSACTION_PHYSICAL",
+            "physicalId": "P1",
+            "manager": "tx"
+          },
+          "afterState": {
+            "kind": "NO_TRANSACTION",
+            "physicalId": null,
+            "manager": null
+          },
+          "certainty": "CONDITIONAL",
+          "bodyTraversal": "STRAIGHT_LINE",
+          "evidence": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2590,
+            "end": 2706,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          "depth": 0,
+          "beanEvidence": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 1564,
+            "end": 3045,
+            "line": 32,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          "beanName": "operations",
+          "interception": {
+            "status": "APPLIED",
+            "reason": "SCENARIO_PROXY_CALL"
+          },
+          "effectiveContext": {
+            "before": "INACTIVE",
+            "during": "ACTIVE",
+            "after": "INACTIVE"
+          }
+        }
+      ],
+      "events": [
+        {
+          "sequence": 1,
+          "kind": "FRAME_ENTER",
+          "frame": "F1"
+        },
+        {
+          "sequence": 2,
+          "kind": "PHYSICAL_BEGIN",
+          "frame": "F1",
+          "entity": "P1"
+        },
+        {
+          "sequence": 3,
+          "kind": "LOGICAL_BEGIN",
+          "frame": "F1",
+          "entity": "L1"
+        },
+        {
+          "sequence": 4,
+          "kind": "RESOURCE_LEAF_CALL",
+          "frame": "F1",
+          "callSite": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2630,
+            "end": 2668,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          "receiver": "jdbc",
+          "method": "execute",
+          "witness": {
+            "schema": "mana.resource-leaf-witness/v1",
+            "rule": {
+              "id": "spring-jdbc-template-literal",
+              "version": 1
+            },
+            "signature": "org.springframework.jdbc.core.JdbcTemplate#execute(java.lang.String):void",
+            "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+            "callSite": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2630,
+              "end": 2668,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            "methodEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2590,
+              "end": 2706,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            "bindingEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1596,
+              "end": 1625,
+              "line": 34,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            "argumentEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2643,
+              "end": 2667,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            "sourceCallOrdinal": 1,
+            "t01Sequence": 4,
+            "normalReturnDependencies": [],
+            "transactionContext": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "premises": [
+              "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+              "Normal synchronous return is assumed only for continuation of this path.",
+              "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+              "The catalogued overload has no application callback argument."
+            ],
+            "limits": [
+              "Runtime execution, successful SQL completion and normal return are not proved.",
+              "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+              "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+              "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+            ]
+          }
+        },
+        {
+          "sequence": 5,
+          "kind": "RESOURCE_LEAF_CALL",
+          "frame": "F1",
+          "callSite": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2670,
+            "end": 2703,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          "receiver": "jdbc",
+          "method": "update",
+          "witness": {
+            "schema": "mana.resource-leaf-witness/v1",
+            "rule": {
+              "id": "spring-jdbc-template-literal",
+              "version": 1
+            },
+            "signature": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+            "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+            "callSite": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2670,
+              "end": 2703,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            "methodEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2590,
+              "end": 2706,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            "bindingEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1596,
+              "end": 1625,
+              "line": 34,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            "argumentEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2682,
+              "end": 2702,
+              "line": 48,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            },
+            "sourceCallOrdinal": 2,
+            "t01Sequence": 5,
+            "normalReturnDependencies": [
+              4
+            ],
+            "transactionContext": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "premises": [
+              "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+              "Normal synchronous return is assumed only for continuation of this path.",
+              "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+              "The catalogued overload has no application callback argument."
+            ],
+            "limits": [
+              "Runtime execution, successful SQL completion and normal return are not proved.",
+              "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+              "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+              "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+            ]
+          }
+        },
+        {
+          "sequence": 6,
+          "kind": "LOGICAL_END",
+          "frame": "F1",
+          "entity": "L1"
+        },
+        {
+          "sequence": 7,
+          "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+          "frame": "F1",
+          "entity": "P1"
+        },
+        {
+          "sequence": 8,
+          "kind": "FRAME_EXIT",
+          "frame": "F1"
+        }
+      ]
+    },
+    "three": {
+      "physicalIds": [
+        "P1",
+        "P1",
+        "P1"
+      ],
+      "leaves": [
+        {
+          "sequence": 4,
+          "kind": "RESOURCE_LEAF_CALL",
+          "frame": "F1",
+          "callSite": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2630,
+            "end": 2668,
+            "line": 48,
+            "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+          },
+          "receiver": "jdbc",
+          "method": "execute",
+          "witness": {
+            "schema": "mana.resource-leaf-witness/v1",
+            "rule": {
+              "id": "spring-jdbc-template-literal",
+              "version": 1
+            },
+            "signature": "org.springframework.jdbc.core.JdbcTemplate#execute(java.lang.String):void",
+            "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+            "callSite": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2630,
+              "end": 2668,
+              "line": 48,
+              "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+            },
+            "methodEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2590,
+              "end": 2756,
+              "line": 48,
+              "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+            },
+            "bindingEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1596,
+              "end": 1625,
+              "line": 34,
+              "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+            },
+            "argumentEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2643,
+              "end": 2667,
+              "line": 48,
+              "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+            },
+            "sourceCallOrdinal": 1,
+            "t01Sequence": 4,
+            "normalReturnDependencies": [],
+            "transactionContext": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "premises": [
+              "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+              "Normal synchronous return is assumed only for continuation of this path.",
+              "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+              "The catalogued overload has no application callback argument."
+            ],
+            "limits": [
+              "Runtime execution, successful SQL completion and normal return are not proved.",
+              "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+              "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+              "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+            ]
+          }
+        },
+        {
+          "sequence": 5,
+          "kind": "RESOURCE_LEAF_CALL",
+          "frame": "F1",
+          "callSite": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2670,
+            "end": 2703,
+            "line": 48,
+            "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+          },
+          "receiver": "jdbc",
+          "method": "update",
+          "witness": {
+            "schema": "mana.resource-leaf-witness/v1",
+            "rule": {
+              "id": "spring-jdbc-template-literal",
+              "version": 1
+            },
+            "signature": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+            "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+            "callSite": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2670,
+              "end": 2703,
+              "line": 48,
+              "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+            },
+            "methodEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2590,
+              "end": 2756,
+              "line": 48,
+              "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+            },
+            "bindingEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1596,
+              "end": 1625,
+              "line": 34,
+              "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+            },
+            "argumentEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2682,
+              "end": 2702,
+              "line": 48,
+              "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+            },
+            "sourceCallOrdinal": 2,
+            "t01Sequence": 5,
+            "normalReturnDependencies": [
+              4
+            ],
+            "transactionContext": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "premises": [
+              "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+              "Normal synchronous return is assumed only for continuation of this path.",
+              "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+              "The catalogued overload has no application callback argument."
+            ],
+            "limits": [
+              "Runtime execution, successful SQL completion and normal return are not proved.",
+              "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+              "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+              "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+            ]
+          }
+        },
+        {
+          "sequence": 6,
+          "kind": "RESOURCE_LEAF_CALL",
+          "frame": "F1",
+          "callSite": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2705,
+            "end": 2753,
+            "line": 48,
+            "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+          },
+          "receiver": "jdbc",
+          "method": "update",
+          "witness": {
+            "schema": "mana.resource-leaf-witness/v1",
+            "rule": {
+              "id": "spring-jdbc-template-literal",
+              "version": 1
+            },
+            "signature": "org.springframework.jdbc.core.JdbcTemplate#update(java.lang.String):int",
+            "receiverType": "org.springframework.jdbc.core.JdbcTemplate",
+            "callSite": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2705,
+              "end": 2753,
+              "line": 48,
+              "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+            },
+            "methodEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2590,
+              "end": 2756,
+              "line": 48,
+              "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+            },
+            "bindingEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 1596,
+              "end": 1625,
+              "line": 34,
+              "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+            },
+            "argumentEvidence": {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 2717,
+              "end": 2752,
+              "line": 48,
+              "sha256": "d196e1ea03f62b24ba5d9abf71b4b621d96388b175591487263c6905742987b1"
+            },
+            "sourceCallOrdinal": 3,
+            "t01Sequence": 6,
+            "normalReturnDependencies": [
+              4,
+              5
+            ],
+            "transactionContext": {
+              "kind": "TRANSACTION_PHYSICAL",
+              "physicalId": "P1",
+              "manager": "tx"
+            },
+            "premises": [
+              "Standard JdbcTemplate implementation dispatch is assumed; no external override/advisor is qualified.",
+              "Normal synchronous return is assumed only for continuation of this path.",
+              "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+              "The catalogued overload has no application callback argument."
+            ],
+            "limits": [
+              "Runtime execution, successful SQL completion and normal return are not proved.",
+              "External wiring, library version, advisors, driver and database behavior are not runtime-verified.",
+              "Datasource, connection enlistment, acquired locks and lock granularity remain UNKNOWN.",
+              "Exceptional return does not reach this path's suffix; exception handling and outcome are not modeled."
+            ]
+          }
+        }
+      ]
+    },
+    "expectedTwo": [
+      "P1",
+      "P1"
+    ],
+    "actualTwo": [
+      "P1",
+      "P1"
+    ],
+    "expectedThree": [
+      "P1",
+      "P1",
+      "P1"
+    ],
+    "acceptance": "PASS under explicit versioned scenario premises",
+    "legacyTransactionObservationsTimelineExactlyMatchR1": true,
+    "legacyFreshSourceFactsDifference": "Additive statementCall metadata only; old facts remain valid",
+    "historicalR1ResultsSha256": "a2151445599281567485a084ef03cb64337dcd26bd2e28d38c4bb373128d2dd1"
+  },
+  "diff": {
+    "path": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02.patch",
+    "base": "Exact initial local bytes, including preexisting uncommitted S01 work; not HEAD diff",
+    "sha256": "2fdea6a4bc8c54cb8066c2f214aba93818ca652919d22913f3f27e1bc3db5e7b",
+    "bytes": 73873,
+    "files": 11,
+    "added": 1298,
+    "removed": 40,
+    "production": {
+      "files": 6,
+      "added": 429,
+      "removed": 38
+    },
+    "tests": {
+      "files": 2,
+      "added": 674,
+      "removed": 0
+    },
+    "standards": {
+      "files": 3,
+      "added": 195,
+      "removed": 2
+    },
+    "reverseCheck": {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "--reverse",
+        "docs/reports/MANA-TRANSACTION-01-T02-S01-D02.patch"
+      ],
+      "exit": 0,
+      "applied": false
+    },
+    "receiptsOutsidePatch": [
+      "docs/reports/MANA-TRANSACTION-01-T02-S01-D02.md",
+      "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-results.json"
+    ]
+  },
+  "integrity": {
+    "initialFileCount": 1286,
+    "initialInventoryPath": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/initial-inventory.json",
+    "initialInventorySha256": "6dd07aa6f9b0af8280ffd8fdedb2e5fec9b95515118ac4509643cbf58ffb91f2",
+    "changedInitialFiles": [
+      {
+        "path": "docs/standards/resource-timeline-model-v1.md",
+        "before": {
+          "sha256": "b144842012ab06f63c6fe038a54e7a372d39771929cd46421f86afefad712b97",
+          "bytes": 8612,
+          "mode": "0o644"
+        },
+        "after": {
+          "sha256": "e76b06565775fb64eed45d0a30e22e2c99c5d5f9c8a186e2b093cf7f94be4c83",
+          "bytes": 9813,
+          "mode": "0o644"
+        }
+      },
+      {
+        "path": "scripts/skill_factory/transactions/resources.py",
+        "before": {
+          "sha256": "d230b0a033207873ee4a567631cbe2adb6638c7f9ea9feb32012ff77191ef1f3",
+          "bytes": 9739,
+          "mode": "0o644"
+        },
+        "after": {
+          "sha256": "61f7ca3d5e7285fed762309920b30276925ed8a2b447ce320a27b74163c61bd7",
+          "bytes": 9473,
+          "mode": "0o644"
+        }
+      },
+      {
+        "path": "docs/standards/transaction-model-v1.md",
+        "before": {
+          "sha256": "190192c2323764b08a61cb071661b7676d302837a17f8135d086cd50a4198058",
+          "bytes": 25470,
+          "mode": "0o644"
+        },
+        "after": {
+          "sha256": "0edd6e9073a6d90649426dbbbd534f4721bb2f03278cd2c6cd4edf7d3fbf8fb6",
+          "bytes": 25999,
+          "mode": "0o644"
+        }
+      },
+      {
+        "path": "scripts/mana-transaction.py",
+        "before": {
+          "sha256": "2fa35a3151e3495cb6d166d0dc2d74f05d193628e370ba42e90a7e9025d8011a",
+          "bytes": 5592,
+          "mode": "0o755"
+        },
+        "after": {
+          "sha256": "83214786029cbe4322ad1d17006f0b1f04b423277f30493410e9eb0ec9875832",
+          "bytes": 5845,
+          "mode": "0o755"
+        }
+      },
+      {
+        "path": "scripts/skill_factory/transactions/JavaFacts.java",
+        "before": {
+          "sha256": "4361f67b85a07eaac4b483c0fc357361731798c85b5a9e8f0e2019cc8ab0ab20",
+          "bytes": 10174,
+          "mode": "0o644"
+        },
+        "after": {
+          "sha256": "85c4f9f9c031602a9e33e819dd71e009b58c52f65082e0921d5b6229417d5705",
+          "bytes": 10677,
+          "mode": "0o644"
+        }
+      },
+      {
+        "path": "scripts/skill_factory/transactions/model.py",
+        "before": {
+          "sha256": "1246568a9a0c73db5f0686794454b9af41440e7688e122453addddfe13034c99",
+          "bytes": 58645,
+          "mode": "0o644"
+        },
+        "after": {
+          "sha256": "ff5ef2130e3483f39c4d684332eb8a4e3e4fbc866249498e30f13f592e3b490b",
+          "bytes": 61831,
+          "mode": "0o644"
+        }
+      },
+      {
+        "path": "scripts/skill_factory/transactions/plantuml.py",
+        "before": {
+          "sha256": "21354de7fe4e30392398ae72200e4d5a7d93a0a96b90eda8f59aca99e9b56648",
+          "bytes": 8989,
+          "mode": "0o644"
+        },
+        "after": {
+          "sha256": "c4dcbfdce61b474d95fefc75352f63e9b7de3c4cb474c3dbf2e4ae9e023659e7",
+          "bytes": 10112,
+          "mode": "0o644"
+        }
+      }
+    ],
+    "unexpectedChanges": [],
+    "unchangedInitialFileCount": 1279,
+    "initialModesPreserved": true,
+    "preservation": {
+      "materials": [
+        {
+          "path": "docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv",
+          "expectedSha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+          "before": {
+            "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+            "bytes": 59758,
+            "mode": "0o644"
+          },
+          "backupSha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+          "matches": true,
+          "crlf": 69,
+          "bareLf": 0,
+          "normalizedEqualsHead": true,
+          "after": {
+            "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+            "bytes": 59758,
+            "mode": "0o644"
+          },
+          "backupSha256After": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7"
+        },
+        {
+          "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json",
+          "expectedSha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+          "before": {
+            "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+            "bytes": 402294,
+            "mode": "0o644"
+          },
+          "backupSha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+          "matches": true,
+          "after": {
+            "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+            "bytes": 402294,
+            "mode": "0o644"
+          },
+          "backupSha256After": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad"
+        },
+        {
+          "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md",
+          "expectedSha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+          "before": {
+            "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+            "bytes": 9130,
+            "mode": "0o644"
+          },
+          "backupSha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+          "matches": true,
+          "after": {
+            "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+            "bytes": 9130,
+            "mode": "0o644"
+          },
+          "backupSha256After": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933"
+        },
+        {
+          "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv",
+          "expectedSha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+          "before": {
+            "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+            "bytes": 19414,
+            "mode": "0o644"
+          },
+          "backupSha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+          "matches": true,
+          "crlf": 92,
+          "bareLf": 0,
+          "normalizedEqualsHead": true,
+          "after": {
+            "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+            "bytes": 19414,
+            "mode": "0o644"
+          },
+          "backupSha256After": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0"
+        },
+        {
+          "path": "docs/roadmap/TRANSACTION-01-T02.md",
+          "expectedSha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+          "before": {
+            "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+            "bytes": 1274,
+            "mode": "0o644"
+          },
+          "backupSha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+          "matches": true,
+          "after": {
+            "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+            "bytes": 1274,
+            "mode": "0o644"
+          },
+          "backupSha256After": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7"
+        },
+        {
+          "path": "docs/roadmap/TRANSACTION-01.md",
+          "expectedSha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+          "before": {
+            "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+            "bytes": 3593,
+            "mode": "0o644"
+          },
+          "backupSha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+          "matches": true,
+          "after": {
+            "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+            "bytes": 3593,
+            "mode": "0o644"
+          },
+          "backupSha256After": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c"
+        }
+      ],
+      "manifestSha256": "f93d950fea5ba28ed2215e90f69013b48515386acdcf83d68bf16fc058174af8"
+    },
+    "historicalReportsAndExamplesAndMR00FixturesUnchanged": true,
+    "protectedMaterialsAllMatchBeforeAndOriginalBackups": true,
+    "externalEvidenceDirectory": "/private/tmp/mana-t02-s01-d02-0ybf5ikr",
+    "externalEvidenceKiBAtCheck": 2204,
+    "newWorktrees": 0,
+    "repositoryCopies": 0,
+    "largeArchives": 0,
+    "smallPreEditFilesSavedForDiff": 7,
+    "newQualificationInfrastructure": false,
+    "exactTaskScopeVerified": true
+  },
+  "git": {
+    "branch": "feature/mana-transaction-02",
+    "head": "e3537e3f8c8329a71615fe59d496757d5392c6a8",
+    "indexDiff": "",
+    "initialStatus": " M docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv\n M docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv\n M docs/roadmap/TRANSACTION-01.md\n M scripts/mana-transaction.py\n M scripts/skill_factory/transactions/JavaFacts.java\n M scripts/validate-repo.sh\n?? docs/examples/transaction-01-t02-s01/README.md\n?? docs/examples/transaction-01-t02-s01/nested/resource-timeline.json\n?? docs/examples/transaction-01-t02-s01/outside/resource-timeline.json\n?? docs/examples/transaction-01-t02-s01/requires_new/resource-timeline.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D01.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-F01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-F01.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-R1-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-R1.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01.md\n?? docs/roadmap/TRANSACTION-01-T02-S02.md\n?? docs/roadmap/TRANSACTION-01-T02.md\n?? docs/standards/resource-timeline-model-v1.md\n?? scripts/mana-resource-timeline.py\n?? scripts/skill_factory/transactions/resources.py\n?? tests/fixtures/resource-timeline/README.md\n?? tests/fixtures/resource-timeline/context.json\n?? tests/fixtures/resource-timeline/oracles.json\n?? tests/fixtures/resource-timeline/pom.xml\n?? tests/fixtures/resource-timeline/src/main/java/fixture/Resources.java\n?? tests/resource-timeline.py\n",
+    "finalStatus": " M docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv\n M docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv\n M docs/roadmap/TRANSACTION-01.md\n M docs/standards/transaction-model-v1.md\n M scripts/mana-transaction.py\n M scripts/skill_factory/transactions/JavaFacts.java\n M scripts/skill_factory/transactions/model.py\n M scripts/skill_factory/transactions/plantuml.py\n M scripts/validate-repo.sh\n?? docs/examples/transaction-01-t02-s01/README.md\n?? docs/examples/transaction-01-t02-s01/nested/resource-timeline.json\n?? docs/examples/transaction-01-t02-s01/outside/resource-timeline.json\n?? docs/examples/transaction-01-t02-s01/requires_new/resource-timeline.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D01.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-D02.patch\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-F01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-F01.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-R1-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-R1.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01.md\n?? docs/roadmap/TRANSACTION-01-T02-S02.md\n?? docs/roadmap/TRANSACTION-01-T02.md\n?? docs/standards/resource-leaf-extension-v1.md\n?? docs/standards/resource-timeline-model-v1.md\n?? scripts/mana-resource-timeline.py\n?? scripts/skill_factory/transactions/resource_leaf.py\n?? scripts/skill_factory/transactions/resources.py\n?? tests/fixtures/resource-timeline/README.md\n?? tests/fixtures/resource-timeline/context.json\n?? tests/fixtures/resource-timeline/oracles.json\n?? tests/fixtures/resource-timeline/pom.xml\n?? tests/fixtures/resource-timeline/resource-leaf-oracles.json\n?? tests/fixtures/resource-timeline/src/main/java/fixture/Resources.java\n?? tests/resource-timeline.py\n?? tests/transaction-resource-leaves.py\n"
+  },
+  "deliverables": [
+    "docs/reports/MANA-TRANSACTION-01-T02-S01-D02.md",
+    "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-results.json",
+    "docs/reports/MANA-TRANSACTION-01-T02-S01-D02.patch"
+  ],
+  "allNewPaths": [
+    "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-results.json",
+    "docs/reports/MANA-TRANSACTION-01-T02-S01-D02.md",
+    "docs/reports/MANA-TRANSACTION-01-T02-S01-D02.patch",
+    "docs/standards/resource-leaf-extension-v1.md",
+    "scripts/skill_factory/transactions/resource_leaf.py",
+    "tests/fixtures/resource-timeline/resource-leaf-oracles.json",
+    "tests/transaction-resource-leaves.py"
+  ],
+  "replayDriver": {
+    "path": "/private/tmp/mana-t02-s01-d02-0ybf5ikr/replay.py",
+    "sha256": "3e19d6e5c49cd1408da99a7549019515c2263c8f00f2a0e965e2e183e481644f",
+    "source": "\"\"\"Fresh D01-source replay; literal acceptance expectations are independent of build.\"\"\"\nimport copy\nimport hashlib\nimport importlib.util\nimport json\nfrom pathlib import Path\nimport sys\n\nsys.dont_write_bytecode = True\nROOT = Path('/Users/zel/projects/mana')\nOUT = Path(__file__).resolve().parent\nspec = importlib.util.spec_from_file_location('resource_cli', ROOT / 'scripts/mana-resource-timeline.py')\ncli = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(cli)\nOLD = Path('/private/tmp/mana-t02-s01-f01-eozx3kim')\ncases = [\n    ('required-two', 'fixture.Operations#sequence()', ['P1', 'P1'], 2),\n    ('required-three', 'fixture.Operations#sequence()', ['P1', 'P1', 'P1'], 3),\n    ('requires-new', 'fixture.Entry#independent()', ['P2'], 1),\n    ('nested', 'fixture.Entry#nested()', ['P1'], 1),\n    ('restored', 'fixture.Entry#afterIndependent()', ['P1'], 1),\n    ('terminated', 'fixture.Entry#afterTerminated()', [None], 1),\n    ('unresolved-order', 'fixture.Operations#sequence()', [None, None], 0),\n    ('unknown-context', 'fixture.Operations#required()', [None], 0),\n    ('async', 'fixture.Entry#async()', [None], 0),\n    ('programmatic-fixture', 'fixture.Operations#sequence()', [None, None], 0),\n]\n\n\ndef snapshot(project):\n    return {str(p.relative_to(project)): hashlib.sha256(p.read_bytes()).hexdigest()\n            for p in project.rglob('*') if p.is_file()}\n\n\nresults = []\nfor name, entry, expected_ids, expected_leaves in cases:\n    project = (Path('/private/tmp/mana-t02-s01-d01-jpdxfzi_') if name == 'programmatic-fixture' else OLD) / name\n    before = snapshot(project)\n    context = json.loads((project / 'context.json').read_text())\n    context['resourceLeafPolicy'] = 'JDBC_LITERAL_V1'\n    path = OUT / (name + '-context.json')\n    path.write_text(json.dumps(context))\n    report = cli.analyze(project, path, entry)\n    ops = [o for o in report['observations'] if o['applicationOperation']['receiver'] == 'jdbc']\n    actual_ids = [o['transactionContext']['physicalId'] for o in ops]\n    leaves = [e for e in report['transactionModel']['events'] if e['kind'] == 'RESOURCE_LEAF_CALL']\n    assert before == snapshot(project)\n    assert actual_ids == expected_ids, (name, actual_ids)\n    assert len(leaves) == expected_leaves, (name, leaves)\n    assert all(o['enlistment'] == o['lockAcquired'] == 'UNKNOWN' and o['datasource'] == {'status': 'UNKNOWN', 'id': None} for o in report['observations'])\n    artifact = OUT / (name + '-after.json')\n    artifact.write_text(json.dumps(report, indent=2) + '\\n')\n    results.append({'case': name, 'entry': entry, 'project': str(project), 'expectedIds': expected_ids,\n                    'actualIds': actual_ids, 'expectedLeaves': expected_leaves, 'leafSequences': [e['sequence'] for e in leaves],\n                    'placement': [o['placement'] for o in ops], 'verdict': 'PASS', 'sourceUnchanged': True,\n                    'artifact': str(artifact), 'sha256': hashlib.sha256(artifact.read_bytes()).hexdigest()})\n\nr1 = json.loads((ROOT / 'docs/reports/MANA-TRANSACTION-01-T02-S01-R1-results.json').read_text())['counterexampleFullReport']\noriginal = copy.deepcopy(r1)\ncli.validate_timeline(r1)\nassert r1 == original\nlegacy = cli.analyze(OLD / 'required-two', OLD / 'required-two/context.json', 'fixture.Operations#sequence()')\nassert legacy['transactionModel'] == r1['transactionModel']\nassert legacy['observations'] == r1['observations'] and legacy['timeline'] == r1['timeline']\nresults.append({'case': 'R1 legacy replay and immutable historical report', 'verdict': 'PASS',\n                'transactionModelAndObservationsAndTimelineIdentical': True,\n                'newSourceFactsMetadata': 'statementCall only; historical facts and artifacts remain valid'})\n\n# An actual pre-D02 validator must fail closed on the new event.\nlegacy_module = {'__name__': 'skill_factory.transactions.legacy_model', '__package__': 'skill_factory.transactions'}\nexec(compile((OUT / 'before/scripts/skill_factory/transactions/model.py').read_text(), 'legacy_model.py', 'exec'), legacy_module)\nextended = json.loads((OUT / 'required-two-after.json').read_text())['transactionModel']\ntry:\n    legacy_module['validate_model'](extended)\n    raise AssertionError('legacy consumer silently accepted a new leaf')\nexcept ValueError as exc:\n    assert str(exc) == 'unrecognized transaction event', exc\nresults.append({'case': 'Actual pre-D02 T01 validator rejects new event', 'verdict': 'PASS', 'reason': 'unrecognized transaction event'})\n\n(OUT / 'replay-results.json').write_text(json.dumps(results, indent=2) + '\\n')\nprint(json.dumps({'replays': len(results), 'passed': len(results)}))\n",
+    "preD02ModelSha256": "1246568a9a0c73db5f0686794454b9af41440e7688e122453addddfe13034c99"
+  },
+  "limits": [
+    "Standard implementation dispatch and absence of unmodeled context effects are explicit conditional scenario premises, not runtime proof.",
+    "Imported JSON validation cannot authenticate coordinated fabrication of facts, hashes and IR against source bytes not independently reparsed; rerun the read-only CLI.",
+    "Only standalone catalog overloads with one supported SQL literal are qualified; dynamic SQL, callbacks and target library version remain unresolved.",
+    "No exception-branch execution or successful normal return is asserted.",
+    "Datasource, JDBC connection enlistment, runtime resource identity, acquired locks and granularity remain UNKNOWN.",
+    "Embedded facts consume the existing 4 MiB publication budget; excess is rejected."
+  ],
+  "scope": {
+    "commits": [],
+    "merge": false,
+    "push": false,
+    "staging": false,
+    "FamiliarChanged": false,
+    "candidateActivated": false,
+    "targetBuild": false,
+    "S02": false,
+    "deadlockDetection": false
+  },
+  "notRun": [
+    "Independent semantic review",
+    "Spring/JDBC/driver/database runtime",
+    "Concurrency and acquired locks",
+    "Remote CI",
+    "Release acceptance",
+    "T02-S02"
+  ],
+  "reportSha256": "bc23d776869a8e583f23e03c1a6aa926b1f42d221e2a23898bb0f497004c46c8"
+}

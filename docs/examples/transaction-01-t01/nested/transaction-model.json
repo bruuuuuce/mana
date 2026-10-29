@@ -1,0 +1,332 @@
+{
+  "schema": "mana.transaction-model/v1",
+  "entry": "fixture.A#nested()",
+  "status": "CONDITIONAL_STATIC_SCENARIO",
+  "proxyMode": "CLASS",
+  "assumptions": [
+    "Entry proxy crossing and prior context are explicit scenario inputs, not runtime facts.",
+    "Manager capabilities are explicit scenario assumptions, not inferred driver/runtime support.",
+    "Physical IDs are symbolic scenario identities; actual runtime identity is UNKNOWN.",
+    "Normal synchronous return is conditional; commit/rollback outcome is UNKNOWN.",
+    "Bean binding is closed to the observed annotation declarations; external wiring/advisors are not runtime-proven."
+  ],
+  "context": {
+    "schema": "mana.transaction-context/v1",
+    "initialState": "NO_TRANSACTION",
+    "entryThroughProxy": true,
+    "managerCapabilities": {
+      "tx": {
+        "suspend": true,
+        "savepoints": true
+      }
+    }
+  },
+  "managers": [
+    {
+      "id": "tx",
+      "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+      "evidence": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 665,
+        "end": 758,
+        "line": 15,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      },
+      "capabilities": {
+        "suspend": true,
+        "savepoints": true
+      },
+      "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION"
+    }
+  ],
+  "frames": [
+    {
+      "id": "F1",
+      "callerMethod": null,
+      "calleeMethod": "fixture.A#nested()",
+      "callSite": null,
+      "bean": "fixture.A",
+      "proxy": {
+        "mode": "CLASS",
+        "crossed": true,
+        "configurationEvidence": [
+          {
+            "file": "src/main/java/fixture/Scenario.java",
+            "start": 592,
+            "end": 645,
+            "line": 13,
+            "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+          }
+        ],
+        "reason": "SCENARIO_PROXY_CALL"
+      },
+      "manager": "tx",
+      "configuration": {
+        "propagation": "REQUIRED",
+        "managerQualifier": "",
+        "attributes": {},
+        "evidence": {
+          "file": "src/main/java/fixture/Scenario.java",
+          "start": 930,
+          "end": 944,
+          "line": 22,
+          "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+        },
+        "origin": "method",
+        "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+        "unmodeledAttributes": []
+      },
+      "logicalScope": "L1",
+      "previousState": {
+        "kind": "NO_TRANSACTION",
+        "physicalId": null,
+        "manager": null
+      },
+      "duringState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "afterState": {
+        "kind": "NO_TRANSACTION",
+        "physicalId": null,
+        "manager": null
+      },
+      "certainty": "CONDITIONAL",
+      "bodyTraversal": "STRAIGHT_LINE",
+      "evidence": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 930,
+        "end": 981,
+        "line": 22,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      },
+      "depth": 0,
+      "beanEvidence": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 761,
+        "end": 1941,
+        "line": 17,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      },
+      "beanName": "a"
+    },
+    {
+      "id": "F2",
+      "callerMethod": "fixture.A#nested()",
+      "calleeMethod": "fixture.B#nested()",
+      "callSite": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 968,
+        "end": 978,
+        "line": 22,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      },
+      "bean": "fixture.B",
+      "proxy": {
+        "mode": "CLASS",
+        "crossed": true,
+        "configurationEvidence": [
+          {
+            "file": "src/main/java/fixture/Scenario.java",
+            "start": 592,
+            "end": 645,
+            "line": 13,
+            "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+          }
+        ],
+        "reason": "SCENARIO_PROXY_CALL"
+      },
+      "manager": "tx",
+      "configuration": {
+        "propagation": "NESTED",
+        "managerQualifier": "",
+        "attributes": {
+          "propagation": {
+            "kind": "MEMBER_SELECT",
+            "literal": null,
+            "text": "org.springframework.transaction.annotation.Propagation.NESTED"
+          }
+        },
+        "evidence": {
+          "file": "src/main/java/fixture/Scenario.java",
+          "start": 2118,
+          "end": 2166,
+          "line": 43,
+          "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+        },
+        "origin": "method",
+        "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+        "unmodeledAttributes": []
+      },
+      "logicalScope": "L2",
+      "previousState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "duringState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "afterState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "certainty": "CONDITIONAL",
+      "bodyTraversal": "STRAIGHT_LINE",
+      "evidence": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 2118,
+        "end": 2190,
+        "line": 43,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      },
+      "depth": 1,
+      "beanEvidence": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 1942,
+        "end": 2398,
+        "line": 38,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      },
+      "beanName": "b",
+      "receiverBindingEvidence": {
+        "file": "src/main/java/fixture/Scenario.java",
+        "start": 784,
+        "end": 799,
+        "line": 19,
+        "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+      }
+    }
+  ],
+  "logicalScopes": [
+    {
+      "id": "L1",
+      "kind": "TRANSACTION_LOGICAL_SCOPE",
+      "frame": "F1",
+      "certainty": "CONDITIONAL",
+      "physicalId": "P1"
+    },
+    {
+      "id": "L2",
+      "kind": "TRANSACTION_LOGICAL_SCOPE",
+      "frame": "F2",
+      "certainty": "CONDITIONAL",
+      "physicalId": "P1"
+    }
+  ],
+  "physicalTransactions": [
+    {
+      "id": "P1",
+      "kind": "TRANSACTION_PHYSICAL",
+      "manager": "tx",
+      "beginFrame": "F1",
+      "endFrame": "F1",
+      "identity": "SYMBOLIC_SCENARIO",
+      "runtimeIdentity": "UNKNOWN",
+      "certainty": "CONDITIONAL",
+      "outcome": "UNKNOWN"
+    }
+  ],
+  "suspensions": [],
+  "savepoints": [
+    {
+      "id": "SP1",
+      "kind": "TRANSACTION_SAVEPOINT",
+      "physicalId": "P1",
+      "frame": "F2",
+      "certainty": "CONDITIONAL"
+    }
+  ],
+  "events": [
+    {
+      "sequence": 1,
+      "kind": "FRAME_ENTER",
+      "frame": "F1"
+    },
+    {
+      "sequence": 2,
+      "kind": "PHYSICAL_BEGIN",
+      "frame": "F1",
+      "entity": "P1"
+    },
+    {
+      "sequence": 3,
+      "kind": "LOGICAL_BEGIN",
+      "frame": "F1",
+      "entity": "L1"
+    },
+    {
+      "sequence": 4,
+      "kind": "FRAME_ENTER",
+      "frame": "F2"
+    },
+    {
+      "sequence": 5,
+      "kind": "LOGICAL_BEGIN",
+      "frame": "F2",
+      "entity": "L2"
+    },
+    {
+      "sequence": 6,
+      "kind": "SAVEPOINT_CREATE",
+      "frame": "F2",
+      "entity": "SP1",
+      "physicalId": "P1"
+    },
+    {
+      "sequence": 7,
+      "kind": "SAVEPOINT_RELEASE_CONDITIONAL",
+      "frame": "F2",
+      "entity": "SP1",
+      "physicalId": "P1"
+    },
+    {
+      "sequence": 8,
+      "kind": "LOGICAL_END",
+      "frame": "F2",
+      "entity": "L2"
+    },
+    {
+      "sequence": 9,
+      "kind": "FRAME_EXIT",
+      "frame": "F2"
+    },
+    {
+      "sequence": 10,
+      "kind": "LOGICAL_END",
+      "frame": "F1",
+      "entity": "L1"
+    },
+    {
+      "sequence": 11,
+      "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+      "frame": "F1",
+      "entity": "P1"
+    },
+    {
+      "sequence": 12,
+      "kind": "FRAME_EXIT",
+      "frame": "F1"
+    }
+  ],
+  "uncertainties": [],
+  "evidence": [
+    {
+      "path": "pom.xml",
+      "sha256": "7e348155eba3287517c7ba3164c3b63a98fde31d96cfcbe62f8e4f4e5e1f5347"
+    },
+    {
+      "path": "src/main/java/fixture/Scenario.java",
+      "sha256": "5e548d110a84327778308c43a567131063bb468338360f7c6974bbf7f4569901"
+    }
+  ],
+  "contextEvidence": {
+    "sha256": "75c0b8d353ed8e6f80d35ac3f937c13f4620875bda84300b26c948990b947987",
+    "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+    "path": "context.json"
+  }
+}

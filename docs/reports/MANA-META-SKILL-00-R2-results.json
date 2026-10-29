@@ -1,0 +1,202 @@
+{
+  "review": "MANA-META-SKILL-00-R2",
+  "verdict": "READY_FOR_INTEGRATION",
+  "baseline": "ad8730ebe70f494ac24a80fbf32fcf2b30cdef35",
+  "branch": "feature/mana-meta-skill-00",
+  "preservedInputFiles": {
+    ".github/workflows/validate-mana.yml": {
+      "sha256": "2ba936a29115c08929a1a22e305adddbd9039e6cb45dddc44fee4f9961b61e03",
+      "mode": "0o644"
+    },
+    "docs/examples/mana-meta-skill-00/java-spring-transaction-analysis/SKILL.md": {
+      "sha256": "145dfe1b5452de8a7055457bfdd834d8328dde3f3222faa86b271dd6304edf3c",
+      "mode": "0o644"
+    },
+    "docs/examples/mana-meta-skill-00/java-spring-transaction-analysis/candidate.json": {
+      "sha256": "546ec314a1a5a0961054e4583c8e2b13b40b42a03b698a776f783705945930f9",
+      "mode": "0o644"
+    },
+    "docs/examples/mana-meta-skill-00/provenance.json": {
+      "sha256": "a7a61027110b6626395e87d8ac867c63cd03d75fce3f9ae1a818fd52cc349966",
+      "mode": "0o644"
+    },
+    "docs/reports/MANA-META-SKILL-00-F01-results.json": {
+      "sha256": "17ea9008e19e491fea7cf17b7b166a743a717c0d89fa68375dd9485f294c890b",
+      "mode": "0o644"
+    },
+    "docs/reports/MANA-META-SKILL-00-F01.md": {
+      "sha256": "d4413114fc6430e412b55bdd8630fdbbd1b1f1812239c3710877c31aab2aa10a",
+      "mode": "0o644"
+    },
+    "docs/reports/MANA-META-SKILL-00-F01.patch": {
+      "sha256": "cbf579f7f1202fb2c26bb6c8d2cf9af465abd4cd3ab4f64d908be6923001a3f0",
+      "mode": "0o644"
+    },
+    "docs/reports/MANA-META-SKILL-00-R1-results.json": {
+      "sha256": "b3339f8cfcb24936c898fb1fb9b270e686ac5142a23587099e59bbcc199c8fca",
+      "mode": "0o644"
+    },
+    "docs/reports/MANA-META-SKILL-00-R1.md": {
+      "sha256": "9b12572819598a8ca344efef81b6fcbde7719e9d6c6270f04dc4691464c0994a",
+      "mode": "0o644"
+    },
+    "docs/reports/MANA-META-SKILL-00.md": {
+      "sha256": "f83ab87e2a95719610125021954865c2abed6e3589b9b2dac8d298f8ac2ade06",
+      "mode": "0o644"
+    },
+    "docs/roadmap/TRANSACTION-01.md": {
+      "sha256": "f3efe4dd1c036ab3c0bedf6717be1966fd7da05737cc5d5fec104fba46203545",
+      "mode": "0o644"
+    },
+    "docs/skills-catalog.md": {
+      "sha256": "9ce2eefc1f37c8e1c3e03b589378dffeccc04ec354f1220271b8abc67bd08b38",
+      "mode": "0o644"
+    },
+    "docs/workflow/specialist-skill-factory.md": {
+      "sha256": "7792c595943fae2e6503cd3a8857fccd808d84a4e4e8d503d5a937d51fef650c",
+      "mode": "0o644"
+    },
+    "scripts/mana-skill-factory.py": {
+      "sha256": "a397e48079f92bfc128961c6d3f76a27fc70cb0b054df0ab818c8f732e78ee9f",
+      "mode": "0o755"
+    },
+    "scripts/skill_factory/__init__.py": {
+      "sha256": "d23a53dda644e4cfdef68153659464edfd95263c3b1e8776e2053d713c4d3e54",
+      "mode": "0o644"
+    },
+    "scripts/skill_factory/contracts.py": {
+      "sha256": "3260ca2729bff01f894a40af70581fd59ea9f029e335e03b30a80ec37b61fc48",
+      "mode": "0o644"
+    },
+    "scripts/skill_factory/java_spring.py": {
+      "sha256": "219c1fb9491443c3826c69789fd9dcefc2ddabb6322a9f5e46095a543d367366",
+      "mode": "0o644"
+    },
+    "scripts/validate-repo.sh": {
+      "sha256": "3d3ca9fc787465ff233cb7acc6c59adc7a011deec4b2c03282603a112077d273",
+      "mode": "0o755"
+    },
+    "skills/index.yaml": {
+      "sha256": "9615439bd89db14df90ab41f8cbbf475c12db342cd896f9798d8248dab8e8550",
+      "mode": "0o644"
+    },
+    "skills/specialist-skill-factory/SKILL.md": {
+      "sha256": "2a9fb8fb9c7181e1ad5a8dcfc8db286bad08bf0b7696fc99f8cecfbf99f299e5",
+      "mode": "0o644"
+    },
+    "templates/skill-factory/java-spring-transaction-analysis.md": {
+      "sha256": "145dfe1b5452de8a7055457bfdd834d8328dde3f3222faa86b271dd6304edf3c",
+      "mode": "0o644"
+    },
+    "tests/mana-skill-factory.py": {
+      "sha256": "385a066b40084e76db468fcc33f18c6d004a71b965ce7bd09c28b57fe16cea5a",
+      "mode": "0o755"
+    },
+    "tests/run-zero-token-acceptance.sh": {
+      "sha256": "dd2fcdf609826a3bed9f7c205e9b212e184e18533480f92496dc4de9fbc8e4e4",
+      "mode": "0o700"
+    }
+  },
+  "checks": {
+    "focused": {
+      "command": "python3 tests/mana-skill-factory.py -v",
+      "exitCode": 0,
+      "output": "test_adapter_boundary_extends_same_technology_without_core_changes (__main__.FactoryTests) ... ok\ntest_candidate_not_discovered_or_accepted_by_profile_compiler (__main__.FactoryTests) ... ok\ntest_duplicate_json_keys_rejected (__main__.FactoryTests) ... ok\ntest_evidence_native_contract_read_only_and_no_activation (__main__.FactoryTests) ... ok\ntest_external_temporary_paths_spaces_symlinks_and_child_writes (__main__.FactoryTests) ... ok\ntest_internal_temp_cli_returns_diagnostic_without_output (__main__.FactoryTests) ... ok\ntest_json_malformed_and_deep_cli_block_without_writes (__main__.FactoryTests) ... ok\ntest_json_size_depth_and_token_boundaries (__main__.FactoryTests) ... ok\ntest_malformed_unsafe_and_oversized_evidence (__main__.FactoryTests) ... ok\ntest_module_locality_and_multimodule_support (__main__.FactoryTests) ... ok\ntest_native_validation_failure_precedes_output_writes (__main__.FactoryTests) ... ok\ntest_no_approval_activation_or_analysis_cli (__main__.FactoryTests) ... ok\ntest_no_java_or_symlink_or_generated_evidence (__main__.FactoryTests) ... ok\ntest_overcomplex_generated_manifest_rejected_before_output (__main__.FactoryTests) ... ok\ntest_project_wrappers_are_never_run (__main__.FactoryTests) ... ok\ntest_quoted_brackets_and_escapes_do_not_consume_depth_budget (__main__.FactoryTests) ... ok\ntest_reject_target_and_discovery_output_and_symlink_alias (__main__.FactoryTests) ... ok\ntest_stale_evidence_and_overwrite_rejected (__main__.FactoryTests) ... ok\ntest_tampering_cannot_create_trust_or_executable_tools (__main__.FactoryTests) ... ok\ntest_temporary_environment_fallbacks_without_host_changes (__main__.FactoryTests) ... ok\ntest_unsafe_or_missing_temporary_parent_blocks_before_any_write (__main__.FactoryTests) ... ok\ntest_unsupported_and_false_positive_technologies (__main__.FactoryTests) ... ok\ntest_unsupported_requests_and_adapter_governance_override_block (__main__.FactoryTests) ... ok\n\n----------------------------------------------------------------------\nRan 23 tests in 5.462s\n\nOK\n"
+    },
+    "repository": {
+      "command": "scripts/validate-repo.sh",
+      "exitCode": 0,
+      "output": "Verification skills validation passed\nSkills validation passed\nAgents validation passed\nDivination metadata validation passed\nOutput standard validation passed\nStory trace validation passed\nDeveloper choice log validation passed\nRepository validation passed\n"
+    },
+    "activation": {
+      "command": "tests/profile-skill-activation.sh",
+      "exitCode": 0,
+      "output": "Profile skill activation tests passed\n"
+    },
+    "ruff": {
+      "command": "ruff check scripts/mana-skill-factory.py scripts/skill_factory tests/mana-skill-factory.py",
+      "exitCode": 0,
+      "output": "All checks passed!\n"
+    },
+    "format": {
+      "command": "ruff format --check scripts/mana-skill-factory.py scripts/skill_factory tests/mana-skill-factory.py",
+      "exitCode": 0,
+      "output": "5 files already formatted\n"
+    },
+    "diff": {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "output": ""
+    }
+  },
+  "independentProbes": {
+    "unsafeTemporaryParents": [
+      {
+        "selection": "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project",
+        "reason": "temporary parent is inside analyzed project: /private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project",
+        "targetWriteAttempts": []
+      },
+      {
+        "selection": "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project/missing child",
+        "reason": "temporary parent is inside analyzed project: /private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project/missing child",
+        "targetWriteAttempts": []
+      },
+      {
+        "selection": "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/target alias",
+        "reason": "temporary parent is inside analyzed project: /private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project",
+        "targetWriteAttempts": []
+      },
+      {
+        "selection": "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/target alias/missing child",
+        "reason": "temporary parent is inside analyzed project: /private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project/missing child",
+        "targetWriteAttempts": []
+      },
+      {
+        "selection": "../../../../private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project",
+        "reason": "temporary parent is inside analyzed project: /private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project",
+        "targetWriteAttempts": []
+      }
+    ],
+    "candidateState": {
+      "trustOrigin": "generated",
+      "trusted": false,
+      "registered": false,
+      "executable": false,
+      "approval": {
+        "required": true,
+        "status": "pending",
+        "ownerRole": "Architect / Team Leader"
+      }
+    },
+    "rejectedGovernanceTampering": [
+      "trusted",
+      "registered",
+      "executable",
+      "approval"
+    ],
+    "deepJson": {
+      "exitCode": 2,
+      "diagnostic": {
+        "status": "blocked",
+        "reason": "JSON depth limit exceeded: 32",
+        "executable": false
+      }
+    },
+    "petclinic": {
+      "before": {
+        "files": 132,
+        "digest": "7cd602986575faa0589f0b9e2177c45ecd682ceae6fd97d04666c0da36b91851"
+      },
+      "after": {
+        "files": 132,
+        "digest": "7cd602986575faa0589f0b9e2177c45ecd682ceae6fd97d04666c0da36b91851"
+      },
+      "byteCompatible": true,
+      "head": "500158f732419217507c7656904b8e6aa1bcc0d6",
+      "status": ""
+    },
+    "candidateAbsentFromIndex": true
+  },
+  "scope": "Focused source review of F01-A/B/C and candidate governance only; no remediation",
+  "consolidation": "Performed only after positive review; final SHA/signature/tree verification reported after commit to avoid self-reference"
+}

@@ -1,0 +1,1326 @@
+diff --git a/docs/standards/transaction-model-v1.md b/docs/standards/transaction-model-v1.md
+--- a/docs/standards/transaction-model-v1.md
++++ b/docs/standards/transaction-model-v1.md
+@@ -118,10 +118,61 @@
+ 
+ BYPASSED never converts ACTIVE to INACTIVE. A known PROXY self-call inherits
+ the caller's P (or its known absence/uncertainty), ignoring the called annotation's
+-propagation. UNKNOWN advice produces UNKNOWN effective context and stops confident
+-body traversal. An unannotated wrapper can retain a known initial context while a
+-later annotated call becomes UNKNOWN; its subsequent continuation is then UNKNOWN.
++propagation. F02 composes APPLIED and BYPASSED when advice application is the only
++uncertain boundary mechanism. Physical activity, identity and manager are intersected
++separately; UNKNOWN advice does not itself force UNKNOWN physical context. Body
++traversal remains unasserted. A following call is modeled only if an empty callee's
++normal synchronous unwind preserves the caller's known context in both alternatives.
+ Historical v1 models without these additive fields remain readable/validatable.
++
++### Conditional context composition (F02)
++
++An additive frame `contextComposition` contains source-linked execution premises,
++the `APPLIED`/`BYPASSED` alternatives, and their common `duringState`/`afterState`.
++The frame's states must equal those common states. Composition is confined to an
++otherwise resolved synchronous boundary, known annotations and straight-line syntax;
++async, unknown annotations, programmatic/control-flow hazards and unresolved dispatch
++do not acquire these premises. `duringState` describes the boundary at method entry,
++not proof that an untraversed body preserves it throughout execution.
++
++Each alternative carries physical state, identity relation, logical-scope presence,
++savepoint/suspension presence and boundary resolution. `IF_APPLIED` means **CONDITIONAL**
++presence solely in that advice alternative; `ABSENT` and `UNKNOWN` are distinct.
++`FRESH_IF_APPLIED` describes a branch-only fresh symbolic identity. It is not a
++globally allocated P and must never be equated to the inherited P. These branch-only
++logical/physical/savepoint/suspension effects are not materialized as unconditional
++entities or events in the original v1 arrays. Thus a conditional logical scope can
++coexist with ACTIVE/P1 without claiming a certain additional L entity/lifetime.
++
++| Prior context and declared propagation | Common context at boundary | Conditional effects |
++|---|---|---|
++| ACTIVE/P1, same identified manager, REQUIRED | ACTIVE/P1, same manager | Logical scope IF_APPLIED |
++| NO_TRANSACTION, REQUIRED | Activity/identity UNKNOWN | Fresh transaction and logical scope only if APPLIED |
++| ACTIVE/P1, same manager, REQUIRES_NEW, suspend true | ACTIVE, same manager, physicalId null | APPLIED uses a fresh identity and suspends P1; BYPASSED executes in P1 |
++| ACTIVE/P1, same manager, NESTED, savepoints true | ACTIVE/P1, same manager | Logical scope and savepoint IF_APPLIED on P1 |
++| Unknown/unsupported capability, ambiguous/unmodeled manager, unknown prior identity or other propagation | APPLIED boundary unresolved; retain only properties common with BYPASSED | No savepoint/suspension support invented |
++
++In F02 a `TRANSACTION_PHYSICAL` state may have `physicalId: null` when activity is
++common but identity is not (REQUIRES_NEW above). This requires a validated
++composition witness; null identity is never a new or externally proven transaction.
++The manager can remain identified independently. `effectiveContext.during` is
++ACTIVE in this case while the diagram labels `PHYSICAL_ID_UNKNOWN`.
++
++After-state refinement is limited to source-observed empty bodies and supported
++APPLIED boundaries: both alternatives restore the incoming context on **normal
++synchronous unwind**. This does not prove invocation, successful return, commit or
++rollback. An unasserted nonempty body or unresolved APPLIED boundary leaves the
++after-state UNKNOWN. In particular the two old F01 UNKNOWN-advice empty REQUIRED
++fixtures retain UNKNOWN during execution but refine after-state to INACTIVE; their
++historical receipt/model artifacts remain unchanged.
++
++The validator checks both alternatives, propagation/manager/capability consistency,
++execution premises and provenance, common properties, caller-context linkage and
++the lifetime of inherited P. It rejects a claimed P1 current identity in the
++REQUIRES_NEW alternative, unsupported conditional savepoints, missing alternatives,
++or branch-only entities emitted unconditionally. UNKNOWN/ACTIVE without a valid
++composition remains invalid. This is structural/semantic consistency of supplied
++source facts, not independent re-parsing of the source or a runtime qualification.
+ 
+ ## Bounded Resolution
+ 
+@@ -195,6 +246,11 @@
+ SP notes have explicit identifiers and event positions, with a legend.
+ F01 notes separately label interception and effective context, plus INHERITED or
+ INDEPENDENT physical identity. AspectJ notes state the conditional weaving premise.
++F02 notes additionally distinguish a known inherited P, ACTIVE with unknown current
++identity, conditional logical scope/savepoint, and an unknown physical context.
++Known P1 stays in a shared-context region even when advice is UNKNOWN. The notes
++show the alternatives and normal-unwind/body premises; conditional effects are not
++rendered as unconditional BEGIN/END or savepoint events.
+ Original v1 diagrams/models remain unchanged; the renderer can read historical
+ models using their existing logical/physical state when additive fields are absent.
+ 
+@@ -217,6 +273,9 @@
+ Run `python3 tests/transaction-boundaries.py` and the affected factory regressions.
+ Run `python3 tests/transaction-self-invocation.py -v` for the eight F01 oracles,
+ capability/uncertainty negatives, target immutability and historical rendering.
++Run `python3 tests/transaction-context-alternatives.py -v` for the exact R2
++counterexample, literal F02 alternative oracles, validator tampering negatives,
++context/continuation preservation and conditional diagrams.
+ Set `MANA_PLANTUML_JAR` to an existing local jar for real syntax/SVG checks. Missing
+ PlantUML marks that test NOT RUN/skipped; it is never a syntax PASS. No renderer or
+ Java dependencies are downloaded. No deadlock/resource/lock analysis is included.
+diff --git a/scripts/skill_factory/transactions/model.py b/scripts/skill_factory/transactions/model.py
+--- a/scripts/skill_factory/transactions/model.py
++++ b/scripts/skill_factory/transactions/model.py
+@@ -1,6 +1,8 @@
+ """Conditional static transaction boundaries over a deliberately bounded Java AST."""
+ 
+ import copy
++
++from .alternatives import compose, validate_composition
+ 
+ SPRING = "org.springframework."
+ TX = SPRING + "transaction.annotation.Transactional"
+@@ -364,6 +366,17 @@
+             uncertain(frame, "INACCESSIBLE_EXTERNAL_PRIVATE_METHOD")
+         elif status == "UNKNOWN":
+             uncertain(frame, reason)
++            frame["contextComposition"] = compose(
++                previous,
++                conf,
++                report["managers"],
++                method["evidence"],
++                empty_body=not method["calls"],
++            )
++            frame["duringState"] = copy.deepcopy(
++                frame["contextComposition"]["duringState"]
++            )
++            frame["manager"] = frame["duringState"]["manager"]
+         elif previous["kind"] == "UNKNOWN" and status == "BYPASSED":
+             uncertain(
+                 frame,
+@@ -541,6 +554,11 @@
+                 if (
+                     child["certainty"] == "UNKNOWN"
+                     or child.get("continuation") == "UNKNOWN"
++                ) and not (
++                    "contextComposition" in child
++                    and child["contextComposition"]["premises"]["body"] == "EMPTY"
++                    and child["afterState"] == current
++                    and current["kind"] != "UNKNOWN"
+                 ):
+                     frame["continuation"] = "UNKNOWN"
+                     break
+@@ -562,7 +580,11 @@
+                 entity=item["id"],
+                 physicalId=item["physicalId"],
+             )
+-        if frame["certainty"] == "UNKNOWN" or frame.get("continuation") == "UNKNOWN":
++        if "contextComposition" in frame:
++            frame["afterState"] = copy.deepcopy(
++                frame["contextComposition"]["afterState"]
++            )
++        elif frame["certainty"] == "UNKNOWN" or frame.get("continuation") == "UNKNOWN":
+             frame["afterState"] = unknown()
+         frame["effectiveContext"] = {
+             key: effective_context(frame[field])
+@@ -593,6 +615,8 @@
+     if len(physical) != len(report["physicalTransactions"]):
+         raise ValueError("duplicate physical identity")
+     stack = []
++    current_contexts = {}
++    active_physical = set()
+     for index, event in enumerate(report["events"], 1):
+         if event["sequence"] != index or event["frame"] not in frames:
+             raise ValueError("invalid event trace")
+@@ -612,17 +636,45 @@
+                     raise ValueError(
+                         "call site outside caller or incorrect caller identity"
+                     )
++                if (
++                    "contextComposition" in frame
++                    and frame["previousState"] != current_contexts[parent["id"]]
++                ):
++                    raise ValueError("composition lost caller context provenance")
+             elif frame["callerMethod"] is not None:
+                 raise ValueError("root frame has caller")
++            elif "contextComposition" in frame and frame["previousState"] != (
++                no_transaction()
++                if report["context"]["initialState"] == "NO_TRANSACTION"
++                else unknown()
++            ):
++                raise ValueError("composition contradicts initial scenario context")
+             stack.append(event["frame"])
++            current_contexts[frame["id"]] = frame["duringState"]
++            if (
++                "contextComposition" in frame
++                and frame["previousState"]["physicalId"]
++                and frame["previousState"]["physicalId"] not in active_physical
++            ):
++                raise ValueError(
++                    "composition inherited a physical transaction outside its lifetime"
++                )
+         elif event["kind"] == "FRAME_EXIT":
+             if not stack or stack.pop() != event["frame"]:
+                 raise ValueError("unbalanced frame trace")
++            if stack:
++                current_contexts[stack[-1]] = frames[event["frame"]]["afterState"]
+         elif not stack or stack[-1] != event["frame"]:
+             raise ValueError("event outside active method frame")
++        if event["kind"] == "PHYSICAL_BEGIN":
++            active_physical.add(event["entity"])
++        elif event["kind"] == "PHYSICAL_END_OUTCOME_UNKNOWN":
++            active_physical.discard(event["entity"])
+     if stack:
+         raise ValueError("open frames")
+     for frame in frames.values():
++        if "contextComposition" in frame and "interception" not in frame:
++            raise ValueError("composition requires interception observation")
+         # Historical v1 fixtures may omit the additive F01 fields.
+         if "effectiveContext" in frame:
+             expected = {
+@@ -645,17 +697,33 @@
+                 and frame["duringState"]["kind"] != "UNKNOWN"
+             ):
+                 raise ValueError("bypassed advice changed inherited context")
+-            if status == "UNKNOWN" and frame["duringState"]["kind"] != "UNKNOWN":
++            if "contextComposition" in frame:
++                validate_composition(frame, report)
++            elif status == "UNKNOWN" and (
++                frame["duringState"] != unknown() or frame["afterState"] != unknown()
++            ):
+                 raise ValueError("unknown advice asserted an effective context")
+-        for state in [
+-            frame["previousState"],
+-            frame["duringState"],
+-            frame["afterState"],
+-        ]:
++        for state_field in ("previousState", "duringState", "afterState"):
++            state = frame[state_field]
+             if state["kind"] not in TYPES or (
+                 state["physicalId"] and state["physicalId"] not in physical
+             ):
+                 raise ValueError("invalid context reference")
++            if state["physicalId"] and (
++                state["kind"] != "TRANSACTION_PHYSICAL"
++                or physical[state["physicalId"]]["manager"] != state["manager"]
++            ):
++                raise ValueError("physical state kind/manager contradicts identity")
++            if state["kind"] == "NO_TRANSACTION" and state != no_transaction():
++                raise ValueError("inactive state contains physical properties")
++            if (
++                state["kind"] == "TRANSACTION_PHYSICAL"
++                and not state["physicalId"]
++                and (state_field != "duringState" or "contextComposition" not in frame)
++            ):
++                raise ValueError(
++                    "partial physical identity requires a composition witness"
++                )
+         if frame["callSite"] is not None and not frame["callSite"].get("sha256"):
+             raise ValueError("missing call-site provenance")
+         if not frame["evidence"].get("sha256"):
+diff --git a/scripts/skill_factory/transactions/plantuml.py b/scripts/skill_factory/transactions/plantuml.py
+--- a/scripts/skill_factory/transactions/plantuml.py
++++ b/scripts/skill_factory/transactions/plantuml.py
+@@ -54,13 +54,17 @@
+         if event["kind"] == "FRAME_ENTER":
+             prop = (frame["configuration"] or {}).get("propagation", "UNANNOTATED")
+             unknown = frame["certainty"] == "UNKNOWN" or state["kind"] == "UNKNOWN"
++            composition = frame.get("contextComposition")
++            physical_unknown = state["kind"] == "UNKNOWN" or (
++                state["kind"] == "TRANSACTION_PHYSICAL" and not state["physicalId"]
++            )
+             savepoint = any(s["frame"] == frame["id"] for s in report["savepoints"])
+             new = any(
+                 p["beginFrame"] == frame["id"] for p in report["physicalTransactions"]
+             )
+             color = (
+                 "#FFCCCC"
+-                if unknown
++                if (physical_unknown if composition else unknown)
+                 else "#FFF0AA"
+                 if savepoint
+                 else "#CCE5FF"
+@@ -72,7 +76,17 @@
+             lines.append(
+                 f"{caller} -> {callee}: {label(frame['calleeMethod'])} / {'CANDIDATE_ATTEMPT' if unknown else 'CONDITIONAL_CALL'}"
+             )
+-            text = f"{frame['id']} {prop} {frame['logicalScope'] or 'METHOD_EXECUTION'} {state['physicalId'] or state['kind']}"
++            conditional_scope = (
++                composition
++                and composition["alternatives"]["APPLIED"]["logicalScope"]
++                == "IF_APPLIED"
++            )
++            scope = frame["logicalScope"] or (
++                "CONDITIONAL_LOGICAL_SCOPE" if conditional_scope else "METHOD_EXECUTION"
++            )
++            text = (
++                f"{frame['id']} {prop} {scope} {state['physicalId'] or state['kind']}"
++            )
+             lines.append(f"group {color} {label(text)}")
+             # Accept historical v1 models, which predate the additive F01 fields.
+             interception = frame.get("interception", {}).get(
+@@ -96,6 +110,8 @@
+                 if new
+                 else "INHERITED " + state["physicalId"]
+                 if state["physicalId"]
++                else "PHYSICAL_ID_UNKNOWN"
++                if state["kind"] == "TRANSACTION_PHYSICAL"
+                 else state["kind"]
+             )
+             lines.append(
+@@ -112,6 +128,29 @@
+             lines.append(
+                 f"note right of {callee}: advice={label(reason)}; manager={label(frame['manager'] or 'UNKNOWN_OR_NOT_USED')}"
+             )
++            if composition:
++                applied = composition["alternatives"]["APPLIED"]
++                lines.append(
++                    f"note right of {callee}: APPLIED or BYPASSED / only common physical properties retained"
++                )
++                lines.append(
++                    f"note right of {callee}: LOGICAL_SCOPE {label('CONDITIONAL IF_ADVICE_APPLIED' if conditional_scope else 'UNKNOWN')}; APPLIED identity={label(applied['identity'])}"
++                )
++                if applied["savepoint"] == "IF_APPLIED":
++                    lines.append(
++                        f"note right of {callee} #FFF0AA: SAVEPOINT CONDITIONAL IF_ADVICE_APPLIED on SAME {label(state['physicalId'])}"
++                    )
++                elif prop == "NESTED":
++                    lines.append(
++                        f"note right of {callee}: SAVEPOINT {label(applied['savepoint'])}; capability not inferred"
++                    )
++                if applied["suspension"] == "IF_APPLIED":
++                    lines.append(
++                        f"note right of {callee} #CCE5FF: IF_ADVICE_APPLIED: SUSPEND {label(frame['previousState']['physicalId'])} / FRESH PHYSICAL / RESUME on normal unwind"
++                    )
++                lines.append(
++                    f"note right of {callee}: synchronous boundary; body={label(composition['premises']['body'])}; after normal unwind={label(frame['effectiveContext']['after'])} {label(frame['afterState']['physicalId'] or '')}"
++                )
+             if unknown:
+                 lines.append(
+                     f"note right of {callee} #FFCCCC: UNKNOWN {label(frame['reason'])}; body NOT ASSERTED"
+diff --git a/tests/fixtures/transaction-self-invocation/oracles.json b/tests/fixtures/transaction-self-invocation/oracles.json
+--- a/tests/fixtures/transaction-self-invocation/oracles.json
++++ b/tests/fixtures/transaction-self-invocation/oracles.json
+@@ -94,7 +94,8 @@
+     "during": ["INACTIVE", "UNKNOWN"],
+     "physical": [null, null],
+     "logical": [null, null],
+-    "childAfter": "UNKNOWN",
++    "childAfter": "INACTIVE",
++    "callerAfter": "INACTIVE",
+     "physicalCount": 0,
+     "suspensions": 0,
+     "savepoints": 0,
+@@ -110,7 +111,8 @@
+     "during": ["INACTIVE", "UNKNOWN"],
+     "physical": [null, null],
+     "logical": [null, null],
+-    "childAfter": "UNKNOWN",
++    "childAfter": "INACTIVE",
++    "callerAfter": "INACTIVE",
+     "physicalCount": 0,
+     "suspensions": 0,
+     "savepoints": 0,
+diff --git a/tests/transaction-self-invocation.py b/tests/transaction-self-invocation.py
+--- a/tests/transaction-self-invocation.py
++++ b/tests/transaction-self-invocation.py
+@@ -104,7 +104,10 @@
+         self.assertIn("this." + callee, source.splitlines()[site["line"] - 1])
+         if "reason" in expected:
+             self.assertEqual(frames[1]["reason"], expected["reason"])
+-            self.assertEqual(frames[0]["effectiveContext"]["after"], "UNKNOWN")
++            self.assertEqual(
++                frames[0]["effectiveContext"]["after"],
++                expected.get("callerAfter", "UNKNOWN"),
++            )
+         else:
+             self.assertFalse(report["uncertainties"])
+         text = cli.render(report)
+diff --git a/scripts/skill_factory/transactions/alternatives.py b/scripts/skill_factory/transactions/alternatives.py
+new file mode 100644
+--- /dev/null
++++ b/scripts/skill_factory/transactions/alternatives.py
+@@ -0,0 +1,250 @@
++"""Bounded APPLIED/BYPASSED context composition, never a runtime weaving proof."""
++
++import copy
++
++MANAGER_TYPE = "org.springframework.jdbc.datasource.DataSourceTransactionManager"
++ADVICE_REASONS = {
++    "ASPECTJ_WEAVING_NOT_ESTABLISHED",
++    "ASPECTJ_METHOD_SHAPE_NOT_MODELED",
++    "ASPECTJ_BEAN_SHAPE_NOT_MODELED",
++    "PROXY_OR_ASPECTJ_MODE_NOT_ESTABLISHED",
++    "PROXY_OR_VISIBILITY_NOT_ESTABLISHED",
++}
++
++
++def state(kind="UNKNOWN", physical=None, manager=None):
++    return {"kind": kind, "physicalId": physical, "manager": manager}
++
++
++def common_state(left, right):
++    """Intersect properties; ACTIVE need not imply a common physical identity."""
++    return {
++        key: left[key] if left[key] == right[key] else fallback
++        for key, fallback in (
++            ("kind", "UNKNOWN"),
++            ("physicalId", None),
++            ("manager", None),
++        )
++    }
++
++
++def selected_manager(configuration, managers):
++    selected = configuration["managerQualifier"]
++    if not selected and len(managers) == 1:
++        selected = managers[0]["id"]
++    return next(
++        (m for m in managers if m["id"] == selected and m["type"] == MANAGER_TYPE),
++        None,
++    )
++
++
++def applied_boundary(previous, configuration, managers):
++    """Only the three supported propagations; no branch-only P/L/SP is materialized."""
++    result = {
++        "duringState": state(),
++        "identity": "UNKNOWN",
++        "logicalScope": "UNKNOWN",
++        "savepoint": "UNKNOWN",
++        "suspension": "UNKNOWN",
++        "resolution": "MANAGER_OR_PRIOR_CONTEXT_UNKNOWN",
++    }
++    manager = selected_manager(configuration, managers)
++    if (
++        not manager
++        or previous["kind"] == "UNKNOWN"
++        or previous["manager"] not in (None, manager["id"])
++        or previous["kind"] == "TRANSACTION_PHYSICAL"
++        and not previous["physicalId"]
++    ):
++        return result
++    prop = configuration["propagation"]
++    if prop not in {"REQUIRED", "REQUIRES_NEW", "NESTED"}:
++        result["resolution"] = "PROPAGATION_NOT_MODELED"
++        return result
++    caps = manager["capabilities"]
++    if previous["physicalId"] and (
++        prop == "REQUIRES_NEW"
++        and caps.get("suspend") is not True
++        or prop == "NESTED"
++        and caps.get("savepoints") is not True
++    ):
++        result["resolution"] = "CAPABILITY_UNKNOWN_OR_UNSUPPORTED"
++        return result
++    fresh = prop == "REQUIRES_NEW" or previous["kind"] == "NO_TRANSACTION"
++    return {
++        "duringState": state("TRANSACTION_PHYSICAL", None, manager["id"])
++        if fresh
++        else copy.deepcopy(previous),
++        "identity": "FRESH_IF_APPLIED" if fresh else "INHERITED",
++        "logicalScope": "IF_APPLIED",
++        "savepoint": "IF_APPLIED"
++        if prop == "NESTED" and previous["physicalId"]
++        else "ABSENT",
++        "suspension": "IF_APPLIED"
++        if prop == "REQUIRES_NEW" and previous["physicalId"]
++        else "ABSENT",
++        "resolution": "SUPPORTED",
++    }
++
++
++def compose(previous, configuration, managers, evidence, empty_body):
++    applied = applied_boundary(previous, configuration, managers)
++    # After means normal synchronous unwind, not proof of return/commit/rollback.
++    applied["afterState"] = (
++        copy.deepcopy(previous)
++        if empty_body and applied["resolution"] == "SUPPORTED"
++        else state()
++    )
++    bypassed = {
++        "duringState": copy.deepcopy(previous),
++        "afterState": copy.deepcopy(previous) if empty_body else state(),
++        "identity": "INHERITED",
++        "logicalScope": "ABSENT",
++        "savepoint": "ABSENT",
++        "suspension": "ABSENT",
++        "resolution": "BYPASSED",
++    }
++    return {
++        "premises": {
++            "execution": "SYNCHRONOUS_BOUNDARY",
++            "otherBoundaryMechanisms": "NONE_OBSERVED",
++            "body": "EMPTY" if empty_body else "NOT_ASSERTED",
++            "evidence": copy.deepcopy(evidence),
++        },
++        "alternatives": {"APPLIED": applied, "BYPASSED": bypassed},
++        "duringState": common_state(applied["duringState"], bypassed["duringState"]),
++        "afterState": common_state(applied["afterState"], bypassed["afterState"]),
++    }
++
++
++def validate_composition(frame, report):
++    """Check branch semantics and the intersection against configuration/capabilities."""
++    composition = frame["contextComposition"]
++    if (
++        frame["interception"]["status"] != "UNKNOWN"
++        or frame["interception"]["reason"] not in ADVICE_REASONS
++        or not frame["configuration"]
++        or frame["logicalScope"] is not None
++        or frame["bodyTraversal"] != "NOT_ASSERTED"
++    ):
++        raise ValueError("context composition outside an advice-only uncertainty")
++    reason = frame["interception"]["reason"]
++    mode = report["interceptionMode"]
++    weaving = report["aspectjWeaving"]["application"]
++    if (
++        reason.startswith("ASPECTJ_")
++        and mode != "ASPECTJ"
++        or reason == "ASPECTJ_WEAVING_NOT_ESTABLISHED"
++        and weaving != "UNKNOWN"
++        or reason
++        in {"ASPECTJ_METHOD_SHAPE_NOT_MODELED", "ASPECTJ_BEAN_SHAPE_NOT_MODELED"}
++        and weaving != "ASSUMED_APPLIED"
++        or reason == "PROXY_OR_VISIBILITY_NOT_ESTABLISHED"
++        and mode != "PROXY"
++        or reason == "PROXY_OR_ASPECTJ_MODE_NOT_ESTABLISHED"
++        and mode != "UNKNOWN"
++    ):
++        raise ValueError("advice uncertainty contradicts mode/weaving premises")
++    premises = composition["premises"]
++    if (
++        premises["execution"] != "SYNCHRONOUS_BOUNDARY"
++        or premises["otherBoundaryMechanisms"] != "NONE_OBSERVED"
++        or premises["body"] not in {"EMPTY", "NOT_ASSERTED"}
++        or premises["evidence"] != frame["evidence"]
++    ):
++        raise ValueError("invalid composition execution premises/provenance")
++    for manager in report["managers"]:
++        caps = report["context"]["managerCapabilities"].get(
++            manager["id"], {"suspend": None, "savepoints": None}
++        )
++        if manager["capabilities"] != caps:
++            raise ValueError("composition capabilities contradict scenario context")
++    branches = composition["alternatives"]
++    if set(branches) != {"APPLIED", "BYPASSED"}:
++        raise ValueError("composition requires both advice alternatives")
++    applied, bypassed = branches["APPLIED"], branches["BYPASSED"]
++    previous = frame["previousState"]
++    if bypassed != {
++        "duringState": previous,
++        "afterState": previous if premises["body"] == "EMPTY" else state(),
++        "identity": "INHERITED",
++        "logicalScope": "ABSENT",
++        "savepoint": "ABSENT",
++        "suspension": "ABSENT",
++        "resolution": "BYPASSED",
++    }:
++        raise ValueError("bypassed alternative changed inherited context")
++    # Verify APPLIED directly rather than trusting its claimed resolution or common state.
++    manager = selected_manager(frame["configuration"], report["managers"])
++    prop = frame["configuration"]["propagation"]
++    resolvable = bool(
++        manager
++        and previous["kind"] in {"NO_TRANSACTION", "TRANSACTION_PHYSICAL"}
++        and previous["manager"] in (None, manager["id"])
++        and (previous["kind"] == "NO_TRANSACTION" or previous["physicalId"])
++    )
++    supported_prop = prop in {"REQUIRED", "REQUIRES_NEW", "NESTED"}
++    capable = bool(
++        resolvable
++        and (
++            not previous["physicalId"]
++            or prop == "REQUIRED"
++            or prop == "NESTED"
++            and manager["capabilities"].get("savepoints") is True
++            or prop == "REQUIRES_NEW"
++            and manager["capabilities"].get("suspend") is True
++        )
++    )
++    if resolvable and supported_prop and capable:
++        inherited = (
++            previous["kind"] == "TRANSACTION_PHYSICAL" and prop != "REQUIRES_NEW"
++        )
++        expected = {
++            "duringState": previous
++            if inherited
++            else state("TRANSACTION_PHYSICAL", None, manager["id"]),
++            "afterState": previous if premises["body"] == "EMPTY" else state(),
++            "identity": "INHERITED" if inherited else "FRESH_IF_APPLIED",
++            "logicalScope": "IF_APPLIED",
++            "savepoint": "IF_APPLIED" if inherited and prop == "NESTED" else "ABSENT",
++            "suspension": "IF_APPLIED"
++            if previous["physicalId"] and prop == "REQUIRES_NEW"
++            else "ABSENT",
++            "resolution": "SUPPORTED",
++        }
++    else:
++        expected = {
++            "duringState": state(),
++            "afterState": state(),
++            "identity": "UNKNOWN",
++            "logicalScope": "UNKNOWN",
++            "savepoint": "UNKNOWN",
++            "suspension": "UNKNOWN",
++            "resolution": "MANAGER_OR_PRIOR_CONTEXT_UNKNOWN"
++            if not resolvable
++            else "PROPAGATION_NOT_MODELED"
++            if not supported_prop
++            else "CAPABILITY_UNKNOWN_OR_UNSUPPORTED",
++        }
++    if applied != expected:
++        raise ValueError(
++            "applied alternative contradicts propagation/manager/capabilities"
++        )
++    for field in ("duringState", "afterState"):
++        common = common_state(applied[field], bypassed[field])
++        if composition[field] != common or frame[field] != common:
++            raise ValueError("physical certainty is not common to advice alternatives")
++    if frame["manager"] != composition["duringState"]["manager"]:
++        raise ValueError("frame manager contradicts composition")
++    # Optional branch effects must never leak into the unconditional event model.
++    if any(
++        item.get("frame", item.get("beginFrame")) == frame["id"]
++        for family in (
++            "logicalScopes",
++            "physicalTransactions",
++            "suspensions",
++            "savepoints",
++        )
++        for item in report[family]
++    ):
++        raise ValueError("branch-only boundary materialized as an unconditional entity")
+diff --git a/tests/transaction-context-alternatives.py b/tests/transaction-context-alternatives.py
+new file mode 100755
+--- /dev/null
++++ b/tests/transaction-context-alternatives.py
+@@ -0,0 +1,391 @@
++#!/usr/bin/env python3
++"""Literal F02 oracles, immutable R2 counterexample and validator negative controls."""
++
++import copy
++import hashlib
++import importlib.util
++import json
++import os
++from pathlib import Path
++import subprocess
++import tempfile
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++FIXTURE = ROOT / "tests/fixtures/transaction-context-alternatives"
++spec = importlib.util.spec_from_file_location(
++    "transaction_f02", ROOT / "scripts/mana-transaction.py"
++)
++cli = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(cli)
++
++
++def snapshot(root):
++    return {
++        str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
++        for p in root.rglob("*")
++        if p.is_file()
++    }
++
++
++class ContextAlternativeTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.before = snapshot(FIXTURE)
++        cls.oracles = json.loads((FIXTURE / "oracles.json").read_text())
++        cls.facts = {}
++        for name in ("r2-original", "variants", "ambiguous"):
++            project = FIXTURE / name
++            files = cli.factory.project_files(
++                project, cli.factory.adapter_for("transaction-analysis")
++            )
++            cls.facts[name] = cli.java_facts(cli.factory, project, files)
++
++    @classmethod
++    def tearDownClass(cls):
++        if snapshot(FIXTURE) != cls.before:
++            raise AssertionError("F02 targets changed")
++
++    def context(self, name):
++        oracle = self.oracles[name]
++        context = {
++            "schema": "mana.transaction-context/v1",
++            "initialState": "NO_TRANSACTION",
++            "entryThroughProxy": False,
++            "aspectjWeaving": "ASSUMED_APPLIED",
++            "managerCapabilities": {"tx": {"suspend": True, "savepoints": True}},
++        }
++        if "capability" in oracle:
++            context["managerCapabilities"]["tx"][oracle["capability"]] = oracle[
++                "capabilityValue"
++            ]
++        return context
++
++    def model(self, name):
++        oracle = self.oracles[name]
++        report = cli.build(
++            copy.deepcopy(self.facts[oracle["project"]]),
++            self.context(name),
++            "selftest.Calls#" + oracle["entry"] + "()",
++        )
++        cli.validate_model(report)
++        return report
++
++    def assert_oracle(self, name):
++        expected = self.oracles[name]
++        report = self.model(name)
++        parent, child = report["frames"]
++        self.assertEqual(child["interception"]["status"], "UNKNOWN")
++        self.assertEqual(child["configuration"]["propagation"], expected["propagation"])
++        self.assertEqual(child["effectiveContext"]["during"], expected["during"])
++        self.assertEqual(
++            child["duringState"],
++            {
++                "kind": expected["kind"],
++                "physicalId": expected["physical"],
++                "manager": expected["manager"],
++            },
++        )
++        self.assertEqual(child["effectiveContext"]["after"], expected["after"])
++        self.assertEqual(child["afterState"]["physicalId"], expected["afterPhysical"])
++        self.assertEqual(parent["effectiveContext"]["after"], expected["callerAfter"])
++        self.assertEqual(child["previousState"], parent["duringState"])
++        applied = child["contextComposition"]["alternatives"]["APPLIED"]
++        for key, oracle_key in (
++            ("identity", "identity"),
++            ("logicalScope", "logical"),
++            ("savepoint", "savepoint"),
++            ("suspension", "suspension"),
++            ("resolution", "resolution"),
++        ):
++            self.assertEqual(applied[key], expected[oracle_key])
++        self.assertEqual(len(report["physicalTransactions"]), expected["physicalCount"])
++        self.assertEqual(len(report["logicalScopes"]), expected["physicalCount"])
++        self.assertIsNone(child["logicalScope"])
++        self.assertFalse(report["savepoints"])
++        self.assertFalse(report["suspensions"])
++        self.assertFalse(
++            any(
++                e["frame"] == child["id"]
++                and e["kind"] not in {"FRAME_ENTER", "FRAME_EXIT"}
++                for e in report["events"]
++            )
++        )
++        self.assertEqual(
++            child["contextComposition"]["premises"]["evidence"], child["evidence"]
++        )
++        self.assertEqual(report["aspectjWeaving"]["runtimeApplication"], "UNKNOWN")
++        return report
++
++    def test_01_required_preserves_active_p1(self):
++        self.assert_oracle("required_active")
++
++    def test_02_required_without_initial_transaction(self):
++        self.assert_oracle("required_inactive")
++
++    def test_03_requires_new_has_no_common_identity(self):
++        self.assert_oracle("new_active")
++
++    def test_04_nested_has_conditional_savepoint_on_same_p1(self):
++        self.assert_oracle("nested_active")
++
++    def test_05_nested_unknown_and_false_capability(self):
++        for name in ("nested_unknown", "nested_false"):
++            with self.subTest(name=name):
++                self.assert_oracle(name)
++
++    def test_06_ambiguous_manager_does_not_preserve_false_identity(self):
++        self.assert_oracle("ambiguous")
++
++    def test_07_caller_context_and_following_call_preserved(self):
++        report = cli.build(
++            self.facts["variants"],
++            self.context("required_active"),
++            "selftest.Calls#following()",
++        )
++        cli.validate_model(report)
++        self.assertEqual(
++            [f["duringState"]["physicalId"] for f in report["frames"]],
++            ["P1", "P1", "P1"],
++        )
++        self.assertEqual(report["frames"][1]["afterState"]["physicalId"], "P1")
++        self.assertEqual(report["frames"][0]["effectiveContext"]["after"], "INACTIVE")
++
++    def test_08_rejects_falsely_deterministic_physical_identity(self):
++        for name in ("required_inactive", "new_active", "nested_unknown", "ambiguous"):
++            with self.subTest(name=name):
++                report = self.model(name)
++                child = report["frames"][1]
++                child["duringState"] = {
++                    "kind": "TRANSACTION_PHYSICAL",
++                    "physicalId": "P1",
++                    "manager": "tx",
++                }
++                child["effectiveContext"]["during"] = "ACTIVE"
++                child["manager"] = "tx"
++                child["contextComposition"]["duringState"] = copy.deepcopy(
++                    child["duringState"]
++                )
++                with self.assertRaises(ValueError):
++                    cli.validate_model(report)
++
++    def test_09_validator_accepts_unknown_advice_active_p1(self):
++        report = self.model("required_active")
++        self.assertTrue(cli.validate_model(report))
++        del report["frames"][1]["contextComposition"]
++        with self.assertRaises(ValueError):
++            cli.validate_model(report)
++
++    def test_10_diagram_separates_known_context_conditional_scope_and_savepoint(self):
++        required = cli.render(self.model("required_active"))
++        self.assertIn("interception=UNKNOWN; context=ACTIVE; INHERITED P1", required)
++        self.assertIn("CONDITIONAL_LOGICAL_SCOPE P1", required)
++        self.assertIn("LOGICAL_SCOPE CONDITIONAL IF_ADVICE_APPLIED", required)
++        self.assertIn("group #D6F5D6 F2", required)
++        nested = cli.render(self.model("nested_active"))
++        self.assertIn("SAVEPOINT CONDITIONAL IF_ADVICE_APPLIED on SAME P1", nested)
++        independent = cli.render(self.model("new_active"))
++        self.assertIn("context=ACTIVE; PHYSICAL_ID_UNKNOWN", independent)
++        self.assertIn(
++            "IF_ADVICE_APPLIED: SUSPEND P1 / FRESH PHYSICAL / RESUME on normal unwind",
++            independent,
++        )
++        self.assertNotIn("F2 REQUIRES_NEW CONDITIONAL_LOGICAL_SCOPE P1", independent)
++        self.assertIn(
++            "context=UNKNOWN; UNKNOWN", cli.render(self.model("required_inactive"))
++        )
++
++    def test_original_r2_source_and_context_exact_cli_regression(self):
++        receipt = json.loads(
++            (ROOT / "docs/reports/MANA-TRANSACTION-01-T01-R2-results.json").read_text()
++        )
++        original = receipt["cases"]["counterexample"]
++        self.assertEqual(
++            (FIXTURE / "r2-original/src/main/java/selftest/Calls.java").read_text(),
++            original["source"],
++        )
++        self.assertEqual(self.context("required_active"), original["context"])
++        with tempfile.TemporaryDirectory() as temporary:
++            context = Path(temporary).resolve() / "context.json"
++            context.write_text(json.dumps(original["context"]))
++            output = Path(temporary).resolve() / "result"
++            result = subprocess.run(
++                [
++                    "python3",
++                    str(ROOT / "scripts/mana-transaction.py"),
++                    "--project-root",
++                    str(FIXTURE / "r2-original"),
++                    "--context",
++                    str(context),
++                    "--entry",
++                    "selftest.Calls#activeRequired()",
++                    "--output-dir",
++                    str(output),
++                ],
++                capture_output=True,
++                text=True,
++            )
++            self.assertEqual(result.returncode, 0, result.stderr)
++            report = json.loads((output / "transaction-model.json").read_text())
++            self.assertEqual(report["frames"][1]["interception"]["status"], "UNKNOWN")
++            self.assertEqual(
++                report["frames"][1]["duringState"],
++                {"kind": "TRANSACTION_PHYSICAL", "physicalId": "P1", "manager": "tx"},
++            )
++            self.assertEqual(report["frames"][1]["afterState"]["physicalId"], "P1")
++            self.assertFalse(json.loads(result.stdout)["candidateActivated"])
++
++    def test_requires_new_unknown_capability_is_unresolved(self):
++        self.assert_oracle("new_unknown")
++
++    def test_nonempty_body_does_not_claim_return_context_or_follow_calls(self):
++        report = cli.build(
++            self.facts["variants"],
++            self.context("required_active"),
++            "selftest.Calls#nonempty()",
++        )
++        cli.validate_model(report)
++        self.assertEqual(len(report["frames"]), 2)
++        self.assertEqual(report["frames"][1]["duringState"]["physicalId"], "P1")
++        self.assertEqual(report["frames"][1]["effectiveContext"]["after"], "UNKNOWN")
++        self.assertEqual(report["frames"][0]["continuation"], "UNKNOWN")
++
++    def test_async_and_programmatic_hazards_cannot_use_composition(self):
++        for method in ("asyncCaller", "hazardCaller"):
++            with self.subTest(method=method):
++                report = cli.build(
++                    self.facts["variants"],
++                    self.context("required_active"),
++                    "selftest.Calls#" + method + "()",
++                )
++                cli.validate_model(report)
++                child = report["frames"][1]
++                self.assertNotIn("contextComposition", child)
++                self.assertEqual(child["effectiveContext"]["during"], "UNKNOWN")
++
++    def test_validator_rejects_forged_applied_branch_and_missing_bypass(self):
++        report = self.model("new_active")
++        composition = report["frames"][1]["contextComposition"]
++        composition["alternatives"]["APPLIED"]["duringState"]["physicalId"] = "P1"
++        with self.assertRaises(ValueError):
++            cli.validate_model(report)
++        report = self.model("required_active")
++        del report["frames"][1]["contextComposition"]["alternatives"]["BYPASSED"]
++        with self.assertRaises(ValueError):
++            cli.validate_model(report)
++
++    def test_validator_rejects_false_capability_and_premises(self):
++        for field, value in (
++            ("execution", "ASYNC"),
++            ("otherBoundaryMechanisms", "UNKNOWN"),
++            ("evidence", {}),
++        ):
++            report = self.model("required_active")
++            report["frames"][1]["contextComposition"]["premises"][field] = value
++            with self.subTest(field=field), self.assertRaises(ValueError):
++                cli.validate_model(report)
++        report = self.model("nested_active")
++        report["context"]["managerCapabilities"]["tx"]["savepoints"] = None
++        with self.assertRaises(ValueError):
++            cli.validate_model(report)
++        report = cli.build(
++            self.facts["r2-original"],
++            self.context("required_active"),
++            "selftest.Calls#required()",
++        )
++        self.assertTrue(cli.validate_model(report))
++        report["context"]["initialState"] = "UNKNOWN"
++        with self.assertRaises(ValueError):
++            cli.validate_model(report)
++        report = cli.build(
++            self.facts["r2-original"],
++            self.context("required_active"),
++            "selftest.Calls#required()",
++        )
++        del report["frames"][0]["contextComposition"]
++        with self.assertRaises(ValueError):
++            cli.validate_model(report)
++
++    def test_validator_rejects_conditional_scope_materialized_unconditionally(self):
++        report = self.model("required_active")
++        report["frames"][1]["logicalScope"] = "L2"
++        with self.assertRaises(ValueError):
++            cli.validate_model(report)
++
++    def test_validator_rejects_wrong_caller_identity_and_manager(self):
++        for mutation in ("caller", "manager", "after"):
++            report = self.model("required_active")
++            frame = report["frames"][1]
++            if mutation == "caller":
++                frame["previousState"] = copy.deepcopy(
++                    report["frames"][0]["previousState"]
++                )
++                frame["effectiveContext"]["before"] = "INACTIVE"
++            elif mutation == "manager":
++                frame["duringState"]["manager"] = "tx2"
++            else:
++                frame["afterState"] = copy.deepcopy(
++                    report["frames"][0]["previousState"]
++                )
++                frame["effectiveContext"]["after"] = "INACTIVE"
++            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
++                cli.validate_model(report)
++
++    def test_historical_models_remain_valid(self):
++        for path in (ROOT / "docs/examples/transaction-01-t01").glob(
++            "*/transaction-model.json"
++        ):
++            with self.subTest(path=path):
++                self.assertTrue(cli.validate_model(json.loads(path.read_text())))
++
++    def test_composition_labels_reject_directive_injection(self):
++        report = self.model("nested_active")
++        composition = report["frames"][1]["contextComposition"]
++        poison = "\n!include x\n@enduml\n[[http://x]] <img:x>"
++        composition["premises"]["body"] = poison
++        composition["alternatives"]["APPLIED"]["identity"] = poison
++        text = cli.render(report)
++        self.assertEqual(text.count("@startuml"), 1)
++        self.assertEqual(text.count("@enduml"), 1)
++        self.assertNotIn("!include", text)
++        self.assertNotIn("[[", text)
++        self.assertNotIn("<img", text)
++
++    def test_plantuml_syntax_and_svg(self):
++        jar = Path(
++            os.environ.get("MANA_PLANTUML_JAR", "/Applications/plantuml-1.2024.8.jar")
++        )
++        if not jar.is_file():
++            self.skipTest("PlantUML unavailable: NOT RUN")
++        with tempfile.TemporaryDirectory() as temporary:
++            stage = Path(temporary).resolve()
++            for name in self.oracles:
++                (stage / (name + ".puml")).write_text(cli.render(self.model(name)))
++            args = [
++                "java",
++                "-Djava.awt.headless=true",
++                "-Djava.io.tmpdir=" + str(stage),
++                "-XX:-UsePerfData",
++                "-jar",
++                str(jar),
++            ]
++            for flag in ("-checkonly", "-tsvg"):
++                result = subprocess.run(
++                    [*args, flag, *map(str, sorted(stage.glob("*.puml")))],
++                    cwd=stage,
++                    capture_output=True,
++                    text=True,
++                    timeout=60,
++                )
++                self.assertEqual(result.returncode, 0, result.stderr)
++            self.assertEqual(len(list(stage.glob("*.svg"))), len(self.oracles))
++            self.assertTrue(
++                all(
++                    "Syntax Error" not in path.read_text()
++                    for path in stage.glob("*.svg")
++                )
++            )
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/fixtures/transaction-context-alternatives/README.md b/tests/fixtures/transaction-context-alternatives/README.md
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-context-alternatives/README.md
+@@ -0,0 +1,22 @@
++# F02 context-alternative oracles
++
++`r2-original` reproduces the exact Java source embedded in the immutable R2
++receipt: only `required()` is final, and advice application is UNKNOWN there.
++`variants` makes the REQUIRES_NEW and NESTED callees final and adds bounded
++continuation/nonempty/async/programmatic-hazard negatives. `ambiguous` declares
++two managers while explicitly qualifying the caller's P1 with tx.
++
++All targets are parse-only. No Spring context or weaver is executed.
++
++The literal expectations in `oracles.json` were specified from the two alternatives:
++REQUIRED joins P1 or inherits P1; without an initial transaction the physical
++activity differs; REQUIRES_NEW uses a fresh identity or P1 (both ACTIVE if suspend
++is assumed supported); NESTED uses P1 with or without a savepoint. Unproven/false
++capabilities and ambiguous managers leave the APPLIED boundary unresolved.
++The after-state is conditional on normal synchronous unwind of the empty body;
++it does not prove a return, commit or rollback. Branch-only L/P/SP/S effects are
++not unconditional entities/events. A logical scope or savepoint marked IF_APPLIED
++exists only in that alternative, and its presence remains CONDITIONAL.
++
++Run `python3 tests/transaction-context-alternatives.py -v`. PlantUML checks use
++only an existing local jar. Missing rendering is NOT RUN, never a syntax PASS.
+diff --git a/tests/fixtures/transaction-context-alternatives/ambiguous/pom.xml b/tests/fixtures/transaction-context-alternatives/ambiguous/pom.xml
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-context-alternatives/ambiguous/pom.xml
+@@ -0,0 +1,7 @@
++<project xmlns="http://maven.apache.org/POM/4.0.0">
++  <modelVersion>4.0.0</modelVersion><groupId>mana.fixture</groupId>
++  <artifactId>transaction-boundaries</artifactId><version>1</version>
++  <dependencies><dependency><groupId>org.springframework</groupId>
++    <artifactId>spring-tx</artifactId><version>6.2.19</version>
++  </dependency></dependencies>
++</project>
+diff --git a/tests/fixtures/transaction-context-alternatives/ambiguous/src/main/java/selftest/Calls.java b/tests/fixtures/transaction-context-alternatives/ambiguous/src/main/java/selftest/Calls.java
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-context-alternatives/ambiguous/src/main/java/selftest/Calls.java
+@@ -0,0 +1,25 @@
++package selftest;
++import org.springframework.stereotype.Service;
++import org.springframework.transaction.annotation.Transactional;
++import org.springframework.transaction.annotation.Propagation;
++import org.springframework.transaction.annotation.EnableTransactionManagement;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.context.annotation.Bean;
++import org.springframework.jdbc.datasource.DataSourceTransactionManager;
++
++@Configuration
++@EnableTransactionManagement(mode = org.springframework.context.annotation.AdviceMode.ASPECTJ)
++class Config {
++    @Bean public DataSourceTransactionManager tx2() { return new DataSourceTransactionManager(); }
++    @Bean public DataSourceTransactionManager tx() { return new DataSourceTransactionManager(); }
++}
++@Service
++class Calls {
++    public void outsideRequired() { this.required(); }
++    @Transactional(transactionManager = "tx") public void activeRequired() { this.required(); }
++    @Transactional public void activeNew() { this.independent(); }
++    @Transactional public void activeNested() { this.nested(); }
++    @Transactional public final void required() {}
++    @Transactional(propagation = Propagation.REQUIRES_NEW) public void independent() {}
++    @Transactional(propagation = Propagation.NESTED) public void nested() {}
++}
+diff --git a/tests/fixtures/transaction-context-alternatives/oracles.json b/tests/fixtures/transaction-context-alternatives/oracles.json
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-context-alternatives/oracles.json
+@@ -0,0 +1,152 @@
++{
++  "required_active": {
++    "project": "r2-original",
++    "entry": "activeRequired",
++    "propagation": "REQUIRED",
++    "during": "ACTIVE",
++    "kind": "TRANSACTION_PHYSICAL",
++    "physical": "P1",
++    "manager": "tx",
++    "after": "ACTIVE",
++    "afterPhysical": "P1",
++    "callerAfter": "INACTIVE",
++    "identity": "INHERITED",
++    "logical": "IF_APPLIED",
++    "savepoint": "ABSENT",
++    "resolution": "SUPPORTED",
++    "physicalCount": 1,
++    "suspension": "ABSENT"
++  },
++  "required_inactive": {
++    "project": "r2-original",
++    "entry": "outsideRequired",
++    "propagation": "REQUIRED",
++    "during": "UNKNOWN",
++    "kind": "UNKNOWN",
++    "physical": null,
++    "manager": null,
++    "after": "INACTIVE",
++    "afterPhysical": null,
++    "callerAfter": "INACTIVE",
++    "identity": "FRESH_IF_APPLIED",
++    "logical": "IF_APPLIED",
++    "savepoint": "ABSENT",
++    "resolution": "SUPPORTED",
++    "physicalCount": 0,
++    "suspension": "ABSENT"
++  },
++  "new_active": {
++    "project": "variants",
++    "entry": "activeNew",
++    "propagation": "REQUIRES_NEW",
++    "during": "ACTIVE",
++    "kind": "TRANSACTION_PHYSICAL",
++    "physical": null,
++    "manager": "tx",
++    "after": "ACTIVE",
++    "afterPhysical": "P1",
++    "callerAfter": "INACTIVE",
++    "identity": "FRESH_IF_APPLIED",
++    "logical": "IF_APPLIED",
++    "savepoint": "ABSENT",
++    "resolution": "SUPPORTED",
++    "physicalCount": 1,
++    "suspension": "IF_APPLIED"
++  },
++  "nested_active": {
++    "project": "variants",
++    "entry": "activeNested",
++    "propagation": "NESTED",
++    "during": "ACTIVE",
++    "kind": "TRANSACTION_PHYSICAL",
++    "physical": "P1",
++    "manager": "tx",
++    "after": "ACTIVE",
++    "afterPhysical": "P1",
++    "callerAfter": "INACTIVE",
++    "identity": "INHERITED",
++    "logical": "IF_APPLIED",
++    "savepoint": "IF_APPLIED",
++    "resolution": "SUPPORTED",
++    "physicalCount": 1,
++    "suspension": "ABSENT"
++  },
++  "nested_unknown": {
++    "project": "variants",
++    "entry": "activeNested",
++    "propagation": "NESTED",
++    "during": "UNKNOWN",
++    "kind": "UNKNOWN",
++    "physical": null,
++    "manager": null,
++    "after": "UNKNOWN",
++    "afterPhysical": null,
++    "callerAfter": "UNKNOWN",
++    "identity": "UNKNOWN",
++    "logical": "UNKNOWN",
++    "savepoint": "UNKNOWN",
++    "resolution": "CAPABILITY_UNKNOWN_OR_UNSUPPORTED",
++    "physicalCount": 1,
++    "capability": "savepoints",
++    "capabilityValue": null,
++    "suspension": "UNKNOWN"
++  },
++  "nested_false": {
++    "project": "variants",
++    "entry": "activeNested",
++    "propagation": "NESTED",
++    "during": "UNKNOWN",
++    "kind": "UNKNOWN",
++    "physical": null,
++    "manager": null,
++    "after": "UNKNOWN",
++    "afterPhysical": null,
++    "callerAfter": "UNKNOWN",
++    "identity": "UNKNOWN",
++    "logical": "UNKNOWN",
++    "savepoint": "UNKNOWN",
++    "resolution": "CAPABILITY_UNKNOWN_OR_UNSUPPORTED",
++    "physicalCount": 1,
++    "capability": "savepoints",
++    "capabilityValue": false,
++    "suspension": "UNKNOWN"
++  },
++  "new_unknown": {
++    "project": "variants",
++    "entry": "activeNew",
++    "propagation": "REQUIRES_NEW",
++    "during": "UNKNOWN",
++    "kind": "UNKNOWN",
++    "physical": null,
++    "manager": null,
++    "after": "UNKNOWN",
++    "afterPhysical": null,
++    "callerAfter": "UNKNOWN",
++    "identity": "UNKNOWN",
++    "logical": "UNKNOWN",
++    "savepoint": "UNKNOWN",
++    "resolution": "CAPABILITY_UNKNOWN_OR_UNSUPPORTED",
++    "physicalCount": 1,
++    "capability": "suspend",
++    "capabilityValue": null,
++    "suspension": "UNKNOWN"
++  },
++  "ambiguous": {
++    "project": "ambiguous",
++    "entry": "activeRequired",
++    "propagation": "REQUIRED",
++    "during": "UNKNOWN",
++    "kind": "UNKNOWN",
++    "physical": null,
++    "manager": null,
++    "after": "UNKNOWN",
++    "afterPhysical": null,
++    "callerAfter": "UNKNOWN",
++    "identity": "UNKNOWN",
++    "logical": "UNKNOWN",
++    "savepoint": "UNKNOWN",
++    "resolution": "MANAGER_OR_PRIOR_CONTEXT_UNKNOWN",
++    "physicalCount": 1,
++    "suspension": "UNKNOWN"
++  }
++}
+diff --git a/tests/fixtures/transaction-context-alternatives/r2-original/pom.xml b/tests/fixtures/transaction-context-alternatives/r2-original/pom.xml
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-context-alternatives/r2-original/pom.xml
+@@ -0,0 +1,7 @@
++<project xmlns="http://maven.apache.org/POM/4.0.0">
++  <modelVersion>4.0.0</modelVersion><groupId>mana.fixture</groupId>
++  <artifactId>transaction-boundaries</artifactId><version>1</version>
++  <dependencies><dependency><groupId>org.springframework</groupId>
++    <artifactId>spring-tx</artifactId><version>6.2.19</version>
++  </dependency></dependencies>
++</project>
+diff --git a/tests/fixtures/transaction-context-alternatives/r2-original/src/main/java/selftest/Calls.java b/tests/fixtures/transaction-context-alternatives/r2-original/src/main/java/selftest/Calls.java
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-context-alternatives/r2-original/src/main/java/selftest/Calls.java
+@@ -0,0 +1,24 @@
++package selftest;
++import org.springframework.stereotype.Service;
++import org.springframework.transaction.annotation.Transactional;
++import org.springframework.transaction.annotation.Propagation;
++import org.springframework.transaction.annotation.EnableTransactionManagement;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.context.annotation.Bean;
++import org.springframework.jdbc.datasource.DataSourceTransactionManager;
++
++@Configuration
++@EnableTransactionManagement(mode = org.springframework.context.annotation.AdviceMode.ASPECTJ)
++class Config {
++    @Bean public DataSourceTransactionManager tx() { return new DataSourceTransactionManager(); }
++}
++@Service
++class Calls {
++    public void outsideRequired() { this.required(); }
++    @Transactional public void activeRequired() { this.required(); }
++    @Transactional public void activeNew() { this.independent(); }
++    @Transactional public void activeNested() { this.nested(); }
++    @Transactional public final void required() {}
++    @Transactional(propagation = Propagation.REQUIRES_NEW) public void independent() {}
++    @Transactional(propagation = Propagation.NESTED) public void nested() {}
++}
+diff --git a/tests/fixtures/transaction-context-alternatives/variants/pom.xml b/tests/fixtures/transaction-context-alternatives/variants/pom.xml
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-context-alternatives/variants/pom.xml
+@@ -0,0 +1,7 @@
++<project xmlns="http://maven.apache.org/POM/4.0.0">
++  <modelVersion>4.0.0</modelVersion><groupId>mana.fixture</groupId>
++  <artifactId>transaction-boundaries</artifactId><version>1</version>
++  <dependencies><dependency><groupId>org.springframework</groupId>
++    <artifactId>spring-tx</artifactId><version>6.2.19</version>
++  </dependency></dependencies>
++</project>
+diff --git a/tests/fixtures/transaction-context-alternatives/variants/src/main/java/selftest/Calls.java b/tests/fixtures/transaction-context-alternatives/variants/src/main/java/selftest/Calls.java
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/transaction-context-alternatives/variants/src/main/java/selftest/Calls.java
+@@ -0,0 +1,33 @@
++package selftest;
++import org.springframework.stereotype.Service;
++import org.springframework.transaction.annotation.Transactional;
++import org.springframework.transaction.annotation.Propagation;
++import org.springframework.transaction.annotation.EnableTransactionManagement;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.context.annotation.Bean;
++import org.springframework.jdbc.datasource.DataSourceTransactionManager;
++
++@Configuration
++@EnableTransactionManagement(mode = org.springframework.context.annotation.AdviceMode.ASPECTJ)
++class Config {
++    @Bean public DataSourceTransactionManager tx() { return new DataSourceTransactionManager(); }
++}
++@Service
++class Calls {
++    public void outsideRequired() { this.required(); }
++    @Transactional public void activeRequired() { this.required(); }
++    @Transactional public void activeNew() { this.independent(); }
++    @Transactional public void activeNested() { this.nested(); }
++    @Transactional public void following() { this.required(); this.plain(); }
++    public void plain() {}
++    @Transactional public void nonempty() { this.nonemptyRequired(); }
++    @Transactional public final void nonemptyRequired() { this.plain(); }
++    @Transactional public void asyncCaller() { this.asyncRequired(); }
++    @org.springframework.scheduling.annotation.Async
++    @Transactional public final void asyncRequired() {}
++    @Transactional public void hazardCaller() { this.hazardRequired(); }
++    @Transactional public final void hazardRequired() { Object ignored = null; }
++    @Transactional public final void required() {}
++    @Transactional(propagation = Propagation.REQUIRES_NEW) public final void independent() {}
++    @Transactional(propagation = Propagation.NESTED) public final void nested() {}
++}

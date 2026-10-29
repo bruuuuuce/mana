@@ -1,0 +1,341 @@
+{
+  "schema": "mana.transaction-model/v1",
+  "entry": "Review#outer()",
+  "status": "CONDITIONAL_STATIC_SCENARIO",
+  "proxyMode": "CLASS",
+  "interceptionMode": "PROXY",
+  "aspectjWeaving": {
+    "application": "UNKNOWN",
+    "runtimeApplication": "UNKNOWN"
+  },
+  "assumptions": [
+    "SYNTHETIC HAND-AUTHORED MR00 ORACLE; not JDK output or runtime proof.",
+    "Normal synchronous unwind is conditional; manager capability premises are stipulated."
+  ],
+  "context": {
+    "schema": "mana.transaction-context/v1",
+    "initialState": "NO_TRANSACTION",
+    "entryThroughProxy": true,
+    "managerCapabilities": {
+      "tx": {
+        "suspend": true,
+        "savepoints": true
+      }
+    }
+  },
+  "managers": [
+    {
+      "id": "tx",
+      "type": "org.springframework.jdbc.datasource.DataSourceTransactionManager",
+      "capabilities": {
+        "suspend": true,
+        "savepoints": true
+      },
+      "capabilityCertainty": "EXPLICIT_SCENARIO_ASSUMPTION",
+      "evidence": {
+        "file": "Synthetic.java",
+        "start": 0,
+        "end": 548,
+        "line": 1,
+        "sha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d"
+      }
+    }
+  ],
+  "frames": [
+    {
+      "id": "F1",
+      "callerMethod": null,
+      "calleeMethod": "Review#outer()",
+      "callSite": null,
+      "bean": "Review",
+      "beanName": "review",
+      "proxy": {
+        "mode": "CLASS",
+        "crossed": true,
+        "reason": "SCENARIO_PROXY_CALL",
+        "configurationEvidence": [
+          {
+            "file": "Synthetic.java",
+            "start": 0,
+            "end": 548,
+            "line": 1,
+            "sha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d"
+          }
+        ]
+      },
+      "configuration": {
+        "propagation": "REQUIRED",
+        "managerQualifier": "tx",
+        "attributes": {},
+        "origin": "method",
+        "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+        "unmodeledAttributes": [],
+        "evidence": {
+          "file": "Synthetic.java",
+          "start": 631,
+          "end": 729,
+          "line": 17,
+          "sha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d"
+        }
+      },
+      "interception": {
+        "status": "APPLIED",
+        "reason": "SCENARIO_PROXY_CALL"
+      },
+      "manager": "tx",
+      "logicalScope": "L1",
+      "previousState": {
+        "kind": "NO_TRANSACTION",
+        "physicalId": null,
+        "manager": null
+      },
+      "duringState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "afterState": {
+        "kind": "UNKNOWN",
+        "physicalId": null,
+        "manager": null
+      },
+      "certainty": "CONDITIONAL",
+      "bodyTraversal": "STRAIGHT_LINE",
+      "depth": 0,
+      "effectiveContext": {
+        "before": "INACTIVE",
+        "during": "ACTIVE",
+        "after": "UNKNOWN"
+      },
+      "evidence": {
+        "file": "Synthetic.java",
+        "start": 631,
+        "end": 729,
+        "line": 17,
+        "sha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d"
+      },
+      "beanEvidence": {
+        "file": "Synthetic.java",
+        "start": 548,
+        "end": 731,
+        "line": 12,
+        "sha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d"
+      },
+      "continuation": "UNKNOWN"
+    },
+    {
+      "id": "F2",
+      "callerMethod": "Review#outer()",
+      "calleeMethod": "Other#inner()",
+      "callSite": {
+        "file": "Synthetic.java",
+        "start": 712,
+        "end": 725,
+        "line": 18,
+        "sha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d"
+      },
+      "bean": "Other",
+      "beanName": "other",
+      "proxy": {
+        "mode": "CLASS",
+        "crossed": true,
+        "reason": "SCENARIO_PROXY_CALL",
+        "configurationEvidence": [
+          {
+            "file": "Synthetic.java",
+            "start": 0,
+            "end": 548,
+            "line": 1,
+            "sha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d"
+          }
+        ]
+      },
+      "configuration": {
+        "propagation": "REQUIRED",
+        "managerQualifier": "tx",
+        "attributes": {},
+        "origin": "method",
+        "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+        "unmodeledAttributes": [],
+        "evidence": {
+          "file": "Synthetic.java",
+          "start": 813,
+          "end": 883,
+          "line": 25,
+          "sha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d"
+        }
+      },
+      "interception": {
+        "status": "APPLIED",
+        "reason": "SCENARIO_PROXY_CALL"
+      },
+      "manager": "tx",
+      "logicalScope": "L2",
+      "previousState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "duringState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "afterState": {
+        "kind": "TRANSACTION_PHYSICAL",
+        "physicalId": "P1",
+        "manager": "tx"
+      },
+      "certainty": "CONDITIONAL",
+      "bodyTraversal": "STRAIGHT_LINE",
+      "depth": 1,
+      "effectiveContext": {
+        "before": "ACTIVE",
+        "during": "ACTIVE",
+        "after": "ACTIVE"
+      },
+      "evidence": {
+        "file": "Synthetic.java",
+        "start": 813,
+        "end": 883,
+        "line": 25,
+        "sha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d"
+      },
+      "beanEvidence": {
+        "file": "Synthetic.java",
+        "start": 731,
+        "end": 885,
+        "line": 20,
+        "sha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d"
+      }
+    }
+  ],
+  "logicalScopes": [
+    {
+      "id": "L1",
+      "kind": "TRANSACTION_LOGICAL_SCOPE",
+      "frame": "F1",
+      "physicalId": "P1",
+      "certainty": "CONDITIONAL"
+    },
+    {
+      "id": "L2",
+      "kind": "TRANSACTION_LOGICAL_SCOPE",
+      "frame": "F2",
+      "physicalId": "P1",
+      "certainty": "CONDITIONAL"
+    }
+  ],
+  "physicalTransactions": [
+    {
+      "id": "P1",
+      "kind": "TRANSACTION_PHYSICAL",
+      "manager": "tx",
+      "beginFrame": "F1",
+      "endFrame": "F1",
+      "identity": "SYMBOLIC_SCENARIO",
+      "runtimeIdentity": "UNKNOWN",
+      "certainty": "CONDITIONAL",
+      "outcome": "UNKNOWN"
+    }
+  ],
+  "savepoints": [],
+  "suspensions": [],
+  "events": [
+    {
+      "kind": "FRAME_ENTER",
+      "frame": "F1",
+      "sequence": 1
+    },
+    {
+      "kind": "PHYSICAL_BEGIN",
+      "frame": "F1",
+      "entity": "P1",
+      "sequence": 2
+    },
+    {
+      "kind": "LOGICAL_BEGIN",
+      "frame": "F1",
+      "entity": "L1",
+      "sequence": 3
+    },
+    {
+      "kind": "UNRESOLVED_CALL",
+      "frame": "F1",
+      "callSite": {
+        "file": "Synthetic.java",
+        "start": 699,
+        "end": 710,
+        "line": 18,
+        "sha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d"
+      },
+      "receiver": "System",
+      "method": "gc",
+      "sequence": 4
+    },
+    {
+      "kind": "FRAME_ENTER",
+      "frame": "F2",
+      "sequence": 5
+    },
+    {
+      "kind": "LOGICAL_BEGIN",
+      "frame": "F2",
+      "entity": "L2",
+      "sequence": 6
+    },
+    {
+      "kind": "LOGICAL_END",
+      "frame": "F2",
+      "entity": "L2",
+      "sequence": 7
+    },
+    {
+      "kind": "FRAME_EXIT",
+      "frame": "F2",
+      "sequence": 8
+    },
+    {
+      "kind": "LOGICAL_END",
+      "frame": "F1",
+      "entity": "L1",
+      "sequence": 9
+    },
+    {
+      "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+      "frame": "F1",
+      "entity": "P1",
+      "sequence": 10
+    },
+    {
+      "kind": "FRAME_EXIT",
+      "frame": "F1",
+      "sequence": 11
+    }
+  ],
+  "uncertainties": [
+    {
+      "frame": "F1",
+      "reason": "UNRESOLVED_RECEIVER_OR_NON_INJECTED_REFERENCE",
+      "classification": "UNKNOWN",
+      "evidence": {
+        "file": "Synthetic.java",
+        "start": 699,
+        "end": 710,
+        "line": 18,
+        "sha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "Synthetic.java",
+      "sha256": "316045606479426cdaf08be233dcb8c28a1a88f666ede8be277a7d08fe9cd59d"
+    }
+  ],
+  "contextEvidence": {
+    "sha256": "c488880742b63454f9bb6798567346ad0ac363fd88d9074f46ed7395cae9c07e",
+    "origin": "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF",
+    "path": "EXTERNAL_CONTEXT"
+  }
+}

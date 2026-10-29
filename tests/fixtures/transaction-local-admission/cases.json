@@ -1,0 +1,86 @@
+[
+  {
+    "id": "positive",
+    "admitted": true,
+    "site": "step()",
+    "source": "package fixture; import org.springframework.transaction.annotation.Transactional; class Positive { @Transactional public void run() { int unused = 7; step(); opaque(); } private void step() {} private native void opaque(); }"
+  },
+  {
+    "id": "negative",
+    "admitted": false,
+    "site": "step()",
+    "source": "package fixture; import org.springframework.transaction.annotation.Transactional; class Negative { @Transactional public void run() { int unused = fail(); step(); opaque(); } private int fail() { throw new IllegalStateException(); } private void step() {} private native void opaque(); }"
+  },
+  {
+    "id": "binding",
+    "admitted": true,
+    "site": "step(p, true)",
+    "source": "package fixture; class Binding { void run(String p) { int result = step(p, true); } private int step(String p, boolean b) { return 1; } }"
+  },
+  {
+    "id": "receiver",
+    "admitted": false,
+    "site": "other.step()",
+    "source": "package fixture; class Receiver { void run(Receiver other) { other.step(); } private void step() {} }"
+  },
+  {
+    "id": "argument",
+    "admitted": false,
+    "site": "step(p.trim())",
+    "source": "package fixture; class Argument { void run(String p) { step(p.trim()); } private void step(String p) {} }"
+  },
+  {
+    "id": "dispatch",
+    "admitted": false,
+    "site": "step()",
+    "source": "package fixture; class Dispatch { void run() { step(); } void step() {} }"
+  },
+  {
+    "id": "conditional",
+    "admitted": false,
+    "site": "step()",
+    "source": "package fixture; class Conditional { void run(boolean b) { if (b) { step(); } } private void step() {} }"
+  },
+  {
+    "id": "unknownReturn",
+    "admitted": true,
+    "site": "step()",
+    "source": "package fixture; class UnknownReturn { void run() { int result = step(); } private int step() { return opaque(); } private native int opaque(); }"
+  },
+  {
+    "id": "getter",
+    "admitted": false,
+    "site": "result.get()",
+    "source": "package fixture; class Getter { void run() { Result result = step(); result.get(); } private native Result step(); static class Result { int get() { return 1; } } }"
+  },
+  {
+    "id": "initializer",
+    "admitted": false,
+    "site": "step()",
+    "source": "package fixture; class Initializer { void run() { int unused = effect(); step(); } private native int effect(); private void step() {} }"
+  },
+  {
+    "id": "springUnknown",
+    "admitted": true,
+    "site": "step()",
+    "source": "package fixture; import org.springframework.transaction.annotation.Transactional; class SpringUnknown { static int unknown = effect(); @Transactional void run() { step(); } private void step() {} private static native int effect(); }"
+  },
+  {
+    "id": "negativeAuthority",
+    "admitted": true,
+    "site": "step()",
+    "source": "package fixture; class NegativeAuthority { void run() { step(); opaque(); } private void step() { opaque(); } private native void opaque(); }"
+  },
+  {
+    "id": "synchronized",
+    "admitted": false,
+    "site": "step()",
+    "source": "package fixture; class Synchronized { void run() { step(); } private synchronized void step() {} }"
+  },
+  {
+    "id": "native",
+    "admitted": false,
+    "site": "step()",
+    "source": "package fixture; class Native { void run() { step(); } private native void step(); }"
+  }
+]

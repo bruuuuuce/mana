@@ -1,0 +1,46 @@
+--- /private/tmp/mana-vis-f01/plantuml-before.py	2026-10-23 08:51:58
++++ scripts/skill_factory/transactions/plantuml.py	2026-10-23 19:01:47
+@@ -436,8 +436,15 @@
+                 "R" + str(index)
+             )
+         for (a, b, kind), refs in relation_groups.items():
++            # Wrap the resume type at a word boundary: SVG viewers can use
++            # wider font metrics than PlantUML's textLength calculation.
++            mixed_label = (
++                "MIXED / RESUME_REQUIRES_\\nCOMPLETION"
++                if kind == "RESUME_REQUIRES_COMPLETION"
++                else f"MIXED / {label(kind)}"
++            )
+             lines.append(
+-                f"{a} -[#8050A0,dotted]-> {b}: MIXED / {label(kind)}\\nCONDITIONAL / "
++                f"{a} -[#8050A0,dotted]-> {b}: {mixed_label}\\nCONDITIONAL / "
+                 + ", ".join(refs)
+                 + " / evidence.json"
+             )
+
+--- /private/tmp/mana-vis-f01/before.puml	2026-10-23 08:52:19
++++ docs/examples/transaction-01-vis-01/C/mixed-replacement.puml	2026-10-23 19:03:14
+@@ -24,7 +24,7 @@
+ N3 -[#8050A0,dotted]-> N1: MIXED / EXECUTES_IN\nCONDITIONAL / R1, R3 / evidence.json
+ N4 -[#8050A0,dotted]-> N2: MIXED / EXECUTES_IN\nCONDITIONAL / R2, R4 / evidence.json
+ N1 -[#8050A0,dotted]-> N2: MIXED / SUSPENDS_FOR\nCONDITIONAL / R5 / evidence.json
+-N1 -[#8050A0,dotted]-> N2: MIXED / RESUME_REQUIRES_COMPLETION\nCONDITIONAL / R6 / evidence.json
++N1 -[#8050A0,dotted]-> N2: MIXED / RESUME_REQUIRES_\nCOMPLETION\nCONDITIONAL / R6 / evidence.json
+ legend left
+ KNOWN / VERIFIED = validated static structure only; execution CONDITIONAL.
+ UNKNOWN is not absence. Runtime NOT_RUN; locks and waits are not observed.
+
+--- /private/tmp/mana-vis-f01/test-before.py	2026-10-23 19:03:37
++++ tests/transaction-visualization.py	2026-10-23 19:01:47
+@@ -77,7 +77,10 @@
+         self.assertIn("APPLICATION DEPENDENCY C8", mixed)
+         self.assertEqual(mixed.count("MIXED / EXECUTES_IN"), 2)
+         self.assertIn("MIXED / SUSPENDS_FOR", mixed)
+-        self.assertIn("MIXED / RESUME_REQUIRES_COMPLETION", mixed)
++        self.assertIn(
++            "MIXED / RESUME_REQUIRES_\\nCOMPLETION\\nCONDITIONAL / R6 / evidence.json",
++            mixed,
++        )
+         self.assertEqual(mixed.count("-[#B03030,dashed]->"), 1)
+ 
+     def test_deterministic_and_inputs_unchanged(self):

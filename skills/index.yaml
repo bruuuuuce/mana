@@ -473,6 +473,14 @@ skills:
     delegation_group: source
     capability: unspecified
     verification_spec: unspecified
+  - id: specialist-skill-factory
+    path: skills/specialist-skill-factory/SKILL.md
+    risk_level: medium
+    model_tier: full
+    execution_mode: write
+    delegation_group: architecture
+    capability: unspecified
+    verification_spec: unspecified
   - id: story-effort-estimation
     path: skills/story-effort-estimation/SKILL.md
     risk_level: medium

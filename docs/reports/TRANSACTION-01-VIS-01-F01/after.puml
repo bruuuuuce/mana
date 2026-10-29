@@ -1,0 +1,44 @@
+@startuml
+top to bottom direction
+skinparam shadowing false
+title synthetic_O_C01 / MIXED DEPENDENCY / typed links
+rectangle "PHYSICAL a / P1" as N1 #CCE5FF
+rectangle "PHYSICAL a / P2" as N2 #CCE5FF
+N2 -[#B03030,dashed]-> N1: DATABASE DEPENDENCY C7\nCONDITIONAL\nresource=X\ncut=replacement\ncandidate=W1
+note right of N2
+Claim C7 / evidence.json
+sources: a/O2, a/O1
+premises: X_database, X_object, X_overlap
+premises: a1_acquire, a1_binding, a1_request
+premises: a1_retain, a2_binding, a2_request
+premises: blocking, outer
+end note
+rectangle "FRAME a / F1" as N3 #D6F5D6
+rectangle "FRAME a / F2" as N4 #D6F5D6
+N3 -[#245A9C]-> N4: APPLICATION DEPENDENCY C8\nCONDITIONAL\nsynchronous FRAME_COMPLETION
+note right of N3
+Claim C8 / evidence.json
+sources: 
+call site: src/main/java/fixture/Waits.java:24
+end note
+N3 -[#8050A0,dotted]-> N1: MIXED / EXECUTES_IN\nCONDITIONAL / R1, R3 / evidence.json
+N4 -[#8050A0,dotted]-> N2: MIXED / EXECUTES_IN\nCONDITIONAL / R2, R4 / evidence.json
+N1 -[#8050A0,dotted]-> N2: MIXED / SUSPENDS_FOR\nCONDITIONAL / R5 / evidence.json
+N1 -[#8050A0,dotted]-> N2: MIXED / RESUME_REQUIRES_\nCOMPLETION\nCONDITIONAL / R6 / evidence.json
+legend left
+KNOWN / VERIFIED = validated static structure only; execution CONDITIONAL.
+UNKNOWN is not absence. Runtime NOT_RUN; locks and waits are not observed.
+P IDs are participant-local symbolic identities; no confirmed deadlock claim.
+Coverage: COMPLETE_MODELED_SCOPE
+Assessment: CONDITIONAL_CROSS_LAYER_COMPLETION_RISK
+No universal deadlock freedom. See evidence.json for full source references.
+DB dashed red = candidate wait; app solid blue = synchronous completion.
+Mixed dotted purple = typed relation, not an additional DB wait edge.
+Application/typed links are scenario-wide; only DB edges are filtered by cut.
+Cut replacement
+CONDITIONAL_CROSS_LAYER_COMPLETION_RISK
+Exclusion is scoped; missing evidence remains UNKNOWN.
+CONFLICT C6 CONDITIONAL / UNORIENTED / holder UNKNOWN
+resource=X sources=a/O1, a/O2
+endlegend
+@enduml

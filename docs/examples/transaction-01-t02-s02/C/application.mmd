@@ -1,0 +1,6 @@
+%% Application completion graph
+%% CONDITIONAL only. Arrows are waiter -> blocker (or caller -> callee).
+flowchart LR
+  N1["a/F1"]
+  N2["a/F2"]
+  N1 -->|"completion CONDITIONAL"| N2

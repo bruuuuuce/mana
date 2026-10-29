@@ -1,0 +1,96 @@
+{
+  "transaction-visualization": {
+    "command": [
+      "python3",
+      "tests/transaction-visualization.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "__main__.Visualization) ... ok\ntest_timeline_model_mismatch_rejected (__main__.Visualization) ... ok\ntest_unknown_and_unplaced_existing_s01_oracles (__main__.Visualization) ... ok\ntest_untrusted_labels_and_premise_text (__main__.Visualization) ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 3.666s\n\nOK\n"
+  },
+  "transaction-boundaries": {
+    "command": [
+      "python3",
+      "tests/transaction-boundaries.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "nd_no_injected_directive (__main__.TransactionTests) ... ok\ntest_requires_new_suspends_before_begin_and_resumes_after_end (__main__.TransactionTests) ... ok\ntest_validator_rejects_wrong_identity_and_unbalanced_trace (__main__.TransactionTests) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 5.142s\n\nOK\n"
+  },
+  "transaction-physical-lifetime": {
+    "command": [
+      "python3",
+      "tests/transaction-physical-lifetime.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "ires_new_rejects_resume_while_p2_active (__main__.PhysicalLifetimeTests) ... ok\ntest_requires_new_restores_live_p1_after_p2_end (__main__.PhysicalLifetimeTests) ... ok\ntest_terminal_event_is_outcome_independent (__main__.PhysicalLifetimeTests) ... ok\n\n----------------------------------------------------------------------\nRan 19 tests in 0.007s\n\nOK\n"
+  },
+  "transaction-context-alternatives": {
+    "command": [
+      "python3",
+      "tests/transaction-context-alternatives.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "ses (__main__.ContextAlternativeTests) ... ok\ntest_validator_rejects_forged_applied_branch_and_missing_bypass (__main__.ContextAlternativeTests) ... ok\ntest_validator_rejects_wrong_caller_identity_and_manager (__main__.ContextAlternativeTests) ... ok\n\n----------------------------------------------------------------------\nRan 21 tests in 4.026s\n\nOK\n"
+  },
+  "resource-timeline": {
+    "command": [
+      "python3",
+      "tests/resource-timeline.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "Tests) ... ok\ntest_t01_events_must_remain_intact (__main__.ResourceTests) ... ok\ntest_unknown_interception_does_not_traverse_body (__main__.ResourceTests) ... ok\ntest_unplaced_observation_cannot_be_inserted_in_timeline (__main__.ResourceTests) ... ok\n\n----------------------------------------------------------------------\nRan 22 tests in 2.900s\n\nOK\n"
+  },
+  "wait-dependencies": {
+    "command": [
+      "python3",
+      "tests/wait-dependencies.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "WaitTests) ... ok\ntest_20_invalid_sidecar_rule_and_premise_cycles (__main__.WaitTests) ... ok\ntest_21_actual_byte_thresholds_stop_before_publication (__main__.WaitTests) ... ok\ntest_22_s02_report_byte_budget_is_checked_too (__main__.WaitTests) ... ok\n\n----------------------------------------------------------------------\nRan 22 tests in 4.593s\n\nOK\n"
+  },
+  "mana-skill-factory": {
+    "command": [
+      "python3",
+      "tests/mana-skill-factory.py",
+      "-v"
+    ],
+    "exit": 0,
+    "tail": "ing_temporary_parent_blocks_before_any_write (__main__.FactoryTests) ... ok\ntest_unsupported_and_false_positive_technologies (__main__.FactoryTests) ... ok\ntest_unsupported_requests_and_adapter_governance_override_block (__main__.FactoryTests) ... ok\n\n----------------------------------------------------------------------\nRan 23 tests in 5.542s\n\nOK\n"
+  },
+  "repo": {
+    "command": [
+      "bash",
+      "scripts/validate-repo.sh"
+    ],
+    "exit": 0,
+    "tail": "Verification skills validation passed\nSkills validation passed\nAgents validation passed\nDivination metadata validation passed\nOutput standard validation passed\nStory trace validation passed\nDeveloper choice log validation passed\nRepository validation passed\n"
+  },
+  "ruff": {
+    "command": [
+      "ruff",
+      "check",
+      "scripts/skill_factory/transactions/plantuml.py",
+      "scripts/mana-transaction-visualization.py",
+      "tests/transaction-visualization.py"
+    ],
+    "exit": 0,
+    "tail": "All checks passed!\n"
+  },
+  "format": {
+    "command": [
+      "ruff",
+      "format",
+      "--check",
+      "scripts/skill_factory/transactions/plantuml.py",
+      "scripts/mana-transaction-visualization.py",
+      "tests/transaction-visualization.py"
+    ],
+    "exit": 0,
+    "tail": "3 files already formatted\n"
+  }
+}

@@ -1,0 +1,250 @@
+{
+  "provenance": "Manual D00 A-J expectations; not generated from S02 output. Runtime J01-J04 deferred.",
+  "cases": [
+    {
+      "id": "O-A01",
+      "case": "A",
+      "dbEdges": 2,
+      "appEdges": 0,
+      "result": "CONDITIONAL_CYCLE_RISK"
+    },
+    {
+      "id": "O-A02",
+      "case": "A",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-A03",
+      "case": "A",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-A04",
+      "case": "A",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "NO_CYCLE_IN_MODELED_SCENARIO"
+    },
+    {
+      "id": "O-B01",
+      "case": "B",
+      "dbEdges": 1,
+      "appEdges": 0,
+      "result": "NO_CYCLE_IN_MODELED_SCENARIO"
+    },
+    {
+      "id": "O-B02",
+      "case": "B",
+      "dbEdges": 2,
+      "appEdges": 0,
+      "result": "CYCLE_FEASIBILITY_UNKNOWN"
+    },
+    {
+      "id": "O-B03",
+      "case": "B",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "NO_CYCLE_IN_MODELED_SCENARIO"
+    },
+    {
+      "id": "O-C01",
+      "case": "C",
+      "dbEdges": 1,
+      "appEdges": 1,
+      "result": "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK"
+    },
+    {
+      "id": "O-C02",
+      "case": "C",
+      "dbEdges": 0,
+      "appEdges": 1,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-C03",
+      "case": "C",
+      "dbEdges": 0,
+      "appEdges": 1,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-D01",
+      "case": "D",
+      "dbEdges": 0,
+      "appEdges": 1,
+      "result": "NO_CYCLE_IN_MODELED_SCENARIO"
+    },
+    {
+      "id": "O-D02",
+      "case": "D",
+      "dbEdges": 0,
+      "appEdges": 1,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-E01",
+      "case": "E",
+      "dbEdges": 0,
+      "appEdges": 1,
+      "result": "NO_CYCLE_IN_MODELED_SCENARIO"
+    },
+    {
+      "id": "O-E02",
+      "case": "E",
+      "dbEdges": 0,
+      "appEdges": 1,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-F01",
+      "case": "F",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-F02",
+      "case": "F",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-F03",
+      "case": "F",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "NO_CYCLE_IN_MODELED_SCENARIO"
+    },
+    {
+      "id": "O-F04",
+      "case": "F",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-F05",
+      "case": "F",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-F06",
+      "case": "F",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-F07",
+      "case": "F",
+      "dbEdges": 0,
+      "appEdges": 1,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-G01",
+      "case": "G",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-G02",
+      "case": "G",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-G03",
+      "case": "G",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-G04",
+      "case": "G",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "NO_CYCLE_IN_MODELED_SCENARIO"
+    },
+    {
+      "id": "O-H01",
+      "case": "H",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "NO_CYCLE_IN_MODELED_SCENARIO"
+    },
+    {
+      "id": "O-H02",
+      "case": "H",
+      "dbEdges": null,
+      "appEdges": null,
+      "result": "REJECTED_INPUT"
+    },
+    {
+      "id": "O-H03",
+      "case": "H",
+      "dbEdges": 2,
+      "appEdges": 0,
+      "result": "CONDITIONAL_CYCLE_RISK"
+    },
+    {
+      "id": "O-I01",
+      "case": "I",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-I02",
+      "case": "I",
+      "dbEdges": 0,
+      "appEdges": 0,
+      "result": "UNKNOWN"
+    },
+    {
+      "id": "O-J01",
+      "case": "J",
+      "dbEdges": null,
+      "appEdges": null,
+      "result": "DEFERRED_RUNTIME_ADAPTER"
+    },
+    {
+      "id": "O-J02",
+      "case": "J",
+      "dbEdges": null,
+      "appEdges": null,
+      "result": "DEFERRED_RUNTIME_ADAPTER"
+    },
+    {
+      "id": "O-J03",
+      "case": "J",
+      "dbEdges": null,
+      "appEdges": null,
+      "result": "DEFERRED_RUNTIME_ADAPTER"
+    },
+    {
+      "id": "O-J04",
+      "case": "J",
+      "dbEdges": null,
+      "appEdges": null,
+      "result": "DEFERRED_RUNTIME_ADAPTER"
+    },
+    {
+      "id": "O-J05",
+      "case": "J",
+      "dbEdges": null,
+      "appEdges": null,
+      "result": "REJECTED_INPUT"
+    }
+  ]
+}

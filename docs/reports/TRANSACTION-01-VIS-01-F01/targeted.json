@@ -1,0 +1,56 @@
+{
+  "rendering": [
+    {
+      "run": 0,
+      "option": "-checkonly",
+      "count": 14,
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "run": 0,
+      "option": "-tsvg",
+      "count": 14,
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "run": 1,
+      "option": "-checkonly",
+      "count": 14,
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "run": 1,
+      "option": "-tsvg",
+      "count": 14,
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "svgCountPerRun": 14,
+  "svgDeterminism": "PASS",
+  "sourceDeterminismAndInputPreservation": "PASS",
+  "unchangedRegeneratedSVGs": 13,
+  "changedSVGs": [
+    "C/mixed-replacement.svg"
+  ],
+  "unchangedEvidenceJSONs": 3,
+  "protectedHashAndModeCount": 13,
+  "preexistingFilesChanged": [
+    "docs/examples/transaction-01-vis-01/C/mixed-replacement.puml",
+    "docs/examples/transaction-01-vis-01/C/mixed-replacement.svg",
+    "scripts/skill_factory/transactions/plantuml.py",
+    "tests/transaction-visualization.py"
+  ],
+  "indexEmpty": true,
+  "browser": {
+    "status": "NOT_RUN",
+    "reason": "No browser is available"
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "A": {
+    "sourceAndEvidenceExact": true,
+    "deterministicAndReadOnly": true,
+    "eventsOperationsEdgesPremisesChecked": true,
+    "assessment": {
+      "result": "CONDITIONAL_CYCLE_RISK",
+      "cuts": [
+        {
+          "cut": "common",
+          "result": "CONDITIONAL_CYCLE_RISK",
+          "contradictions": [],
+          "unknowns": [],
+          "claims": [
+            "C11",
+            "C12"
+          ]
+        }
+      ],
+      "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+    },
+    "currentProof": {
+      "result": "CONDITIONAL_CYCLE_RISK",
+      "cuts": [
+        {
+          "cut": "common",
+          "result": "CONDITIONAL_CYCLE_RISK",
+          "contradictions": [],
+          "unknowns": [],
+          "claims": [
+            "C11",
+            "C12"
+          ]
+        }
+      ],
+      "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+    }
+  },
+  "B": {
+    "sourceAndEvidenceExact": true,
+    "deterministicAndReadOnly": true,
+    "eventsOperationsEdgesPremisesChecked": true,
+    "assessment": {
+      "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+      "cuts": [
+        {
+          "cut": "one_wait",
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "contradictions": [],
+          "unknowns": [],
+          "claims": [
+            "C11"
+          ]
+        }
+      ],
+      "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+    },
+    "currentProof": {
+      "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+      "cuts": [
+        {
+          "cut": "one_wait",
+          "result": "NO_CYCLE_IN_MODELED_SCENARIO",
+          "contradictions": [],
+          "unknowns": [],
+          "claims": [
+            "C11"
+          ]
+        }
+      ],
+      "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+    }
+  },
+  "C": {
+    "sourceAndEvidenceExact": true,
+    "deterministicAndReadOnly": true,
+    "eventsOperationsEdgesPremisesChecked": true,
+    "assessment": {
+      "result": "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK",
+      "cuts": [
+        {
+          "cut": "replacement",
+          "result": "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK",
+          "contradictions": [],
+          "unknowns": [],
+          "claims": [
+            "C7"
+          ]
+        }
+      ],
+      "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+    },
+    "currentProof": {
+      "result": "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK",
+      "cuts": [
+        {
+          "cut": "replacement",
+          "result": "CONDITIONAL_CROSS_LAYER_COMPLETION_RISK",
+          "contradictions": [],
+          "unknowns": [],
+          "claims": [
+            "C7"
+          ]
+        }
+      ],
+      "scope": "Only selected operations, explicit abstract rules and listed witness cuts."
+    }
+  },
+  "-checkonly": {
+    "exit": 0,
+    "sources": 14
+  },
+  "-tsvg": {
+    "exit": 0,
+    "sources": 14
+  },
+  "preservation": {
+    "preexistingFiles": 13,
+    "hashAndMode": "PASS",
+    "visDeliveryHashes": "PASS",
+    "semanticEnginesUnchanged": true,
+    "indexEmpty": true
+  }
+}

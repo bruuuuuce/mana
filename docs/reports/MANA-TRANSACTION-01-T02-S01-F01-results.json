@@ -1,0 +1,1050 @@
+{
+  "task": "MANA-TRANSACTION-01-T02-S01-F01",
+  "recordedAt": "2026-10-21T17:50:30.527034+00:00",
+  "verdict": "CONTRACT_DECISION_REQUIRED",
+  "requirementA": "FAIL",
+  "fixApplied": false,
+  "decision": {
+    "reason": "T01 stops at the first unresolved JDBC call; no authoritative return/current-context witness reaches the second invocation.",
+    "missingEvidence": "Qualified T01 causal continuation and context preservation through the external JDBC callee.",
+    "requiredDecision": "Define authoritative T01 support for that evidence, or explicitly revise acceptance. Neither performed.",
+    "notAReason": "No new physical BEGIN is required for each operation in a demonstrated shared segment.",
+    "unchangedContract": true,
+    "noNewPublicFields": true
+  },
+  "git": {
+    "branch": "feature/mana-transaction-02",
+    "head": "e3537e3f8c8329a71615fe59d496757d5392c6a8",
+    "indexDiff": "",
+    "initialStatus": " M docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv\n M docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv\n M docs/roadmap/TRANSACTION-01.md\n M scripts/mana-transaction.py\n M scripts/skill_factory/transactions/JavaFacts.java\n M scripts/validate-repo.sh\n?? docs/examples/transaction-01-t02-s01/README.md\n?? docs/examples/transaction-01-t02-s01/nested/resource-timeline.json\n?? docs/examples/transaction-01-t02-s01/outside/resource-timeline.json\n?? docs/examples/transaction-01-t02-s01/requires_new/resource-timeline.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-R1-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-R1.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01.md\n?? docs/roadmap/TRANSACTION-01-T02-S02.md\n?? docs/roadmap/TRANSACTION-01-T02.md\n?? docs/standards/resource-timeline-model-v1.md\n?? scripts/mana-resource-timeline.py\n?? scripts/skill_factory/transactions/resources.py\n?? tests/fixtures/resource-timeline/README.md\n?? tests/fixtures/resource-timeline/context.json\n?? tests/fixtures/resource-timeline/oracles.json\n?? tests/fixtures/resource-timeline/pom.xml\n?? tests/fixtures/resource-timeline/src/main/java/fixture/Resources.java\n?? tests/resource-timeline.py\n",
+    "finalStatus": " M docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv\n M docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv\n M docs/roadmap/TRANSACTION-01.md\n M scripts/mana-transaction.py\n M scripts/skill_factory/transactions/JavaFacts.java\n M scripts/validate-repo.sh\n?? docs/examples/transaction-01-t02-s01/README.md\n?? docs/examples/transaction-01-t02-s01/nested/resource-timeline.json\n?? docs/examples/transaction-01-t02-s01/outside/resource-timeline.json\n?? docs/examples/transaction-01-t02-s01/requires_new/resource-timeline.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json\n?? docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-F01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-F01.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-R1-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-R1.md\n?? docs/reports/MANA-TRANSACTION-01-T02-S01-results.json\n?? docs/reports/MANA-TRANSACTION-01-T02-S01.md\n?? docs/roadmap/TRANSACTION-01-T02-S02.md\n?? docs/roadmap/TRANSACTION-01-T02.md\n?? docs/standards/resource-timeline-model-v1.md\n?? scripts/mana-resource-timeline.py\n?? scripts/skill_factory/transactions/resources.py\n?? tests/fixtures/resource-timeline/README.md\n?? tests/fixtures/resource-timeline/context.json\n?? tests/fixtures/resource-timeline/oracles.json\n?? tests/fixtures/resource-timeline/pom.xml\n?? tests/fixtures/resource-timeline/src/main/java/fixture/Resources.java\n?? tests/resource-timeline.py\n"
+  },
+  "counterexample": {
+    "entry": "fixture.Operations#sequence()",
+    "fixture": "tests/fixtures/resource-timeline",
+    "sourceChange": "Only add @Transactional before public void sequence() in an external fixture copy.",
+    "exactR1FullReportMatch": true,
+    "r1ResultsSha256": "a2151445599281567485a084ef03cb64337dcd26bd2e28d38c4bb373128d2dd1",
+    "sourceSha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284",
+    "frames": [
+      {
+        "id": "F1",
+        "callerMethod": null,
+        "calleeMethod": "fixture.Operations#sequence()",
+        "callSite": null,
+        "bean": "fixture.Operations",
+        "proxy": {
+          "mode": "CLASS",
+          "crossed": true,
+          "configurationEvidence": [
+            {
+              "file": "src/main/java/fixture/Resources.java",
+              "start": 706,
+              "end": 759,
+              "line": 15,
+              "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+            }
+          ],
+          "reason": "SCENARIO_PROXY_CALL"
+        },
+        "manager": "tx",
+        "configuration": {
+          "propagation": "REQUIRED",
+          "managerQualifier": "",
+          "attributes": {},
+          "evidence": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2590,
+            "end": 2604,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          "origin": "method",
+          "resolution": "BOUNDARY_ATTRIBUTES_ONLY",
+          "unmodeledAttributes": []
+        },
+        "logicalScope": "L1",
+        "previousState": {
+          "kind": "NO_TRANSACTION",
+          "physicalId": null,
+          "manager": null
+        },
+        "duringState": {
+          "kind": "TRANSACTION_PHYSICAL",
+          "physicalId": "P1",
+          "manager": "tx"
+        },
+        "afterState": {
+          "kind": "UNKNOWN",
+          "physicalId": null,
+          "manager": null
+        },
+        "certainty": "CONDITIONAL",
+        "bodyTraversal": "STRAIGHT_LINE",
+        "evidence": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 2590,
+          "end": 2706,
+          "line": 48,
+          "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+        },
+        "depth": 0,
+        "beanEvidence": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 1564,
+          "end": 3045,
+          "line": 32,
+          "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+        },
+        "beanName": "operations",
+        "interception": {
+          "status": "APPLIED",
+          "reason": "SCENARIO_PROXY_CALL"
+        },
+        "continuation": "UNKNOWN",
+        "effectiveContext": {
+          "before": "INACTIVE",
+          "during": "ACTIVE",
+          "after": "UNKNOWN"
+        }
+      }
+    ],
+    "events": [
+      {
+        "sequence": 1,
+        "kind": "FRAME_ENTER",
+        "frame": "F1"
+      },
+      {
+        "sequence": 2,
+        "kind": "PHYSICAL_BEGIN",
+        "frame": "F1",
+        "entity": "P1"
+      },
+      {
+        "sequence": 3,
+        "kind": "LOGICAL_BEGIN",
+        "frame": "F1",
+        "entity": "L1"
+      },
+      {
+        "sequence": 4,
+        "kind": "UNRESOLVED_CALL",
+        "frame": "F1",
+        "callSite": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 2630,
+          "end": 2668,
+          "line": 48,
+          "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+        },
+        "receiver": "jdbc",
+        "method": "execute"
+      },
+      {
+        "sequence": 5,
+        "kind": "LOGICAL_END",
+        "frame": "F1",
+        "entity": "L1"
+      },
+      {
+        "sequence": 6,
+        "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+        "frame": "F1",
+        "entity": "P1"
+      },
+      {
+        "sequence": 7,
+        "kind": "FRAME_EXIT",
+        "frame": "F1"
+      }
+    ],
+    "uncertainties": [
+      {
+        "frame": "F1",
+        "reason": "AMBIGUOUS_OR_DYNAMIC_DISPATCH",
+        "classification": "UNKNOWN",
+        "evidence": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 2630,
+          "end": 2668,
+          "line": 48,
+          "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+        }
+      }
+    ],
+    "before": [
+      {
+        "frame": "F1",
+        "method": "fixture.Operations#sequence()",
+        "applicationOperation": {
+          "receiver": "jdbc",
+          "method": "execute"
+        },
+        "callSite": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 2630,
+          "end": 2668,
+          "line": 48,
+          "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+        },
+        "operationType": "READ",
+        "sqlLiteral": "SELECT * FROM accounts",
+        "resource": {
+          "status": "LEXICAL_SQL_IDENTIFIER",
+          "name": "accounts",
+          "runtimeIdentity": "UNKNOWN",
+          "lockGranularity": "UNKNOWN"
+        },
+        "transactionContext": {
+          "kind": "TRANSACTION_PHYSICAL",
+          "physicalId": "P1",
+          "manager": "tx"
+        },
+        "datasource": {
+          "status": "UNKNOWN",
+          "id": null
+        },
+        "enlistment": "UNKNOWN",
+        "lockAcquired": "UNKNOWN",
+        "certainty": "CONDITIONAL",
+        "placement": {
+          "status": "T01_FRONTIER",
+          "beforeT01Sequence": 4
+        },
+        "evidence": [
+          {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2630,
+            "end": 2668,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 1596,
+            "end": 1625,
+            "line": 34,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2643,
+            "end": 2667,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          }
+        ],
+        "premises": [
+          "T01 conditional path reaches this invocation syntax."
+        ],
+        "limits": [
+          "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+          "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+        ],
+        "id": "O1"
+      },
+      {
+        "frame": "F1",
+        "method": "fixture.Operations#sequence()",
+        "applicationOperation": {
+          "receiver": "jdbc",
+          "method": "update"
+        },
+        "callSite": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 2670,
+          "end": 2703,
+          "line": 48,
+          "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+        },
+        "operationType": "WRITE",
+        "sqlLiteral": "DELETE FROM ledger",
+        "resource": {
+          "status": "LEXICAL_SQL_IDENTIFIER",
+          "name": "ledger",
+          "runtimeIdentity": "UNKNOWN",
+          "lockGranularity": "UNKNOWN"
+        },
+        "transactionContext": {
+          "kind": "UNKNOWN",
+          "physicalId": null,
+          "manager": null
+        },
+        "datasource": {
+          "status": "UNKNOWN",
+          "id": null
+        },
+        "enlistment": "UNKNOWN",
+        "lockAcquired": "UNKNOWN",
+        "certainty": "UNKNOWN",
+        "placement": {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        },
+        "evidence": [
+          {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2670,
+            "end": 2703,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 1596,
+            "end": 1625,
+            "line": 34,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2682,
+            "end": 2702,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          }
+        ],
+        "premises": [],
+        "limits": [
+          "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+          "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED",
+          "T01_BODY_OR_CONTINUATION_NOT_TRAVERSED"
+        ],
+        "id": "O2"
+      }
+    ],
+    "after": [
+      {
+        "frame": "F1",
+        "method": "fixture.Operations#sequence()",
+        "applicationOperation": {
+          "receiver": "jdbc",
+          "method": "execute"
+        },
+        "callSite": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 2630,
+          "end": 2668,
+          "line": 48,
+          "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+        },
+        "operationType": "READ",
+        "sqlLiteral": "SELECT * FROM accounts",
+        "resource": {
+          "status": "LEXICAL_SQL_IDENTIFIER",
+          "name": "accounts",
+          "runtimeIdentity": "UNKNOWN",
+          "lockGranularity": "UNKNOWN"
+        },
+        "transactionContext": {
+          "kind": "TRANSACTION_PHYSICAL",
+          "physicalId": "P1",
+          "manager": "tx"
+        },
+        "datasource": {
+          "status": "UNKNOWN",
+          "id": null
+        },
+        "enlistment": "UNKNOWN",
+        "lockAcquired": "UNKNOWN",
+        "certainty": "CONDITIONAL",
+        "placement": {
+          "status": "T01_FRONTIER",
+          "beforeT01Sequence": 4
+        },
+        "evidence": [
+          {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2630,
+            "end": 2668,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 1596,
+            "end": 1625,
+            "line": 34,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2643,
+            "end": 2667,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          }
+        ],
+        "premises": [
+          "T01 conditional path reaches this invocation syntax."
+        ],
+        "limits": [
+          "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+          "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED"
+        ],
+        "id": "O1"
+      },
+      {
+        "frame": "F1",
+        "method": "fixture.Operations#sequence()",
+        "applicationOperation": {
+          "receiver": "jdbc",
+          "method": "update"
+        },
+        "callSite": {
+          "file": "src/main/java/fixture/Resources.java",
+          "start": 2670,
+          "end": 2703,
+          "line": 48,
+          "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+        },
+        "operationType": "WRITE",
+        "sqlLiteral": "DELETE FROM ledger",
+        "resource": {
+          "status": "LEXICAL_SQL_IDENTIFIER",
+          "name": "ledger",
+          "runtimeIdentity": "UNKNOWN",
+          "lockGranularity": "UNKNOWN"
+        },
+        "transactionContext": {
+          "kind": "UNKNOWN",
+          "physicalId": null,
+          "manager": null
+        },
+        "datasource": {
+          "status": "UNKNOWN",
+          "id": null
+        },
+        "enlistment": "UNKNOWN",
+        "lockAcquired": "UNKNOWN",
+        "certainty": "UNKNOWN",
+        "placement": {
+          "status": "UNPLACED",
+          "beforeT01Sequence": null
+        },
+        "evidence": [
+          {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2670,
+            "end": 2703,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 1596,
+            "end": 1625,
+            "line": 34,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2682,
+            "end": 2702,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          }
+        ],
+        "premises": [],
+        "limits": [
+          "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+          "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED",
+          "T01_BODY_OR_CONTINUATION_NOT_TRAVERSED"
+        ],
+        "id": "O2"
+      }
+    ],
+    "afterMeaning": "No implementation applied; UNKNOWN deliberately preserved, not an acceptance pass.",
+    "timeline": [
+      {
+        "kind": "T01_EVENT",
+        "event": {
+          "sequence": 1,
+          "kind": "FRAME_ENTER",
+          "frame": "F1"
+        },
+        "sequence": 1
+      },
+      {
+        "kind": "T01_EVENT",
+        "event": {
+          "sequence": 2,
+          "kind": "PHYSICAL_BEGIN",
+          "frame": "F1",
+          "entity": "P1"
+        },
+        "sequence": 2
+      },
+      {
+        "kind": "T01_EVENT",
+        "event": {
+          "sequence": 3,
+          "kind": "LOGICAL_BEGIN",
+          "frame": "F1",
+          "entity": "L1"
+        },
+        "sequence": 3
+      },
+      {
+        "kind": "RESOURCE_OPERATION",
+        "observation": "O1",
+        "sequence": 4
+      },
+      {
+        "kind": "T01_EVENT",
+        "event": {
+          "sequence": 4,
+          "kind": "UNRESOLVED_CALL",
+          "frame": "F1",
+          "callSite": {
+            "file": "src/main/java/fixture/Resources.java",
+            "start": 2630,
+            "end": 2668,
+            "line": 48,
+            "sha256": "e24bba87b81eecfa68d51c6eaf7fd8bf4c09100ee0e340840a0b9d4ddb10a284"
+          },
+          "receiver": "jdbc",
+          "method": "execute"
+        },
+        "sequence": 5
+      },
+      {
+        "kind": "T01_EVENT",
+        "event": {
+          "sequence": 5,
+          "kind": "LOGICAL_END",
+          "frame": "F1",
+          "entity": "L1"
+        },
+        "sequence": 6
+      },
+      {
+        "kind": "T01_EVENT",
+        "event": {
+          "sequence": 6,
+          "kind": "PHYSICAL_END_OUTCOME_UNKNOWN",
+          "frame": "F1",
+          "entity": "P1"
+        },
+        "sequence": 7
+      },
+      {
+        "kind": "T01_EVENT",
+        "event": {
+          "sequence": 7,
+          "kind": "FRAME_EXIT",
+          "frame": "F1"
+        },
+        "sequence": 8
+      }
+    ],
+    "physicalTransactions": [
+      {
+        "id": "P1",
+        "kind": "TRANSACTION_PHYSICAL",
+        "manager": "tx",
+        "beginFrame": "F1",
+        "endFrame": "F1",
+        "identity": "SYMBOLIC_SCENARIO",
+        "runtimeIdentity": "UNKNOWN",
+        "certainty": "CONDITIONAL",
+        "outcome": "UNKNOWN"
+      }
+    ],
+    "suspensions": [],
+    "savepoints": []
+  },
+  "regressions": [
+    {
+      "command": [
+        "python3",
+        "tests/transaction-boundaries.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 5.12,
+      "testsRun": 16,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-f01-eozx3kim/transaction-boundaries.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-self-invocation.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 7.3,
+      "testsRun": 16,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-f01-eozx3kim/transaction-self-invocation.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-context-alternatives.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 3.7,
+      "testsRun": 21,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-f01-eozx3kim/transaction-context-alternatives.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-physical-lifetime.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 0.18,
+      "testsRun": 19,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-f01-eozx3kim/transaction-physical-lifetime.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-transition-contract.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 0.19,
+      "testsRun": 64,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-f01-eozx3kim/transaction-transition-contract.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/transaction-aop-causal-order.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 0.17,
+      "testsRun": 26,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-f01-eozx3kim/transaction-aop-causal-order.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/mana-skill-factory.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 10.87,
+      "testsRun": 23,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-f01-eozx3kim/mana-skill-factory.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tests/resource-timeline.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": 2.86,
+      "testsRun": 22,
+      "skipped": 0,
+      "log": "/private/tmp/mana-t02-s01-f01-eozx3kim/resource-timeline.log"
+    }
+  ],
+  "regressionSummary": {
+    "passed": 207,
+    "skipped": 0,
+    "failed": 0
+  },
+  "newProbes": [
+    {
+      "case": "exact R1 counterexample including facts and T01",
+      "expected": true,
+      "actual": true,
+      "verdict": "PASS"
+    },
+    {
+      "case": "two consecutive REQUIRED operations acceptance",
+      "expected": [
+        "P1",
+        "P1"
+      ],
+      "actual": [
+        "P1",
+        null
+      ],
+      "verdict": "FAIL"
+    },
+    {
+      "case": "three consecutive REQUIRED operations acceptance",
+      "expected": [
+        "P1",
+        "P1",
+        "P1"
+      ],
+      "actual": [
+        "P1",
+        null,
+        null
+      ],
+      "verdict": "FAIL"
+    },
+    {
+      "case": "REQUIRES_NEW P2 current with P1 suspended",
+      "expected": {
+        "ids": [
+          "P2"
+        ],
+        "lifetime": [
+          "SUSPEND",
+          "PHYSICAL_BEGIN",
+          "PHYSICAL_END_OUTCOME_UNKNOWN",
+          "RESUME_CONDITIONAL"
+        ]
+      },
+      "actual": {
+        "ids": [
+          "P2"
+        ],
+        "lifetime": [
+          "SUSPEND",
+          "PHYSICAL_BEGIN",
+          "PHYSICAL_END_OUTCOME_UNKNOWN",
+          "RESUME_CONDITIONAL"
+        ]
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "NESTED shares P1",
+      "expected": {
+        "ids": [
+          "P1"
+        ],
+        "physicalCount": 1,
+        "savepointPhysicalIds": [
+          "P1"
+        ]
+      },
+      "actual": {
+        "ids": [
+          "P1"
+        ],
+        "physicalCount": 1,
+        "savepointPhysicalIds": [
+          "P1"
+        ]
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "P1 restored after empty REQUIRES_NEW P2 ends",
+      "expected": [
+        "P1"
+      ],
+      "actual": [
+        "P1"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "case": "operation after P1 termination has NO_TRANSACTION",
+      "expected": {
+        "context": {
+          "kind": "NO_TRANSACTION",
+          "physicalId": null,
+          "manager": null
+        },
+        "endBeforeCall": true
+      },
+      "actual": {
+        "context": {
+          "kind": "NO_TRANSACTION",
+          "physicalId": null,
+          "manager": null
+        },
+        "endBeforeCall": true
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "unresolved causal prefix leaves both operations UNPLACED",
+      "expected": [
+        [
+          "UNPLACED",
+          null
+        ],
+        [
+          "UNPLACED",
+          null
+        ]
+      ],
+      "actual": [
+        [
+          "UNPLACED",
+          null
+        ],
+        [
+          "UNPLACED",
+          null
+        ]
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "case": "legitimate UNKNOWN context is retained",
+      "expected": {
+        "kind": "UNKNOWN",
+        "physicalId": null,
+        "manager": null
+      },
+      "actual": {
+        "kind": "UNKNOWN",
+        "physicalId": null,
+        "manager": null
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "async body does not inherit P1",
+      "expected": [
+        [
+          "UNPLACED",
+          null
+        ]
+      ],
+      "actual": [
+        [
+          "UNPLACED",
+          null
+        ]
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "case": "datasource enlistment and acquired locks remain independently UNKNOWN",
+      "expected": true,
+      "actual": true,
+      "verdict": "PASS"
+    },
+    {
+      "case": "T01 rejects invented continuation frontier",
+      "expected": "body call follows unresolved execution order",
+      "actual": "body call follows unresolved execution order",
+      "verdict": "PASS"
+    },
+    {
+      "case": "T02 rejects invented P1 on unplaced suffix",
+      "expected": "resource timeline differs from T01 causal/source projection",
+      "actual": "resource timeline differs from T01 causal/source projection",
+      "verdict": "PASS"
+    }
+  ],
+  "probeSummary": {
+    "passed": 11,
+    "failedAcceptance": 2,
+    "skipped": 0,
+    "processExit": 1
+  },
+  "probeExecution": {
+    "source": "\"\"\"Literal F01 acceptance oracles; failures remain failures, never golden output.\"\"\"\n\nimport copy\nimport hashlib\nimport importlib.util\nimport json\nfrom pathlib import Path\nimport shutil\nimport sys\n\nsys.dont_write_bytecode = True\nROOT = Path('/Users/zel/projects/mana')\nEVIDENCE = Path(__file__).resolve().parent\nFIXTURE = ROOT / 'tests/fixtures/resource-timeline'\nspec = importlib.util.spec_from_file_location('resource_cli', ROOT / 'scripts/mana-resource-timeline.py')\ncli = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(cli)\nresults = []\n\n\ndef check(name, expected, actual):\n    results.append({'case': name, 'expected': expected, 'actual': actual,\n                    'verdict': 'PASS' if expected == actual else 'FAIL'})\n\n\ndef analyze(name, entry, replacements=(), context=None):\n    project = EVIDENCE / name\n    shutil.copytree(FIXTURE, project)\n    source = project / 'src/main/java/fixture/Resources.java'\n    text = source.read_text()\n    for old, new in replacements:\n        assert text.count(old) == 1, old\n        text = text.replace(old, new)\n    source.write_text(text)\n    if context:\n        (project / 'context.json').write_text(json.dumps(context))\n    before = {str(p.relative_to(project)): hashlib.sha256(p.read_bytes()).hexdigest()\n              for p in project.rglob('*') if p.is_file()}\n    report = cli.analyze(project, project / 'context.json', entry)\n    after = {str(p.relative_to(project)): hashlib.sha256(p.read_bytes()).hexdigest()\n             for p in project.rglob('*') if p.is_file()}\n    assert before == after\n    (EVIDENCE / (name + '.json')).write_text(json.dumps(report, indent=2) + '\\n')\n    return report\n\n\ndef physical_ids(report):\n    return [o['transactionContext']['physicalId'] for o in report['observations']]\n\n\nannotation = ('public void sequence()', '@Transactional public void sequence()')\ntwo = analyze('required-two', 'fixture.Operations#sequence()', [annotation])\nr1 = json.loads((ROOT / 'docs/reports/MANA-TRANSACTION-01-T02-S01-R1-results.json').read_text())\ncheck('exact R1 counterexample including facts and T01', True, two == r1['counterexampleFullReport'])\ncheck('two consecutive REQUIRED operations acceptance', ['P1', 'P1'], physical_ids(two))\nthree = analyze('required-three', 'fixture.Operations#sequence()', [annotation,\n    ('jdbc.update(\"DELETE FROM ledger\"); }',\n     'jdbc.update(\"DELETE FROM ledger\"); jdbc.update(\"INSERT INTO audit (id) VALUES (1)\"); }')])\ncheck('three consecutive REQUIRED operations acceptance', ['P1', 'P1', 'P1'], physical_ids(three))\n\nrn = analyze('requires-new', 'fixture.Entry#independent()')\nevents = rn['transactionModel']['events']\ncheck('REQUIRES_NEW P2 current with P1 suspended',\n      {'ids': ['P2'], 'lifetime': ['SUSPEND', 'PHYSICAL_BEGIN', 'PHYSICAL_END_OUTCOME_UNKNOWN', 'RESUME_CONDITIONAL']},\n      {'ids': physical_ids(rn), 'lifetime': [e['kind'] for e in events\n          if e['frame'] == 'F2' and e['kind'] in {'SUSPEND', 'PHYSICAL_BEGIN', 'PHYSICAL_END_OUTCOME_UNKNOWN', 'RESUME_CONDITIONAL'}]})\nnested = analyze('nested', 'fixture.Entry#nested()')\ncheck('NESTED shares P1', {'ids': ['P1'], 'physicalCount': 1, 'savepointPhysicalIds': ['P1']},\n      {'ids': physical_ids(nested), 'physicalCount': len(nested['transactionModel']['physicalTransactions']),\n       'savepointPhysicalIds': [s['physicalId'] for s in nested['transactionModel']['savepoints']]})\nrestored = analyze('restored', 'fixture.Entry#afterIndependent()')\ncheck('P1 restored after empty REQUIRES_NEW P2 ends', ['P1'], physical_ids(restored))\n\nterminated = analyze('terminated', 'fixture.Entry#afterTerminated()', [\n    ('class Entry {', 'class Entry {\\n    public void afterTerminated() { operations.emptyRequired(); operations.write(); }'),\n    ('class Operations {', 'class Operations {\\n    @Transactional public void emptyRequired() {}')])\nop = terminated['observations'][0]\ncheck('operation after P1 termination has NO_TRANSACTION',\n      {'context': {'kind': 'NO_TRANSACTION', 'physicalId': None, 'manager': None}, 'endBeforeCall': True},\n      {'context': op['transactionContext'], 'endBeforeCall': next(e['sequence'] for e in terminated['transactionModel']['events']\n       if e['kind'] == 'PHYSICAL_END_OUTCOME_UNKNOWN') < op['placement']['beforeT01Sequence']})\nunordered = analyze('unresolved-order', 'fixture.Operations#sequence()', [annotation,\n    ('jdbc.execute(\"SELECT * FROM accounts\"); jdbc.update(\"DELETE FROM ledger\");',\n     'unknownReceiver.run(); jdbc.execute(\"SELECT * FROM accounts\"); jdbc.update(\"DELETE FROM ledger\");')])\ncheck('unresolved causal prefix leaves both operations UNPLACED',\n      [('UNPLACED', None), ('UNPLACED', None)],\n      [(o['placement']['status'], o['transactionContext']['physicalId']) for o in unordered['observations']\n       if o['applicationOperation']['receiver'] == 'jdbc'])\ncontext = json.loads((FIXTURE / 'context.json').read_text())\ncontext['initialState'] = 'UNKNOWN'\nunknown = analyze('unknown-context', 'fixture.Operations#required()', context=context)\ncheck('legitimate UNKNOWN context is retained',\n      {'kind': 'UNKNOWN', 'physicalId': None, 'manager': None}, unknown['observations'][0]['transactionContext'])\nasync_report = analyze('async', 'fixture.Entry#async()')\ncheck('async body does not inherit P1', [('UNPLACED', None)],\n      [(o['placement']['status'], o['transactionContext']['physicalId']) for o in async_report['observations']])\ncheck('datasource enlistment and acquired locks remain independently UNKNOWN', True,\n      all(o['datasource'] == {'status': 'UNKNOWN', 'id': None} and o['enlistment'] == 'UNKNOWN'\n          and o['lockAcquired'] == 'UNKNOWN' and o['resource']['runtimeIdentity'] == 'UNKNOWN'\n          and o['resource']['lockGranularity'] == 'UNKNOWN'\n          for report in [two, three, rn, nested, restored, terminated, unordered, unknown, async_report]\n          for o in report['observations']))\n\n# Negative control: an extra frontier is not a causal witness under current T01.\nbad = copy.deepcopy(two['transactionModel'])\nsecond = copy.deepcopy(next(e for e in bad['events'] if e['kind'] == 'UNRESOLVED_CALL'))\nsecond['callSite'] = two['observations'][1]['callSite']\nsecond['method'] = 'update'\nbad['events'].insert(4, second)\nfor i, event in enumerate(bad['events'], 1):\n    event['sequence'] = i\ntry:\n    cli.t01.validate_model(bad)\n    rejection = None\nexcept ValueError as exc:\n    rejection = str(exc)\ncheck('T01 rejects invented continuation frontier', 'body call follows unresolved execution order', rejection)\nbad_report = copy.deepcopy(two)\nbad_report['observations'][1]['transactionContext'] = copy.deepcopy(two['observations'][0]['transactionContext'])\ntry:\n    cli.validate_timeline(bad_report)\n    rejection = None\nexcept ValueError as exc:\n    rejection = str(exc)\ncheck('T02 rejects invented P1 on unplaced suffix', 'resource timeline differs from T01 causal/source projection', rejection)\n(EVIDENCE / 'probes.json').write_text(json.dumps(results, indent=2) + '\\n')\nprint(json.dumps(results, indent=2))\nsys.exit(1 if any(r['verdict'] == 'FAIL' for r in results) else 0)\n",
+    "sourceSha256": "8f9b0c4c866b87c3b6f10aa1bf89a452f3f3e230a23937fe13feade685a928b1",
+    "reproduction": "Write source into a fresh external directory as probe.py; run python3 probe.py. Exit 1 is expected until acceptance is satisfied.",
+    "oracleCorrection": "Initial unresolved-prefix selector included an UNKNOWN non-JDBC frontier. Restricted it to the literal jdbc receiver; reevaluated the same captured models. Expected JDBC placements were unchanged.",
+    "initialResults": "/private/tmp/mana-t02-s01-f01-eozx3kim/probe-first-run.json",
+    "finalLog": "/private/tmp/mana-t02-s01-f01-eozx3kim/probe-final.log",
+    "recheckSource": "/private/tmp/mana-t02-s01-f01-eozx3kim/recheck.py",
+    "sourceReports": [
+      {
+        "path": "/private/tmp/mana-t02-s01-f01-eozx3kim/required-two.json",
+        "sha256": "382368dbac05190e9bd780df8210a31e4fcc470b5e36b5a7d0210539b045161a"
+      },
+      {
+        "path": "/private/tmp/mana-t02-s01-f01-eozx3kim/required-three.json",
+        "sha256": "0c24b487798a708cbf26e359eba143a60132dc0093e95de2e2ea9c3dd66830f6"
+      },
+      {
+        "path": "/private/tmp/mana-t02-s01-f01-eozx3kim/requires-new.json",
+        "sha256": "ff37f114c851e9c36abf304f8f79b9867bbf0cf4edfec39d0e561f671c6ffc66"
+      },
+      {
+        "path": "/private/tmp/mana-t02-s01-f01-eozx3kim/nested.json",
+        "sha256": "8e9553264c3308d2d4add584fd47eef1b1508d043641a643f4ab2c8898fdead0"
+      },
+      {
+        "path": "/private/tmp/mana-t02-s01-f01-eozx3kim/restored.json",
+        "sha256": "77dc0774b6fc29aea67e06c8a4000fa23fe3caaff32f93baa0e770cfdda65c35"
+      },
+      {
+        "path": "/private/tmp/mana-t02-s01-f01-eozx3kim/terminated.json",
+        "sha256": "1083b3ded14fb42ff350f5eb3ca77ca7ab8753e76dd021ee9a4e6c412865e14a"
+      },
+      {
+        "path": "/private/tmp/mana-t02-s01-f01-eozx3kim/unresolved-order.json",
+        "sha256": "b0712913a8e02a99fca6429bd22ea513dac3a2b86047a645e5e2b67791ece02f"
+      },
+      {
+        "path": "/private/tmp/mana-t02-s01-f01-eozx3kim/unknown-context.json",
+        "sha256": "229eebf24cd4f389400772dae64bdb0c57eaaa63f7976ca641b1ac6f1ccbb3e2"
+      },
+      {
+        "path": "/private/tmp/mana-t02-s01-f01-eozx3kim/async.json",
+        "sha256": "2093548c42b6db16f2c7b41b4411220032da11f7f86d1cc4c6a88922af328884"
+      }
+    ]
+  },
+  "integrity": {
+    "initialFileCount": 1282,
+    "initialInventory": "/private/tmp/mana-t02-s01-f01-eozx3kim/initial-inventory.json",
+    "initialInventorySha256": "576178e2cf83a8e2fb90b184354386e3536d55f094a62a04bd840570fb9999e1",
+    "changedInitialFiles": [],
+    "preservation": [
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR00-transitions.csv",
+        "expectedSha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+        "before": {
+          "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+          "bytes": 59758,
+          "mode": "0o644"
+        },
+        "after": {
+          "sha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+          "bytes": 59758,
+          "mode": "0o644"
+        },
+        "backupSha256": "14e1b536fea9ecea15c41cc8dd1747cf00e9334ad357297a2fc94f73195da8a7",
+        "matches": true,
+        "crlf": 69,
+        "bareLf": 0,
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2-results.json",
+        "expectedSha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+        "before": {
+          "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+          "bytes": 402294,
+          "mode": "0o644"
+        },
+        "after": {
+          "sha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+          "bytes": 402294,
+          "mode": "0o644"
+        },
+        "backupSha256": "301e313f6cc5d3bd6fcfe1cb415e88edee7aab028f6160a489d882a5ef5854ad",
+        "matches": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R2.md",
+        "expectedSha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+        "before": {
+          "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+          "bytes": 9130,
+          "mode": "0o644"
+        },
+        "after": {
+          "sha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+          "bytes": 9130,
+          "mode": "0o644"
+        },
+        "backupSha256": "f095c7b5f3516a113e380fbc6ee6492145e0cb0b989be89fc89848d0cd33c933",
+        "matches": true
+      },
+      {
+        "path": "docs/reports/MANA-TRANSACTION-01-T01-MR01-coverage.csv",
+        "expectedSha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+        "before": {
+          "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+          "bytes": 19414,
+          "mode": "0o644"
+        },
+        "after": {
+          "sha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+          "bytes": 19414,
+          "mode": "0o644"
+        },
+        "backupSha256": "07fb543921d0e6332d92f03264eb0031f54c4471753dc7a1c5b572610e22d8d0",
+        "matches": true,
+        "crlf": 92,
+        "bareLf": 0,
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01-T02.md",
+        "expectedSha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+        "before": {
+          "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+          "bytes": 1274,
+          "mode": "0o644"
+        },
+        "after": {
+          "sha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+          "bytes": 1274,
+          "mode": "0o644"
+        },
+        "backupSha256": "f1f6f4e3a119b294c1e41958aad7cbfd7b498aebccbc8603cbe50f5399d913e7",
+        "matches": true
+      },
+      {
+        "path": "docs/roadmap/TRANSACTION-01.md",
+        "expectedSha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+        "before": {
+          "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+          "bytes": 3593,
+          "mode": "0o644"
+        },
+        "after": {
+          "sha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+          "bytes": 3593,
+          "mode": "0o644"
+        },
+        "backupSha256": "d9f49200ee122f0e981f94cf4da0625fd7757fe5986f88fad347d3a51dc33a6c",
+        "matches": true
+      }
+    ],
+    "backupManifestSha256": "f93d950fea5ba28ed2215e90f69013b48515386acdcf83d68bf16fc058174af8",
+    "backupManifestMatches": true,
+    "transactionModelStandardUnchanged": true,
+    "allInitialTrackedAndNonignoredFilesByteAndModeIdentical": true,
+    "finalInventoryCheck": "PASS: exactly the two declared new files; all 1282 initial files unchanged by bytes and mode."
+  },
+  "diff": {
+    "implementationChanges": [],
+    "newDeliverables": [
+      "docs/reports/MANA-TRANSACTION-01-T02-S01-F01.md",
+      "docs/reports/MANA-TRANSACTION-01-T02-S01-F01-results.json"
+    ],
+    "preexistingChangesPreserved": true
+  },
+  "limits": {
+    "applicationContext": "P1/tx is copied only at a demonstrated T01 frontier; it is not JDBC enlistment.",
+    "resource": "SQL identifiers are lexical; runtime resource identity remains UNKNOWN.",
+    "datasource": "UNKNOWN/id null for every observation; transaction manager does not establish binding.",
+    "enlistment": "UNKNOWN for every observation.",
+    "lockAcquired": "UNKNOWN for every observation.",
+    "lockGranularity": "UNKNOWN for every observation."
+  },
+  "scope": {
+    "commits": [],
+    "merge": false,
+    "push": false,
+    "staging": false,
+    "newWorktree": false,
+    "repositoryCopy": false,
+    "largeArchive": false,
+    "lockAnalysis": false,
+    "S02": false,
+    "externalEvidenceDirectory": "/private/tmp/mana-t02-s01-f01-eozx3kim",
+    "onlySmallFixtureCopies": true
+  },
+  "notRun": [
+    "Spring/JDBC runtime",
+    "database/concurrency/locks",
+    "remote CI",
+    "release acceptance",
+    "T02-S02"
+  ],
+  "reportSha256": "1396a78d979593693500ad0df8cfc8c1b92295720656c5510255aeac887d73c3"
+}
