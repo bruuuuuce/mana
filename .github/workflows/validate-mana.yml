@@ -230,7 +230,6 @@ jobs:
     runs-on: macos-latest
     env:
       PYTHONDONTWRITEBYTECODE: "1"
-      TMPDIR: ${{ runner.temp }}
       MANA_DIAGNOSTIC_CASE_OUTPUT: ""
     steps:
       - uses: actions/checkout@v4
@@ -242,6 +241,8 @@ jobs:
           python3 -c 'import sqlite3, tempfile'
           git cat-file -e 333670bcd18dc33f5fbd3d088b18b7c8dbfa9cd8:scripts/mana-catalog.py
       - name: Verify native case-insensitive fixture filesystem
+        env:
+          TMPDIR: ${{ runner.temp }}
         run: |
           python3 - <<'PY'
           import os
@@ -260,4 +261,6 @@ jobs:
               print('Native case-insensitive filesystem probe passed')
           PY
       - name: Discovery case boundary regression
+        env:
+          TMPDIR: ${{ runner.temp }}
         run: python3 tests/story-start-discovery-case-boundary.py
