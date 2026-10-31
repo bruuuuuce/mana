@@ -35,7 +35,7 @@ python3 "$root/scripts/lib/story-start-discovery-receipt.py" publish "$tmp/statu
 if "$root/scripts/mana-inspect.sh" --project-root "$project" artifact workspace:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb --json > /dev/null 2>&1; then exit 1; fi
 for receipt in "$workspace"/.mana-story-start-discovery/story-start-discovery-failure-????????????????????????????????.json; do
   jq -e '.failureCategory=="PROVIDER_EXIT_NONZERO" and .supervisor.exitCode==7' "$receipt" >/dev/null
-  [ "$(stat -f '%Lp' "$receipt")" = 600 ]
+  python3 -c 'import os, stat, sys; sys.exit(stat.S_IMODE(os.stat(sys.argv[1]).st_mode) != 0o600)' "$receipt"
   ! grep -q PRIVATE_TEST_SENTINEL "$receipt"
   id="$(jq -r .executionId "$receipt")"
   if "$root/scripts/mana-inspect.sh" --project-root "$project" artifact "workspace:$id" --json > /dev/null 2>&1; then exit 1; fi
