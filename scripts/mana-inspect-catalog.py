@@ -9,7 +9,11 @@ import json
 import os
 import re
 import stat
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / 'lib'))
+from discovery_receipt_boundary import is_private_discovery_path
 
 
 def digest_bytes(value: bytes) -> str:
@@ -130,10 +134,14 @@ def catalog(root: Path) -> list[dict[str, object]]:
     values: list[dict[str, object]] = []
     for directory, names, filenames in os.walk(mana, topdown=True, followlinks=False):
         base = Path(directory)
-        names[:] = sorted(names)
+        names[:] = [name for name in sorted(names) if not is_private_discovery_path(
+            (base / name).relative_to(root).as_posix())]
         for name in sorted(filenames):
             path = base / name
             relative = path.relative_to(root).as_posix()
+            # Discovery failure receipts are private operational diagnostics,
+            # including legacy final and staging names under evidence.
+            if is_private_discovery_path(relative): continue
             if name in {"latest.json", "latest.md"}: continue
             if path.is_symlink():
                 target = os.readlink(path)

@@ -120,17 +120,37 @@ mana_story_start_scope_v2_discover() {
   output_file="$scratch/provider-output.json"
   status_file="$scratch/status.tsv"
   perl "$root/scripts/lib/verification-exec.pl" --timeout "$timeout" --output-cap 262144 --stderr-cap 4096 --stdout "$output_file" --stderr "$scratch/provider.stderr" --status "$status_file" -- "$program" "${MANA_PROVIDER_ARGS[@]}" "$prompt" || true
-  if [ ! -f "$status_file" ] || ! IFS=$'\t' read -r code signal timed_out descendants _ < "$status_file" || [ "$code" -ne 0 ] || [ "$timed_out" != 0 ] || [ "$descendants" != 0 ]; then
+  if ! python3 "$root/scripts/lib/story-start-discovery-receipt.py" check "$status_file"; then
+    if [ -n "${MANA_DISCOVERY_RECEIPT_WORKSPACE:-}" ] && [ -n "${MANA_DISCOVERY_RECEIPT_RUN_ID:-}" ]; then
+      python3 "$root/scripts/lib/story-start-discovery-receipt.py" publish "$status_file" "$MANA_DISCOVERY_RECEIPT_WORKSPACE" "$MANA_DISCOVERY_RECEIPT_RUN_ID" not_reached UNKNOWN_FAILURE || true
+    fi
     rm -rf "$scratch"
     echo 'ERROR: Discovery v2 provider execution failed' >&2
     return 1
   fi
-  mana_story_start_scope_v2_validate_discovery "$output_file" || { rm -rf "$scratch"; echo 'ERROR: Discovery v2 provider output failed schema validation' >&2; return 1; }
+  if ! mana_story_start_scope_v2_validate_discovery "$output_file"; then
+    if [ -n "${MANA_DISCOVERY_RECEIPT_WORKSPACE:-}" ] && [ -n "${MANA_DISCOVERY_RECEIPT_RUN_ID:-}" ]; then
+      python3 "$root/scripts/lib/story-start-discovery-receipt.py" publish "$status_file" "$MANA_DISCOVERY_RECEIPT_WORKSPACE" "$MANA_DISCOVERY_RECEIPT_RUN_ID" failed PROVIDER_OUTPUT_SCHEMA_INVALID || true
+    fi
+    rm -rf "$scratch"
+    echo 'ERROR: Discovery v2 provider output failed schema validation' >&2
+    return 1
+  fi
   mkdir -p "$(dirname "$output")"
   [ ! -L "$output" ] || { rm -rf "$scratch"; echo "ERROR: unsafe Discovery v2 output symlink: $output" >&2; return 2; }
   stage="$(mktemp "$(dirname "$output")/.${output##*/}.tmp.XXXXXX")" || { rm -rf "$scratch"; return 2; }
-  if ! python3 "$normalizer" normalize-discovery "$schema" "$output_file" "$stage"; then rm -f "$stage"; rm -rf "$scratch"; echo 'ERROR: Discovery v2 normalization failed' >&2; return 1; fi
-  mana_story_start_scope_v2_validate_discovery "$stage" || { rm -f "$stage"; rm -rf "$scratch"; echo 'ERROR: normalized Discovery v2 artifact failed schema validation' >&2; return 1; }
+  if ! python3 "$normalizer" normalize-discovery "$schema" "$output_file" "$stage"; then
+    if [ -n "${MANA_DISCOVERY_RECEIPT_WORKSPACE:-}" ] && [ -n "${MANA_DISCOVERY_RECEIPT_RUN_ID:-}" ]; then
+      python3 "$root/scripts/lib/story-start-discovery-receipt.py" publish "$status_file" "$MANA_DISCOVERY_RECEIPT_WORKSPACE" "$MANA_DISCOVERY_RECEIPT_RUN_ID" passed UNKNOWN_FAILURE || true
+    fi
+    rm -f "$stage"; rm -rf "$scratch"; echo 'ERROR: Discovery v2 normalization failed' >&2; return 1
+  fi
+  if ! mana_story_start_scope_v2_validate_discovery "$stage"; then
+    if [ -n "${MANA_DISCOVERY_RECEIPT_WORKSPACE:-}" ] && [ -n "${MANA_DISCOVERY_RECEIPT_RUN_ID:-}" ]; then
+      python3 "$root/scripts/lib/story-start-discovery-receipt.py" publish "$status_file" "$MANA_DISCOVERY_RECEIPT_WORKSPACE" "$MANA_DISCOVERY_RECEIPT_RUN_ID" failed PROVIDER_OUTPUT_SCHEMA_INVALID || true
+    fi
+    rm -f "$stage"; rm -rf "$scratch"; echo 'ERROR: normalized Discovery v2 artifact failed schema validation' >&2; return 1
+  fi
   mv "$stage" "$output"
   rm -rf "$scratch"
 }
@@ -661,11 +681,15 @@ mana_story_start_scope_v2_run_public() {
     echo "ERROR: active Story Start workspace is missing or unsafe: $workspace" >&2
     return 2
   fi
+  local MANA_DISCOVERY_RECEIPT_WORKSPACE="$workspace"
+  local MANA_DISCOVERY_RECEIPT_RUN_ID
+  MANA_DISCOVERY_RECEIPT_RUN_ID="$(python3 -c 'import secrets; print(secrets.token_hex(16))')" || return 2
   story_id="$(jq -r '.storyId' "$package")"
   scratch="$(mktemp -d "${TMPDIR:-/tmp}/mana-story-start-public-v2.XXXXXX")" || return 2
   local MANA_STORY_START_HUMAN_DECISIONS="$scratch/human-decisions.json"
   local human_decisions_helper="$root/scripts/lib/story-start-human-decisions.py"
   if ! python3 "$human_decisions_helper" snapshot "$workspace" "$story_id" "$MANA_STORY_START_HUMAN_DECISIONS"; then
+    python3 "$root/scripts/lib/story-start-discovery-receipt.py" publish - "$workspace" "$MANA_DISCOVERY_RECEIPT_RUN_ID" not_reached UNKNOWN_FAILURE || true
     rm -rf "$scratch"
     mana_story_start_scope_v2_publish_failure "$workspace" "$story_id" discovery \
       'Canonical human choices require reconciliation before replanning.'
@@ -685,6 +709,11 @@ mana_story_start_scope_v2_run_public() {
   mana_trajectory_telemetry_emit provider_iteration_started provider_invocation discovery "$provider" "$discovery_model" "${discovery_effort:-none}" scope-v2/discovery started || true
   if ! mana_story_start_scope_v2_discover "$provider" "$discovery_model" "$discovery_effort" "$package" "$discovery" || \
     ! python3 "$human_decisions_helper" verify "$MANA_STORY_START_HUMAN_DECISIONS" "$discovery"; then
+    if [ ! -f "$workspace/.mana-story-start-discovery/story-start-discovery-failure-$MANA_DISCOVERY_RECEIPT_RUN_ID.json" ]; then
+      local discovery_schema_result=not_reached
+      [ ! -f "$discovery" ] || discovery_schema_result=passed
+      python3 "$root/scripts/lib/story-start-discovery-receipt.py" publish - "$workspace" "$MANA_DISCOVERY_RECEIPT_RUN_ID" "$discovery_schema_result" UNKNOWN_FAILURE || true
+    fi
     mana_trajectory_telemetry_emit provider_iteration_completed provider_invocation discovery "$provider" "$discovery_model" "${discovery_effort:-none}" scope-v2/discovery failed --reason-codes provider-or-schema-failure || true
     mana_trajectory_telemetry_emit analysis_failed public_pipeline discovery "$provider" none none scope-v2/public failed --reason-codes discovery-failure || true
     mana_trajectory_telemetry_finish || true

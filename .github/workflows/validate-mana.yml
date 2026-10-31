@@ -78,6 +78,15 @@ jobs:
         run: tests/bounded-repair.sh
       - name: Bounded repair loop
         run: tests/bounded-repair-loop.sh
+      # case-boundary requires a case-insensitive filesystem; not covered by this Ubuntu job.
+      - name: Discovery diagnostic receipt regressions
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python3 tests/story-start-discovery-receipt.py
+          bash tests/story-start-discovery-receipt-integration.sh
+          bash tests/story-start-discovery-private-inspect.sh
+          python3 tests/story-start-discovery-temporal.py
       - name: Complete zero-token acceptance suite
         run: tests/run-zero-token-acceptance.sh
       - name: Release readiness documentation
@@ -216,3 +225,39 @@ jobs:
         run: |
           python3 tests/worktree-snapshot-test-only.py "$GITHUB_WORKSPACE" > "$RUNNER_TEMP/mana-coverage-after.jsonl"
           cmp "$RUNNER_TEMP/mana-coverage-before.jsonl" "$RUNNER_TEMP/mana-coverage-after.jsonl"
+  validate-macos-case-boundary:
+    name: validate-macos-case-boundary
+    runs-on: macos-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      TMPDIR: ${{ runner.temp }}
+      MANA_DIAGNOSTIC_CASE_OUTPUT: ""
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify regression dependencies
+        run: |
+          command -v python3 git bash jq
+          python3 -c 'import sqlite3, tempfile'
+          git cat-file -e 333670bcd18dc33f5fbd3d088b18b7c8dbfa9cd8:scripts/mana-catalog.py
+      - name: Verify native case-insensitive fixture filesystem
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import tempfile
+
+          temp_root = Path(os.environ['TMPDIR'])
+          if not os.path.samefile(tempfile.gettempdir(), temp_root):
+              raise SystemExit('FAIL: Python temporary directory differs from fixture root')
+          with tempfile.TemporaryDirectory(prefix='mana-ci-case-probe-', dir=temp_root) as directory:
+              first = Path(directory) / 'NativeCaseProbe'
+              alias = Path(directory) / 'nATIVEcASEpROBE'
+              first.write_text('isolated probe\n')
+              if not alias.exists() or not os.path.samefile(first, alias):
+                  raise SystemExit('FAIL: fixture filesystem is not case-insensitive')
+              print('Native case-insensitive filesystem probe passed')
+          PY
+      - name: Discovery case boundary regression
+        run: python3 tests/story-start-discovery-case-boundary.py
