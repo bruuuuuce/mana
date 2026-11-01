@@ -2,6 +2,9 @@
 set -u
 root="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 status=0
+validate_python_syntax() {
+  python3 -c 'import sys; p = sys.argv[1]; compile(open(p, "rb").read(), p, "exec")' "$1"
+}
 for f in tests/context-runtime-r2c.py tests/fixtures/context-runtime/ctx09c-r2c-producer.py; do
   [ -f "$root/$f" ] || { echo "ERROR: missing CTX-09C-R2C file $f" >&2; status=1; }
 done
@@ -149,14 +152,14 @@ for f in tests/user-learning-e2e.sh tests/user-learning-live-semantic.sh tests/m
 done
 for f in scripts/skill_factory/__init__.py scripts/skill_factory/contracts.py scripts/skill_factory/java_spring.py scripts/skill_factory/transactions/__init__.py scripts/skill_factory/transactions/source.py scripts/skill_factory/transactions/model.py scripts/skill_factory/transactions/plantuml.py scripts/skill_factory/transactions/resources.py; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1
-  else python3 -m py_compile "$root/$f" || status=1
+  else validate_python_syntax "$root/$f" || status=1
   fi
 done
 if [ ! -f "$root/scripts/skill_factory/transactions/JavaFacts.java" ]; then echo "ERROR: missing JavaFacts.java" >&2; status=1; fi
 for f in scripts/mana-catalog.py scripts/mana-knowledge.py scripts/mana-actions.py scripts/mana-review-inbox.py scripts/mana-skill-factory.py scripts/mana-transaction.py scripts/mana-resource-timeline.py tests/mana-catalog.py tests/mana-knowledge.py tests/mana-actions.py tests/mana-review-inbox.py tests/mana-skill-factory.py tests/transaction-boundaries.py tests/transaction-transition-contract.py tests/transaction-aop-causal-order.py tests/resource-timeline.py; do
   if [ ! -f "$root/$f" ]; then echo "ERROR: missing $f" >&2; status=1
   elif [ ! -x "$root/$f" ]; then echo "ERROR: $f is not executable" >&2; status=1
-  else python3 -m py_compile "$root/$f" || status=1
+  else validate_python_syntax "$root/$f" || status=1
   fi
 done
 if [ -f "$root/tests/story-start-scope-v2-governor.sh" ]; then
