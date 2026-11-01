@@ -123,7 +123,7 @@ catalog() {
   python3 "$mana_root/scripts/mana-inspect-catalog.py" --project-root "$root" || exit "$malformed"
 }
 safe_source_path() {
-  case "$1" in ''|/*|.mana|.mana/*|*'//'|../*|*/../*|*/..|..) return 1 ;; esac
+  case "$1" in ''|/*|.[mM][aA][nN][aA]|.[mM][aA][nN][aA]/*|*'//'|../*|*/../*|*/..|..) return 1 ;; esac
   case "/$1/" in *'/../'*|*'/./'*) return 1 ;; esac
   return 0
 }

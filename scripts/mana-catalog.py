@@ -18,6 +18,9 @@ import time
 from pathlib import Path
 from typing import Iterator, Mapping
 
+sys.path.insert(0, str(Path(__file__).resolve().parent / 'lib'))
+from discovery_receipt_boundary import is_private_discovery_path
+
 
 SCHEMA_VERSION = 1
 RESTRICTED = {".mana/jira-mcp.env", ".mana/env"}
@@ -212,7 +215,9 @@ def discover(root: Path) -> tuple[list[tuple[str, Path, os.stat_result]], dict[s
         kept: list[str] = []
         for name in sorted(names):
             candidate = base / name
-            if candidate.is_symlink():
+            if is_private_discovery_path(candidate.relative_to(root).as_posix()):
+                skipped["restricted"] += 1
+            elif candidate.is_symlink():
                 skipped["symlinks"] += 1
             else:
                 kept.append(name)
@@ -222,6 +227,9 @@ def discover(root: Path) -> tuple[list[tuple[str, Path, os.stat_result]], dict[s
             relative = candidate.relative_to(root).as_posix()
             if candidate.is_symlink():
                 skipped["symlinks"] += 1
+                continue
+            if is_private_discovery_path(relative):
+                skipped["restricted"] += 1
                 continue
             if relative in RESTRICTED or name in {"latest.json", "latest.md"}:
                 skipped["restricted"] += 1
