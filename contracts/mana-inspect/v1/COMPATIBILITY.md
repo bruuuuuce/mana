@@ -19,9 +19,9 @@ Mana shell logic.
   whichever is longer. Security redaction may remove unsafe payload exposure
   earlier while preserving a machine-readable omission diagnostic.
 - A client may support only `project` and `artifacts`; it must feature-detect
-  `artifact`, `source`, `work-items`, `work-item`, `project-context`, and
-  `activity`, disable unavailable views, and never treat missing
-  detail/relations as evidence of safety.
+  `artifact`, `source`, `work-items`, `work-item`, `project-context`, `activity`,
+  `activity-page`, and `semantic-snapshot`, disable unavailable views, and
+  never treat missing detail/relations as evidence of safety.
 - `artifactRef.label` is an existing optional producer-owned display field.
   Consumers may render it when present and must keep it unavailable when absent
   rather than deriving it from paths or filenames. Activity's optional
@@ -52,7 +52,16 @@ aliases are intentionally omitted to avoid double counting a revision.
 ```json
 {
   "required": ["project", "artifacts"],
-  "optional": ["artifact", "source", "work-items", "work-item", "project-context", "activity"],
+  "optional": [
+    "artifact",
+    "source",
+    "work-items",
+    "work-item",
+    "project-context",
+    "activity",
+    "activity-page",
+    "semantic-snapshot"
+  ],
   "acceptedSchemas": [
     "mana.inspect.project/v1",
     "mana.inspect.artifacts/v1",
@@ -61,7 +70,9 @@ aliases are intentionally omitted to avoid double counting a revision.
     "mana.inspect.work-items/v1",
     "mana.inspect.work-item/v1",
     "mana.inspect.project-context/v1",
-    "mana.inspect.activity/v1"
+    "mana.inspect.activity/v1",
+    "mana.inspect.activity-page/v1",
+    "mana.inspect.semantic-snapshot/v1"
   ]
 }
 ```
