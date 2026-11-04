@@ -1,7 +1,10 @@
 # C00 Mana–Familiar Inspect Compatibility Matrix
 
 Validated contract owner: **Mana**. Consumer: **Mana Familiar**. This matrix
-references the canonical bundle rather than duplicating its schemas.
+references the canonical bundle rather than duplicating its schemas. Its four
+rows define the intentionally narrow C00 core gate; they are not an inventory
+of the full Inspect v1 bundle. The complete ten-schema producer/consumer
+contract belongs to C01, including semantic operations and `activity-page`.
 
 | Contract | Owner | Producer support | Familiar support | Required consumer behavior | Fixture |
 |---|---|---|---|---|---|
@@ -36,5 +39,9 @@ ownership/no-parser declarations and four typed schema identifiers, then runs
 Familiar's inspect parser/model tests. It is deterministic, has zero model
 calls, does no network operation, and does not write a target project's
 `.mana/` workspace.
+
+This gate establishes only the four schema identifiers above. It does not
+qualify all ten schemas in the v1 bundle or replace C01's producer-to-consumer
+coverage.
 
 F02 may proceed when this command passes against the intended Familiar branch.
