@@ -144,6 +144,8 @@ def main() -> None:
         architecture.write_text(architecture.read_text(encoding="utf-8") + "\nFreshness mutation.\n", encoding="utf-8")
         stale = invoke(KNOWLEDGE, project, cache, ["search", "--query", "circuit breaker", "--scope", "project"], expected=4)
         assert stale["index"]["freshness"] == "stale" and stale["results"] == []
+        stale_passage = invoke(KNOWLEDGE, project, cache, ["passage", first_passage, "--max-bytes", "256"], expected=4)
+        assert stale_passage["index"]["freshness"] == "stale" and stale_passage["passage"] is None
         invoke(CATALOG, project, cache, ["build"])
         refreshed = invoke(KNOWLEDGE, project, cache, ["build"])
         old_revision = project_search["index"]["revision"]
@@ -169,6 +171,22 @@ def main() -> None:
         no_user_result = invoke(KNOWLEDGE, project, cache, ["search", "--query", "explicit evidence approval", "--scope", "user", "--lifecycle", "active"])
         assert no_user_result["results"] == []
         user_path.parent.chmod(0o755)
+
+        # A matching snippet that exceeds the byte budget is not a missing match.
+        bounded_project = base / "bounded-project"
+        bounded_cache = base / "bounded-cache"
+        bounded_source = bounded_project / ".mana" / "global" / "policy.md"
+        bounded_source.parent.mkdir(parents=True)
+        bounded_source.write_text("# Fixture policy\n\n" + "resilience evidence bounded retrieval. " * 35 + "\n", encoding="utf-8")
+        invoke(CATALOG, bounded_project, bounded_cache, ["build"])
+        invoke(KNOWLEDGE, bounded_project, bounded_cache, ["build"])
+        query = ["search", "--query", "resilience evidence", "--scope", "project", "--lifecycle", "active", "--max-bytes", "256"]
+        assert invoke(KNOWLEDGE, bounded_project, bounded_cache, [*query, "--metadata-only"])["results"]
+        bounded = invoke(KNOWLEDGE, bounded_project, bounded_cache, query)
+        assert bounded["results"] == [] and bounded["returned_bytes"] == 0
+        assert bounded["gaps"] == [{"code": "returned_byte_budget_reached"}]
+        unmatched = invoke(KNOWLEDGE, bounded_project, bounded_cache, ["search", "--query", "unfindableterm", "--scope", "project"])
+        assert unmatched["results"] == [] and unmatched["gaps"] == [{"code": "no_matching_passage"}]
 
     print("Mana M08 lexical knowledge retrieval tests passed")
 
