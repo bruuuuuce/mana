@@ -384,7 +384,7 @@ def search(project: Path, database: Path, identity: str, args: argparse.Namespac
             base["results"].append(result)
             returned += size
         base["returned_bytes"] = returned
-        if not base["results"]:
+        if not rows:
             base["gaps"].append({"code": "no_matching_passage"})
         return base, 0
     finally:
