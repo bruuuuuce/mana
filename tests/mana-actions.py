@@ -146,6 +146,42 @@ def main() -> None:
         assert queued_user["promotion_eligible"] is True
         assert queued_user["review_id"] == review_id
         assert queued_user["review_revision"] == revision(review_file)
+        original_review = review_file.read_bytes()
+        review_file.write_text("{}\n", encoding="utf-8")
+        malformed_queue = subprocess.run(
+            [str(KNOWLEDGE), "--project-root", str(project), "learning-candidates", "--lifecycle", "reviewed", "--json"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env={**os.environ, "MANA_CACHE_HOME": str(cache), **learning_env},
+        )
+        assert malformed_queue.returncode == 0, (malformed_queue.stdout, malformed_queue.stderr)
+        malformed_user = next(item for item in json.loads(malformed_queue.stdout)["candidates"] if item["candidate_id"] == user_candidate_id)
+        assert malformed_user["promotion_eligible"] is False
+        assert malformed_user["review_revision"] is None
+        tampered_review = json.loads(original_review)
+        tampered_review["reviewedGuidance"] = "Forged guidance never approved by the human."
+        review_file.write_text(json.dumps(tampered_review) + "\n", encoding="utf-8")
+        tampered_queue = subprocess.run(
+            [str(KNOWLEDGE), "--project-root", str(project), "learning-candidates", "--lifecycle", "reviewed", "--json"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env={**os.environ, "MANA_CACHE_HOME": str(cache), **learning_env},
+        )
+        assert tampered_queue.returncode == 0, (tampered_queue.stdout, tampered_queue.stderr)
+        tampered_user = next(item for item in json.loads(tampered_queue.stdout)["candidates"] if item["candidate_id"] == user_candidate_id)
+        assert tampered_user["promotion_eligible"] is False
+        assert tampered_user["review_revision"] is None
+        tampered_promotion = subprocess.run(
+            [str(ACTIONS), "--project-root", str(project), "user-learning-promote", "--review-id", review_id, "--expected-revision", revision(review_file), "--json"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env={**os.environ, "MANA_CACHE_HOME": str(cache), **learning_env},
+        )
+        assert tampered_promotion.returncode != 0
+        review_file.write_bytes(original_review)
         for lifecycle, digit in (("rejected", "2"), ("deferred", "3")):
             queue = subprocess.run(
                 [str(KNOWLEDGE), "--project-root", str(project), "learning-candidates", "--lifecycle", lifecycle, "--json"],

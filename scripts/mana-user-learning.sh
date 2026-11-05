@@ -339,13 +339,18 @@ m3_candidate_valid() {
 # M4 is T0 only. Reviews are immutable audit records; the small status record
 # is derived state used only to present the latest explicit disposition.
 m4_review_valid() {
+  local review_id identity expected
   jq -e '
     def only($allowed): (keys - $allowed | length) == 0;
     type == "object" and only(["schemaVersion","kind","reviewId","candidateId","candidateInputFingerprint","action","reviewedGuidance","reviewedScope","reviewedAt","toolVersion","modelCalls"]) and
     .schemaVersion=="1" and .kind=="user-context-candidate-review" and (.reviewId|type=="string" and test("^review-[0-9a-f]{64}$")) and (.candidateId|type=="string" and test("^user-context-candidate-[0-9a-f]{64}$")) and (.candidateInputFingerprint|type=="string" and test("^m3-input-[0-9a-f]{64}$")) and (.action=="ACCEPT" or .action=="EDIT_AND_ACCEPT" or .action=="REJECT" or .action=="DEFER") and
     (if (.action=="ACCEPT" or .action=="EDIT_AND_ACCEPT") then (.reviewedGuidance|type=="string" and length>0 and length<=600) and (.reviewedScope|type=="string" and length>0 and length<=120) else (.reviewedGuidance==null and .reviewedScope==null) end) and
     (.reviewedAt|type=="string") and .toolVersion=="m4-human-review-v1" and .modelCalls==0
-  ' "$1" >/dev/null 2>&1
+  ' "$1" >/dev/null 2>&1 || return 1
+  review_id="$(jq -r .reviewId "$1")"
+  identity="$(jq -c '{identityVersion:"1",candidateId:.candidateId,candidateInputFingerprint:.candidateInputFingerprint,action:.action,reviewedGuidance:(if .action=="ACCEPT" or .action=="EDIT_AND_ACCEPT" then .reviewedGuidance else "null" end),reviewedScope:(if .action=="ACCEPT" or .action=="EDIT_AND_ACCEPT" then .reviewedScope else "null" end)}' "$1")"
+  expected="review-$(sha256 "$identity")"
+  [ "$review_id" = "$expected" ]
 }
 
 m4_status_valid() {
@@ -443,12 +448,15 @@ m4_managed_entry_valid() {
 }
 
 promote_review() {
-  local review_id="$1" review_file review candidate_file candidate fp action guidance scope entry_id source managed target parent tmp content promotion_file promotion result=0 target_state refresh_needed=true
+  local review_id="$1" review_file review candidate_file candidate fp action guidance scope entry_id source managed target parent tmp content promotion_file promotion status result=0 target_state refresh_needed=true
   [[ "$review_id" =~ ^review-[0-9a-f]{64}$ ]] || fail 'review ID must be a stable review hash'
   review_file="$(m4_review_file "$review_id")"; [ -f "$review_file" ] && [ ! -L "$review_file" ] || fail 'unknown review ID'; m4_review_valid "$review_file" || fail 'review is malformed'
+  [ "$(jq -r .reviewId "$review_file")" = "$review_id" ] || fail 'review identity does not match its target'
   review="$(cat "$review_file")"; action="$(jq -r .action "$review_file")"; case "$action" in ACCEPT|EDIT_AND_ACCEPT) ;; *) fail 'only an explicitly accepted review may be promoted';; esac
   candidate_file="$(m4_candidate_file "$(jq -r .candidateId "$review_file")")"; [ -f "$candidate_file" ] && [ ! -L "$candidate_file" ] || fail 'review candidate is unavailable'; m4_validate_candidate_evidence "$candidate_file" || fail 'candidate or its provenance is malformed'
   candidate="$(cat "$candidate_file")"; fp="$(jq -r .candidateInputFingerprint "$review_file")"; [ "$fp" = "$(jq -r .synthesis.inputFingerprint "$candidate_file")" ] || fail 'review is stale because candidate evidence fingerprint changed'
+  status="$(m4_review_status "$(jq -r .candidateId "$review_file")" "$fp")"
+  [ "$(jq -r .action <<<"$status")" = "$action" ] && [ "$(jq -r .reviewId <<<"$status")" = "$review_id" ] || fail 'review is no longer the current disposition'
   guidance="$(jq -r .reviewedGuidance "$review_file")"; scope="$(jq -r .reviewedScope "$review_file")"; [ -n "$guidance" ] && [ -n "$scope" ] || fail 'accepted review lacks explicit approved guidance or scope'
   mana_user_context_resolve_config || fail "$MANA_UC_ERROR"; [ "$MANA_UC_CONFIGURED" = true ] || fail 'User Context is not configured'; mana_user_context_validate_source "$project_root" || fail "$MANA_UC_ERROR"; source="$MANA_UC_SOURCE"
   entry_id="user-learning-entry-$(sha256 "$(jq -cn --arg review "$review_id" '{identityVersion:"1",reviewId:$review}')")"; [[ "$entry_id" =~ ^user-learning-entry-[0-9a-f]{64}$ ]] || fail 'could not derive stable managed promotion identity'; managed="$source/learned"; target="$managed/$entry_id.md"; target_state=new

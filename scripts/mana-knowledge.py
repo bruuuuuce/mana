@@ -522,6 +522,53 @@ def document_detail(project: Path, database: Path, identity: str, args: argparse
         connection.close()
 
 
+def valid_user_review(path: Path, review_id: object, candidate_id: str, candidate_fingerprint: object, action: str) -> bool:
+    allowed = {
+        "schemaVersion", "kind", "reviewId", "candidateId", "candidateInputFingerprint",
+        "action", "reviewedGuidance", "reviewedScope", "reviewedAt", "toolVersion", "modelCalls",
+    }
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_DOCUMENT_BYTES:
+        return False
+    try:
+        review = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return False
+    if not isinstance(review, dict) or set(review) - allowed:
+        return False
+    if not (
+        review.get("schemaVersion") == "1"
+        and review.get("kind") == "user-context-candidate-review"
+        and review.get("reviewId") == review_id
+        and review.get("candidateId") == candidate_id
+        and review.get("candidateInputFingerprint") == candidate_fingerprint
+        and review.get("action") == action
+        and isinstance(review.get("reviewedAt"), str)
+        and review.get("toolVersion") == "m4-human-review-v1"
+        and type(review.get("modelCalls")) is int
+        and review["modelCalls"] == 0
+    ):
+        return False
+    if action in {"ACCEPT", "EDIT_AND_ACCEPT"}:
+        guidance = review.get("reviewedGuidance")
+        scope = review.get("reviewedScope")
+        if not (isinstance(guidance, str) and 0 < len(guidance) <= 600 and isinstance(scope, str) and 0 < len(scope) <= 120):
+            return False
+    elif review.get("reviewedGuidance") is None and review.get("reviewedScope") is None:
+        guidance = scope = "null"
+    else:
+        return False
+    identity = {
+        "identityVersion": "1",
+        "candidateId": candidate_id,
+        "candidateInputFingerprint": candidate_fingerprint,
+        "action": action,
+        "reviewedGuidance": guidance,
+        "reviewedScope": scope,
+    }
+    expected_id = "review-" + hashlib.sha256(json.dumps(identity, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
+    return review_id == expected_id
+
+
 def learning_candidates(project: Path, database: Path, identity: str, args: argparse.Namespace) -> tuple[dict[str, object], int]:
     freshness, reason, revision, diagnostics = index_status(project, database, identity)
     response = {"schema": "mana.learning.review-queue/v1", "index": {"freshness": freshness, "reason": reason, "revision": revision or None}, "candidates": [], "diagnostics": diagnostics}
@@ -561,7 +608,11 @@ def learning_candidates(project: Path, database: Path, identity: str, args: argp
             review_revision = None
             if isinstance(review_id, str) and re.fullmatch(r"review-[0-9a-f]{64}", review_id):
                 review_path = state_base / "user-learning" / "reviews" / f"{review_id}.json"
-                if review_path.is_file() and not review_path.is_symlink() and review_path.stat().st_size <= MAX_DOCUMENT_BYTES:
+                try:
+                    candidate_fingerprint = json.loads(raw).get("synthesis", {}).get("inputFingerprint")
+                except (AttributeError, json.JSONDecodeError, UnicodeError):
+                    candidate_fingerprint = None
+                if valid_user_review(review_path, review_id, candidate_id, candidate_fingerprint, review_state):
                     review_revision = f"sha256:{hashlib.sha256(review_path.read_bytes()).hexdigest()}"
             eligible = review_state in {"ACCEPT", "EDIT_AND_ACCEPT"} and not bool(value.get("promoted")) and review_revision is not None
             response["candidates"].append({"candidate_id": candidate_id, "source_scope": "user", "revision": f"sha256:{hashlib.sha256(raw).hexdigest()}", "status": status, "proposal": value.get("guidance"), "evidence": value.get("sourceClusterIds", []), "counter_evidence": value.get("counterEvidence"), "limitations": value.get("limitations"), "target_scope": value.get("scope"), "source_reference": f"mana-user-state://user-learning/candidates/{candidate_id}", "review_id": review_id, "review_revision": review_revision, "promotion_eligible": eligible, "promoted": bool(value.get("promoted"))})

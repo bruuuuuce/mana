@@ -66,4 +66,13 @@ make_candidate 5 15; candidate5="user-context-candidate-$(hex 5)"; review5="$(ru
 [ -f "$source/learned/$entry5.md" ] || fail 'separate accepted review did not create its managed target'
 [ "$(wc -c < "$project/.mana/user-context/learned/$entry5.md" | tr -d ' ')" -le 2048 ] || fail 'refresh expanded managed entry into full audit payload'
 
+# A later rejection replaces the current disposition and invalidates an older acceptance.
+make_candidate 6 16; candidate6="user-context-candidate-$(hex 6)"; review6="$(run review "$candidate6" --accept --json)"; review6_id="$(printf '%s' "$review6" | jq -r .review.reviewId)"
+run review "$candidate6" --reject --json | jq -e '.review.action=="REJECT" and .modelCalls==0' >/dev/null || fail 'later rejection failed'
+if run promote "$review6_id" --dry-run --json >/dev/null 2>&1; then fail 'superseded accepted review remained promotable after rejection'; fi
+
+# The review identity preserves all approved text, including trailing newlines.
+make_candidate 7 17; candidate7="user-context-candidate-$(hex 7)"; review7="$(run review "$candidate7" --edit $'Guidance with a trailing newline\n' --scope reliability --json)"
+printf '%s' "$review7" | jq -e '.review.reviewedGuidance|endswith("\n")' >/dev/null || fail 'trailing-newline review guidance was not preserved'
+
 echo 'User Learning review tests passed'
