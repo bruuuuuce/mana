@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 import time
 
-ROOT=Path('/Users/zel/projects/mana');MOM=Path('/Users/zel/projects/mana-o-matic');WORK=Path('/private/tmp/mana-exact-001-dev')
+ROOT=Path('<LOCAL_PATH_REDACTED>');MOM=Path('<LOCAL_PATH_REDACTED>');WORK=Path('/private/tmp/mana-exact-001-dev')
 spec=importlib.util.spec_from_file_location('exact',ROOT/'scripts/lib/exact_repair.py');x=importlib.util.module_from_spec(spec);spec.loader.exec_module(x)
 package=x.load(MOM/'docs/reports/evidence/MOM-E2E-002/proposal.json')
 review=(MOM/'docs/reports/evidence/MOM-E2E-002/review.txt').read_text()

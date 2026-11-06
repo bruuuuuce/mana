@@ -156,24 +156,24 @@
       },
       "staging": [
         {
-          "stage": "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-skill-wmwe6ybf/project/mana-skill-contract-4cye_615",
+          "stage": "<LOCAL_PATH_REDACTED_001>",
           "insideTarget": true,
           "files": [
-            "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-skill-wmwe6ybf/project/mana-skill-contract-4cye_615/skills/java-spring-transaction-analysis/SKILL.md"
+            "<LOCAL_PATH_REDACTED_002>"
           ]
         },
         {
-          "stage": "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-skill-wmwe6ybf/project/mana-skill-contract-e3x1ieax",
+          "stage": "<LOCAL_PATH_REDACTED_003>",
           "insideTarget": true,
           "files": [
-            "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-skill-wmwe6ybf/project/mana-skill-contract-e3x1ieax/skills/java-spring-transaction-analysis/SKILL.md"
+            "<LOCAL_PATH_REDACTED_004>"
           ]
         }
       ]
     },
     "nestedJsonDefect": {
       "exitCode": 1,
-      "stderr": "Traceback (most recent call last):\n  File \"/Users/zel/projects/mana/scripts/mana-skill-factory.py\", line 336, in <module>\n    sys.exit(main())\n  File \"/Users/zel/projects/mana/scripts/mana-skill-factory.py\", line 322, in main\n    result = (generate if args.command == \"generate\" else validate)(\n  File \"/Users/zel/projects/mana/scripts/mana-skill-factory.py\", line 264, in validate\n    candidate = json.loads(raw, object_pairs_hook=unique_keys)\n  File \"/Users/zel/.pyenv/versions/3.10.9/lib/python3.10/json/__init__.py\", line 359, in loads\n    return cls(**kw).decode(s)\n  File \"/Users/zel/.pyenv/versions/3.10.9/lib/python3.10/json/decoder.py\", line 337, in decode\n    obj, end = self.raw_decode(s, idx=_w(s, 0).end())\n  File \"/Users/zel/.pyenv/versions/3.10.9/lib/python3.10/json/decoder.py\", line 353, in raw_decode\n    obj, end = self.scan_once(s, idx)\nRecursionError: maximum recursion depth exceeded while decoding a JSON array from a unicode string\n"
+      "stderr": "Traceback (most recent call last):\n  File \"<LOCAL_PATH_REDACTED_005>\", line 336, in <module>\n    sys.exit(main())\n  File \"<LOCAL_PATH_REDACTED_005>\", line 322, in main\n    result = (generate if args.command == \"generate\" else validate)(\n  File \"<LOCAL_PATH_REDACTED_005>\", line 264, in validate\n    candidate = json.loads(raw, object_pairs_hook=unique_keys)\n  File \"<LOCAL_PATH_REDACTED_006>\", line 359, in loads\n    return cls(**kw).decode(s)\n  File \"<LOCAL_PATH_REDACTED_007>\", line 337, in decode\n    obj, end = self.raw_decode(s, idx=_w(s, 0).end())\n  File \"<LOCAL_PATH_REDACTED_007>\", line 353, in raw_decode\n    obj, end = self.scan_once(s, idx)\nRecursionError: maximum recursion depth exceeded while decoding a JSON array from a unicode string\n"
     }
   },
   "postFixDeepJsonDiagnostic": {

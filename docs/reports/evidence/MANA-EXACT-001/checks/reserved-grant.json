@@ -1,7 +1,7 @@
 {
   "argv": [
     "/bin/bash",
-    "/Users/zel/projects/mana/scripts/mana-repair.sh",
+    "<LOCAL_PATH_REDACTED_001>",
     "--exact-request",
     "/private/tmp/mana-exact-negative-reserved-grant-jcfflpyr/request.json",
     "--host-grant",

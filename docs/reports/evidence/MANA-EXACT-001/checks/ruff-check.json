@@ -1,6 +1,6 @@
 {
   "argv": [
-    "/Users/zel/projects/mana-o-matic/.venv/bin/ruff",
+    "<LOCAL_PATH_REDACTED_001>",
     "check",
     "--isolated",
     "--no-cache",

@@ -412,7 +412,7 @@ class Suite:
 
         def absolute_identity_path() -> None:
             draft = self.base_plan_draft()
-            draft["tasks"][0]["scope"]["subjectId"] = "/Users/private/source.py"
+            draft["tasks"][0]["scope"]["subjectId"] = "/Users/fixture-home/source.py"
             self.rejects(lambda: self.bind_plan(draft))
         self.case("absolute path cannot become persisted identity", absolute_identity_path)
 

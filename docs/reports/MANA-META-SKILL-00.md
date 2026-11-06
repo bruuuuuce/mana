@@ -14,7 +14,7 @@ contains the requested future transaction contract, limitations, tools and
 verification criteria. It stays generated, untrusted, unregistered and
 non-executable; the factory offers only `generate` and `validate`.
 
-Preflight verified `/Users/zel/projects/mana`, clean `develop`, HEAD
+Preflight verified `<LOCAL_PATH_REDACTED>, clean `develop`, HEAD
 `ad8730ebe70f494ac24a80fbf32fcf2b30cdef35`. Implementation is on
 `feature/mana-meta-skill-00` in the existing checkout. No new worktree,
 Familiar changes, merge or push was performed. Changes are delivered uncommitted.

@@ -545,7 +545,7 @@
       "command": [
         "python3",
         "docs/reports/MANA-TRANSACTION-01-T01-MR01-R1-evidence/replay.py",
-        "/Users/zel/projects/mana",
+        "<LOCAL_PATH_REDACTED_001>",
         "/private/tmp/mana-mr01-f01-aclu150c/before-replay"
       ],
       "exitCode": 0,
@@ -639,7 +639,7 @@
       "command": [
         "python3",
         "docs/reports/MANA-TRANSACTION-01-T01-MR01-R1-evidence/replay.py",
-        "/Users/zel/projects/mana",
+        "<LOCAL_PATH_REDACTED_001>",
         "/private/tmp/mana-mr01-f01-aclu150c/after-final-replay2"
       ],
       "exitCode": 0,

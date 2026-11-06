@@ -51,7 +51,7 @@
       }
     ]
   },
-  "backupDirectory": "/Users/zel/mana-evidence/MANA-TRANSACTION-01-T02-S01-preflight-20261021T172507Z",
+  "backupDirectory": "<LOCAL_PATH_REDACTED_001>",
   "backupManifestSha256": "f93d950fea5ba28ed2215e90f69013b48515386acdcf83d68bf16fc058174af8",
   "preservation": [
     {
