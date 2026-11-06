@@ -25,7 +25,7 @@ proposta generale lascia intenzionalmente non risolti datasource, ownership e
 runtime: S01 qualifica soltanto i pattern esplicitati nello standard nuovo.
 
 Copia persistente esterna, eseguita prima di creare il branch:
-`/Users/zel/mana-evidence/MANA-TRANSACTION-01-T02-S01-preflight-20261021T172507Z`.
+`<LOCAL_PATH_REDACTED>
 Contiene tutti e sei i file e `manifest.json` con byte, mode e SHA-256.
 Verificata uguaglianza integrale originale/copia, poi riletti manifest e hash.
 Il receipt S01 registra anche la verifica finale dei sei originali e delle copie.

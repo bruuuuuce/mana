@@ -1515,7 +1515,7 @@
       "case": "r1",
       "command": [
         "python3",
-        "/Users/zel/projects/mana/scripts/mana-transaction.py",
+        "<LOCAL_PATH_REDACTED_001>",
         "--project-root",
         "/private/tmp/mana-mr01-a7c6lt5w/r1-project",
         "--context",
@@ -1880,7 +1880,7 @@
       "case": "r2",
       "command": [
         "python3",
-        "/Users/zel/projects/mana/scripts/mana-transaction.py",
+        "<LOCAL_PATH_REDACTED_001>",
         "--project-root",
         "/private/tmp/mana-mr01-a7c6lt5w/r2-project",
         "--context",
@@ -8224,7 +8224,7 @@
         "apply",
         "--reverse",
         "--check",
-        "/Users/zel/projects/mana/docs/reports/MANA-TRANSACTION-01-T01-MR01.patch"
+        "<LOCAL_PATH_REDACTED_002>"
       ],
       "exitCode": 0,
       "stdout": "",

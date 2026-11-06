@@ -535,7 +535,7 @@
         "command": [
           "python3",
           "/private/tmp/mana-t01-r4-review-t3u0hAmd/review.py",
-          "/Users/zel/projects/mana"
+          "<LOCAL_PATH_REDACTED_001>"
         ],
         "exitCode": 0,
         "stdout": "[\n  {\n    \"case\": \"hand-REQUIRED\",\n    \"expectedAccepted\": true,\n    \"actualAccepted\": true,\n    \"expectation\": \"Literal normal-unwind propagation rules: L2 shares P1, SP1 shares P1, or end P2 then resume live P1.\",\n    \"matched\": true,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-NESTED\",\n    \"expectedAccepted\": true,\n    \"actualAccepted\": true,\n    \"expectation\": \"Literal normal-unwind propagation rules: L2 shares P1, SP1 shares P1, or end P2 then resume live P1.\",\n    \"matched\": true,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-REQUIRES_NEW\",\n    \"expectedAccepted\": true,\n    \"actualAccepted\": true,\n    \"expectation\": \"Literal normal-unwind propagation rules: L2 shares P1, SP1 shares P1, or end P2 then resume live P1.\",\n    \"matched\": true,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-ended-active\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P1 already ended at physical terminal marker.\",\n    \"matched\": true,\n    \"error\": \"ValueError: physical context outside its active lifetime\"\n  },\n  {\n    \"case\": \"hand-fresh-without-begin\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P2 cannot become current without PHYSICAL_BEGIN.\",\n    \"matched\": true,\n    \"error\": \"ValueError: physical context outside its active lifetime\"\n  },\n  {\n    \"case\": \"hand-premature-resume\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P1 cannot resume while replacement P2 is still live.\",\n    \"matched\": true,\n    \"error\": \"ValueError: resume requires a live suspended context and ended replacement\"\n  },\n  {\n    \"case\": \"hand-savepoints-False\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"Known false or unknown savepoint capability cannot establish SP1; engine contract requires explicit true.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-savepoints-None\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"Known false or unknown savepoint capability cannot establish SP1; engine contract requires explicit true.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-suspend-false\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"Explicit unsupported suspension cannot establish S1.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-new-reuses-p1-savepoint\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"REQUIRES_NEW must not be represented as NESTED savepoint on P1.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-nested-allocates-p2\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"NESTED must not suspend P1 and allocate independent P2.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-repeat-frame-after-terminal\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P1 ended before repeated frame use.\",\n    \"matched\": true,\n    \"error\": \"ValueError: physical context outside its active lifetime\"\n  }\n]\n{\"caseCount\": 25, \"unexpectedAcceptance\": [\"hand-savepoints-False\", \"hand-savepoints-None\", \"hand-suspend-false\", \"hand-new-reuses-p1-savepoint\", \"hand-nested-allocates-p2\", \"complete-nested-unsupported\", \"complete-requires_new-unsupported\"]}\n",
@@ -767,7 +767,7 @@
       "command": [
         "python3",
         "/private/tmp/mana-t01-r4-review-t3u0hAmd/minimal-replay.py",
-        "/Users/zel/projects/mana"
+        "<LOCAL_PATH_REDACTED_001>"
       ],
       "exitCode": 0,
       "stdout": "{\"expectedAccepted\": false, \"actualAccepted\": true, \"defectReproduced\": true, \"changedFields\": [\"context.managerCapabilities.tx.savepoints\", \"managers[0].capabilities.savepoints\"], \"physical\": \"P1\", \"savepoint\": \"SP1\", \"events\": \"Existing SAVEPOINT_CREATE/SAVEPOINT_RELEASE_CONDITIONAL retained\"}\n",
@@ -1108,7 +1108,7 @@
     "command": [
       "python3",
       "/private/tmp/mana-t01-r4-bi0a52in/coordinator-replay/review.py",
-      "/Users/zel/projects/mana"
+      "<LOCAL_PATH_REDACTED_001>"
     ],
     "exitCode": 0,
     "stdout": "[\n  {\n    \"case\": \"hand-REQUIRED\",\n    \"expectedAccepted\": true,\n    \"actualAccepted\": true,\n    \"expectation\": \"Literal normal-unwind propagation rules: L2 shares P1, SP1 shares P1, or end P2 then resume live P1.\",\n    \"matched\": true,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-NESTED\",\n    \"expectedAccepted\": true,\n    \"actualAccepted\": true,\n    \"expectation\": \"Literal normal-unwind propagation rules: L2 shares P1, SP1 shares P1, or end P2 then resume live P1.\",\n    \"matched\": true,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-REQUIRES_NEW\",\n    \"expectedAccepted\": true,\n    \"actualAccepted\": true,\n    \"expectation\": \"Literal normal-unwind propagation rules: L2 shares P1, SP1 shares P1, or end P2 then resume live P1.\",\n    \"matched\": true,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-ended-active\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P1 already ended at physical terminal marker.\",\n    \"matched\": true,\n    \"error\": \"ValueError: physical context outside its active lifetime\"\n  },\n  {\n    \"case\": \"hand-fresh-without-begin\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P2 cannot become current without PHYSICAL_BEGIN.\",\n    \"matched\": true,\n    \"error\": \"ValueError: physical context outside its active lifetime\"\n  },\n  {\n    \"case\": \"hand-premature-resume\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P1 cannot resume while replacement P2 is still live.\",\n    \"matched\": true,\n    \"error\": \"ValueError: resume requires a live suspended context and ended replacement\"\n  },\n  {\n    \"case\": \"hand-savepoints-False\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"Known false or unknown savepoint capability cannot establish SP1; engine contract requires explicit true.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-savepoints-None\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"Known false or unknown savepoint capability cannot establish SP1; engine contract requires explicit true.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-suspend-false\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"Explicit unsupported suspension cannot establish S1.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-new-reuses-p1-savepoint\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"REQUIRES_NEW must not be represented as NESTED savepoint on P1.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-nested-allocates-p2\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"NESTED must not suspend P1 and allocate independent P2.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-repeat-frame-after-terminal\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P1 ended before repeated frame use.\",\n    \"matched\": true,\n    \"error\": \"ValueError: physical context outside its active lifetime\"\n  }\n]\n",
@@ -1118,7 +1118,7 @@
     "command": [
       "python3",
       "/private/tmp/mana-t01-r4-review-t3u0hAmd/minimal-replay.py",
-      "/Users/zel/projects/mana"
+      "<LOCAL_PATH_REDACTED_001>"
     ],
     "exitCode": 0,
     "stdout": "{\"expectedAccepted\": false, \"actualAccepted\": true, \"defectReproduced\": true, \"changedFields\": [\"context.managerCapabilities.tx.savepoints\", \"managers[0].capabilities.savepoints\"], \"physical\": \"P1\", \"savepoint\": \"SP1\", \"events\": \"Existing SAVEPOINT_CREATE/SAVEPOINT_RELEASE_CONDITIONAL retained\"}\n",
@@ -5056,7 +5056,7 @@
         "python3",
         "scripts/mana-transaction.py",
         "--project-root",
-        "/Users/zel/projects/mana/tests/fixtures/transaction-boundaries",
+        "<LOCAL_PATH_REDACTED_002>",
         "--context",
         "/private/tmp/mana-t01-r4-review-t3u0hAmd/engine-no-sp-context.json",
         "--entry",
@@ -5433,7 +5433,7 @@
         "python3",
         "scripts/mana-transaction.py",
         "--project-root",
-        "/Users/zel/projects/mana/tests/fixtures/transaction-boundaries",
+        "<LOCAL_PATH_REDACTED_002>",
         "--context",
         "/private/tmp/mana-t01-r4-review-t3u0hAmd/engine-no-suspend-context.json",
         "--entry",
@@ -6402,7 +6402,7 @@
       "command": [
         "python3",
         "/private/tmp/mana-t01-r4-review-t3u0hAmd/review.py",
-        "/Users/zel/projects/mana"
+        "<LOCAL_PATH_REDACTED_001>"
       ],
       "exitCode": 0,
       "stdout": "[\n  {\n    \"case\": \"hand-REQUIRED\",\n    \"expectedAccepted\": true,\n    \"actualAccepted\": true,\n    \"expectation\": \"Literal normal-unwind propagation rules: L2 shares P1, SP1 shares P1, or end P2 then resume live P1.\",\n    \"matched\": true,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-NESTED\",\n    \"expectedAccepted\": true,\n    \"actualAccepted\": true,\n    \"expectation\": \"Literal normal-unwind propagation rules: L2 shares P1, SP1 shares P1, or end P2 then resume live P1.\",\n    \"matched\": true,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-REQUIRES_NEW\",\n    \"expectedAccepted\": true,\n    \"actualAccepted\": true,\n    \"expectation\": \"Literal normal-unwind propagation rules: L2 shares P1, SP1 shares P1, or end P2 then resume live P1.\",\n    \"matched\": true,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-ended-active\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P1 already ended at physical terminal marker.\",\n    \"matched\": true,\n    \"error\": \"ValueError: physical context outside its active lifetime\"\n  },\n  {\n    \"case\": \"hand-fresh-without-begin\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P2 cannot become current without PHYSICAL_BEGIN.\",\n    \"matched\": true,\n    \"error\": \"ValueError: physical context outside its active lifetime\"\n  },\n  {\n    \"case\": \"hand-premature-resume\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P1 cannot resume while replacement P2 is still live.\",\n    \"matched\": true,\n    \"error\": \"ValueError: resume requires a live suspended context and ended replacement\"\n  },\n  {\n    \"case\": \"hand-savepoints-False\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"Known false or unknown savepoint capability cannot establish SP1; engine contract requires explicit true.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-savepoints-None\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"Known false or unknown savepoint capability cannot establish SP1; engine contract requires explicit true.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-suspend-false\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"Explicit unsupported suspension cannot establish S1.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-new-reuses-p1-savepoint\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"REQUIRES_NEW must not be represented as NESTED savepoint on P1.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-nested-allocates-p2\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"NESTED must not suspend P1 and allocate independent P2.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-repeat-frame-after-terminal\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P1 ended before repeated frame use.\",\n    \"matched\": true,\n    \"error\": \"ValueError: physical context outside its active lifetime\"\n  }\n]\n{\"caseCount\": 25, \"unexpectedAcceptance\": [\"hand-savepoints-False\", \"hand-savepoints-None\", \"hand-suspend-false\", \"hand-new-reuses-p1-savepoint\", \"hand-nested-allocates-p2\", \"complete-nested-unsupported\", \"complete-requires_new-unsupported\"]}\n",
@@ -11727,7 +11727,7 @@
             "python3",
             "scripts/mana-transaction.py",
             "--project-root",
-            "/Users/zel/projects/mana/tests/fixtures/transaction-context-alternatives/variants",
+            "<LOCAL_PATH_REDACTED_003>",
             "--context",
             "/private/tmp/mana-t01-r4-review-t3u0hAmd/unknown-new-context.json",
             "--entry",
@@ -12130,7 +12130,7 @@
             "python3",
             "scripts/mana-transaction.py",
             "--project-root",
-            "/Users/zel/projects/mana/tests/fixtures/transaction-context-alternatives/variants",
+            "<LOCAL_PATH_REDACTED_003>",
             "--context",
             "/private/tmp/mana-t01-r4-review-t3u0hAmd/unknown-nested-context.json",
             "--entry",
@@ -12533,7 +12533,7 @@
             "python3",
             "scripts/mana-transaction.py",
             "--project-root",
-            "/Users/zel/projects/mana/tests/fixtures/transaction-boundaries",
+            "<LOCAL_PATH_REDACTED_002>",
             "--context",
             "/private/tmp/mana-t01-r4-review-t3u0hAmd/known-nested-context.json",
             "--entry",
@@ -12907,7 +12907,7 @@
             "python3",
             "scripts/mana-transaction.py",
             "--project-root",
-            "/Users/zel/projects/mana/tests/fixtures/transaction-boundaries",
+            "<LOCAL_PATH_REDACTED_002>",
             "--context",
             "/private/tmp/mana-t01-r4-review-t3u0hAmd/known-new-context.json",
             "--entry",
@@ -13305,7 +13305,7 @@
             "python3",
             "scripts/mana-transaction.py",
             "--project-root",
-            "/Users/zel/projects/mana/tests/fixtures/transaction-boundaries",
+            "<LOCAL_PATH_REDACTED_002>",
             "--context",
             "/private/tmp/mana-t01-r4-review-t3u0hAmd/known-required-context.json",
             "--entry",
@@ -13651,7 +13651,7 @@
             "python3",
             "scripts/mana-transaction.py",
             "--project-root",
-            "/Users/zel/projects/mana/tests/fixtures/transaction-boundaries",
+            "<LOCAL_PATH_REDACTED_002>",
             "--context",
             "/private/tmp/mana-t01-r4-review-t3u0hAmd/engine-no-sp-context.json",
             "--entry",
@@ -14019,7 +14019,7 @@
             "python3",
             "scripts/mana-transaction.py",
             "--project-root",
-            "/Users/zel/projects/mana/tests/fixtures/transaction-boundaries",
+            "<LOCAL_PATH_REDACTED_002>",
             "--context",
             "/private/tmp/mana-t01-r4-review-t3u0hAmd/engine-no-suspend-context.json",
             "--entry",
@@ -14865,7 +14865,7 @@
         "python3",
         "scripts/mana-transaction.py",
         "--project-root",
-        "/Users/zel/projects/mana/tests/fixtures/transaction-boundaries",
+        "<LOCAL_PATH_REDACTED_002>",
         "--context",
         "/private/tmp/mana-t01-r4-review-t3u0hAmd/known-nested-context.json",
         "--entry",
@@ -15273,7 +15273,7 @@
         "python3",
         "scripts/mana-transaction.py",
         "--project-root",
-        "/Users/zel/projects/mana/tests/fixtures/transaction-boundaries",
+        "<LOCAL_PATH_REDACTED_002>",
         "--context",
         "/private/tmp/mana-t01-r4-review-t3u0hAmd/known-new-context.json",
         "--entry",
@@ -15629,7 +15629,7 @@
         "python3",
         "scripts/mana-transaction.py",
         "--project-root",
-        "/Users/zel/projects/mana/tests/fixtures/transaction-boundaries",
+        "<LOCAL_PATH_REDACTED_002>",
         "--context",
         "/private/tmp/mana-t01-r4-review-t3u0hAmd/known-required-context.json",
         "--entry",
@@ -15645,7 +15645,7 @@
       "command": [
         "python3",
         "/private/tmp/mana-t01-r4-review-t3u0hAmd/minimal-replay.py",
-        "/Users/zel/projects/mana"
+        "<LOCAL_PATH_REDACTED_001>"
       ],
       "exitCode": 0,
       "stdout": "{\"expectedAccepted\": false, \"actualAccepted\": true, \"defectReproduced\": true, \"changedFields\": [\"context.managerCapabilities.tx.savepoints\", \"managers[0].capabilities.savepoints\"], \"physical\": \"P1\", \"savepoint\": \"SP1\", \"events\": \"Existing SAVEPOINT_CREATE/SAVEPOINT_RELEASE_CONDITIONAL retained\"}\n",
@@ -16943,7 +16943,7 @@
           "command": [
             "python3",
             "/private/tmp/mana-t01-r4-review-t3u0hAmd/review.py",
-            "/Users/zel/projects/mana"
+            "<LOCAL_PATH_REDACTED_001>"
           ],
           "exitCode": 0,
           "stdout": "[\n  {\n    \"case\": \"hand-REQUIRED\",\n    \"expectedAccepted\": true,\n    \"actualAccepted\": true,\n    \"expectation\": \"Literal normal-unwind propagation rules: L2 shares P1, SP1 shares P1, or end P2 then resume live P1.\",\n    \"matched\": true,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-NESTED\",\n    \"expectedAccepted\": true,\n    \"actualAccepted\": true,\n    \"expectation\": \"Literal normal-unwind propagation rules: L2 shares P1, SP1 shares P1, or end P2 then resume live P1.\",\n    \"matched\": true,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-REQUIRES_NEW\",\n    \"expectedAccepted\": true,\n    \"actualAccepted\": true,\n    \"expectation\": \"Literal normal-unwind propagation rules: L2 shares P1, SP1 shares P1, or end P2 then resume live P1.\",\n    \"matched\": true,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-ended-active\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P1 already ended at physical terminal marker.\",\n    \"matched\": true,\n    \"error\": \"ValueError: physical context outside its active lifetime\"\n  },\n  {\n    \"case\": \"hand-fresh-without-begin\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P2 cannot become current without PHYSICAL_BEGIN.\",\n    \"matched\": true,\n    \"error\": \"ValueError: physical context outside its active lifetime\"\n  },\n  {\n    \"case\": \"hand-premature-resume\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P1 cannot resume while replacement P2 is still live.\",\n    \"matched\": true,\n    \"error\": \"ValueError: resume requires a live suspended context and ended replacement\"\n  },\n  {\n    \"case\": \"hand-savepoints-False\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"Known false or unknown savepoint capability cannot establish SP1; engine contract requires explicit true.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-savepoints-None\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"Known false or unknown savepoint capability cannot establish SP1; engine contract requires explicit true.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-suspend-false\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"Explicit unsupported suspension cannot establish S1.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-new-reuses-p1-savepoint\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"REQUIRES_NEW must not be represented as NESTED savepoint on P1.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-nested-allocates-p2\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": true,\n    \"expectation\": \"NESTED must not suspend P1 and allocate independent P2.\",\n    \"matched\": false,\n    \"error\": null\n  },\n  {\n    \"case\": \"hand-repeat-frame-after-terminal\",\n    \"expectedAccepted\": false,\n    \"actualAccepted\": false,\n    \"expectation\": \"P1 ended before repeated frame use.\",\n    \"matched\": true,\n    \"error\": \"ValueError: physical context outside its active lifetime\"\n  }\n]\n{\"caseCount\": 25, \"unexpectedAcceptance\": [\"hand-savepoints-False\", \"hand-savepoints-None\", \"hand-suspend-false\", \"hand-new-reuses-p1-savepoint\", \"hand-nested-allocates-p2\", \"complete-nested-unsupported\", \"complete-requires_new-unsupported\"]}\n",
@@ -17175,7 +17175,7 @@
         "command": [
           "python3",
           "/private/tmp/mana-t01-r4-review-t3u0hAmd/minimal-replay.py",
-          "/Users/zel/projects/mana"
+          "<LOCAL_PATH_REDACTED_001>"
         ],
         "exitCode": 0,
         "stdout": "{\"expectedAccepted\": false, \"actualAccepted\": true, \"defectReproduced\": true, \"changedFields\": [\"context.managerCapabilities.tx.savepoints\", \"managers[0].capabilities.savepoints\"], \"physical\": \"P1\", \"savepoint\": \"SP1\", \"events\": \"Existing SAVEPOINT_CREATE/SAVEPOINT_RELEASE_CONDITIONAL retained\"}\n",
@@ -17781,7 +17781,7 @@
         "python3",
         "scripts/mana-transaction.py",
         "--project-root",
-        "/Users/zel/projects/mana/tests/fixtures/transaction-context-alternatives/variants",
+        "<LOCAL_PATH_REDACTED_003>",
         "--context",
         "/private/tmp/mana-t01-r4-review-t3u0hAmd/unknown-nested-context.json",
         "--entry",
@@ -18195,7 +18195,7 @@
         "python3",
         "scripts/mana-transaction.py",
         "--project-root",
-        "/Users/zel/projects/mana/tests/fixtures/transaction-context-alternatives/variants",
+        "<LOCAL_PATH_REDACTED_003>",
         "--context",
         "/private/tmp/mana-t01-r4-review-t3u0hAmd/unknown-new-context.json",
         "--entry",
@@ -29004,7 +29004,7 @@
         "--porcelain"
       ],
       "exitCode": 0,
-      "stdout": "worktree /Users/zel/projects/mana\nHEAD 378243883adb101a7a41feef71e2a66b76e7f508\nbranch refs/heads/feature/mana-transaction-01\n\nworktree /private/tmp/mana-c01-s01-i01-r2-20261014/integration/mana\nHEAD a6677eb19d91e56b1ce79017f7440f17c06b6dc5\nbranch refs/heads/work/c01-s01-i01-r2-reviewed-batch\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-c03-producer\nHEAD 34e9a4a3125ec5b257bc053e647eaf54bab0a154\nbranch refs/heads/feature/c03-producer-integration\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-choice-projection\nHEAD 2cc7a67db7f23bd9f4710d0098bfe8976a6ddba4\nbranch refs/heads/feature/human-choice-projection\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-completion\nHEAD 6e5a8e0a6db36871c8dfda4da639fa7920f6db09\nbranch refs/heads/feature/feedback-replanning-activity-pages\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-index-recovery\nHEAD 8f247d5b9bf8c95666fbcf2112801654be796d8a\nbranch refs/heads/feature/feedback-index-recovery\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-large-reads\nHEAD ab0ff5b9dab31bd355a0ba1c0d9bd8f1d6b39c1e\nbranch refs/heads/feature/feedback-large-reads\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-operation-namespace\nHEAD db33a59051d0d736615b54c983e5ff178717fe2c\nbranch refs/heads/feature/feedback-operation-namespace\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-portable-operations\nHEAD de74dd0bb477b209eb56c2ce41f7e6260919a274\nbranch refs/heads/feature/feedback-portable-operations\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-verification-final\nHEAD 77fe0239fc28b29b76c0027a60474b817456d5bc\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-win-01-v1\nHEAD 205fff8bee1073fdc519b7562690bedfcc541a3b\nbranch refs/heads/work/win-01-v1\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-windows-performance\nHEAD 1ee21eb6ce22d2b2c0e0c8205520221b2e3f9d69\nbranch refs/heads/feature/windows-inspect-performance\nprunable gitdir file points to non-existent location\n\n",
+      "stdout": "worktree <LOCAL_PATH_REDACTED_001>\nHEAD 378243883adb101a7a41feef71e2a66b76e7f508\nbranch refs/heads/feature/mana-transaction-01\n\nworktree /private/tmp/mana-c01-s01-i01-r2-20261014/integration/mana\nHEAD a6677eb19d91e56b1ce79017f7440f17c06b6dc5\nbranch refs/heads/work/c01-s01-i01-r2-reviewed-batch\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-c03-producer\nHEAD 34e9a4a3125ec5b257bc053e647eaf54bab0a154\nbranch refs/heads/feature/c03-producer-integration\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-choice-projection\nHEAD 2cc7a67db7f23bd9f4710d0098bfe8976a6ddba4\nbranch refs/heads/feature/human-choice-projection\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-completion\nHEAD 6e5a8e0a6db36871c8dfda4da639fa7920f6db09\nbranch refs/heads/feature/feedback-replanning-activity-pages\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-index-recovery\nHEAD 8f247d5b9bf8c95666fbcf2112801654be796d8a\nbranch refs/heads/feature/feedback-index-recovery\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-large-reads\nHEAD ab0ff5b9dab31bd355a0ba1c0d9bd8f1d6b39c1e\nbranch refs/heads/feature/feedback-large-reads\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-operation-namespace\nHEAD db33a59051d0d736615b54c983e5ff178717fe2c\nbranch refs/heads/feature/feedback-operation-namespace\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-portable-operations\nHEAD de74dd0bb477b209eb56c2ce41f7e6260919a274\nbranch refs/heads/feature/feedback-portable-operations\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-verification-final\nHEAD 77fe0239fc28b29b76c0027a60474b817456d5bc\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-win-01-v1\nHEAD 205fff8bee1073fdc519b7562690bedfcc541a3b\nbranch refs/heads/work/win-01-v1\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-windows-performance\nHEAD 1ee21eb6ce22d2b2c0e0c8205520221b2e3f9d69\nbranch refs/heads/feature/windows-inspect-performance\nprunable gitdir file points to non-existent location\n\n",
       "stderr": ""
     }
   },
@@ -29079,7 +29079,7 @@
         "--porcelain"
       ],
       "exitCode": 0,
-      "stdout": "worktree /Users/zel/projects/mana\nHEAD 378243883adb101a7a41feef71e2a66b76e7f508\nbranch refs/heads/feature/mana-transaction-01\n\nworktree /private/tmp/mana-c01-s01-i01-r2-20261014/integration/mana\nHEAD a6677eb19d91e56b1ce79017f7440f17c06b6dc5\nbranch refs/heads/work/c01-s01-i01-r2-reviewed-batch\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-c03-producer\nHEAD 34e9a4a3125ec5b257bc053e647eaf54bab0a154\nbranch refs/heads/feature/c03-producer-integration\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-choice-projection\nHEAD 2cc7a67db7f23bd9f4710d0098bfe8976a6ddba4\nbranch refs/heads/feature/human-choice-projection\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-completion\nHEAD 6e5a8e0a6db36871c8dfda4da639fa7920f6db09\nbranch refs/heads/feature/feedback-replanning-activity-pages\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-index-recovery\nHEAD 8f247d5b9bf8c95666fbcf2112801654be796d8a\nbranch refs/heads/feature/feedback-index-recovery\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-large-reads\nHEAD ab0ff5b9dab31bd355a0ba1c0d9bd8f1d6b39c1e\nbranch refs/heads/feature/feedback-large-reads\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-operation-namespace\nHEAD db33a59051d0d736615b54c983e5ff178717fe2c\nbranch refs/heads/feature/feedback-operation-namespace\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-portable-operations\nHEAD de74dd0bb477b209eb56c2ce41f7e6260919a274\nbranch refs/heads/feature/feedback-portable-operations\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-verification-final\nHEAD 77fe0239fc28b29b76c0027a60474b817456d5bc\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-win-01-v1\nHEAD 205fff8bee1073fdc519b7562690bedfcc541a3b\nbranch refs/heads/work/win-01-v1\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-windows-performance\nHEAD 1ee21eb6ce22d2b2c0e0c8205520221b2e3f9d69\nbranch refs/heads/feature/windows-inspect-performance\nprunable gitdir file points to non-existent location\n\n",
+      "stdout": "worktree <LOCAL_PATH_REDACTED_001>\nHEAD 378243883adb101a7a41feef71e2a66b76e7f508\nbranch refs/heads/feature/mana-transaction-01\n\nworktree /private/tmp/mana-c01-s01-i01-r2-20261014/integration/mana\nHEAD a6677eb19d91e56b1ce79017f7440f17c06b6dc5\nbranch refs/heads/work/c01-s01-i01-r2-reviewed-batch\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-c03-producer\nHEAD 34e9a4a3125ec5b257bc053e647eaf54bab0a154\nbranch refs/heads/feature/c03-producer-integration\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-choice-projection\nHEAD 2cc7a67db7f23bd9f4710d0098bfe8976a6ddba4\nbranch refs/heads/feature/human-choice-projection\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-completion\nHEAD 6e5a8e0a6db36871c8dfda4da639fa7920f6db09\nbranch refs/heads/feature/feedback-replanning-activity-pages\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-index-recovery\nHEAD 8f247d5b9bf8c95666fbcf2112801654be796d8a\nbranch refs/heads/feature/feedback-index-recovery\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-large-reads\nHEAD ab0ff5b9dab31bd355a0ba1c0d9bd8f1d6b39c1e\nbranch refs/heads/feature/feedback-large-reads\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-operation-namespace\nHEAD db33a59051d0d736615b54c983e5ff178717fe2c\nbranch refs/heads/feature/feedback-operation-namespace\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-feedback-portable-operations\nHEAD de74dd0bb477b209eb56c2ce41f7e6260919a274\nbranch refs/heads/feature/feedback-portable-operations\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-verification-final\nHEAD 77fe0239fc28b29b76c0027a60474b817456d5bc\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-win-01-v1\nHEAD 205fff8bee1073fdc519b7562690bedfcc541a3b\nbranch refs/heads/work/win-01-v1\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/mana-windows-performance\nHEAD 1ee21eb6ce22d2b2c0e0c8205520221b2e3f9d69\nbranch refs/heads/feature/windows-inspect-performance\nprunable gitdir file points to non-existent location\n\n",
       "stderr": ""
     }
   },

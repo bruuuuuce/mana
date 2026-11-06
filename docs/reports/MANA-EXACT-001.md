@@ -21,7 +21,7 @@ MOM pin update is qualified by this work.
 
 ## Work base and exact candidate
 
-MANA `/Users/zel/projects/mana`, branch `develop`, HEAD/base
+MANA `<LOCAL_PATH_REDACTED>, branch `develop`, HEAD/base
 `aaed1122a22a9c1dc3f88771b2527180d967fb4f`. No checkout was substituted for the
 old MOM pin. [initial.json](evidence/MANA-EXACT-001/initial.json) records full
 initial status and fingerprints. Preexisting tracked modifications were the two

@@ -132,28 +132,28 @@
   "independentProbes": {
     "unsafeTemporaryParents": [
       {
-        "selection": "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project",
-        "reason": "temporary parent is inside analyzed project: /private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project",
+        "selection": "<LOCAL_PATH_REDACTED_001> project",
+        "reason": "temporary parent is inside analyzed project: <LOCAL_PATH_REDACTED_001> project",
         "targetWriteAttempts": []
       },
       {
-        "selection": "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project/missing child",
-        "reason": "temporary parent is inside analyzed project: /private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project/missing child",
+        "selection": "<LOCAL_PATH_REDACTED_001> project/missing child",
+        "reason": "temporary parent is inside analyzed project: <LOCAL_PATH_REDACTED_001> project/missing child",
         "targetWriteAttempts": []
       },
       {
-        "selection": "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/target alias",
-        "reason": "temporary parent is inside analyzed project: /private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project",
+        "selection": "<LOCAL_PATH_REDACTED_002> alias",
+        "reason": "temporary parent is inside analyzed project: <LOCAL_PATH_REDACTED_001> project",
         "targetWriteAttempts": []
       },
       {
-        "selection": "/private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/target alias/missing child",
-        "reason": "temporary parent is inside analyzed project: /private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project/missing child",
+        "selection": "<LOCAL_PATH_REDACTED_002> alias/missing child",
+        "reason": "temporary parent is inside analyzed project: <LOCAL_PATH_REDACTED_001> project/missing child",
         "targetWriteAttempts": []
       },
       {
-        "selection": "../../../../private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project",
-        "reason": "temporary parent is inside analyzed project: /private/var/folders/m2/ylsnp5vs01g9xv4tfzd9j7780000gn/T/mana-meta-r2-5j_57xdq/disposable project",
+        "selection": "../../../..<LOCAL_PATH_REDACTED_001> project",
+        "reason": "temporary parent is inside analyzed project: <LOCAL_PATH_REDACTED_001> project",
         "targetWriteAttempts": []
       }
     ],

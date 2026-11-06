@@ -2,7 +2,7 @@
   {
     "argv": [
       "/bin/bash",
-      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "<LOCAL_PATH_REDACTED_001>",
       "--exact-request",
       "/private/tmp/mana-exact-negative-missing-ztnochip/request.json",
       "--host-grant",
@@ -28,7 +28,7 @@
   {
     "argv": [
       "/bin/bash",
-      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "<LOCAL_PATH_REDACTED_001>",
       "--exact-request",
       "/private/tmp/mana-exact-negative-denied-xkz9hzh3/request.json",
       "--host-grant",
@@ -54,7 +54,7 @@
   {
     "argv": [
       "/bin/bash",
-      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "<LOCAL_PATH_REDACTED_001>",
       "--exact-request",
       "/private/tmp/mana-exact-negative-other-effects-7ibohi3i/request.json",
       "--host-grant",
@@ -80,7 +80,7 @@
   {
     "argv": [
       "/bin/bash",
-      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "<LOCAL_PATH_REDACTED_001>",
       "--exact-request",
       "/private/tmp/mana-exact-negative-proposal-jssd5sts/request.json",
       "--host-grant",
@@ -106,7 +106,7 @@
   {
     "argv": [
       "/bin/bash",
-      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "<LOCAL_PATH_REDACTED_001>",
       "--exact-request",
       "/private/tmp/mana-exact-negative-base-saaumpod/request.json",
       "--host-grant",
@@ -132,7 +132,7 @@
   {
     "argv": [
       "/bin/bash",
-      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "<LOCAL_PATH_REDACTED_001>",
       "--exact-request",
       "/private/tmp/mana-exact-negative-result-e6ew38kp/request.json",
       "--host-grant",
@@ -158,7 +158,7 @@
   {
     "argv": [
       "/bin/bash",
-      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "<LOCAL_PATH_REDACTED_001>",
       "--exact-request",
       "/private/tmp/mana-exact-negative-destination-9mg0utmh/request.json",
       "--host-grant",
@@ -184,7 +184,7 @@
   {
     "argv": [
       "/bin/bash",
-      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "<LOCAL_PATH_REDACTED_001>",
       "--exact-request",
       "/private/tmp/mana-exact-negative-revision-n1bir5x_/request.json",
       "--host-grant",
@@ -210,7 +210,7 @@
   {
     "argv": [
       "/bin/bash",
-      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "<LOCAL_PATH_REDACTED_001>",
       "--exact-request",
       "/private/tmp/mana-exact-negative-budget-ocasidk4/request.json",
       "--host-grant",
@@ -236,7 +236,7 @@
   {
     "argv": [
       "/bin/bash",
-      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "<LOCAL_PATH_REDACTED_001>",
       "--exact-request",
       "/private/tmp/mana-exact-negative-symlink-nrc6p3we/request.json",
       "--host-grant",
@@ -262,7 +262,7 @@
   {
     "argv": [
       "/bin/bash",
-      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "<LOCAL_PATH_REDACTED_001>",
       "--exact-request",
       "/private/tmp/mana-exact-negative-test-edit-0me3t5gv/request.json",
       "--host-grant",
@@ -288,7 +288,7 @@
   {
     "argv": [
       "/bin/bash",
-      "/Users/zel/projects/mana/scripts/mana-repair.sh",
+      "<LOCAL_PATH_REDACTED_001>",
       "--exact-request",
       "/private/tmp/mana-exact-negative-commands-2xvig8yy/request.json",
       "--host-grant",

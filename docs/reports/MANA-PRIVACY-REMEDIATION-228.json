@@ -1,0 +1,1230 @@
+{
+  "schema": "mana.privacy-remediation-inventory.v1",
+  "baseline_sha": "c61d21f7f83192aa659957d3615af4b015f44e84",
+  "baseline_tree": "512ae47dd3c691e06dfcb953c151f373a042d061",
+  "classification_counts": {
+    "owner_local_report_paths_redacted": {
+      "files": 47,
+      "user_home_occurrences": 305,
+      "macos_cache_occurrences": 17
+    },
+    "intentional_test_fixture_paths": {
+      "files": 2,
+      "occurrences": 6
+    },
+    "technical_system_path_allowlist": {
+      "files": 1,
+      "occurrences": 1
+    },
+    "temporary_absolute_paths_retained_as_technical": {
+      "files": 89,
+      "occurrences": 1448
+    },
+    "possible_credential_signatures": 0,
+    "private_ipv4_signatures": 0,
+    "email_shaped_values": 25,
+    "private_suffix_candidates": 71
+  },
+  "historical_unique_blob_scan": {
+    "reachable_objects": 5054,
+    "object_types": {
+      "commit": 203,
+      "tree": 1887,
+      "blob": 2964
+    },
+    "unique_blobs_with_any_scanned_signature": 313,
+    "unique_blobs_with_path_signatures": 167,
+    "signature_counts": {
+      "email_shaped": 72,
+      "temporary_absolute_path": 1596,
+      "private_host_suffix": 97,
+      "personal_user_path": 317,
+      "mac_private_path": 20
+    },
+    "limitation": "Counts are per unique blob content, not per historical occurrence across commits."
+  },
+  "changed_artifacts": [
+    {
+      "file": "docs/reports/MANA-EXACT-001.md",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "ca70e3a163a6e678267dfddfcf10a9e07b7cc136a06d9a9b23176c816776ea3f",
+        "git_blob": "44afb06a8a535d27f9a33e707a62c1ebfd32a2aa"
+      }
+    },
+    {
+      "file": "docs/reports/MANA-META-SKILL-00-F01-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 6,
+        "mac_private_cache": 4
+      },
+      "sanitized": {
+        "sha256": "877e79cb415069e0806bab89a2ee4911e09266e3966672971209dab96368dc28",
+        "git_blob": "b6632a90dea02a204ae2e803cd7e70949a5d5556"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-META-SKILL-00-R1-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 2
+      },
+      "sanitized": {
+        "sha256": "1ee9a6cea4a0d1116f0d67f823cb0968fd2d102d6ddde5aaef44a06802715753",
+        "git_blob": "fd53972187479a4f4015d769344dc29cc95d7250"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-META-SKILL-00-R2-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 0,
+        "mac_private_cache": 10
+      },
+      "sanitized": {
+        "sha256": "fc5478c459cc616da61380b783ebacd452b708c0158ca51078e133426485e05e",
+        "git_blob": "4ceb281d1f327f4edbde3eefa9ed3c54bc34f184"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-META-SKILL-00.md",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "00d09c83dfeb03106cec1bf07234944260fe68b7a1291ef4bdd70c465dd9405f",
+        "git_blob": "202d2c849a77c37d91809c803ba6b3dc56aef889"
+      }
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-F01-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 8,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "40e7e546ef33d3b1d4194858ace891100642633a9cc1905a2579812bed6ff1fb",
+        "git_blob": "647e70ecdc511ff27caa3cbc70e46e3dd10a7b06"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-F02-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 10,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "7a5ca8958014e677b0e188d0000e5d4cc5efe7233de784808c626d3f8817c8cd",
+        "git_blob": "4bbd38b35f3cd491de77a37bbc7df3145fab5fe0"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-F03-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 5,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "51b64135537fd135c4c53e57d61d88bc1a648aa606b09627bc1029d231012239",
+        "git_blob": "be584853f9ccebd6427fc4dcead6bd536c90570c"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-MR01-F01-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 2,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "4f4cd55fa2c04ea9c5fa49ebac535b7f50dfe7967f51ccd261455f4b9c22c189",
+        "git_blob": "0e6f1d2cc3f6f90f56ae291ad7258b31e1fdc211"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-MR01-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 3,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "c93843f1937647d25bcb9cbf3e76af573d74d3efea978a491989f7efc12b5ce2",
+        "git_blob": "4bc4d78658a7463c096976167e9003d347e815f1"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-MR01.patch",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 3,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "fd806db0282c5d0e20776cf34abe25ad5d87fc6dfa0bff483853ff4fe8ebe797",
+        "git_blob": "14266d81937ef6abe56c666173e7e2e3bb9ec342"
+      }
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-R2-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 2,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "8ec412fe6f5f346f9eecc9b967eede296d9326b5ce0bfa1442d825a89023f8ba",
+        "git_blob": "6457ddbe8b27f59ab526f072560c7896c9f0efd4"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-R3-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 22,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "98da5664477d644de178a2e287f029861481d051659697255d82fc62c730142c",
+        "git_blob": "8547883b81e5374f2e46fe50a391b906c34df1c4"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-R4-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 24,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "17e38b8ec8219ee7e7296fa3c9b073ed2af5721b7357b807d05f18894eda6b09",
+        "git_blob": "b0a66053661cdaf6f7b00b6431c5bc2008c09359"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D01-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 2,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "2468422f92ce04cb1af51a3fcc279e6efb56ddba983d6885eb0e8cda43f53bef",
+        "git_blob": "7212ccf5c0a46bb180ec6a6638330cc4a97c8c8c"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F01-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 2,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "e0fda1595efadca3cb2d2c35ddf2f25bd9a9fb0a362991306c513002623b1573",
+        "git_blob": "009f943097b10d7b285edf17e97d7008b6320ad4"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F02-R1-evidence.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 20,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "4c6b31c124edec134806ad43bfea3700bb73a89a01fa942114cc6a4d72c8cd02",
+        "git_blob": "eb16e545c7106149dd5ab24e309da999406fe022"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F02-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "260035a6037129ce39ab2896ca6ad5f39e38e541fa28fcaa8b248ecf44dc1661",
+        "git_blob": "62d4a2f15b6f4b2c660f2d2b205c3e4586f77a4f"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R1-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 2,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "845c44939e34fe52768349108ea6b56d3a57a0be2a499fd36e36c476793b252a",
+        "git_blob": "b37c5b43e87f2e73316e3c6088c0ee9d81b9bff6"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R2-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 6,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "04ea8bdafa8216620b3da8e32f8836afa730a7b77559451be2e456c3d0c3df9c",
+        "git_blob": "55078851de53fa8fa9cf61837d6f830ce2a94093"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "8894349264b198b13a22a092688e7f9f128fe044e058cea5aeb1b885087cd83b",
+        "git_blob": "33efe8ab6b00ebe53527802665022e25c95669f5"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-F01-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "146891f884dc09184a82b0b8bbd36653573008d79118f7a744c810a215348790",
+        "git_blob": "4fded7d114f26f356b40d9d440d493490ee14f26"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "253747695641ff3808dcf5a6687744851a67c4d14fd895d77734e0a63ada8b01",
+        "git_blob": "2c4ff1e8c4cc9b55f95debafa00962a8035be886"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01.md",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "ea5c7dc9046a564feddc70e8526f2f107784c15273579acf3be3006633ffe3ef",
+        "git_blob": "9058a95e3344abe6576e7e1a8142266f967bbfea"
+      }
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-F01-R1-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 2,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "a32fcd993c3976900c67a28523005f730c67ec1433099ca2783c12e7ae98914e",
+        "git_blob": "44393ea2f0271162352b0e17c770bf5f3da23f93"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-F01-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 7,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "65eed7e696f527d4dcb1d1f48ead41dbe0633da223ce9ba74c1b7293a7375421",
+        "git_blob": "10d1a0fa06cf7bb5ffc92392ce34fc8f0abe89bf"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-F02-R1-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 5,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "fc642c41c221ad3cb824da2b159c174307132bb7a7e6672ceb2fff83d92526f5",
+        "git_blob": "557afc69c511b3dbac4d074eedd3af315d0b29b1"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-F02-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 5,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "875b1e0c64fa0e6e68aec8db64e88994ba15789b9b08022a2a8e4682b173f797",
+        "git_blob": "ac42ab8a38153a5c23df76a1d915bdea256d829f"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-F03-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 14,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "cd7e8d438724dc7defd5c24d639f1b2e29195b75f155368fdb1f9d8a3fb9009b",
+        "git_blob": "cc6153194fbb2ccfecab04b66b6204d8c759edbf"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-results.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 7,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "576d8a8a83610171465165d058712c9de9ea6e0c13cab40bd934cf9066112b55",
+        "git_blob": "1c5941b1d77e1d3cdcfe4331ba220171f44a0e78"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-VIS-01-R2/processes.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "347cbdd3ec4e4e26c926e1d5638a1463e3cda0ec96f117de84408e6daac9e5ce",
+        "git_blob": "c613dba930fd94ab2c2d995b9a2df6532d148e02"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/acceptance-preparation.py",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 2,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "408e68cdccd125d13de91db39a3787fbe72cf61d829e735671b92e0267f3b0a1",
+        "git_blob": "2370b7e676fbc65f2d4ba5d9c5855e0141fe4476"
+      }
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/candidate.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 3,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "30ca48857dec8cb432d590f156df04dc3fb27ed6cbe1906109cb1e31585d9ab2",
+        "git_blob": "b741c3c9e3534a32d70aabc8ea451fa485cd9c4e"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/checks/doctor.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 8,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "6905ef8c8f407c40ee75894af1dbc0cdba788d42b1f660172d389752c4c85085",
+        "git_blob": "3a8e006f2e02762e3b6732bc98629f948d34f31a"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/checks/repair-before.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 1
+      },
+      "sanitized": {
+        "sha256": "2ff0f5a9b16f8c07c802b43590abbcefebdcbe2787abe4626a8927c811bc3e8b",
+        "git_blob": "2b65fa28aa1e78b439855af2bfe54b9a4d074d05"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/checks/reserved-grant.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "9f8a36f99a56264e5cd621ca9b6dd1e5737177104d6e3927ea78d8f38159446a",
+        "git_blob": "c3bdd3e426b2d7c47f365c37831bda3cbc677b34"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/checks/ruff-check.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "ef2062650d01e1f851dadbf3a0a51b099bd1548c766bb856ebf4a22e065c59ba",
+        "git_blob": "d7c88f85fb585b7a3b5be33847b22740961909f0"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/checks/ruff-format.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "32a78b70270f4ff715edebfaf584b3606cbeee39342208d4468220a6ec252f44",
+        "git_blob": "d551b1a817a4177ef1b807e22a48b58b1cd29d7e"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/checks/validation.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 24,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "6de6d4a5b1ff78865035d917992a74bbb5e2b1643b98b39f0ef9f784be6404d3",
+        "git_blob": "deb9bb0e6d1734d1fb9921a940ca4981cdef5131"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/launch.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 1,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "38d5341847688d5377b0d0c29e584492519631ea8a13850e21fdbca7bc13ad0c",
+        "git_blob": "3a5d48035f0b0ab7785a95bdf39495c069141a5c"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/launch.stdout",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 23,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "d32c4209ef66fc52806bd3ad67dd4ebb779a67eee524daf90e5cdf3c87b0680e",
+        "git_blob": "a0382bcff349e8836e3ad6d8b6262d3b9e1748bc"
+      }
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/native-negatives.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 12,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "83eebfde72813d22baf22d60e3f66c5cb51f575e5860f062d2a1d9fed132abef",
+        "git_blob": "419c0a5b10661fbf01e9f7d72cfa0fe42af13ec9"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/native-qualification-driver.py",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 2,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "c43012184043b6f5d4099b00cc79b03cd9c19988aca2cc2674856b00d50fc9b3",
+        "git_blob": "e5a87f69d3d3a01ef0a250d4e4520a6f9e5a0a77"
+      }
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/native-qualification.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 17,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "e868f7e26af5de943e1b4b59a8a54428b5d63246fce453b8b0c86a870509f964",
+        "git_blob": "c025caa0db30b3f4d941ba12ba47916c1eaf466e"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/request.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 10,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "9a99fe4b37feadcff5a54e0990727da7add21e399341c2d6172f4f0f4989093c",
+        "git_blob": "179eae82d27d6ef72e5cc152da6c193b8dc08471"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/run/boundary-probe.stdout",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 10,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "e8569fac8a69081fc123460373dbd3a1960111c7e611ad27c008ef2675096698",
+        "git_blob": "1e3dc7eb212ef09be09f73c5902039a943f0b330"
+      }
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/run/result.json",
+      "classification": "report_or_evidence_reissue",
+      "redacted_occurrences": {
+        "user_home": 23,
+        "mac_private_cache": 0
+      },
+      "sanitized": {
+        "sha256": "b643a81ba66c88379d5bb740b79d28cf2603985e44e3ca60362d8dbe9fae9fb9",
+        "git_blob": "95b52812ce5e75843ba8df7699a3a6986ac701b0"
+      },
+      "sanitized_semantics_verified": true
+    },
+    {
+      "file": "tests/context-runtime-delegation.py",
+      "classification": "fixture_path_component_normalized",
+      "redacted_occurrences": {
+        "fixture_path_component": 1
+      },
+      "sanitized": {
+        "sha256": "969eb381b2eb884e89ce47104619b77cbb2d30a82752f853460544bf9a63dac8",
+        "git_blob": "6cf526206890e7a6089f6c0a52b7c4d5967d397a"
+      }
+    }
+  ],
+  "technical_path_refs": [
+    {
+      "file": "agents/team-coaching-report-agent/playbook.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 3
+    },
+    {
+      "file": "docs/examples/mana-meta-skill-00/provenance.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-EXACT-001.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-META-SKILL-00-R1-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-F01-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 17
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-F02-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 114
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-F02.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-F03-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 77
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-F03.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-MR01-F01-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 27
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R1-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 22
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-MR01-R1.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-MR01-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 67
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-MR01.patch",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 67
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-R1-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 3
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-R1.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-R2-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 80
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-R2.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-R3-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 78
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-R3.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 2
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-R4-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 196
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T01-R4.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D01-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 26
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D01.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F01-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 56
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F01.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F02-R1-evidence.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 73
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F02-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 40
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-F02.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R1-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 44
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R1.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R2-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 65
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-R2.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 39
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-D02.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-F01-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 22
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-F01.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-R1-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 2
+    },
+    {
+      "file": "docs/reports/MANA-TRANSACTION-01-T02-S01-R1.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-D01-decisions.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-F01-R1-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 24
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-F01-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 21
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-F02-R1-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 27
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-F02-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 26
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-F03-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 13
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-R1-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 6
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-R1.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 25
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-T02-S02-I01.patch",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 3
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-VIS-01-F01.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-VIS-01-F01/diagnose.py",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 2
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-VIS-01-F01/diagnosis.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-VIS-01-F01/layout.diff",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 3
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-VIS-01-F01/verify.py",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-VIS-01-R1.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-VIS-01-R1/review_checks.py",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-VIS-01-R2.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/TRANSACTION-01-VIS-01-R2/review.py",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/TRANSACTION-REAL-01-F01.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 2
+    },
+    {
+      "file": "docs/reports/TRANSACTION-REAL-01-F02-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/TRANSACTION-REAL-01-F02.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/TRANSACTION-REAL-01-HYBRID-01-R1.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/TRANSACTION-REAL-01-HYBRID-01-results.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 11
+    },
+    {
+      "file": "docs/reports/TRANSACTION-REAL-01-HYBRID-01.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/acceptance-preparation.py",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/candidate.patch",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/checks/reserved-grant.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 2
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/launch.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 2
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/launch.stdout",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 24
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/native-negatives.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 26
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/native-qualification-driver.py",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/native-qualification.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 21
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/positive-location.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 5
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/request.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 3
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/reservation-check.py",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/run/boundary-probe.stdout",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 3
+    },
+    {
+      "file": "docs/reports/evidence/MANA-EXACT-001/run/result.json",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 24
+    },
+    {
+      "file": "docs/standards/resource-timeline-model-v1.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/standards/transaction-model-v1.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/standards/transaction-visualization-v1.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 3
+    },
+    {
+      "file": "docs/standards/wait-dependency-model-v1.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 2
+    },
+    {
+      "file": "docs/workflow/specialist-skill-factory.md",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 2
+    },
+    {
+      "file": "scripts/bootstrap-project.sh",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/lib/context-shadow-backend.py",
+      "category": "standard_macos_system_path_allowlist",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/validate-repo.sh",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 3
+    },
+    {
+      "file": "tests/context-runtime-comparison.py",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "tests/context-runtime-race.py",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "tests/context-runtime-schemas.sh",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 2
+    },
+    {
+      "file": "tests/exact-repair.py",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 1
+    },
+    {
+      "file": "tests/provider-dispatch.sh",
+      "category": "temporary_or_technical_absolute_path",
+      "occurrences": 3
+    }
+  ],
+  "fixture_refs": [
+    {
+      "file": "tests/context-runtime-delegation.py",
+      "category": "test_fixture_normalized",
+      "occurrences": 1,
+      "action": "account-like component replaced by a stable fixture component"
+    },
+    {
+      "file": "tests/mana-catalog.py",
+      "category": "intentional_home_path_test_fixture",
+      "occurrences": 5,
+      "action": "retained as synthetic test input"
+    }
+  ],
+  "public_pr_description": {
+    "reference": "bruuuuuce/mana#24",
+    "path_occurrences_before": 1,
+    "path_occurrences_after": 0,
+    "action": "corrected to <FAMILIAR_ROOT>; PASS evidence for 11 Familiar tests preserved; live reread verified"
+  },
+  "independent_review": {
+    "status": "COMPLETED - LIMITED",
+    "reviewer": "Sol",
+    "findings": {
+      "changed_artifacts_match_reviewed_candidate": "CONFIRMED",
+      "public_manifest_has_only_sanitized_changed_artifact_digests": "CONFIRMED",
+      "intermediate_commits_absent_from_candidate_ancestry": "CONFIRMED",
+      "specialized_scanner_blocked_not_run": "CONFIRMED",
+      "private_original_sanitized_hash_pairs": "INSUFFICIENT_EVIDENCE - reviewer did not inspect private inventory",
+      "comprehensive_credential_clearance": "INSUFFICIENT_EVIDENCE - specialist scan unavailable",
+      "comprehensive_history_clearance": "INSUFFICIENT_EVIDENCE - historical baseline exposure remains",
+      "whole_tree_vs_changed_file_fixture_scope": "CONFIRMED"
+    },
+    "limitation": "Review covered public sanitized artifacts and Git ancestry only; no raw private inventory, source values or secrets were provided."
+  },
+  "history_decision": {
+    "recommendation": "do_not_rewrite_public_history_in_this_remediation",
+    "reason": "No credential was confirmed; history rewrite would change descendant commit IDs, affect signatures/tags/external refs, and cannot remove copies from existing forks/clones. Owner decision remains required because original blobs are still publicly reachable.",
+    "local_release_tags": {
+      "total": 4,
+      "lightweight": 1,
+      "annotated": 3
+    },
+    "pinned_commit_signature_status": {
+      "verification_error_E": 172,
+      "unsigned_N": 31,
+      "note": "Local Git status only; not a cryptographic validity result."
+    },
+    "first_affected_commit": "2026-10-19; exact commit SHA retained privately",
+    "action_performed": "none"
+  },
+  "private_evidence": {
+    "original_sha256_and_blob_ids": {
+      "entries": 49,
+      "location": "private local evidence only",
+      "included_in_public_manifest": false
+    },
+    "unchanged_artifact_digest_omitted_from_public_manifest": true
+  },
+  "specialized_secret_scanner": {
+    "available": false,
+    "tools_checked": [
+      "gitleaks",
+      "trufflehog",
+      "detect-secrets",
+      "git-secrets",
+      "secretlint",
+      "ggshield",
+      "noseyparker",
+      "ripsecrets",
+      "semgrep",
+      "trivy"
+    ],
+    "installation_or_configuration_attempted": false,
+    "status": "BLOCKED - NOT RUN",
+    "qualification_effect": "No specialized tree/history clearance; do not treat targeted signatures as credential clearance."
+  },
+  "historical_first_affected_report_commit": {
+    "date": "2026-10-19",
+    "report_files_with_matches": 4,
+    "home_root_matches": 8,
+    "macos_cache_root_matches": 16,
+    "exact_commit_reference": "RETAINED_PRIVATELY",
+    "matched_file_references": "RETAINED_PRIVATELY"
+  },
+  "local_branch_publication_boundary": {
+    "previous_branch": "fix/heybruc-164-knowledge-diagnostics",
+    "previous_branch_contains_two_intermediate_commits_with_original_blob_reference_metadata": true,
+    "current_candidate_branch": "fix/heybruc-228-clean-candidate",
+    "created_directly_from_verified_baseline": true,
+    "intermediate_commits_in_candidate_ancestry": false,
+    "push_as_is": "NOT AUTHORIZED",
+    "history_rewrite_performed": false,
+    "branch_reconstruction_performed": true
+  },
+  "reconstruction_validation": {
+    "base_sha": "c61d21f7f83192aa659957d3615af4b015f44e84",
+    "changed_sanitized_artifacts_byte_equal_to_reviewed_candidate": 48,
+    "private_inventory_pairs_verified": 49,
+    "unchanged_artifact_digest_omitted_from_public_manifest": true,
+    "json_documents_parsed": 40,
+    "tests": {
+      "mana_catalog": "PASS",
+      "context_runtime_delegation": "PASS - 91 cases"
+    },
+    "diff_check": "PASS",
+    "new_original_blob_or_sha256_references_relative_to_baseline": 0,
+    "targeted_path_signature_counts": {
+      "home_root": 1,
+      "home_root_disposition": "existing synthetic test fixture",
+      "macos_cache_root": 0,
+      "scope": "changed artifact files and two audit documents"
+    },
+    "specialized_secret_scan": "BLOCKED / NOT RUN"
+  },
+  "candidate_base_sha": "c61d21f7f83192aa659957d3615af4b015f44e84"
+}
