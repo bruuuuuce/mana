@@ -1,6 +1,6 @@
 # Public artifact privacy remediation — HEYBRUC-228
 
-**Status: BLOCKED — specialized secret scanning is unavailable; independent review of this clean reconstruction is pending.**
+**Status: BLOCKED — specialized secret scanning is unavailable; independent review is complete with stated limits.**
 
 ## Baseline and method
 

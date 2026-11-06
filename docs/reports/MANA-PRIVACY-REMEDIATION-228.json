@@ -2,7 +2,6 @@
   "schema": "mana.privacy-remediation-inventory.v1",
   "baseline_sha": "c61d21f7f83192aa659957d3615af4b015f44e84",
   "baseline_tree": "512ae47dd3c691e06dfcb953c151f373a042d061",
-  "candidate_parent_sha": "c61d21f7f83192aa659957d3615af4b015f44e84",
   "classification_counts": {
     "owner_local_report_paths_redacted": {
       "files": 47,
@@ -1226,5 +1225,6 @@
       "scope": "changed artifact files and two audit documents"
     },
     "specialized_secret_scan": "BLOCKED / NOT RUN"
-  }
+  },
+  "candidate_base_sha": "c61d21f7f83192aa659957d3615af4b015f44e84"
 }
