@@ -1,6 +1,22 @@
 # Public artifact privacy remediation — HEYBRUC-228
 
-**Status: BLOCKED — specialized secret scanning is unavailable; independent review is complete with stated limits.**
+**Historical reconstruction status: BLOCKED at the time of this record.**
+
+## Later disposition — 2026-11-06
+
+The original reconstruction record below describes the state at that time. The
+owner subsequently accepted the H1–H5 and historical personal-path residuals,
+and HEYBRUC-228 was closed after remediation merged in
+[PR #27](https://github.com/bruuuuuce/mana/pull/27). A Gitleaks v8.30.1 scan of
+candidate `a1f54edea7f7f594a4ee86d9f66649456c742bdf` and reachable history was
+later completed. The recorded scan reported 13 findings in the candidate tree,
+13 corresponding findings in reachable history, and none additional on other
+local refs. The scan is heuristic and does not establish absence of secrets.
+No remote credential verification or
+independent review of raw findings was performed. The historical objects and
+external copies remain; no history rewrite occurred. The recorded disposition
+is in [HEYBRUC-228](https://linear.app/mhmm/issue/HEYBRUC-228) and is not release
+clearance. Release scope and approval remain separate owner decisions.
 
 ## Baseline and method
 
@@ -45,7 +61,10 @@ Public PR #24 was closed and merged. On 2026-11-06 its description was corrected
 
 Verification on this reconstruction: `env PYTHONDONTWRITEBYTECODE=1 python3 tests/mana-catalog.py` PASS; `env PYTHONDONTWRITEBYTECODE=1 python3 tests/context-runtime-delegation.py` PASS (91 cases); all 40 JSON files in the candidate diff and manifest parse; all 48 changed artifact files match the reviewed sanitized candidate byte-for-byte. A separate local check verified all 49 private original/sanitized hash pairs; Sol did not inspect the private inventory, so that pair verification is not independently reviewed. The original-identifier scan found no new original blob or SHA-256 references relative to the baseline; an unchanged artifact's original digest was removed from the public manifest. `git diff --check` PASS. In the changed files, the path signature scan found one home-root match in an existing synthetic test fixture and zero macOS cache-root matches; the two audit documents have no home/cache path signatures. The whole tree has six synthetic home-root fixture matches, as classified in the inventory. Specialist secret scanning remains BLOCKED / NOT RUN because no scanner is available. Sol independently confirmed the changed artifact comparison, public manifest, clean ancestry boundary and scanner limitation; the reviewer did not inspect the private inventory. No runtime behavior changed; one test fixture component was normalized to a stable synthetic value.
 
-## Owner decisions and residual risks
+## Owner decisions and residual risks at reconstruction time
+
+The later disposition above supersedes the status and pending decisions below;
+these bullets are retained as the historical state of the reconstruction.
 
 - PR #24 description correction is complete and verified.
 - History rewrite remains out of scope by owner direction; decide separately whether the documented path-only historical exposure is acceptable for any future release. Current remediation does not erase reachable Git objects.
