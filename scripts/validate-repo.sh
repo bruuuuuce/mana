@@ -2,6 +2,7 @@
 set -u
 root="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 status=0
+python3 "$root/scripts/validate-home-paths.py" "$root" || status=1
 validate_python_syntax() {
   python3 -c 'import sys; p = sys.argv[1]; compile(open(p, "rb").read(), p, "exec")' "$1"
 }
