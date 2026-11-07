@@ -126,7 +126,6 @@ def report_markdown(project, entry, revision, model, timeline, svg_status, conte
         for value in wait_timelines:
             name, _, path = value.partition("=")
             command += ["--wait-timeline", name + "=" + str(Path(path).absolute())]
-    command += ["--output-dir", "/private/tmp/mana-investigation-replay"]
     lines += ["## Evidence and reproduction commands", "", "- `transaction-model.json`: validated T01 machine-readable evidence.", "- `resource-timeline.json`: validated T02-S01 machine-readable evidence.", "- `sequence.puml`: generated using the existing T01 renderer; renderer status: " + svg_status + ".", "- `evidence.json`: source hashes and context digest.", "", "```sh", " ".join(shlex.quote(part) for part in command), "```", "", "Explicit scenario assumptions can be supplied with `--context PATH`; without it, initial transaction state and manager capabilities remain unknown. No output is written to the analyzed project.", ""]
     return "\n".join(lines)
 

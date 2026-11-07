@@ -83,6 +83,8 @@ class InvestigationCliTests(unittest.TestCase):
             self.assertIn(section, report)
         self.assertIn("UNKNOWN", report)
         self.assertIn("--context", report)
+        self.assertNotIn("/private/tmp", report)
+        self.assertNotIn("mana-investigation-replay", report)
 
     def test_missing_context_is_explicitly_conservative(self):
         completed, output = self.run_cli("investigation.OrderService#process()", context=False)
