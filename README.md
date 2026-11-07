@@ -61,6 +61,9 @@ and the [compatibility matrix](docs/standards/mana-familiar-inspect-compatibilit
   bounded privacy audit; this is not release clearance. Current-tree remediation
   does not erase history or establish an absence of secrets. See the
   [privacy remediation record](docs/reports/MANA-PRIVACY-REMEDIATION-228.md).
+- EXACT is an experimental, default-denied source-level guard for accidental
+  invocation. It is not security isolation or release readiness; distribution
+  packaging remains deferred until a concrete release requirement exists.
 
 These are qualification limits, not a release approval. The owner must decide
 the scope and accept remaining evidence gaps before any release.
