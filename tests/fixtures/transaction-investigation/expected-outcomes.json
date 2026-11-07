@@ -1,0 +1,10 @@
+{
+  "provenance": "Authored from fixture source and model contract before running the unified workflow; conditional source expectations, not runtime claims.",
+  "cases": [
+    {"entry": "investigation.OrderService#process()", "expectedPropagation": ["REQUIRED", "REQUIRED", "REQUIRES_NEW", "NESTED"], "expectedSelfCall": "BYPASSED", "expectedSqlEvidence": ["inventory", "ledger", "accounts"], "expectedUnknown": ["datasource enlistment", "dynamic SQL resource", "runtime transaction identity"], "expectedCoverage": "PARTIAL_AT_INJECTED_JDBCTEMPLATE_FRONTIER"},
+    {"entry": "investigation.OrderService#newBoundary()", "expectedPropagation": ["REQUIRED", "REQUIRES_NEW"], "physicalTransactions": 2, "suspensions": 1},
+    {"entry": "investigation.OrderService#nestedBoundary()", "expectedPropagation": ["REQUIRED", "NESTED"], "physicalTransactions": 1, "savepoints": 1, "context": "context-savepoints.json"},
+    {"entry": "investigation.OrderService#accountThenLedger()", "expectedResourceOrder": ["accounts", "ledger"], "deadlock": "NOT_ASSERTED"},
+    {"entry": "investigation.OrderService#ledgerThenAccount()", "expectedResourceOrder": ["ledger", "accounts"], "deadlock": "NOT_ASSERTED"}
+  ]
+}
