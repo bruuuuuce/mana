@@ -26,6 +26,21 @@ python3 scripts/mana-investigate-transactions.py \
   --entry 'com.example.OrderService#process()'
 ```
 
+Repeat `--entry` up to eight times to compare selected paths:
+
+```sh
+python3 scripts/mana-investigate-transactions.py \
+  --project-root ./project \
+  --entry 'com.example.OrderService#process()' \
+  --entry 'com.example.OrderService#retry()'
+```
+
+Each entry is analyzed as a separate conditional scenario. Its transaction IDs
+are local to that entry. The report compares coverage, while `entries.json` maps
+each selected entry to its own validated model, timeline, and diagram files.
+The shared `context.json` applies to every selected entry; use separate invocations
+when paths require different scenario assumptions.
+
 The command validates the supported Maven/Spring applicability boundary, parses a
 bounded Java source snapshot, reconstructs the supported T01 call path, projects
 the S01 resource timeline, and publishes a Markdown report, PlantUML sequence,
@@ -120,8 +135,8 @@ Python 3 measured:
 
 | Workflow | Commands | Elapsed seconds | Median |
 |---|---:|---|---:|
-| Unified report, T01, S01, and transaction sequence | 1 | 0.565, 0.583, 0.589 | 0.583 |
-| Manual T01 then S01 artifact generation | 2 | 1.106, 1.126, 1.140 | 1.126 |
+| Unified report, T01, S01, and transaction sequence | 1 | 0.612, 0.592, 0.585 | 0.592 |
+| Manual T01 then S01 artifact generation | 2 | 1.171, 1.171, 1.148 | 1.171 |
 
 The manual sequence has no existing report generator, so report-writing time is
 not included and no time-saving claim is made for the human synthesis step. This

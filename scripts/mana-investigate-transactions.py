@@ -63,7 +63,7 @@ def md(value):
     return str(value).replace("`", "'").replace("|", "\\|").replace("\r", " ").replace("\n", " ")
 
 
-def report_markdown(project, entry, revision, model, timeline, svg_status, context_origin, context_arg=None, wait_summary=None, wait_scenario=None, wait_timelines=(), proxy_alternatives=()):
+def report_markdown(project, entry, revision, model, timeline, svg_status, context_origin, context_arg=None, wait_summary=None, wait_scenario=None, wait_timelines=(), proxy_alternatives=(), entry_args=None):
     frames = model["frames"]
     depth = {frame["id"]: frame.get("depth", 0) for frame in frames}
     lines = [
@@ -87,7 +87,7 @@ def report_markdown(project, entry, revision, model, timeline, svg_status, conte
     for physical in model["physicalTransactions"]:
         lines.append(f"- `{physical['id']}` manager `{physical.get('manager') or 'UNKNOWN'}`, begins at frame `{physical['beginFrame']}`, ends at `{physical.get('endFrame') or 'UNKNOWN'}`.")
     if not model["physicalTransactions"]:
-        lines.append("No physical transaction identity is established by the conservative input context.")
+        lines.append("No physical transaction identity is established by the selected scenario context.")
     lines += ["", "## Propagation and interception boundaries", "", f"- Interception mode: `{model.get('interceptionMode', 'UNKNOWN')}`; proxy mode: `{model.get('proxyMode', 'UNKNOWN')}`.", "- Proxy entry, manager capabilities, datasource enlistment, savepoint support, runtime state, and AspectJ application are not inferred from source presence.", "- `--context` omitted: the v1 model requires a boolean `entryThroughProxy`; the generated conservative input sets it to false and `initialState` to UNKNOWN. This is an explicit scenario boundary, not a finding that runtime proxy interception is absent. Supply `--context` to model an evidenced alternative.", ""]
     if proxy_alternatives:
         lines += ["Default-context proxy entry alternatives (conditional; neither observed):", ""]
@@ -116,7 +116,9 @@ def report_markdown(project, entry, revision, model, timeline, svg_status, conte
     if not model["uncertainties"] and not timeline.get("limits"):
         lines.append("No additional uncertainty records; the global runtime and datasource limits above still apply.")
     lines += ["", "## Suggested developer verification steps", "", "1. Inspect the reported source sites and validate the reconstructed paths against real entry wiring.", "2. Confirm Spring proxy/AspectJ configuration and transaction-manager capabilities.", "3. Confirm the datasource bound to each JdbcTemplate and whether it participates in the modeled manager.", "4. Use runtime tracing or focused integration tests to establish actual transaction IDs, savepoints, SQL execution, and lock behavior.", "5. Prepare explicit structured premises before requesting conditional wait/deadlock diagrams.", ""]
-    command = ["python3", str(ROOT / "scripts/mana-investigate-transactions.py"), "--project-root", str(project), "--entry", entry]
+    command = ["python3", str(ROOT / "scripts/mana-investigate-transactions.py"), "--project-root", str(project)]
+    for selected_entry in (entry_args or [entry]):
+        command += ["--entry", selected_entry]
     if context_arg:
         command += ["--context", str(Path(context_arg).absolute())]
     if wait_scenario:
@@ -129,10 +131,27 @@ def report_markdown(project, entry, revision, model, timeline, svg_status, conte
     return "\n".join(lines)
 
 
+def comparative_report(project, scenarios, revision, svg_status, context_origin, context_arg=None, wait_summary=None, wait_scenario=None, wait_timelines=()):
+    if len(scenarios) == 1:
+        item = scenarios[0]
+        return report_markdown(project, item["entry"], revision, item["model"], item["timeline"], svg_status, context_origin, context_arg, wait_summary, wait_scenario, wait_timelines, item["proxyAlternatives"], [v["entry"] for v in scenarios])
+    parts = ["# Comparative Java/Spring transaction investigation", "", "> Each selected entry is analyzed as an independent conditional scenario. Symbolic transaction IDs are local to an entry and are never compared across entries.", "", f"- Project: `{md(project)}`", f"- Source revision: `{revision}`", "", "## Selected entry paths", "", "| Entry | Frames | Resource observations | UNKNOWN regions |", "|---|---:|---:|---:|"]
+    for item in scenarios:
+        model, timeline = item["model"], item["timeline"]
+        parts.append(f"| `{md(item['entry'])}` | {len(model['frames'])} | {len(timeline['observations'])} | {len(model['uncertainties'])} |")
+    parts += ["", "The per-entry sections retain separate models, timelines, diagrams, assumptions, and evidence hashes.", ""]
+    for index, item in enumerate(scenarios, 1):
+        rendered = report_markdown(project, item["entry"], revision, item["model"], item["timeline"], svg_status, context_origin, context_arg, wait_summary, wait_scenario, wait_timelines, item["proxyAlternatives"], [v["entry"] for v in scenarios])
+        lines = rendered.splitlines()[1:]
+        parts.append(f"## Entry {index}: `{md(item['entry'])}`")
+        parts.extend(line.replace("## ", "### ", 1) if line.startswith("## ") else line for line in lines)
+    return "\n".join(parts) + "\n"
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, required=True)
-    parser.add_argument("--entry", required=True)
+    parser.add_argument("--entry", action="append", required=True, help="entry method; repeat for comparative analysis")
     parser.add_argument("--context", type=Path)
     parser.add_argument("--output-dir", type=Path, help="fresh external directory; defaults to a private system temporary directory")
     parser.add_argument("--wait-scenario", type=Path, help="optional explicit S02 scenario sidecar")
@@ -141,13 +160,18 @@ def main():
     output = None
     try:
         project = t01.factory.canonical_project(args.project_root)
+        if len(args.entry) > 8:
+            raise ValueError("at most 8 entry paths may be selected in one investigation")
+        if len(set(args.entry)) != len(args.entry):
+            raise ValueError("entry paths must be unique")
         output = t01.factory.candidate_location(args.output_dir, project) if args.output_dir else None
         if output is not None and output.exists():
             raise ValueError("output already exists; refusing overwrite")
         revision = source_revision(project)
         wait_artifacts = {}
         wait_summary = None
-        proxy_alternatives = []
+        scenarios = []
+        source_evidence = None
         with tempfile.TemporaryDirectory(prefix="mana-investigate-") as scratch:
             scratch = Path(scratch)
             if args.context:
@@ -161,39 +185,36 @@ def main():
                 context_path = scratch / "context.json"
                 context_path.write_bytes(context_raw)
                 context_origin = "CONSERVATIVE_DEFAULT_NOT_RUNTIME_PROOF"
-            model, facts = t01.analyze(project, context_path, args.entry, include_facts=True)
-            timeline = resource_cli.build_timeline(model, facts)
-            validate_timeline(timeline)
-            diagram = render(model, timeline)
-            if not args.context:
-                alternate_context = dict(context)
-                alternate_context["entryThroughProxy"] = True
-                alternate_context_raw = (json.dumps(alternate_context, sort_keys=True) + "\n").encode()
-                alternate_context_path = scratch / "context-proxy-true.json"
-                alternate_context_path.write_bytes(alternate_context_raw)
-                alternate_model, alternate_facts = t01.analyze(project, alternate_context_path, args.entry, include_facts=True)
-                if alternate_model["evidence"] != model["evidence"]:
-                    raise ValueError("source changed between conditional proxy alternatives")
-                alternate_timeline = resource_cli.build_timeline(alternate_model, alternate_facts)
-                validate_timeline(alternate_timeline)
-                proxy_alternatives.append({
-                    "entryThroughProxy": False,
-                    "summary": "baseline model in transaction-model.json",
-                    "frameCount": len(model["frames"]),
-                    "uncertainties": [u["reason"] for u in model["uncertainties"]],
-                    "physicalTransactions": len(model["physicalTransactions"]),
-                    "resourceObservations": len(timeline["observations"]),
-                })
-                proxy_alternatives.append({
-                    "entryThroughProxy": True,
-                    "summary": "alternate model; runtime proxy crossing UNKNOWN",
-                    "frameCount": len(alternate_model["frames"]),
-                    "uncertainties": [u["reason"] for u in alternate_model["uncertainties"]],
-                    "physicalTransactions": len(alternate_model["physicalTransactions"]),
-                    "resourceObservations": len(alternate_timeline["observations"]),
-                    "sourceEvidence": alternate_model["evidence"],
-                    "contextSha256": hashlib.sha256(alternate_context_raw).hexdigest(),
-                })
+            for index, entry in enumerate(args.entry, 1):
+                model, facts = t01.analyze(project, context_path, entry, include_facts=True)
+                if model["contextEvidence"]["sha256"] != hashlib.sha256(context_raw).hexdigest():
+                    raise ValueError("context changed before selected entry analysis")
+                if source_evidence is None:
+                    source_evidence = model["evidence"]
+                elif model["evidence"] != source_evidence:
+                    raise ValueError("source changed between selected entry analyses")
+                timeline = resource_cli.build_timeline(model, facts)
+                validate_timeline(timeline)
+                diagram = render(model, timeline)
+                proxy_alternatives = []
+                if not args.context:
+                    alternate_context = dict(context)
+                    alternate_context["entryThroughProxy"] = True
+                    alternate_context_raw = (json.dumps(alternate_context, sort_keys=True) + "\n").encode()
+                    alternate_context_path = scratch / f"context-proxy-true-{index}.json"
+                    alternate_context_path.write_bytes(alternate_context_raw)
+                    alternate_model, alternate_facts = t01.analyze(project, alternate_context_path, entry, include_facts=True)
+                    if alternate_model["evidence"] != source_evidence:
+                        raise ValueError("source changed between conditional proxy alternatives")
+                    if alternate_model["contextEvidence"]["sha256"] != hashlib.sha256(alternate_context_raw).hexdigest():
+                        raise ValueError("conditional proxy context changed during analysis")
+                    alternate_timeline = resource_cli.build_timeline(alternate_model, alternate_facts)
+                    validate_timeline(alternate_timeline)
+                    proxy_alternatives = [
+                        {"entryThroughProxy": False, "summary": "baseline model for this entry", "frameCount": len(model["frames"]), "uncertainties": [u["reason"] for u in model["uncertainties"]], "physicalTransactions": len(model["physicalTransactions"]), "resourceObservations": len(timeline["observations"])},
+                        {"entryThroughProxy": True, "summary": "alternate model; runtime proxy crossing UNKNOWN", "frameCount": len(alternate_model["frames"]), "uncertainties": [u["reason"] for u in alternate_model["uncertainties"]], "physicalTransactions": len(alternate_model["physicalTransactions"]), "resourceObservations": len(alternate_timeline["observations"]), "sourceEvidence": alternate_model["evidence"], "contextSha256": hashlib.sha256(alternate_context_raw).hexdigest()},
+                    ]
+                scenarios.append({"entry": entry, "model": model, "timeline": timeline, "diagram": diagram, "proxyAlternatives": proxy_alternatives})
             if args.wait_scenario:
                 raw_inputs = {}
                 for value in args.wait_timeline:
@@ -221,13 +242,34 @@ def main():
             elif args.wait_timeline:
                 raise ValueError("--wait-timeline requires --wait-scenario")
         svg_result = "SVG not generated: PlantUML renderer unavailable or failed"
-        artifacts = {
-            "transaction-model.json": (json.dumps(model, indent=2, ensure_ascii=False) + "\n").encode(),
-            "resource-timeline.json": (json.dumps(timeline, indent=2, ensure_ascii=False) + "\n").encode(),
-            "sequence.puml": diagram.encode(),
-            "context.json": context_raw,
-            "evidence.json": (json.dumps({"sourceRevision": revision, "contextOrigin": context_origin, "sourceEvidence": model["evidence"], "contextSha256": hashlib.sha256(context_raw).hexdigest(), "proxyEntryAlternatives": proxy_alternatives, "waitScenario": wait_summary}, indent=2) + "\n").encode(),
-        }
+        model, timeline = scenarios[0]["model"], scenarios[0]["timeline"]
+        artifacts = {"context.json": context_raw}
+        entry_manifest = []
+        for index, item in enumerate(scenarios, 1):
+            prefix = "" if index == 1 else f"entry-{index:02d}."
+            model_path = prefix + "transaction-model.json"
+            timeline_path = prefix + "resource-timeline.json"
+            diagram_path = prefix + "sequence.puml"
+            model_raw = (json.dumps(item["model"], indent=2, ensure_ascii=False) + "\n").encode()
+            timeline_raw = (json.dumps(item["timeline"], indent=2, ensure_ascii=False) + "\n").encode()
+            diagram_raw = item["diagram"].encode()
+            artifacts[model_path] = model_raw
+            artifacts[timeline_path] = timeline_raw
+            artifacts[diagram_path] = diagram_raw
+            entry_manifest.append({
+                "entry": item["entry"],
+                "transactionModel": model_path,
+                "resourceTimeline": timeline_path,
+                "sequenceDiagram": diagram_path,
+                "transactionModelSha256": hashlib.sha256(model_raw).hexdigest(),
+                "resourceTimelineSha256": hashlib.sha256(timeline_raw).hexdigest(),
+                "sequenceDiagramSha256": hashlib.sha256(diagram_raw).hexdigest(),
+                "frameCount": len(item["model"]["frames"]),
+                "resourceObservationCount": len(item["timeline"]["observations"]),
+                "unknownCount": len(item["model"]["uncertainties"]),
+            })
+        artifacts["entries.json"] = (json.dumps({"schema": "mana.transaction-investigation-entries/v1", "sourceRevision": revision, "entries": entry_manifest}, indent=2) + "\n").encode()
+        artifacts["evidence.json"] = (json.dumps({"sourceRevision": revision, "contextOrigin": context_origin, "sourceEvidence": model["evidence"], "contextSha256": hashlib.sha256(context_raw).hexdigest(), "proxyEntryAlternatives": scenarios[0]["proxyAlternatives"], "proxyEntryAlternativesByEntry": [{"entry": item["entry"], "alternatives": item["proxyAlternatives"]} for item in scenarios], "waitScenario": wait_summary}, indent=2) + "\n").encode()
         if sum(map(len, artifacts.values())) > 12 * 1024 * 1024:
             raise ValueError("combined investigation exceeds 12 MiB output budget")
         if sum(map(len, wait_artifacts.values())) + sum(map(len, artifacts.values())) > 16 * 1024 * 1024:
@@ -260,7 +302,7 @@ def main():
                 else:
                     for svg in svgs:
                         svg.unlink(missing_ok=True)
-            report = report_markdown(project, args.entry, revision, model, timeline, svg_result, context_origin, args.context, wait_summary, args.wait_scenario, args.wait_timeline, proxy_alternatives)
+            report = comparative_report(project, scenarios, revision, svg_result, context_origin, args.context, wait_summary, args.wait_scenario, args.wait_timeline)
             (output / "report.md").write_text(report, encoding="utf-8")
         except Exception:
             for child in output.iterdir():
@@ -268,7 +310,7 @@ def main():
                     child.unlink()
             output.rmdir()
             raise
-        result = {"status": "CONDITIONAL_STATIC_SCENARIO", "outputDir": str(output), "frames": len(model["frames"]), "resourceObservations": len(timeline["observations"]), "svg": svg_result}
+        result = {"status": "CONDITIONAL_STATIC_SCENARIO", "outputDir": str(output), "entries": len(scenarios), "frames": sum(len(item["model"]["frames"]) for item in scenarios), "resourceObservations": sum(len(item["timeline"]["observations"]) for item in scenarios), "svg": svg_result}
         if wait_summary:
             result["waitScenario"] = wait_summary
         print(json.dumps(result))

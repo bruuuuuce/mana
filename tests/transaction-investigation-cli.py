@@ -12,6 +12,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests/fixtures/transaction-investigation"
 CLI = ROOT / "scripts/mana-investigate-transactions.py"
+ORACLES = {item["entry"]: item for item in json.loads((FIXTURE / "expected-outcomes.json").read_text())["cases"]}
 
 
 def tree_digest(root):
@@ -30,8 +31,11 @@ class InvestigationCliTests(unittest.TestCase):
         output = Path(temp.name) / "output"
         command = [
             "python3", str(CLI), "--project-root", str(FIXTURE),
-            "--entry", entry, "--output-dir", str(output),
+            "--output-dir", str(output),
         ]
+        entries = entry if isinstance(entry, (list, tuple)) else [entry]
+        for selected_entry in entries:
+            command += ["--entry", selected_entry]
         if context:
             context_path = context if isinstance(context, (str, Path)) else FIXTURE / "context.json"
             command += ["--context", str(context_path)]
@@ -54,8 +58,7 @@ class InvestigationCliTests(unittest.TestCase):
         self.assertEqual(timeline["schema"], "mana.resource-timeline/v1")
         self.assertEqual(model["contextEvidence"]["origin"], "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF")
         self.assertTrue(model["evidence"])
-        expected = json.loads((FIXTURE / "expected-outcomes.json").read_text())
-        expected_process = expected["cases"][0]
+        expected_process = ORACLES["investigation.OrderService#process()"]
         self.assertEqual(model["frames"][0]["calleeMethod"], expected_process["entry"])
         self.assertEqual(model["frames"][0]["configuration"]["propagation"], "REQUIRED")
         self.assertEqual(len(model["physicalTransactions"]), 1)
@@ -80,30 +83,33 @@ class InvestigationCliTests(unittest.TestCase):
 
     def test_unresolved_entry_fails_without_publishing(self):
         completed, output = self.run_cli("investigation.OrderService#missing()")
-        self.assertEqual(completed.returncode, 2)
+        self.assertEqual(completed.returncode, ORACLES["investigation.OrderService#missing()"]["expectedExitCode"])
         self.assertFalse(output.exists())
 
     def test_dynamic_sql_stays_unknown(self):
         completed, output = self.run_cli("investigation.DynamicSqlService#runDynamic()")
         self.assertEqual(completed.returncode, 0, completed.stderr)
         timeline = json.loads((output / "resource-timeline.json").read_text())
-        self.assertEqual(timeline["observations"][0]["operationType"], "UNKNOWN")
-        self.assertIsNone(timeline["observations"][0]["resource"]["name"])
+        expected = ORACLES["investigation.DynamicSqlService#runDynamic()"]
+        self.assertEqual(timeline["observations"][0]["operationType"], expected["expectedOperation"])
+        self.assertEqual(timeline["observations"][0]["resource"]["name"], expected["expectedResource"])
 
     def test_proxy_self_invocation_is_bypassed(self):
         completed, output = self.run_cli("investigation.OrderService#selfInvocation()")
         self.assertEqual(completed.returncode, 0, completed.stderr)
         model = json.loads((output / "transaction-model.json").read_text())
         self_call = next(frame for frame in model["frames"] if frame["calleeMethod"] == "investigation.OrderService#selfRequiresNew()")
-        self.assertEqual(self_call["interception"]["status"], "BYPASSED")
-        self.assertEqual(self_call["configuration"]["propagation"], "REQUIRES_NEW")
+        expected = ORACLES["investigation.OrderService#selfInvocation()"]
+        self.assertEqual(self_call["interception"]["status"], expected["expectedSelfCall"])
+        self.assertEqual(self_call["configuration"]["propagation"], expected["expectedPropagation"][1])
 
     def test_independent_and_nested_boundaries_keep_distinct_identities(self):
         independent, output = self.run_cli("investigation.OrderService#newBoundary()")
         self.assertEqual(independent.returncode, 0, independent.stderr)
         model = json.loads((output / "transaction-model.json").read_text())
-        self.assertEqual([p["id"] for p in model["physicalTransactions"]], ["P1", "P2"])
-        self.assertEqual(len(model["suspensions"]), 1)
+        expected = ORACLES["investigation.OrderService#newBoundary()"]
+        self.assertEqual(len(model["physicalTransactions"]), expected["physicalTransactions"])
+        self.assertEqual(len(model["suspensions"]), expected["suspensions"])
 
         nested, output = self.run_cli(
             "investigation.OrderService#nestedBoundary()",
@@ -111,8 +117,9 @@ class InvestigationCliTests(unittest.TestCase):
         )
         self.assertEqual(nested.returncode, 0, nested.stderr)
         model = json.loads((output / "transaction-model.json").read_text())
-        self.assertEqual(len(model["physicalTransactions"]), 1)
-        self.assertEqual(len(model["savepoints"]), 1)
+        expected = ORACLES["investigation.OrderService#nestedBoundary()"]
+        self.assertEqual(len(model["physicalTransactions"]), expected["physicalTransactions"])
+        self.assertEqual(len(model["savepoints"]), expected["savepoints"])
         self.assertEqual(model["savepoints"][0]["physicalId"], "P1")
 
     def test_default_output_is_private_and_external(self):
@@ -149,6 +156,43 @@ class InvestigationCliTests(unittest.TestCase):
         evidence = json.loads((output / "evidence.json").read_text())
         self.assertEqual(evidence["waitScenario"]["scenarioId"], "synthetic_O_A01")
         self.assertEqual(len(evidence["waitScenario"]["timelineInputs"]), 2)
+
+    def test_multiple_entries_keep_models_and_symbolic_ids_separate(self):
+        selected = [
+            "investigation.OrderService#newBoundary()",
+            "investigation.OrderService#nestedBoundary()",
+        ]
+        completed, output = self.run_cli(selected, context=FIXTURE / "context-savepoints.json")
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        index = json.loads((output / "entries.json").read_text())
+        self.assertEqual(index["schema"], "mana.transaction-investigation-entries/v1")
+        self.assertEqual([item["entry"] for item in index["entries"]], selected)
+        first = json.loads((output / index["entries"][0]["transactionModel"]).read_text())
+        second = json.loads((output / index["entries"][1]["transactionModel"]).read_text())
+        self.assertEqual(first["physicalTransactions"][-1]["id"], "P2")
+        self.assertEqual(second["physicalTransactions"][0]["id"], "P1")
+        self.assertTrue((output / "entry-02.sequence.puml").is_file())
+        report = (output / "report.md").read_text()
+        self.assertIn("Comparative Java/Spring transaction investigation", report)
+        self.assertIn("--entry", report)
+
+    def test_opposite_source_orders_are_comparable_without_deadlock_claim(self):
+        completed, output = self.run_cli(
+            [
+                "investigation.OrderService#accountThenLedger()",
+                "investigation.OrderService#ledgerThenAccount()",
+            ],
+            context=FIXTURE / "context-savepoints.json",
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        index = json.loads((output / "entries.json").read_text())
+        timelines = [json.loads((output / item["resourceTimeline"]).read_text()) for item in index["entries"]]
+        first_resources = [o["resource"]["name"] for o in timelines[0]["observations"] if o["resource"]["name"]]
+        second_resources = [o["resource"]["name"] for o in timelines[1]["observations"] if o["resource"]["name"]]
+        self.assertEqual(first_resources[:1], ORACLES["investigation.OrderService#accountThenLedger()"]["expectedResourceOrder"][:1])
+        self.assertEqual(second_resources[:1], ORACLES["investigation.OrderService#ledgerThenAccount()"]["expectedResourceOrder"][:1])
+        report = (output / "report.md").read_text()
+        self.assertIn("No wait/deadlock scenario is derived from lexical SQL similarity", report)
 
 
 if __name__ == "__main__":
