@@ -1,0 +1,396 @@
+{
+  "schema": "mana.core-capabilities/v1",
+  "release_scope": "restricted-core-proposal",
+  "distribution_model": "source-checkout-and-bootstrap",
+  "capabilities": [
+    {
+      "id": "story-development-review",
+      "classification": "supported",
+      "entry_points": [
+        "./mana profile story-start",
+        "./mana profile dev-assist",
+        "./mana profile requested-pr-review",
+        "./mana cast architecture-review"
+      ],
+      "qualification": "bounded-core approval; release decision remains owner-owned"
+    },
+    {
+      "id": "inspect-and-familiar-contract",
+      "classification": "supported",
+      "entry_points": [
+        "./mana inspect"
+      ],
+      "qualification": "compatibility evidence is bounded to the recorded contract"
+    },
+    {
+      "id": "ordinary-verification",
+      "classification": "supported",
+      "entry_points": [
+        "./mana verify"
+      ],
+      "qualification": "deterministic Verification Skills; no EXACT request"
+    },
+    {
+      "id": "ordinary-bounded-repair",
+      "classification": "supported",
+      "entry_points": [
+        "./mana repair"
+      ],
+      "qualification": "existing bounded provider workflow and its existing admission rules"
+    },
+    {
+      "id": "exact-fixture-execution",
+      "classification": "experimental",
+      "entry_points": [
+        "./mana verify --experimental-exact --exact-request",
+        "./mana repair --experimental-exact --exact-request",
+        "python3 scripts/lib/exact_repair.py --experimental-exact",
+        "scripts/mana-verify.sh --experimental-exact --exact-request",
+        "scripts/mana-repair.sh --experimental-exact --exact-request"
+      ],
+      "default": "denied",
+      "qualification": "public disposable fixture R&D only; not production-qualified"
+    },
+    {
+      "id": "knowledge-retrieval-superiority",
+      "classification": "excluded",
+      "entry_points": [],
+      "qualification": "no claim of improvement over rg"
+    },
+    {
+      "id": "live-trajectory-usefulness",
+      "classification": "excluded",
+      "entry_points": [],
+      "qualification": "shadow/offline evidence only"
+    },
+    {
+      "id": "native-platforms-outside-qualified-tuples",
+      "classification": "not_yet_qualified",
+      "entry_points": [],
+      "qualification": "no native support claim for untested OS/architecture/toolchain tuples"
+    }
+  ],
+  "boundary_limits": [
+    "The repository source checkout contains experimental EXACT code.",
+    "The explicit switch is an accidental-use guard, not a security boundary against a user who controls installed source.",
+    "A curated release artifact that omits EXACT executables and implementation is not currently produced by this repository."
+  ],
+  "entry_point_inventory": {
+    "source": "scripts/bootstrap-project.sh generated ./mana command dispatch",
+    "classification_semantics": "Classification is release scope, not access control. Commands marked not_yet_qualified remain reachable in the source checkout and bootstrapped project.",
+    "commands": [
+      {
+        "command": "help",
+        "classification": "supported",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Available command; exact status is limited to the ordinary non-EXACT workflow."
+      },
+      {
+        "command": "--help",
+        "classification": "supported",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Available command; exact status is limited to the ordinary non-EXACT workflow."
+      },
+      {
+        "command": "-h",
+        "classification": "supported",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Available command; exact status is limited to the ordinary non-EXACT workflow."
+      },
+      {
+        "command": "profile",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Arbitrary profile names remain outside a blanket support claim; the bounded story-start profile is listed separately."
+      },
+      {
+        "command": "divination",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Recommendation is available; it does not establish release qualification."
+      },
+      {
+        "command": "cast",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Arbitrary profile execution remains outside a blanket support claim; only approved bounded profiles are in scope."
+      },
+      {
+        "command": "explore",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Local retrieval remains available; retrieval superiority over rg is excluded."
+      },
+      {
+        "command": "inspect",
+        "classification": "supported",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Available command; exact status is limited to the ordinary non-EXACT workflow."
+      },
+      {
+        "command": "catalog",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Derived catalog operations are reachable but outside the bounded supported core inventory."
+      },
+      {
+        "command": "knowledge",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Local index operations are reachable; retrieval superiority over rg is excluded."
+      },
+      {
+        "command": "action",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Knowledge and learning mutations remain outside the bounded supported core inventory."
+      },
+      {
+        "command": "review-inbox",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Host review-inbox operations are reachable but have no release qualification in this boundary."
+      },
+      {
+        "command": "context",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Optional context operations are reachable but lack release qualification in this boundary."
+      },
+      {
+        "command": "doctor",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Environment diagnostics do not establish native platform qualification."
+      },
+      {
+        "command": "learning",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Governed learning operations are reachable but are outside the bounded supported core inventory."
+      },
+      {
+        "command": "journey",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Learning Journey operations are reachable but are outside the bounded supported core inventory."
+      },
+      {
+        "command": "concepts",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Concept registry operations are reachable but are outside the bounded supported core inventory."
+      },
+      {
+        "command": "scout",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Journey scouting is reachable but is outside the bounded supported core inventory."
+      },
+      {
+        "command": "expand",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Journey enrichment is reachable but is outside the bounded supported core inventory."
+      },
+      {
+        "command": "rationale",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Rationale hypotheses are reachable but are outside the bounded supported core inventory."
+      },
+      {
+        "command": "history",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Git archaeology operations are reachable but are outside the bounded supported core inventory."
+      },
+      {
+        "command": "diagram",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Journey diagram generation is reachable but is outside the bounded supported core inventory."
+      },
+      {
+        "command": "user-learning",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "User Learning operations are reachable but are outside the bounded supported core inventory."
+      },
+      {
+        "command": "pilot-feedback",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Only the recorded limited pilot outcomes are accepted; this command does not broaden those claims."
+      },
+      {
+        "command": "human-feedback",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Human feedback operations are reachable but are outside the bounded supported core inventory."
+      },
+      {
+        "command": "eval",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Offline and shadow evidence does not establish live trajectory usefulness."
+      },
+      {
+        "command": "verify",
+        "classification": "supported",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Available command; exact status is limited to the ordinary non-EXACT workflow."
+      },
+      {
+        "command": "repair",
+        "classification": "supported",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Available command; exact status is limited to the ordinary non-EXACT workflow."
+      },
+      {
+        "command": "report",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Governance report output is reachable but is outside the bounded supported core inventory."
+      },
+      {
+        "command": "runtime",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Runtime event inspection is reachable but is outside the bounded supported core inventory."
+      },
+      {
+        "command": "workspace",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Workspace operations are reachable but have no release qualification in this boundary."
+      },
+      {
+        "command": "jira-mcp",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "External Jira operations are reachable but are outside the bounded supported core inventory."
+      },
+      {
+        "command": "sonar",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "External scanner operations are reachable but are outside the bounded supported core inventory."
+      },
+      {
+        "command": "dependency-evidence",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Dependency evidence collection is reachable but is outside the bounded supported core inventory."
+      },
+      {
+        "command": "evidence",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Evidence workspace operations are reachable but are outside the bounded supported core inventory."
+      },
+      {
+        "command": "evidence-index",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Evidence index operations are reachable but are outside the bounded supported core inventory."
+      },
+      {
+        "command": "validate-mana",
+        "classification": "not_yet_qualified",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Repository validation is a developer operation, not a user capability qualification."
+      },
+      {
+        "command": "path",
+        "classification": "supported",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Available command; exact status is limited to the ordinary non-EXACT workflow."
+      },
+      {
+        "command": "profile story-start",
+        "classification": "supported",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Bounded story-start flow within the approved core scope."
+      },
+      {
+        "command": "cast architecture-review",
+        "classification": "supported",
+        "availability": "available_in_source_and_bootstrap",
+        "notes": "Approved bounded architecture review profile only."
+      },
+      {
+        "command": "verify --exact-request",
+        "classification": "experimental",
+        "availability": "available_with_explicit_opt_in",
+        "default": "denied",
+        "notes": "Public disposable fixture R&D only; requires --experimental-exact."
+      },
+      {
+        "command": "repair --exact-request",
+        "classification": "experimental",
+        "availability": "available_with_explicit_opt_in",
+        "default": "denied",
+        "notes": "Public disposable fixture R&D only; requires --experimental-exact."
+      },
+      {
+        "command": "scripts/mana-verify.sh --exact-request",
+        "classification": "experimental",
+        "availability": "available_with_explicit_opt_in",
+        "default": "denied",
+        "notes": "Public shell entry; requires --experimental-exact."
+      },
+      {
+        "command": "scripts/mana-repair.sh --exact-request",
+        "classification": "experimental",
+        "availability": "available_with_explicit_opt_in",
+        "default": "denied",
+        "notes": "Public shell entry; requires --experimental-exact."
+      }
+    ]
+  },
+  "excluded_capabilities": [
+    {
+      "id": "knowledge-retrieval-superiority",
+      "classification": "excluded",
+      "availability": "claim_excluded",
+      "notes": "No claim of improvement over rg."
+    },
+    {
+      "id": "live-trajectory-usefulness",
+      "classification": "excluded",
+      "availability": "claim_excluded",
+      "notes": "Shadow/offline evidence only."
+    },
+    {
+      "id": "REAL-01",
+      "classification": "excluded",
+      "availability": "not_in_supported_core",
+      "notes": "Explicitly outside the bounded core release scope."
+    },
+    {
+      "id": "MOM",
+      "classification": "excluded",
+      "availability": "not_in_supported_core",
+      "notes": "Explicitly outside the bounded core release scope."
+    },
+    {
+      "id": "D3",
+      "classification": "excluded",
+      "availability": "not_in_supported_core",
+      "notes": "Explicitly outside the bounded core release scope."
+    },
+    {
+      "id": "plugin-framework",
+      "classification": "excluded",
+      "availability": "not_in_supported_core",
+      "notes": "No general-purpose plugin framework is included."
+    },
+    {
+      "id": "windows-native-support",
+      "classification": "excluded",
+      "availability": "not_supported",
+      "notes": "No native Windows support claim."
+    }
+  ]
+}

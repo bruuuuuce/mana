@@ -231,6 +231,7 @@ class Contract(unittest.TestCase):
             "exact_repair.py",
             "--entry",
             "repair" if self.r["operation"] == "repair-verify" else "verify",
+            "--experimental-exact",
             "--exact-request",
             str(request),
             "--host-grant",

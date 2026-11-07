@@ -1,9 +1,16 @@
 # Exact source repair, first increment
 
-`mana repair --exact-request <absolute.json> --host-grant <private.json> --provider none --json`
+`mana repair --experimental-exact --exact-request <absolute.json> --host-grant <private.json> --provider none --json`
 uses a separate deterministic effect contract, before loading provider libraries.
 The supported repository entry is `scripts/mana-repair.sh`; bootstrapped `mana`
 forwards the same arguments and its project root must equal the bound destination.
+EXACT is experimental and default-denied: both public shell entries and direct
+`exact_repair.py` invocation require `--experimental-exact` before loading the
+request or host grant. The same switch is required for `mana verify` /
+`scripts/mana-verify.sh` and the direct Python entry. The source checkout still
+contains this code; a user who controls the installed source can invoke or alter
+it, so this guard prevents accidental use but does not establish a hostile-user
+security boundary. No curated artifact that removes EXACT is currently built.
 `mana verify` / `scripts/mana-verify.sh` accepts the same options for an operation
 of `verify`; that operation runs only the fixed compilation/test pair and never
 calls the application function. Existing generative repair and verification

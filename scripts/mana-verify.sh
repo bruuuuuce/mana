@@ -4,19 +4,27 @@
 set -u
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-# Exact mode is a separate effect contract, dispatched before provider libraries.
+# EXACT is experimental and disabled unless the caller opts in explicitly.
+exact_request=false
+experimental_exact=false
 for mana_arg in "$@"; do
-  if [ "$mana_arg" = --exact-request ]; then
-    exec python3 -I -B "$root/scripts/lib/exact_repair.py" "$@" --entry verify
-  fi
+  [ "$mana_arg" != --exact-request ] || exact_request=true
+  [ "$mana_arg" != --experimental-exact ] || experimental_exact=true
 done
+if [ "$exact_request" = true ]; then
+  if [ "$experimental_exact" != true ]; then
+    printf '%s\n' '{"schema":"mana.exact-result/v1","status":"BLOCKED","stop_reason":"EXPERIMENTAL_EXACT_DISABLED","application_started":false,"applied":false,"provider_calls":0}'
+    exit 2
+  fi
+  exec python3 -I -B "$root/scripts/lib/exact_repair.py" "$@" --entry verify
+fi
 . "$root/scripts/lib/verification.sh"
 . "$root/scripts/lib/runtime-events.sh"
 
 project_root="$(pwd)"; dry_run=false; explain=false; json=false; list_only=false
 base=""; explicit_skills=""; rerun_file=""; rerun_check=""; rerun_path=""; rerun_digest=""; rerun_reference=""; rerun_run=""; newline=$'\n'; tab=$'\t'
 usage() { cat <<'USAGE'
-Usage: mana verify --exact-request <absolute.json> --host-grant <private.json> --provider none [--json]
+Usage: mana verify --experimental-exact --exact-request <absolute.json> --host-grant <private.json> --provider none [--json]
        mana verify [--skill <id>] [--list] [--dry-run] [--explain] [--json] [--base <ref>]
        mana verify --rerun <verification-result.json> --check <check-id> [--json]
 

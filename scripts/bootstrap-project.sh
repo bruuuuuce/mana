@@ -500,6 +500,12 @@ fi
 
 readme_content="# Mana Link
 
+EXACT is experimental and disabled by default. It is restricted to public,
+disposable-fixture testing and is not qualified for normal project or production
+use. The source checkout still includes it; an explicit
+--experimental-exact switch prevents accidental invocation but cannot protect
+against a user who controls the installed source.
+
 This project is linked to:
 
 \`\`\`text
