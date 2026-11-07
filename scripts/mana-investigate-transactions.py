@@ -107,7 +107,7 @@ def report_markdown(project, entry, revision, model, timeline, svg_status, conte
         lines.append(f"| `{md(site['file'])}:{site['line']}` | {md(obs['operationType'])} `{md(obs['applicationOperation']['method'])}` | {md(sql)}; `{md(obs['resource'].get('name') or 'UNKNOWN')}` | {md(context['kind'])} `{md(context.get('physicalId') or 'UNKNOWN')}` | UNKNOWN / UNKNOWN |")
     if not timeline["observations"]:
         lines.append("No supported JDBC observations were recognized.")
-    risk_summary = (f"Validated S02 scenario result: `{wait_summary['assessment']}`; coverage `{wait_summary['coverage']}`. Runtime remains NOT RUN; static evidence does not confirm a deadlock." if wait_summary else "No wait/deadlock scenario is derived from lexical SQL similarity. S02/VIS require structured scenario premises and do not turn static source into a confirmed deadlock.")
+    risk_summary = (f"Unbound external S02 scenario `{wait_summary['scenarioId']}` assesses only its supplied timeline inputs: `{wait_summary['assessment']}`; coverage `{wait_summary['coverage']}`. It is not bound to the selected source paths. Runtime remains NOT RUN; static evidence does not confirm a deadlock." if wait_summary else "No wait/deadlock scenario is derived from lexical SQL similarity. S02/VIS require structured scenario premises and do not turn static source into a confirmed deadlock.")
     lines += ["", "## Conditional concurrency risks", "", risk_summary, "", "Investigation checklist:", "", "- Identify runtime datasource and transaction-manager bindings for each observed operation.", "- Verify actual call reachability, proxy/AspectJ interception, propagation, and manager capabilities.", "- Establish database engine/version, isolation, lock modes, row/key overlap, and wait behavior.", "- Supply independently justified participant schedules and resource ownership premises before running S02/VIS.", "", "## Unknown or unsupported regions", ""]
     for uncertainty in model["uncertainties"]:
         lines.append(f"- {uncertainty.get('reason', uncertainty)}")
@@ -160,6 +160,7 @@ def main():
     output = None
     try:
         project = t01.factory.canonical_project(args.project_root)
+        temp_parent = t01.factory.temporary_parent(project)
         if len(args.entry) > 8:
             raise ValueError("at most 8 entry paths may be selected in one investigation")
         if len(set(args.entry)) != len(args.entry):
@@ -172,7 +173,7 @@ def main():
         wait_summary = None
         scenarios = []
         source_evidence = None
-        with tempfile.TemporaryDirectory(prefix="mana-investigate-") as scratch:
+        with tempfile.TemporaryDirectory(prefix="mana-investigate-", dir=temp_parent) as scratch:
             scratch = Path(scratch)
             if args.context:
                 context_path = args.context
@@ -197,6 +198,7 @@ def main():
                 validate_timeline(timeline)
                 diagram = render(model, timeline)
                 proxy_alternatives = []
+                proxy_true = None
                 if not args.context:
                     alternate_context = dict(context)
                     alternate_context["entryThroughProxy"] = True
@@ -210,11 +212,12 @@ def main():
                         raise ValueError("conditional proxy context changed during analysis")
                     alternate_timeline = resource_cli.build_timeline(alternate_model, alternate_facts)
                     validate_timeline(alternate_timeline)
+                    proxy_true = {"model": alternate_model, "timeline": alternate_timeline, "context": alternate_context_raw}
                     proxy_alternatives = [
                         {"entryThroughProxy": False, "summary": "baseline model for this entry", "frameCount": len(model["frames"]), "uncertainties": [u["reason"] for u in model["uncertainties"]], "physicalTransactions": len(model["physicalTransactions"]), "resourceObservations": len(timeline["observations"])},
                         {"entryThroughProxy": True, "summary": "alternate model; runtime proxy crossing UNKNOWN", "frameCount": len(alternate_model["frames"]), "uncertainties": [u["reason"] for u in alternate_model["uncertainties"]], "physicalTransactions": len(alternate_model["physicalTransactions"]), "resourceObservations": len(alternate_timeline["observations"]), "sourceEvidence": alternate_model["evidence"], "contextSha256": hashlib.sha256(alternate_context_raw).hexdigest()},
                     ]
-                scenarios.append({"entry": entry, "model": model, "timeline": timeline, "diagram": diagram, "proxyAlternatives": proxy_alternatives})
+                scenarios.append({"entry": entry, "model": model, "timeline": timeline, "diagram": diagram, "proxyAlternatives": proxy_alternatives, "proxyTrue": proxy_true})
             if args.wait_scenario:
                 raw_inputs = {}
                 for value in args.wait_timeline:
@@ -234,6 +237,9 @@ def main():
                 wait_artifacts.update({"vis-" + name: content.encode("utf-8") for name, content in render_integrated(wait_report, raw_inputs).items()})
                 wait_summary = {
                     "scenarioId": wait_report["scenario"]["id"],
+                    "binding": "UNBOUND_EXTERNAL_SCENARIO",
+                    "scope": "SUPPLIED_TIMELINE_INPUTS_ONLY",
+                    "appliesToSelectedEntries": False,
                     "assessment": wait_report["assessment"]["result"],
                     "coverage": wait_report["coverage"]["status"],
                     "scenarioSha256": hashlib.sha256(sidecar_raw).hexdigest(),
@@ -256,6 +262,25 @@ def main():
             artifacts[model_path] = model_raw
             artifacts[timeline_path] = timeline_raw
             artifacts[diagram_path] = diagram_raw
+            proxy_true_manifest = None
+            if item["proxyTrue"]:
+                proxy_model_path = f"entry-{index:02d}.proxy-true.transaction-model.json"
+                proxy_timeline_path = f"entry-{index:02d}.proxy-true.resource-timeline.json"
+                proxy_context_path = f"entry-{index:02d}.proxy-true.context.json"
+                proxy_model_raw = (json.dumps(item["proxyTrue"]["model"], indent=2, ensure_ascii=False) + "\n").encode()
+                proxy_timeline_raw = (json.dumps(item["proxyTrue"]["timeline"], indent=2, ensure_ascii=False) + "\n").encode()
+                proxy_context_raw = item["proxyTrue"]["context"]
+                artifacts[proxy_model_path] = proxy_model_raw
+                artifacts[proxy_timeline_path] = proxy_timeline_raw
+                artifacts[proxy_context_path] = proxy_context_raw
+                proxy_true_manifest = {
+                    "transactionModel": proxy_model_path,
+                    "resourceTimeline": proxy_timeline_path,
+                    "context": proxy_context_path,
+                    "transactionModelSha256": hashlib.sha256(proxy_model_raw).hexdigest(),
+                    "resourceTimelineSha256": hashlib.sha256(proxy_timeline_raw).hexdigest(),
+                    "contextSha256": hashlib.sha256(proxy_context_raw).hexdigest(),
+                }
             entry_manifest.append({
                 "entry": item["entry"],
                 "transactionModel": model_path,
@@ -267,15 +292,16 @@ def main():
                 "frameCount": len(item["model"]["frames"]),
                 "resourceObservationCount": len(item["timeline"]["observations"]),
                 "unknownCount": len(item["model"]["uncertainties"]),
+                "proxyTrueAlternative": proxy_true_manifest,
             })
         artifacts["entries.json"] = (json.dumps({"schema": "mana.transaction-investigation-entries/v1", "sourceRevision": revision, "entries": entry_manifest}, indent=2) + "\n").encode()
-        artifacts["evidence.json"] = (json.dumps({"sourceRevision": revision, "contextOrigin": context_origin, "sourceEvidence": model["evidence"], "contextSha256": hashlib.sha256(context_raw).hexdigest(), "proxyEntryAlternatives": scenarios[0]["proxyAlternatives"], "proxyEntryAlternativesByEntry": [{"entry": item["entry"], "alternatives": item["proxyAlternatives"]} for item in scenarios], "waitScenario": wait_summary}, indent=2) + "\n").encode()
+        artifacts["evidence.json"] = (json.dumps({"sourceRevision": revision, "contextOrigin": context_origin, "sourceEvidence": model["evidence"], "contextSha256": hashlib.sha256(context_raw).hexdigest(), "proxyEntryAlternatives": scenarios[0]["proxyAlternatives"], "proxyEntryAlternativesByEntry": [{"entry": item["entry"], "alternatives": item["proxyAlternatives"], "proxyTrueAlternative": entry_manifest[index]["proxyTrueAlternative"]} for index, item in enumerate(scenarios)], "waitScenario": wait_summary}, indent=2) + "\n").encode()
         if sum(map(len, artifacts.values())) > 12 * 1024 * 1024:
             raise ValueError("combined investigation exceeds 12 MiB output budget")
         if sum(map(len, wait_artifacts.values())) + sum(map(len, artifacts.values())) > 16 * 1024 * 1024:
             raise ValueError("combined investigation and S02/VIS outputs exceed 16 MiB budget")
         if output is None:
-            output = Path(tempfile.mkdtemp(prefix="mana-transaction-investigation-"))
+            output = Path(tempfile.mkdtemp(prefix="mana-transaction-investigation-", dir=temp_parent))
             output.chmod(0o700)
         else:
             output.parent.mkdir(parents=True, exist_ok=True)

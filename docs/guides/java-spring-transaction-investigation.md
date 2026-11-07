@@ -63,7 +63,9 @@ Context values are conditional assumptions, not runtime evidence. Without a
 context file, the workflow runs both `entryThroughProxy=false` and
 `entryThroughProxy=true` scenarios because v1 has no UNKNOWN value for that
 boolean. Initial transaction state and manager capabilities remain unknown. The
-report labels both alternatives; neither establishes live proxy traversal.
+report labels both alternatives; neither establishes live proxy traversal. The
+validated proxy-true model, timeline, and effective context are published as
+separate per-entry artifacts and indexed with their SHA-256 hashes.
 
 When you already have explicit S02 inputs, the same invocation can reuse them for
 conditional wait analysis and VIS source diagrams:
@@ -78,8 +80,11 @@ python3 scripts/mana-investigate-transactions.py \
 ```
 
 Repeat `--wait-timeline ID=PATH` for every sidecar participant input. S02 validates
-the exact-byte hashes and premises in `scenario.json`; the workflow does not infer
-or fabricate participant schedules from the selected entry or SQL text. It emits
+the exact-byte hashes and premises in `scenario.json`; this validates only the
+supplied external timeline inputs. It does not bind them to the selected source
+paths or entries, and its result is labeled `UNBOUND_EXTERNAL_SCENARIO`. The
+workflow does not infer or fabricate participant schedules from the selected
+entry or SQL text. It emits
 `wait-*` S02 artifacts and `vis-*.puml` VIS diagrams. Their claims remain
 conditional and runtime behavior remains NOT RUN.
 
