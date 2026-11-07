@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Documented the proposed bounded core, read-only quickstart and current
+  qualification limits; no release or broader platform qualification is implied.
+
 - Added CTX-10 dormant Runtime v2 rollout infrastructure: schema-bound profile
   policy with legacy default, atomic managed provider blocks, no-links-safe
   bootstrap refresh, local doctor/inspect visibility, and zero-token adversarial
