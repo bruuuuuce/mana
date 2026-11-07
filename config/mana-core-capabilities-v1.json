@@ -1,0 +1,75 @@
+{
+  "schema": "mana.core-capabilities/v1",
+  "release_scope": "restricted-core-proposal",
+  "distribution_model": "source-checkout-and-bootstrap",
+  "capabilities": [
+    {
+      "id": "story-development-review",
+      "classification": "supported",
+      "entry_points": [
+        "./mana profile story-start",
+        "./mana cast",
+        "./mana review-inbox"
+      ],
+      "qualification": "bounded-core approval; release decision remains owner-owned"
+    },
+    {
+      "id": "inspect-and-familiar-contract",
+      "classification": "supported",
+      "entry_points": [
+        "./mana inspect"
+      ],
+      "qualification": "compatibility evidence is bounded to the recorded contract"
+    },
+    {
+      "id": "ordinary-verification",
+      "classification": "supported",
+      "entry_points": [
+        "./mana verify"
+      ],
+      "qualification": "deterministic Verification Skills; no EXACT request"
+    },
+    {
+      "id": "ordinary-bounded-repair",
+      "classification": "supported",
+      "entry_points": [
+        "./mana repair"
+      ],
+      "qualification": "existing bounded provider workflow and its existing admission rules"
+    },
+    {
+      "id": "exact-fixture-execution",
+      "classification": "experimental",
+      "entry_points": [
+        "./mana verify --experimental-exact --exact-request",
+        "./mana repair --experimental-exact --exact-request",
+        "python3 scripts/lib/exact_repair.py --experimental-exact"
+      ],
+      "default": "denied",
+      "qualification": "public disposable fixture R&D only; not production-qualified"
+    },
+    {
+      "id": "knowledge-retrieval-superiority",
+      "classification": "excluded",
+      "entry_points": [],
+      "qualification": "no claim of improvement over rg"
+    },
+    {
+      "id": "live-trajectory-usefulness",
+      "classification": "excluded",
+      "entry_points": [],
+      "qualification": "shadow/offline evidence only"
+    },
+    {
+      "id": "native-platforms-outside-qualified-tuples",
+      "classification": "not_yet_qualified",
+      "entry_points": [],
+      "qualification": "no native support claim for untested OS/architecture/toolchain tuples"
+    }
+  ],
+  "boundary_limits": [
+    "The repository source checkout contains experimental EXACT code.",
+    "The explicit switch is an accidental-use guard, not a security boundary against a user who controls installed source.",
+    "A curated release artifact that omits EXACT executables and implementation is not currently produced by this repository."
+  ]
+}

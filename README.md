@@ -130,6 +130,14 @@ instructions, Mana-managed `.codex/agents/mana-*.toml` agents for Codex,
 `.opencode/agents/mana_*.md` agents for OpenCode delegation. Project artifacts
 stay under the target repository's `.mana/` workspace.
 
+EXACT is an experimental, public-disposable-fixture-only path. It is denied by
+default and requires the explicit `--experimental-exact` switch at the `verify`
+or `repair` entry point. It is not qualified for normal project or production
+use. The source checkout still contains the implementation, so this opt-in is
+an accidental-use guard, not a security boundary against a user who controls
+the installed source. The proposed restricted-core inventory is
+[`config/mana-core-capabilities-v1.json`](config/mana-core-capabilities-v1.json).
+
 For deterministic profile recommendation and the explicit execution boundary,
 see [Mana Divination](docs/workflow/divination.md) and
 [Mana Casting](docs/workflow/casting.md). The lifecycle is

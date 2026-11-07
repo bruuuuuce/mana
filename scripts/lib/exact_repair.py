@@ -663,8 +663,33 @@ def execute(admitted, runner=supervise, qualifier=probe, applier=apply):
 
 
 def main():
+    def deny_experimental():
+        print(
+            json.dumps(
+                {
+                    "schema": "mana.exact-result/v1",
+                    "status": "BLOCKED",
+                    "stop_reason": "EXPERIMENTAL_EXACT_DISABLED",
+                    "application_started": False,
+                    "applied": False,
+                    "provider_calls": 0,
+                },
+                sort_keys=True,
+            )
+        )
+        return 2
+
+    # The source checkout exposes this experimental tool, but the default
+    # command surface must stop before reading requests, grants, or fixtures.
+    if "--experimental-exact" not in sys.argv[1:]:
+        return deny_experimental()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--entry", choices=["repair", "verify"], required=True)
+    parser.add_argument(
+        "--experimental-exact",
+        action="store_true",
+        help="enable the fixture-only experimental EXACT path",
+    )
     parser.add_argument("--exact-request", required=True)
     parser.add_argument("--host-grant", required=True)
     parser.add_argument("--provider", choices=["none"], required=True)
@@ -673,6 +698,8 @@ def main():
     )  # public wrapper compatibility; must equal bound destination
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
+    if not args.experimental_exact:
+        return deny_experimental()
     try:
         r = load(safe_absolute(args.exact_request))
         require(

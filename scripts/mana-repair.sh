@@ -4,12 +4,20 @@
 set -u
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-# Exact mode is a separate effect contract, dispatched before provider libraries.
+# EXACT is experimental and disabled unless the caller opts in explicitly.
+exact_request=false
+experimental_exact=false
 for mana_arg in "$@"; do
-  if [ "$mana_arg" = --exact-request ]; then
-    exec python3 -I -B "$root/scripts/lib/exact_repair.py" "$@" --entry repair
-  fi
+  [ "$mana_arg" != --exact-request ] || exact_request=true
+  [ "$mana_arg" != --experimental-exact ] || experimental_exact=true
 done
+if [ "$exact_request" = true ]; then
+  if [ "$experimental_exact" != true ]; then
+    printf '%s\n' '{"schema":"mana.exact-result/v1","status":"BLOCKED","stop_reason":"EXPERIMENTAL_EXACT_DISABLED","application_started":false,"applied":false,"provider_calls":0}'
+    exit 2
+  fi
+  exec python3 -I -B "$root/scripts/lib/exact_repair.py" "$@" --entry repair
+fi
 . "$root/scripts/lib/verification.sh"
 . "$root/scripts/lib/repair.sh"
 . "$root/scripts/lib/repair-containment.sh"
@@ -18,7 +26,7 @@ done
 
 project_root="$(pwd)"; from=""; check_id=""; allow_path=""; provider=""; once=false; max_iterations=1; max_iterations_set=false; dry_run=false; explain=false; json=false
 usage() { cat <<'USAGE'
-Usage: mana repair --exact-request <absolute.json> --host-grant <private.json> --provider none [--json]
+Usage: mana repair --experimental-exact --exact-request <absolute.json> --host-grant <private.json> --provider none [--json]
        mana repair --from <verification-result.json> [--check <id>]
        --allow-path <repository-relative-file> --runner <codex|claude|opencode>
        [--max-iterations <1|2>] [--dry-run] [--explain] [--json]

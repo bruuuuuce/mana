@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Default-denied experimental EXACT through the public shell and direct Python
+  entry points. Public fixture R&D remains available only with an explicit
+  `--experimental-exact` switch; this does not qualify production use or make
+  the source checkout tamper-resistant.
+
 - Added CTX-10 dormant Runtime v2 rollout infrastructure: schema-bound profile
   policy with legacy default, atomic managed provider blocks, no-links-safe
   bootstrap refresh, local doctor/inspect visibility, and zero-token adversarial
