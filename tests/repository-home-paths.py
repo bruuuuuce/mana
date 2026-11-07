@@ -19,7 +19,7 @@ class HomePaths(unittest.TestCase):
         windows = 'C:' + chr(92) + 'Users' + chr(92) + 'person-123' + chr(92) + 'project'
         escaped = mac.replace('/', chr(92) + '/')
         encoded = mac.replace('/', '%2F')
-        for value in (mac, linux, windows, escaped, encoded, 'file://' + mac,
+        for value in (mac, linux, windows, escaped, encoded, 'file://' + mac, 'file://localhost' + mac,
                       mac.replace('/', chr(92) + 'u002f')):
             with self.subTest(value=value):
                 self.assertEqual(list(validator.violations('sample', value)), [1])
@@ -45,7 +45,13 @@ class HomePaths(unittest.TestCase):
             self.assertEqual(path.read_bytes(), before)
             path.write_text('relative/path\n')
             result = subprocess.run([sys.executable, str(ROOT / 'scripts/validate-home-paths.py'), str(root)], capture_output=True)
+            self.assertEqual(result.returncode, 1)  # The index still contains the private path.
+            subprocess.run(['git', '-C', str(root), 'add', 'new.txt'], check=True)
+            result = subprocess.run([sys.executable, str(ROOT / 'scripts/validate-home-paths.py'), str(root)], capture_output=True)
             self.assertEqual(result.returncode, 0)
+            path.write_bytes(('café ' + private).encode('latin-1'))
+            result = subprocess.run([sys.executable, str(ROOT / 'scripts/validate-home-paths.py'), str(root)], capture_output=True)
+            self.assertEqual(result.returncode, 1)
             path.write_bytes(private.encode('utf-16'))
             result = subprocess.run([sys.executable, str(ROOT / 'scripts/validate-home-paths.py'), str(root)], capture_output=True)
             self.assertEqual(result.returncode, 1)
