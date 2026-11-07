@@ -20,8 +20,59 @@ Mana helps teams answer concrete delivery questions:
 - What evidence does a Team Leader, reviewer, Architect, or AM need before the
   next gate?
 
-## Run This First
-From the Mana repository:
+## Bounded core: start read-only
+
+From a Mana checkout, inspect the available workflow and render a profile without
+starting a model or a runner:
+
+```bash
+MANA_UPDATE_CHECK=off scripts/run-profile.sh mana-help --diagnose
+MANA_UPDATE_CHECK=off scripts/run-profile.sh story-start --diagnose
+scripts/mana-inspect.sh project --project-root /path/to/project --json
+```
+
+Use an existing project directory you are authorized to inspect. An uninitialized
+project can report Mana as absent; Inspect is a versioned read-only view, not an
+approval. The `--diagnose` path avoids execution state and remote freshness
+probes. Bootstrap, evidence collection, provider runs, repair and publication
+have separate effects and require the applicable explicit authority. A human
+retains scope, review, merge and release decisions.
+
+Mana owns its producer contracts and semantics. Familiar is a separate,
+versioned read-only consumer of Inspect operations; it does not grant approval
+or become a second semantic producer. See [Inspect](docs/workflow/mana-inspect.md)
+and the [compatibility matrix](docs/standards/mana-familiar-inspect-compatibility-matrix.md).
+
+### Current limits
+
+- Platform support is not a blanket guarantee: native macOS qualification is
+  partial, Ubuntu arm64 is not qualified in this cycle, and Windows is not
+  qualified. The exact-candidate platform matrix remains pending; check release
+  evidence before relying on an OS.
+- Knowledge Retrieval did not demonstrate an advantage over `rg` for the single
+  Pilot B Activity-pagination question. The raw retrieval output is unavailable;
+  this does not establish a general comparison.
+- Trajectory Guard has 40/40 deterministic offline cases for the recorded pilot;
+  live usefulness and provider-backed behaviour are not qualified. It remains
+  a shadow pilot, not an autonomous release decision.
+- Transaction REAL-01 is NOT_PRACTICAL for the recorded case. MOM and the
+  Obsidian and IntelliJ plugins are outside this proposed core scope.
+- The owner accepted the historical personal-path and H1–H5 residuals for the
+  bounded privacy audit; this is not release clearance. Current-tree remediation
+  does not erase history or establish an absence of secrets. See the
+  [privacy remediation record](docs/reports/MANA-PRIVACY-REMEDIATION-228.md).
+- EXACT is an experimental, default-denied source-level guard for accidental
+  invocation. It is not security isolation or release readiness; distribution
+  packaging remains deferred until a concrete release requirement exists.
+
+These are qualification limits, not a release approval. The owner must decide
+the scope and accept remaining evidence gaps before any release.
+
+## Repository validation and profile rendering
+
+The following commands validate the repository and render profiles. They may use
+temporary storage and perform freshness checks. Use the diagnostic commands above
+when you need the bounded read-only introduction. From the Mana repository:
 
 ```bash
 scripts/validate-repo.sh
@@ -101,7 +152,9 @@ delegation with `MANA_CLAUDE_SUBAGENTS=false` or `--no-claude-subagents`.
 Bootstrap installs these files only in the target repository; it never changes
 `~/.claude` or the local user installation.
 
-To use Mana inside a target application repository:
+To initialize and use Mana inside a target application repository, first obtain
+the applicable authority. Bootstrap creates files in that repository; runner and
+evidence-collection commands can have additional effects:
 
 ```bash
 /path/to/mana/scripts/bootstrap-project.sh --project-root /path/to/project
