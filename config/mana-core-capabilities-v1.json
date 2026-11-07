@@ -8,8 +8,9 @@
       "classification": "supported",
       "entry_points": [
         "./mana profile story-start",
-        "./mana cast",
-        "./mana review-inbox"
+        "./mana profile dev-assist",
+        "./mana profile requested-pr-review",
+        "./mana cast architecture-review"
       ],
       "qualification": "bounded-core approval; release decision remains owner-owned"
     },
@@ -43,7 +44,9 @@
       "entry_points": [
         "./mana verify --experimental-exact --exact-request",
         "./mana repair --experimental-exact --exact-request",
-        "python3 scripts/lib/exact_repair.py --experimental-exact"
+        "python3 scripts/lib/exact_repair.py --experimental-exact",
+        "scripts/mana-verify.sh --experimental-exact --exact-request",
+        "scripts/mana-repair.sh --experimental-exact --exact-request"
       ],
       "default": "denied",
       "qualification": "public disposable fixture R&D only; not production-qualified"
@@ -144,9 +147,9 @@
       },
       {
         "command": "review-inbox",
-        "classification": "supported",
+        "classification": "not_yet_qualified",
         "availability": "available_in_source_and_bootstrap",
-        "notes": "Available command; exact status is limited to the ordinary non-EXACT workflow."
+        "notes": "Host review-inbox operations are reachable but have no release qualification in this boundary."
       },
       {
         "command": "context",
@@ -258,9 +261,9 @@
       },
       {
         "command": "workspace",
-        "classification": "supported",
+        "classification": "not_yet_qualified",
         "availability": "available_in_source_and_bootstrap",
-        "notes": "Available command; exact status is limited to the ordinary non-EXACT workflow."
+        "notes": "Workspace operations are reachable but have no release qualification in this boundary."
       },
       {
         "command": "jira-mcp",
@@ -329,6 +332,20 @@
         "availability": "available_with_explicit_opt_in",
         "default": "denied",
         "notes": "Public disposable fixture R&D only; requires --experimental-exact."
+      },
+      {
+        "command": "scripts/mana-verify.sh --exact-request",
+        "classification": "experimental",
+        "availability": "available_with_explicit_opt_in",
+        "default": "denied",
+        "notes": "Public shell entry; requires --experimental-exact."
+      },
+      {
+        "command": "scripts/mana-repair.sh --exact-request",
+        "classification": "experimental",
+        "availability": "available_with_explicit_opt_in",
+        "default": "denied",
+        "notes": "Public shell entry; requires --experimental-exact."
       }
     ]
   },

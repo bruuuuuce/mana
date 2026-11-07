@@ -195,7 +195,14 @@ class RestrictedCoreBoundary(unittest.TestCase):
         exact = by_id["exact-fixture-execution"]
         self.assertEqual(exact["classification"], "experimental")
         self.assertEqual(exact["default"], "denied")
-        self.assertIn("--experimental-exact", " ".join(exact["entry_points"]))
+        for route in (
+            "./mana verify --experimental-exact --exact-request",
+            "./mana repair --experimental-exact --exact-request",
+            "scripts/mana-verify.sh --experimental-exact --exact-request",
+            "scripts/mana-repair.sh --experimental-exact --exact-request",
+            "python3 scripts/lib/exact_repair.py --experimental-exact",
+        ):
+            self.assertIn(route, exact["entry_points"])
         for entry in inventory["capabilities"]:
             self.assertIn(entry["classification"], {"supported", "experimental", "excluded", "not_yet_qualified"})
         self.assertTrue(any("user who controls installed source" in limit for limit in inventory["boundary_limits"]))
