@@ -7,6 +7,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -177,6 +178,19 @@ class RestrictedCoreBoundary(unittest.TestCase):
     def test_inventory_classifications_and_default_deny_are_machine_checked(self):
         inventory = json.loads((ROOT / "config/mana-core-capabilities-v1.json").read_text())
         self.assertEqual(inventory["schema"], "mana.core-capabilities/v1")
+        bootstrap = (ROOT / "scripts/bootstrap-project.sh").read_text()
+        routed = set(re.findall(r"^  ([a-z][a-z-]*)\)$", bootstrap, re.MULTILINE))
+        listed = {
+            entry["command"]
+            for entry in inventory["entry_point_inventory"]["commands"]
+            if " " not in entry["command"] and entry["command"] not in {"help", "--help", "-h"}
+        }
+        self.assertEqual(routed, listed)
+        self.assertIn("--help", {entry["command"] for entry in inventory["entry_point_inventory"]["commands"]})
+        self.assertIn("-h", {entry["command"] for entry in inventory["entry_point_inventory"]["commands"]})
+        self.assertIn("remain reachable", inventory["entry_point_inventory"]["classification_semantics"])
+        for entry in inventory["entry_point_inventory"]["commands"]:
+            self.assertIn(entry["classification"], {"supported", "experimental", "excluded", "not_yet_qualified"})
         by_id = {entry["id"]: entry for entry in inventory["capabilities"]}
         exact = by_id["exact-fixture-execution"]
         self.assertEqual(exact["classification"], "experimental")
@@ -185,6 +199,7 @@ class RestrictedCoreBoundary(unittest.TestCase):
         for entry in inventory["capabilities"]:
             self.assertIn(entry["classification"], {"supported", "experimental", "excluded", "not_yet_qualified"})
         self.assertTrue(any("user who controls installed source" in limit for limit in inventory["boundary_limits"]))
+        self.assertTrue(all(entry["classification"] == "excluded" for entry in inventory["excluded_capabilities"]))
 
 
 if __name__ == "__main__":
