@@ -82,7 +82,7 @@ initialize() {
 run_fixture() {
   local project="$1" execution="$2" state="$3" scenario="$4"
   shift 4
-  PATH="$tmp/bin:$PATH" CTX06C_FIXTURE_ROOT="$fixture_root" \
+  PATH="$tmp/bin:$PATH" MANA_CODEX_BIN="$tmp/bin/codex" CTX06C_FIXTURE_ROOT="$fixture_root" \
     CTX06C_STATE_DIR="$state" CTX06C_SCENARIO="$scenario" \
     "$runner" "$execution" --project-root "$project" \
       --profile ctx06c-fixture --provider codex \
@@ -115,21 +115,28 @@ mana_provider_phase_args codex '/project with spaces' economy-fixture "$schema" 
 printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- '--output-schema' || fail 'Codex native schema flag missing'
 printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- 'read-only' || fail 'Codex phase sandbox is not read-only'
 printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- '--ephemeral' || fail 'Codex phase is not ephemeral'
+mana_provider_phase_args codex '/project with spaces' full-fixture "$schema" false '' '' high || fail 'Codex full phase effort adapter failed'
+printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- 'model_reasoning_effort="high"' || fail 'Codex full phase omitted resolved high effort'
 [ "$(printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxc -- '--disable')" = 2 ] || fail 'Codex phase did not disable both child features'
 ! printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- 'on-request' || fail 'Codex phase retained interactive approval mode'
 mana_provider_phase_args claude '/project with spaces' economy-fixture "$schema" true || fail 'Claude phase adapter failed'
 printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- '--safe-mode' || fail 'Claude safe mode missing'
 printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- '--json-schema' || fail 'Claude native schema flag missing'
 printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- 'Agent,Bash,Edit,Write,WebFetch,WebSearch' || fail 'Claude write/child tool deny missing'
+mana_provider_phase_args claude '/project with spaces' full-fixture "$schema" false '' '' high || fail 'Claude full phase effort adapter failed'
+awk 'previous == "--effort" && $0 == "high" { found=1 } { previous=$0 } END { exit(found ? 0 : 1) }' <(printf '%s\n' "${MANA_PROVIDER_ARGS[@]}") || fail 'Claude full phase omitted resolved high effort'
 mana_provider_phase_args claude '/project with spaces' economy-fixture "$schema" true 100000 || fail 'Claude CTX-08 compaction adapter failed'
 printf '%s\n' "${MANA_PROVIDER_ARGS[@]}" | grep -Fxq -- '--autocompact' || fail 'supported Claude compaction control missing from exact argv'
 awk 'previous == "--autocompact" && $0 == "100000" { found=1 } { previous=$0 } END { exit(found ? 0 : 1) }' <(printf '%s\n' "${MANA_PROVIDER_ARGS[@]}") || fail 'Claude compaction threshold was not passed exactly'
 mana_provider_phase_args opencode '/project with spaces' economy-fixture "$schema" false || fail 'OpenCode phase adapter construction failed'
 jq -e '.agent.mana_ctx06_phase.permission == {task:"deny",edit:"deny",bash:"deny"}' \
   <<<"$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" >/dev/null || fail 'OpenCode phase deny configuration changed'
+mana_provider_phase_args opencode '/project with spaces' provider/example-model "$schema" false '' high || fail 'OpenCode phase variant adapter construction failed'
+jq -e '.agent.mana_ctx06_phase.model == "provider/example-model#high"' <<<"$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" >/dev/null || fail 'OpenCode phase agent lost the selected model variant'
+awk 'previous == "--variant" && $0 == "high" { found=1 } { previous=$0 } END { exit(found ? 0 : 1) }' <(printf '%s\n' "${MANA_PROVIDER_ARGS[@]}") || fail 'OpenCode phase argv lost the selected model variant'
 
 # A complete two-phase run launches two separate provider processes, routes
-# economy/full models from the declared policies, and advances only through
+# economy-tier model pins from the declared policies, and advances only through
 # the CTX-06B reducer/CAS protocol.
 execution='execution-ctx06c-complete'
 project="$(make_project complete)"
@@ -147,7 +154,7 @@ jq -e '.status=="completed" and .providerInvocations==2 and .revision==2 and (.t
   "$tmp/complete-result.json" >/dev/null || fail 'complete phase result is incorrect'
 [ "$(cat "$state/count")" = 2 ] || fail 'phase runner did not launch exactly two fresh invocations'
 grep -Fxq economy-fixture "$state/model.1" || fail 'economy phase used the wrong model'
-grep -Fxq full-fixture "$state/model.2" || fail 'full phase used the wrong model'
+grep -Fxq economy-fixture "$state/model.2" || fail 'second economy phase used the wrong model'
 grep -Fxq "$schema" "$state/schema.1" || fail 'phase schema was not host-owned'
 grep -Fxq "$schema" "$state/schema.2" || fail 'terminal phase schema was not host-owned'
 ! grep -Fxq -- '--autocompact' "$state/argv.1" || fail 'unknown Codex compaction control was guessed into provider argv'
@@ -166,7 +173,7 @@ for prompt in "$state/prompt.1" "$state/prompt.2"; do
 done
 jq -e '.id=="classify" and .policy.modelTier=="economy"' \
   <<<"$(sed -n 's/^phasePolicy=//p' "$state/prompt.1")" >/dev/null || fail 'first prompt omitted current policy'
-jq -e '.id=="synthesize" and .policy.modelTier=="full"' \
+jq -e '.id=="synthesize" and .policy.modelTier=="economy"' \
   <<<"$(sed -n 's/^phasePolicy=//p' "$state/prompt.2")" >/dev/null || fail 'second prompt carried the wrong phase policy'
 jq -e '.phaseId=="classify" and .nextActionRequest.targetId=="synthesize"' \
   <<<"$(sed -n 's/^previousCheckpoint=//p' "$state/prompt.2")" >/dev/null || fail 'validated checkpoint did not cross the fresh boundary'

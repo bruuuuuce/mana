@@ -3,8 +3,6 @@
 # Safe to replace with --force or during a Mana profile run.
 name = "mana_explorer"
 description = "Mana read-only repository evidence discovery and inventory."
-model = "gpt-6-luna"
-model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 developer_instructions = """
 You are mana_explorer, a Mana runtime Codex agent for bounded repository evidence discovery.

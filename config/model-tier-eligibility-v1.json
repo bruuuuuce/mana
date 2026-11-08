@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "mana.model-tier-eligibility/v1",
+  "policyId": "mana-full-tier-family-eligibility-v1",
+  "selectionPolicy": "highest-discovered-version-within-first-eligible-family",
+  "rationale": "Eligibility is granted only by these explicit provider-family rules plus the model's advertised required effort. Catalog presence, default status, model recency, or successful discovery alone never grants full-tier eligibility.",
+  "rules": [
+    {
+      "id": "codex-sol-family",
+      "provider": "codex",
+      "modelPattern": "(?:^|/)gpt-[0-9]+(?:\\.[0-9]+)?-sol(?:-[^/]+)?",
+      "defaultEffort": "high",
+      "efforts": ["high", "xhigh", "max"]
+    },
+    {
+      "id": "claude-opus-family",
+      "provider": "claude",
+      "modelAlias": "opus",
+      "defaultEffort": "high",
+      "efforts": ["high", "xhigh", "max"]
+    },
+    {
+      "id": "opencode-sol-family",
+      "provider": "opencode",
+      "modelPattern": "[^/]+/gpt-[0-9]+(?:\\.[0-9]+)?-sol(?:-[^/]+)?",
+      "defaultEffort": "high",
+      "efforts": ["high", "xhigh", "max"]
+    },
+    {
+      "id": "opencode-opus-family",
+      "provider": "opencode",
+      "modelPattern": "[^/]+/claude-opus(?:-[^/]+)?",
+      "defaultEffort": "high",
+      "efforts": ["high", "xhigh", "max"]
+    }
+  ]
+}

@@ -23,7 +23,7 @@
       "properties": {
         "provider": {"type": "string", "enum": ["codex", "claude", "opencode"]},
         "modelTier": {"type": "string", "enum": ["economy", "full"]},
-        "modelId": {"type": "string", "minLength": 1, "maxLength": 240, "pattern": "^[^\\r\\n]+$"},
+        "modelId": {"type": ["string", "null"], "minLength": 1, "maxLength": 240, "pattern": "^[^\\r\\n]+$", "description": "Null delegates identity selection to the provider-boundary resolver; it is not a request to use an unverified default."},
         "reasoningEffort": {"type": "string", "enum": ["minimal", "low", "medium", "high", "xhigh", "max"]},
         "allowedScopeDomains": {
           "type": "array",

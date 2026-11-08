@@ -2,6 +2,7 @@
 set -u
 root="$(cd "$(dirname "$0")/.." && pwd)"
 . "$root/scripts/lib/provider-dispatch.sh"
+. "$root/scripts/lib/model-resolution.sh"
 . "$root/scripts/lib/provider-execution.sh"
 . "$root/scripts/lib/story-start-stage-routing.sh"
 . "$root/scripts/lib/analysis-trajectory-telemetry.sh"
@@ -29,11 +30,17 @@ codex_model_explicit=false
 [ -z "${MANA_CODEX_MODEL:-}" ] || codex_model_explicit=true
 codex_reasoning_effort_explicit=false
 [ -z "${MANA_CODEX_REASONING_EFFORT:-}" ] || codex_reasoning_effort_explicit=true
-codex_model="${MANA_CODEX_MODEL:-gpt-6-luna}"
+codex_model="${MANA_CODEX_MODEL:-}"
 codex_reasoning_effort="${MANA_CODEX_REASONING_EFFORT:-}"
-codex_full_model="${MANA_CODEX_FULL_MODEL:-gpt-6-sol}"
-codex_explorer_model="${MANA_CODEX_EXPLORER_MODEL:-gpt-6-luna}"
-codex_worker_model="${MANA_CODEX_WORKER_MODEL:-gpt-6-sol}"
+codex_full_model="${MANA_CODEX_FULL_MODEL:-}"
+codex_full_model_explicit=false
+[ -z "${MANA_CODEX_FULL_MODEL:-}" ] || codex_full_model_explicit=true
+codex_explorer_model="${MANA_CODEX_EXPLORER_MODEL:-}"
+codex_explorer_model_explicit=false
+[ -z "${MANA_CODEX_EXPLORER_MODEL:-}" ] || codex_explorer_model_explicit=true
+codex_worker_model="${MANA_CODEX_WORKER_MODEL:-}"
+codex_worker_model_explicit=false
+[ -z "${MANA_CODEX_WORKER_MODEL:-}" ] || codex_worker_model_explicit=true
 codex_model_policy="${MANA_CODEX_MODEL_POLICY:-economy-first}"
 codex_subagents="${MANA_CODEX_SUBAGENTS:-true}"
 codex_max_threads="${MANA_CODEX_MAX_THREADS:-3}"
@@ -43,11 +50,17 @@ claude_model_explicit=false
 [ -z "${MANA_CLAUDE_MODEL:-}" ] || claude_model_explicit=true
 claude_reasoning_effort_explicit=false
 [ -z "${MANA_CLAUDE_REASONING_EFFORT:-}" ] || claude_reasoning_effort_explicit=true
-claude_model="${MANA_CLAUDE_MODEL:-claude-haiku-4-5}"
+claude_model="${MANA_CLAUDE_MODEL:-}"
 claude_reasoning_effort="${MANA_CLAUDE_REASONING_EFFORT:-}"
-claude_full_model="${MANA_CLAUDE_FULL_MODEL:-claude-opus-5-5}"
-claude_explorer_model="${MANA_CLAUDE_EXPLORER_MODEL:-claude-sonnet-5}"
-claude_worker_model="${MANA_CLAUDE_WORKER_MODEL:-claude-sonnet-5}"
+claude_full_model="${MANA_CLAUDE_FULL_MODEL:-}"
+claude_full_model_explicit=false
+[ -z "${MANA_CLAUDE_FULL_MODEL:-}" ] || claude_full_model_explicit=true
+claude_explorer_model="${MANA_CLAUDE_EXPLORER_MODEL:-}"
+claude_explorer_model_explicit=false
+[ -z "${MANA_CLAUDE_EXPLORER_MODEL:-}" ] || claude_explorer_model_explicit=true
+claude_worker_model="${MANA_CLAUDE_WORKER_MODEL:-}"
+claude_worker_model_explicit=false
+[ -z "${MANA_CLAUDE_WORKER_MODEL:-}" ] || claude_worker_model_explicit=true
 claude_subagents="${MANA_CLAUDE_SUBAGENTS:-true}"
 claude_max_threads="${MANA_CLAUDE_MAX_THREADS:-3}"
 claude_agent_install_warnings=""
@@ -55,11 +68,21 @@ opencode_model_explicit=false
 [ -z "${MANA_OPENCODE_MODEL:-}" ] || opencode_model_explicit=true
 opencode_reasoning_effort_explicit=false
 [ -z "${MANA_OPENCODE_REASONING_EFFORT:-}" ] || opencode_reasoning_effort_explicit=true
-opencode_model="${MANA_OPENCODE_MODEL:-opencode/gpt-6-luna}"
+opencode_model="${MANA_OPENCODE_MODEL:-}"
+opencode_model_variant=""
+opencode_explorer_variant=""
+opencode_full_variant=""
+opencode_worker_variant=""
 opencode_reasoning_effort="${MANA_OPENCODE_REASONING_EFFORT:-}"
 opencode_full_model="${MANA_OPENCODE_FULL_MODEL:-}"
+opencode_full_model_explicit=false
+[ -z "${MANA_OPENCODE_FULL_MODEL:-}" ] || opencode_full_model_explicit=true
 opencode_explorer_model="${MANA_OPENCODE_EXPLORER_MODEL:-}"
+opencode_explorer_model_explicit=false
+[ -z "${MANA_OPENCODE_EXPLORER_MODEL:-}" ] || opencode_explorer_model_explicit=true
 opencode_worker_model="${MANA_OPENCODE_WORKER_MODEL:-}"
+opencode_worker_model_explicit=false
+[ -z "${MANA_OPENCODE_WORKER_MODEL:-}" ] || opencode_worker_model_explicit=true
 opencode_subagents="${MANA_OPENCODE_SUBAGENTS:-true}"
 opencode_max_threads="${MANA_OPENCODE_MAX_THREADS:-3}"
 opencode_agent_install_warnings=""
@@ -100,24 +123,24 @@ Options:
   --codex                        Execute the rendered profile through Codex.
   --claude                       Execute the rendered profile through Claude Code.
   --opencode                     Execute the rendered profile through OpenCode.
-  --codex-model <model>          Codex model for the root orchestrator. Defaults to MANA_CODEX_MODEL or gpt-6-luna.
+  --codex-model <model>          Explicit Codex model pin for the root orchestrator. Otherwise provider discovery selects the default.
   --codex-reasoning-effort <e>   Root compatibility effort for v2 stages. Defaults to MANA_CODEX_REASONING_EFFORT.
-  --codex-full-model <model>     Codex model for mana_full_specialist. Defaults to MANA_CODEX_FULL_MODEL or gpt-6-sol.
-  --codex-explorer-model <model> Codex model for mana_explorer. Defaults to MANA_CODEX_EXPLORER_MODEL or gpt-6-luna.
-  --codex-worker-model <model>   Codex model for mana_worker. Defaults to MANA_CODEX_WORKER_MODEL or gpt-6-sol.
+  --codex-full-model <model>     Explicit Codex pin for mana_full_specialist; capability must still be verified.
+  --codex-explorer-model <model> Explicit Codex pin for mana_explorer.
+  --codex-worker-model <model>   Explicit Codex pin for mana_worker; capability must still be verified.
   --codex-model-policy <policy>  Model policy note passed to Codex. Defaults to economy-first.
   --no-codex-subagents           Disable Codex subagent orchestration and use legacy manual escalation.
-  --claude-model <model>         Claude model for the root orchestrator. Defaults to MANA_CLAUDE_MODEL or claude-haiku-4-5.
+  --claude-model <model>         Explicit Claude model pin for the root orchestrator. Otherwise a family alias is selected.
   --claude-reasoning-effort <e>  Root compatibility effort for v2 stages. Defaults to MANA_CLAUDE_REASONING_EFFORT.
-  --claude-full-model <model>    Claude model for mana-full-specialist. Defaults to MANA_CLAUDE_FULL_MODEL or claude-opus-5-5.
-  --claude-explorer-model <m>    Claude model for mana-explorer. Defaults to MANA_CLAUDE_EXPLORER_MODEL or claude-sonnet-5.
-  --claude-worker-model <model>  Claude model for mana-worker. Defaults to MANA_CLAUDE_WORKER_MODEL or claude-sonnet-5.
+  --claude-full-model <model>    Explicit Claude pin for mana-full-specialist; capability must still be verified.
+  --claude-explorer-model <m>    Explicit Claude pin for mana-explorer.
+  --claude-worker-model <model>  Explicit Claude pin for mana-worker.
   --no-claude-subagents          Disable Claude subagent orchestration and use manual escalation.
-  --opencode-model <model>       OpenCode model for the primary orchestrator. Defaults to MANA_OPENCODE_MODEL or opencode/gpt-6-luna.
+  --opencode-model <model>       Explicit OpenCode provider/model pin. Otherwise project/provider default is discovered.
   --opencode-reasoning-effort <e> Root compatibility effort for v2 stages. Defaults to MANA_OPENCODE_REASONING_EFFORT.
-  --opencode-full-model <model>  OpenCode model for mana_full_specialist. Defaults to MANA_OPENCODE_FULL_MODEL or opencode/gpt-6-sol.
-  --opencode-explorer-model <m>  OpenCode model for mana_explorer. Defaults to MANA_OPENCODE_EXPLORER_MODEL or opencode/gpt-6-luna.
-  --opencode-worker-model <m>    OpenCode model for mana_worker. Defaults to MANA_OPENCODE_WORKER_MODEL or opencode/gpt-6-sol.
+  --opencode-full-model <model>  Explicit OpenCode pin for mana_full_specialist; capability must still be verified.
+  --opencode-explorer-model <m>  Explicit OpenCode pin for mana_explorer.
+  --opencode-worker-model <m>    Explicit OpenCode pin for mana_worker; capability must still be verified.
   --no-opencode-subagents        Disable OpenCode subagent orchestration and use manual escalation.
   --pr, --pr-number <value>      Pull request number or URL for requested-pr-review.
   --jira-key, --jira-issue <KEY> Add an explicit Jira issue key.
@@ -198,16 +221,19 @@ while [ "$#" -gt 0 ]; do
     --codex-full-model)
       codex_full_model="${2:-}"
       [ -n "$codex_full_model" ] || { echo "ERROR: --codex-full-model requires a model name" >&2; exit 2; }
+      codex_full_model_explicit=true
       shift 2
       ;;
     --codex-explorer-model)
       codex_explorer_model="${2:-}"
       [ -n "$codex_explorer_model" ] || { echo "ERROR: --codex-explorer-model requires a model name" >&2; exit 2; }
+      codex_explorer_model_explicit=true
       shift 2
       ;;
     --codex-worker-model)
       codex_worker_model="${2:-}"
       [ -n "$codex_worker_model" ] || { echo "ERROR: --codex-worker-model requires a model name" >&2; exit 2; }
+      codex_worker_model_explicit=true
       shift 2
       ;;
     --codex-model-policy)
@@ -234,16 +260,19 @@ while [ "$#" -gt 0 ]; do
     --claude-full-model)
       claude_full_model="${2:-}"
       [ -n "$claude_full_model" ] || { echo "ERROR: --claude-full-model requires a model name" >&2; exit 2; }
+      claude_full_model_explicit=true
       shift 2
       ;;
     --claude-explorer-model)
       claude_explorer_model="${2:-}"
       [ -n "$claude_explorer_model" ] || { echo "ERROR: --claude-explorer-model requires a model name" >&2; exit 2; }
+      claude_explorer_model_explicit=true
       shift 2
       ;;
     --claude-worker-model)
       claude_worker_model="${2:-}"
       [ -n "$claude_worker_model" ] || { echo "ERROR: --claude-worker-model requires a model name" >&2; exit 2; }
+      claude_worker_model_explicit=true
       shift 2
       ;;
     --no-claude-subagents)
@@ -265,16 +294,19 @@ while [ "$#" -gt 0 ]; do
     --opencode-full-model)
       opencode_full_model="${2:-}"
       [ -n "$opencode_full_model" ] || { echo "ERROR: --opencode-full-model requires a model name" >&2; exit 2; }
+      opencode_full_model_explicit=true
       shift 2
       ;;
     --opencode-explorer-model)
       opencode_explorer_model="${2:-}"
       [ -n "$opencode_explorer_model" ] || { echo "ERROR: --opencode-explorer-model requires a model name" >&2; exit 2; }
+      opencode_explorer_model_explicit=true
       shift 2
       ;;
     --opencode-worker-model)
       opencode_worker_model="${2:-}"
       [ -n "$opencode_worker_model" ] || { echo "ERROR: --opencode-worker-model requires a model name" >&2; exit 2; }
+      opencode_worker_model_explicit=true
       shift 2
       ;;
     --no-opencode-subagents)
@@ -490,6 +522,10 @@ fi
 if [ -z "$project_root" ]; then
   project_root="$(pwd)"
 fi
+project_root="$(cd "$project_root" 2>/dev/null && pwd -P)" || {
+  echo 'ERROR: project root is unavailable' >&2
+  exit 2
+}
 
 if [ "$diagnostic_only" = true ]; then
   if [ -n "$runner$runtime_execution_id$manifest_execution_id$context_manifest" ] ||
@@ -563,16 +599,6 @@ opencode_effective_max_threads="$opencode_max_threads"; opencode_effective_max_d
 [ "$codex_subagents" = true ] || { codex_effective_max_threads=0; codex_effective_max_depth=0; }
 [ "$claude_subagents" = true ] || { claude_effective_max_threads=0; claude_effective_max_depth=0; }
 [ "$opencode_subagents" = true ] || { opencode_effective_max_threads=0; opencode_effective_max_depth=0; }
-
-if [ "$opencode_model_explicit" = true ]; then
-  : "${opencode_full_model:=$opencode_model}"
-  : "${opencode_explorer_model:=$opencode_model}"
-  : "${opencode_worker_model:=$opencode_model}"
-else
-  : "${opencode_full_model:=opencode/gpt-6-sol}"
-  : "${opencode_explorer_model:=opencode/gpt-6-luna}"
-  : "${opencode_worker_model:=opencode/gpt-6-sol}"
-fi
 
 [ -z "${MANA_CONTEXT_RUNTIME_VERSION+x}" ] || {
   echo 'ERROR: environment runtime mode authority is forbidden; use --context-runtime' >&2
@@ -807,6 +833,115 @@ if [ -n "$model_escalation_skills" ]; then
   model_routing_warning="This profile has active full-tier or high-risk work. The root model is for routing, evidence inventory, low-risk checks, and synthesis only; delegate deep judgment to the configured full specialist or stop with needs_model_escalation if escalation is unavailable."
 fi
 
+model_full_route_available=false
+model_full_route_reason=""
+model_worker_route_available=false
+model_worker_route_reason=""
+codex_worker_effort="medium"
+model_resolution_performed=false
+if [ -n "$runner" ] && [ "$render_only" = false ]; then
+  model_resolution_performed=true
+  case "$runner" in
+    codex)
+      if ! mana_model_resolve codex economy "$codex_reasoning_effort" "$codex_model" "$project_root"; then
+        echo "ERROR: root model selection is blocked: ${MANA_MODEL_RESOLUTION_ERROR:-unknown resolution failure}" >&2
+        exit 2
+      fi
+      codex_model="$MANA_PROVIDER_MODEL_ID"
+      if mana_model_resolve codex standard medium "$codex_explorer_model" "$project_root"; then
+        codex_explorer_model="$MANA_PROVIDER_MODEL_ID"
+      else
+        codex_explorer_model=""
+        codex_agent_install_warnings="${codex_agent_install_warnings}${codex_agent_install_warnings:+
+}WARNING: explorer delegation is blocked: ${MANA_MODEL_RESOLUTION_ERROR:-unknown resolution failure}"
+      fi
+      if mana_model_resolve codex full high "$codex_full_model" "$project_root"; then
+        codex_full_model="$MANA_PROVIDER_MODEL_ID"
+        model_full_route_available=true
+      else
+        codex_full_model=""
+        model_full_route_reason="${MANA_MODEL_RESOLUTION_ERROR:-provider discovery did not verify full-tier capability}"
+      fi
+      if mana_model_resolve codex full high "$codex_worker_model" "$project_root"; then
+        codex_worker_model="$MANA_PROVIDER_MODEL_ID"
+        codex_worker_effort="$MANA_PROVIDER_SELECTED_EFFORT"
+        model_worker_route_available=true
+      else
+        codex_worker_model=""
+        model_worker_route_reason="${MANA_MODEL_RESOLUTION_ERROR:-provider discovery did not verify worker capability}"
+      fi
+      ;;
+    claude)
+      if ! mana_model_resolve claude economy "$claude_reasoning_effort" "$claude_model" "$project_root"; then
+        echo "ERROR: root model selection is blocked: ${MANA_MODEL_RESOLUTION_ERROR:-unknown resolution failure}" >&2
+        exit 2
+      fi
+      claude_model="$MANA_PROVIDER_MODEL_ID"
+      if mana_model_resolve claude standard "" "$claude_explorer_model" "$project_root"; then
+        claude_explorer_model="$MANA_PROVIDER_MODEL_ID"
+      else
+        claude_explorer_model=""
+        claude_agent_install_warnings="${claude_agent_install_warnings}${claude_agent_install_warnings:+
+}WARNING: explorer delegation is blocked: ${MANA_MODEL_RESOLUTION_ERROR:-unknown resolution failure}"
+      fi
+      if mana_model_resolve claude full high "$claude_full_model" "$project_root"; then
+        claude_full_model="$MANA_PROVIDER_MODEL_ID"
+        model_full_route_available=true
+      else
+        claude_full_model=""
+        model_full_route_reason="${MANA_MODEL_RESOLUTION_ERROR:-provider discovery did not verify full-tier capability}"
+      fi
+      if mana_model_resolve claude standard "" "$claude_worker_model" "$project_root"; then
+        claude_worker_model="$MANA_PROVIDER_MODEL_ID"
+        model_worker_route_available=true
+      else
+        claude_worker_model=""
+        model_worker_route_reason="${MANA_MODEL_RESOLUTION_ERROR:-provider discovery did not verify worker capability}"
+      fi
+      ;;
+    opencode)
+      if [ "$opencode_model_explicit" = true ]; then
+        [ "$opencode_explorer_model_explicit" = true ] || opencode_explorer_model="$opencode_model"
+        [ "$opencode_full_model_explicit" = true ] || opencode_full_model="$opencode_model"
+        [ "$opencode_worker_model_explicit" = true ] || opencode_worker_model="$opencode_model"
+      fi
+      if ! mana_model_resolve opencode economy "$opencode_reasoning_effort" "$opencode_model" "$project_root"; then
+        echo "ERROR: root model selection is blocked: ${MANA_MODEL_RESOLUTION_ERROR:-unknown resolution failure}" >&2
+        exit 2
+      fi
+      opencode_model="$MANA_PROVIDER_MODEL_ID"
+      opencode_model_variant="$MANA_PROVIDER_MODEL_VARIANT"
+      if mana_model_resolve opencode standard medium "$opencode_explorer_model" "$project_root"; then
+        opencode_explorer_model="$MANA_PROVIDER_MODEL_ID"
+        opencode_explorer_variant="$MANA_PROVIDER_MODEL_VARIANT"
+      else
+        opencode_explorer_model=""
+        opencode_agent_install_warnings="${opencode_agent_install_warnings}${opencode_agent_install_warnings:+
+}WARNING: explorer delegation is blocked: ${MANA_MODEL_RESOLUTION_ERROR:-unknown resolution failure}"
+      fi
+      if mana_model_resolve opencode full high "$opencode_full_model" "$project_root"; then
+        opencode_full_model="$MANA_PROVIDER_MODEL_ID"
+        opencode_full_variant="$MANA_PROVIDER_MODEL_VARIANT"
+        model_full_route_available=true
+      else
+        opencode_full_model=""
+        model_full_route_reason="${MANA_MODEL_RESOLUTION_ERROR:-provider discovery did not verify full-tier capability}"
+      fi
+      if mana_model_resolve opencode full high "$opencode_worker_model" "$project_root"; then
+        opencode_worker_model="$MANA_PROVIDER_MODEL_ID"
+        opencode_worker_variant="$MANA_PROVIDER_MODEL_VARIANT"
+        model_worker_route_available=true
+      else
+        opencode_worker_model=""
+        model_worker_route_reason="${MANA_MODEL_RESOLUTION_ERROR:-provider discovery did not verify worker capability}"
+      fi
+      ;;
+  esac
+  if [ "$model_full_route_available" = false ]; then
+    model_routing_warning="${model_routing_warning}${model_routing_warning:+ }Full-tier escalation is blocked: $model_full_route_reason. Stop with needs_model_escalation before high-risk judgment."
+  fi
+fi
+
 render_codex_agent() {
   agent_name="$1"
   model="$2"
@@ -814,6 +949,11 @@ render_codex_agent() {
   sandbox="$4"
   description="$5"
   instructions="$6"
+  local model_lines effort_lines
+  model_lines=""
+  effort_lines=""
+  [ -z "$model" ] || model_lines="model = \"$model\""
+  [ -z "$effort" ] || effort_lines="model_reasoning_effort = \"$effort\""
 
   cat <<AGENT
 # Mana-managed Codex custom agent.
@@ -821,8 +961,8 @@ render_codex_agent() {
 # Safe to replace with --force or during a Mana profile run.
 name = "$agent_name"
 description = "$description"
-model = "$model"
-model_reasoning_effort = "$effort"
+$model_lines
+$effort_lines
 sandbox_mode = "$sandbox"
 developer_instructions = """
 $instructions
@@ -876,6 +1016,13 @@ install_codex_agent_file() {
     rm "$target"
   fi
   printf '%s\n' "$content" > "$target"
+}
+
+remove_managed_agent_file() {
+  local target="$1" marker="$2"
+  if [ -e "$target" ] && grep -Fq "$marker" "$target" 2>/dev/null; then
+    rm "$target"
+  fi
 }
 
 render_claude_agent() {
@@ -964,13 +1111,24 @@ ensure_claude_agents_at() {
   install_claude_agent_file "$agents_dir/mana-orchestrator.md" "$orchestrator_content" || true
 
   readonly_claude_tools="Read, Glob, Grep, Bash(git diff:*), Bash(git status:*), Bash(git log:*), Bash(git show:*), Bash(rg:*), Bash(find:*)"
-  explorer_content="$(render_claude_agent "mana-explorer" "Mana read-only repository evidence discovery and inventory." "$readonly_claude_tools" "$claude_explorer_model" "default" "medium" "$(claude_agent_instructions mana-explorer)")"
-  full_content="$(render_claude_agent "mana-full-specialist" "Mana high-risk full-model specialist for bounded architecture, database, security, contract, concurrency, and production judgments." "$readonly_claude_tools" "$claude_full_model" "default" "high" "$(claude_agent_instructions mana-full-specialist)")"
-  worker_content="$(render_claude_agent "mana-worker" "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks." "Read, Glob, Grep, Bash, Write, Edit" "$claude_worker_model" "default" "medium" "$(claude_agent_instructions mana-worker)")"
-
-  install_claude_agent_file "$agents_dir/mana-explorer.md" "$explorer_content" || true
-  install_claude_agent_file "$agents_dir/mana-full-specialist.md" "$full_content" || true
-  install_claude_agent_file "$agents_dir/mana-worker.md" "$worker_content" || true
+  if [ -n "$claude_explorer_model" ]; then
+    explorer_content="$(render_claude_agent "mana-explorer" "Mana read-only repository evidence discovery and inventory." "$readonly_claude_tools" "$claude_explorer_model" "default" "medium" "$(claude_agent_instructions mana-explorer)")"
+    install_claude_agent_file "$agents_dir/mana-explorer.md" "$explorer_content" || true
+  else
+    remove_managed_agent_file "$agents_dir/mana-explorer.md" 'Mana-managed Claude Code subagent'
+  fi
+  if [ "$model_full_route_available" = true ]; then
+    full_content="$(render_claude_agent "mana-full-specialist" "Mana high-risk full-model specialist for bounded architecture, database, security, contract, concurrency, and production judgments." "$readonly_claude_tools" "$claude_full_model" "default" "high" "$(claude_agent_instructions mana-full-specialist)")"
+    install_claude_agent_file "$agents_dir/mana-full-specialist.md" "$full_content" || true
+  else
+    remove_managed_agent_file "$agents_dir/mana-full-specialist.md" 'Mana-managed Claude Code subagent'
+  fi
+  if [ -n "$claude_worker_model" ]; then
+    worker_content="$(render_claude_agent "mana-worker" "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks." "Read, Glob, Grep, Bash, Write, Edit" "$claude_worker_model" "default" "medium" "$(claude_agent_instructions mana-worker)")"
+    install_claude_agent_file "$agents_dir/mana-worker.md" "$worker_content" || true
+  else
+    remove_managed_agent_file "$agents_dir/mana-worker.md" 'Mana-managed Claude Code subagent'
+  fi
 }
 
 render_opencode_agent() {
@@ -980,6 +1138,8 @@ render_opencode_agent() {
   description="$4"
   permission_block="$5"
   instructions="$6"
+  model_line=""
+  [ -z "$model" ] || model_line="model: $model"
 
   cat <<AGENT
 ---
@@ -988,7 +1148,7 @@ render_opencode_agent() {
 # Safe to replace with --force or during a Mana profile run.
 description: "$description"
 mode: $mode
-model: $model
+$model_line
 temperature: 0.1
 permission:
 $permission_block
@@ -1078,16 +1238,27 @@ ensure_opencode_agents_at() {
   websearch: ask
   external_directory: ask"
 
-  orchestrator_content="$(render_opencode_agent "mana_orchestrator" "primary" "$opencode_model" "Mana primary orchestrator for profile routing, light evidence inventory, bounded delegation, and final synthesis." "$orchestrator_permissions" "$(opencode_agent_instructions mana_orchestrator)")"
+  orchestrator_content="$(render_opencode_agent "mana_orchestrator" "primary" "$opencode_model${opencode_model_variant:+#$opencode_model_variant}" "Mana primary orchestrator for profile routing, light evidence inventory, bounded delegation, and final synthesis." "$orchestrator_permissions" "$(opencode_agent_instructions mana_orchestrator)")"
   install_opencode_agent_file "$agents_dir/mana_orchestrator.md" "$orchestrator_content" || true
 
-  explorer_content="$(render_opencode_agent "mana_explorer" "subagent" "$opencode_explorer_model" "Mana read-only repository evidence discovery and inventory." "$readonly_permissions" "$(opencode_agent_instructions mana_explorer)")"
-  full_content="$(render_opencode_agent "mana_full_specialist" "subagent" "$opencode_full_model" "Mana high-risk full-model specialist for bounded architecture, database, security, contract, concurrency, and production judgments." "$readonly_permissions" "$(opencode_agent_instructions mana_full_specialist)")"
-  worker_content="$(render_opencode_agent "mana_worker" "subagent" "$opencode_worker_model" "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks." "$worker_permissions" "$(opencode_agent_instructions mana_worker)")"
-
-  install_opencode_agent_file "$agents_dir/mana_explorer.md" "$explorer_content" || true
-  install_opencode_agent_file "$agents_dir/mana_full_specialist.md" "$full_content" || true
-  install_opencode_agent_file "$agents_dir/mana_worker.md" "$worker_content" || true
+  if [ -n "$opencode_explorer_model" ]; then
+    explorer_content="$(render_opencode_agent "mana_explorer" "subagent" "$opencode_explorer_model${opencode_explorer_variant:+#$opencode_explorer_variant}" "Mana read-only repository evidence discovery and inventory." "$readonly_permissions" "$(opencode_agent_instructions mana_explorer)")"
+    install_opencode_agent_file "$agents_dir/mana_explorer.md" "$explorer_content" || true
+  else
+    remove_managed_agent_file "$agents_dir/mana_explorer.md" 'Mana-managed OpenCode agent'
+  fi
+  if [ "$model_full_route_available" = true ]; then
+    full_content="$(render_opencode_agent "mana_full_specialist" "subagent" "$opencode_full_model${opencode_full_variant:+#$opencode_full_variant}" "Mana high-risk full-model specialist for bounded architecture, database, security, contract, concurrency, and production judgments." "$readonly_permissions" "$(opencode_agent_instructions mana_full_specialist)")"
+    install_opencode_agent_file "$agents_dir/mana_full_specialist.md" "$full_content" || true
+  else
+    remove_managed_agent_file "$agents_dir/mana_full_specialist.md" 'Mana-managed OpenCode agent'
+  fi
+  if [ "$model_worker_route_available" = true ]; then
+    worker_content="$(render_opencode_agent "mana_worker" "subagent" "$opencode_worker_model${opencode_worker_variant:+#$opencode_worker_variant}" "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks." "$worker_permissions" "$(opencode_agent_instructions mana_worker)")"
+    install_opencode_agent_file "$agents_dir/mana_worker.md" "$worker_content" || true
+  else
+    remove_managed_agent_file "$agents_dir/mana_worker.md" 'Mana-managed OpenCode agent'
+  fi
 }
 
 ensure_codex_agents() {
@@ -1104,13 +1275,24 @@ ensure_codex_agents_at() {
     return 0
   fi
 
-  explorer_content="$(render_codex_agent "mana_explorer" "$codex_explorer_model" "medium" "read-only" "Mana read-only repository evidence discovery and inventory." "$(codex_agent_instructions mana_explorer)")"
-  full_content="$(render_codex_agent "mana_full_specialist" "$codex_full_model" "high" "read-only" "Mana high-risk full-model specialist for bounded architecture, database, security, contract, concurrency, and production judgments." "$(codex_agent_instructions mana_full_specialist)")"
-  worker_content="$(render_codex_agent "mana_worker" "$codex_worker_model" "medium" "workspace-write" "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks." "$(codex_agent_instructions mana_worker)")"
-
-  install_codex_agent_file "$agents_dir/mana-explorer.toml" "$explorer_content" || true
-  install_codex_agent_file "$agents_dir/mana-full-specialist.toml" "$full_content" || true
-  install_codex_agent_file "$agents_dir/mana-worker.toml" "$worker_content" || true
+  if [ -n "$codex_explorer_model" ]; then
+    explorer_content="$(render_codex_agent "mana_explorer" "$codex_explorer_model" "medium" "read-only" "Mana read-only repository evidence discovery and inventory." "$(codex_agent_instructions mana_explorer)")"
+    install_codex_agent_file "$agents_dir/mana-explorer.toml" "$explorer_content" || true
+  else
+    remove_managed_agent_file "$agents_dir/mana-explorer.toml" 'Mana-managed Codex custom agent'
+  fi
+  if [ "$model_full_route_available" = true ]; then
+    full_content="$(render_codex_agent "mana_full_specialist" "$codex_full_model" "high" "read-only" "Mana high-risk full-model specialist for bounded architecture, database, security, contract, concurrency, and production judgments." "$(codex_agent_instructions mana_full_specialist)")"
+    install_codex_agent_file "$agents_dir/mana-full-specialist.toml" "$full_content" || true
+  else
+    remove_managed_agent_file "$agents_dir/mana-full-specialist.toml" 'Mana-managed Codex custom agent'
+  fi
+  if [ "$model_worker_route_available" = true ]; then
+    worker_content="$(render_codex_agent "mana_worker" "$codex_worker_model" "$codex_worker_effort" "workspace-write" "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks." "$(codex_agent_instructions mana_worker)")"
+    install_codex_agent_file "$agents_dir/mana-worker.toml" "$worker_content" || true
+  else
+    remove_managed_agent_file "$agents_dir/mana-worker.toml" 'Mana-managed Codex custom agent'
+  fi
 }
 
 echo "Profile: $profile"
@@ -1253,7 +1435,7 @@ if [ "$render_only" = true ] || [ "${MANA_PROFILE_RUNNING:-}" = "1" ] || [ -z "$
 fi
 
 resolve_story_start_stage_route() {
-  local stage="$1" cli_model cli_effort
+  local stage="$1" cli_model cli_effort tier
   case "$stage" in
     discovery) cli_model="$story_start_discovery_model"; cli_effort="$story_start_discovery_effort" ;;
     triage) cli_model="$story_start_triage_model"; cli_effort="$story_start_triage_effort" ;;
@@ -1264,6 +1446,20 @@ resolve_story_start_stage_route() {
   esac
   mana_story_start_stage_resolve "$runner" "$stage" "$story_start_model" "$story_start_root_effort" \
     "$story_start_model_explicit" "$story_start_root_effort_explicit" "$cli_model" "$cli_effort" || return 1
+  case "$stage" in
+    discovery) tier=economy ;;
+    correction|trajectory-checkpoint) tier=standard ;;
+    triage|planner) tier=full ;;
+  esac
+  if ! mana_model_resolve "$runner" "$tier" "$MANA_STORY_START_ROUTE_EFFORT" \
+      "$MANA_STORY_START_ROUTE_MODEL" "$project_root"; then
+    echo "ERROR: Story Start $stage model resolution is blocked: ${MANA_MODEL_RESOLUTION_ERROR}" >&2
+    return 2
+  fi
+  MANA_STORY_START_ROUTE_MODEL="$MANA_PROVIDER_MODEL_ID"
+  if [ "$runner" = opencode ] && [ -n "$MANA_PROVIDER_MODEL_VARIANT" ]; then
+    MANA_STORY_START_ROUTE_MODEL="$MANA_STORY_START_ROUTE_MODEL#$MANA_PROVIDER_MODEL_VARIANT"
+  fi
   case "$stage" in
     discovery)
       MANA_STORY_START_STAGE_DISCOVERY_MODEL="$MANA_STORY_START_ROUTE_MODEL"
@@ -1725,7 +1921,7 @@ run_opencode() {
     printf '%s\n' "$opencode_agent_install_warnings" >&2
   fi
 
-  mana_provider_profile_args opencode "$project_root" "$opencode_model" "$opencode_max_threads" 1 "$opencode_subagents"
+  mana_provider_profile_args opencode "$project_root" "$opencode_model" "$opencode_max_threads" 1 "$opencode_subagents" "$opencode_model_variant"
   opencode_args=("${MANA_PROVIDER_ARGS[@]}")
 
   if [ "$context_runtime_shadow" = true ]; then

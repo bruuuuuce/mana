@@ -79,7 +79,7 @@
       "properties": {
         "provider": {"type": "string", "enum": ["codex", "claude", "opencode"]},
         "modelTier": {"type": "string", "enum": ["economy", "full"]},
-        "modelId": {"type": "string", "minLength": 1, "maxLength": 240, "pattern": "^[^\\r\\n]+$"},
+        "modelId": {"type": ["string", "null"], "minLength": 1, "maxLength": 240, "pattern": "^[^\\r\\n]+$", "description": "Null means the provider-boundary resolver must select before constructing invocation arguments."},
         "reasoningEffort": {"type": "string", "enum": ["minimal", "low", "medium", "high", "xhigh", "max"]},
         "policyId": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$"},
         "policyDigest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},

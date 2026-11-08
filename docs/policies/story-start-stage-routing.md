@@ -31,13 +31,13 @@ independently in this order:
 1. stage-specific CLI option;
 2. provider-specific stage environment variable;
 3. an explicitly supplied root provider model or root compatibility effort;
-4. provider-stage default checked into Mana.
+4. the active provider's dynamic discovery or documented alias.
 
-The root compatibility value intentionally precedes the default. This keeps
-existing users who set only `MANA_CODEX_MODEL` or `--codex-model` on a single
-model for all Scope v2 stages. With no explicit root override, the pilot stage
-defaults apply. There is no separate configuration-file layer today; the
-checked-in provider-stage table is the repository fallback.
+The root compatibility value intentionally precedes discovery. This keeps
+users who explicitly set only a provider model on a single model for all Scope
+v2 stages. With no explicit override, the resolver chooses by the stage's
+semantic tier and requested effort. There is no checked-in release-specific
+provider model fallback.
 
 Stage-specific CLI options apply only to `story-start` v2:
 
@@ -52,7 +52,7 @@ For example:
 MANA_STORY_START_SCOPE_VERSION=v2 \
 MANA_STORY_START_CONTEXT=.mana/features/EXAMPLE/context/story-start-context.json \
 scripts/run-profile.sh story-start --codex \
-  --story-start-triage-model gpt-6-sol \
+  --story-start-triage-model <available-provider-model> \
   --story-start-triage-effort xhigh
 ```
 
@@ -66,7 +66,7 @@ MANA_<PROVIDER>_STORY_START_<STAGE>_EFFORT
 For example:
 
 ```text
-MANA_CODEX_STORY_START_DISCOVERY_MODEL=gpt-6-luna
+MANA_CODEX_STORY_START_DISCOVERY_MODEL=<available-provider-model>
 MANA_CODEX_STORY_START_DISCOVERY_EFFORT=high
 ```
 
@@ -77,16 +77,18 @@ The root compatibility values are `MANA_CODEX_MODEL`, `MANA_CLAUDE_MODEL`, and
 only as a Scope v2 stage-routing fallback; it does not alter the v1 root
 provider arguments.
 
-## Provider-Stage Defaults
+## Provider-Stage Selection
 
-| Provider | Discovery | Triage | Planner | Correction | Trajectory checkpoint |
-|---|---|---|---|---|---|
-| Codex | `gpt-6-luna` / `high` | `gpt-6-sol` / `xhigh` | `gpt-6-sol` / `high` | `gpt-6-luna` / `high` | `gpt-6-luna` / `high` |
-| Claude | `claude-sonnet-5` / `high` requested | `claude-opus-5-5` / `xhigh` requested | `claude-opus-5-5` / `high` requested | `claude-sonnet-5` / `high` requested | `claude-sonnet-5` / `high` requested |
-| OpenCode | `opencode/gpt-6-luna` / `high` requested | `opencode/gpt-6-sol` / `xhigh` requested | `opencode/gpt-6-sol` / `high` requested | `opencode/gpt-6-luna` / `high` requested | `opencode/gpt-6-luna` / `high` requested |
+Discovery uses the economy tier. Correction and trajectory-checkpoint use
+standard. Triage and planner use full. Codex effort values are sent only when
+the resolved model advertises them; unsupported or unverified effort blocks
+that stage. Claude and OpenCode report effort as unsupported unless their
+adapter exposes a verified argument.
 
-These are Scope v2 defaults only. They do not rewrite global defaults used by
-other Mana profiles or change the Codex/Claude/OpenCode root agents in v1.
+The requested tier is semantic policy. A provider alias, catalog default, or
+reasoning-effort label does not establish MANA full-tier suitability. If the
+resolver cannot prove that capability, triage/planner stops with
+`needs_model_escalation` before invoking the provider.
 
 ## Provider Dispatch Truthfulness
 
@@ -110,7 +112,7 @@ free-form output.
 At a v2 public run, `scripts/run-profile.sh` emits one line for each route:
 
 ```text
-Story Start Scope v2 route: stage=triage provider=codex model=gpt-6-sol model_source=provider-stage-default effort=xhigh effort_source=provider-stage-default effort_dispatch=explicit
+Story Start Scope v2 route: stage=triage provider=codex model=<resolved model> model_source=provider-discovery effort=xhigh effort_source=provider-stage-default effort_dispatch=explicit
 ```
 
 The line contains only stage, provider, model, requested effort, source, and

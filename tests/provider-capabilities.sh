@@ -451,7 +451,29 @@ assert_element "$tmp/opencode-disabled.args" '--pure'
 jq -e '.agent.mana_ctx02_no_children.permission.task == "deny" and .agent.mana_ctx02_no_children.model == "provider/model"' <<<"$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" >/dev/null || fail 'OpenCode hard-disable config is not exact'
 
 # Stale managed/user agent files cannot bypass the invocation controls.
-printf '%s\n' '#!/usr/bin/env bash' 'printf "%s\n" "$#" > "$MANA_CTX02_ARGC"' 'printf "%s\n" "$@" > "$MANA_CTX02_ARGS"' 'printf "%s" "${OPENCODE_CONFIG_CONTENT:-}" > "$MANA_CTX02_CONFIG"' 'exit 0' > "$tmp/bin/provider-stub"
+cat > "$tmp/bin/provider-stub" <<'STUB'
+#!/usr/bin/env bash
+case "${1:-}" in
+  --version) echo 'provider fixture 1'; exit 0 ;;
+  app-server)
+    while IFS= read -r request; do
+      method="$(jq -r '.method // empty' <<<"$request")"
+      request_id="$(jq -r '.id // empty' <<<"$request")"
+      if [ "$method" = initialize ]; then printf '{"id":%s,"result":{}}\n' "$request_id"; fi
+      if [ "$method" = account/gatewayOAuth/read ]; then printf '{"id":%s,"result":{"required":false,"status":null}}\n' "$request_id"; fi
+      if [ "$method" = model/list ]; then printf '{"id":%s,"error":{"code":-32601,"message":"unsupported"}}\n' "$request_id"; fi
+    done
+    exit 0 ;;
+  models)
+    printf '%s\n' 'provider/example-model' '{' '"id":"example-model","providerID":"provider","status":"active","capabilities":{"reasoning":true},"variants":{"high":{"reasoningEffort":"high"}}}'
+    exit 0 ;;
+  debug) printf '%s\n' '{"model":"provider/example-model"}'; exit 0 ;;
+esac
+printf "%s\n" "$#" > "$MANA_CTX02_ARGC"
+printf "%s\n" "$@" > "$MANA_CTX02_ARGS"
+printf "%s" "${OPENCODE_CONFIG_CONTENT:-}" > "$MANA_CTX02_CONFIG"
+exit 0
+STUB
 chmod +x "$tmp/bin/provider-stub"
 for provider in codex claude opencode; do
   cp "$tmp/bin/provider-stub" "$tmp/bin/$provider"
@@ -465,7 +487,7 @@ MANA_CTX02_ARGC="$tmp/stale-codex.argc" MANA_CTX02_ARGS="$tmp/stale-codex.args" 
 assert_adjacent_pair "$tmp/stale-codex.args" '--disable' 'multi_agent'
 assert_element "$tmp/stale-codex.args" '--ignore-user-config'
 grep -Fq 'Effective child limits: Codex=0/0' "$tmp/stale-codex.args" || fail 'Codex prompt lacks effective zero child state'
-[ "$(< "$tmp/stale-codex.argc")" -eq 25 ] || fail "Codex actual disabled argc changed: $(< "$tmp/stale-codex.argc")"
+[ "$(< "$tmp/stale-codex.argc")" -eq 23 ] || fail "Codex actual disabled argc changed: $(< "$tmp/stale-codex.argc")"
 
 claude_project="$tmp/stale claude"
 mkdir -p "$claude_project/.claude/agents"

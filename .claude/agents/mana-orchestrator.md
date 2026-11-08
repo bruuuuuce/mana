@@ -5,7 +5,7 @@
 name: mana-orchestrator
 description: "Mana primary orchestrator for profile routing, light evidence inventory, bounded delegation, and final synthesis."
 tools: Agent(mana-explorer, mana-full-specialist, mana-worker), Read, Glob, Grep, Bash, Write, Edit
-model: claude-haiku-4-5
+model: haiku
 permissionMode: default
 effort: low
 ---

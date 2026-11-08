@@ -5,7 +5,7 @@
 name: mana-worker
 description: "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks."
 tools: Read, Glob, Grep, Bash, Write, Edit
-model: claude-sonnet-5
+model: sonnet
 permissionMode: default
 effort: medium
 ---

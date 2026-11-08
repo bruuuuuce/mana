@@ -1,0 +1,4 @@
+[
+  {"id":"economy","model":"provider-economy","hidden":false,"isDefault":true,"supportedReasoningEfforts":[{"reasoningEffort":"low"},{"reasoningEffort":"medium"}],"defaultReasoningEffort":"medium"},
+  {"id":"not-rated","model":"provider-not-rated","hidden":false,"isDefault":false,"supportedReasoningEfforts":[{"reasoningEffort":"high"}],"defaultReasoningEffort":"high"}
+]

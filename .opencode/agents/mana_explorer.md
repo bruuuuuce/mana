@@ -4,7 +4,6 @@
 # Safe to replace with --force or during a Mana profile run.
 description: "Mana read-only repository evidence discovery and inventory."
 mode: subagent
-model: opencode/gpt-6-luna
 temperature: 0.1
 permission:
   read: allow

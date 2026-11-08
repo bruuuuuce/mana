@@ -31,17 +31,18 @@ fi
 . "$root/scripts/lib/provider-dispatch.sh"
 . "$root/scripts/lib/provider-execution.sh"
 . "$root/scripts/lib/runtime-events.sh"
+. "$root/scripts/lib/model-resolution.sh"
 
 execution_id=""
 project_root=""
 expected_profile=""
 expected_provider=""
-codex_model="${MANA_CODEX_MODEL:-gpt-6-luna}"
-codex_full_model="${MANA_CODEX_FULL_MODEL:-gpt-6-sol}"
-claude_model="${MANA_CLAUDE_MODEL:-claude-haiku-4-5}"
-claude_full_model="${MANA_CLAUDE_FULL_MODEL:-claude-opus-5-5}"
-opencode_model="${MANA_OPENCODE_MODEL:-opencode/gpt-6-luna}"
-opencode_full_model="${MANA_OPENCODE_FULL_MODEL:-${MANA_OPENCODE_MODEL:-opencode/gpt-6-sol}}"
+codex_model="${MANA_CODEX_MODEL:-}"
+codex_full_model="${MANA_CODEX_FULL_MODEL:-}"
+claude_model="${MANA_CLAUDE_MODEL:-}"
+claude_full_model="${MANA_CLAUDE_FULL_MODEL:-}"
+opencode_model="${MANA_OPENCODE_MODEL:-}"
+opencode_full_model="${MANA_OPENCODE_FULL_MODEL:-}"
 activation_args=()
 budget_mode=""
 
@@ -110,9 +111,6 @@ case "$execution_id" in *[!A-Za-z0-9._-]*) fail 'execution id contains unsafe ch
 [ -n "$project_root" ] || fail '--project-root is required'
 project_root="$(cd "$project_root" 2>/dev/null && pwd -P)" || fail 'project root is unavailable'
 framework_root="$(cd "$framework_root" 2>/dev/null && pwd -P)" || fail 'framework root is unavailable'
-for model in "$codex_model" "$codex_full_model" "$claude_model" "$claude_full_model" "$opencode_model" "$opencode_full_model"; do
-  valid_model "$model" || fail 'provider model identifiers must be non-empty bounded single-line values'
-done
 
 pipeline="$root/scripts/mana-context-pipeline.sh"
 phase_helper="$root/scripts/lib/context-phase-runtime.py"
@@ -305,8 +303,22 @@ while :; do
     *) finish_runtime failed; fail "phase $phase_id has an invalid model tier" ;;
   esac
 
+  if ! mana_model_resolve "$provider" "$model_tier" "" "$model" "$project_root"; then
+    emit guard.triggered phase "$phase_id" blocked "reason=model-resolution-blocked tier=$model_tier detail=${MANA_MODEL_RESOLUTION_ERROR}" '' true
+    finish_runtime failed
+    fail "phase $phase_id model resolution is blocked: ${MANA_MODEL_RESOLUTION_ERROR}"
+  fi
+  model="$MANA_PROVIDER_MODEL_ID"
+  model_variant="$MANA_PROVIDER_MODEL_VARIANT"
+  resolved_effort="$MANA_PROVIDER_SELECTED_EFFORT"
+  if [ -n "$model" ]; then
+    valid_model "$model" || fail 'resolved provider model identifier is invalid'
+  elif [ "$provider" != opencode ] || [ "$model_tier" != economy ] || [ -n "$resolved_effort" ] || [ -n "$model_variant" ]; then
+    fail 'provider-native model fallback is allowed only for OpenCode economy phases without an effort requirement'
+  fi
+
   schema_path="$root/contracts/context-runtime/phase-checkpoint-v1.schema.json"
-  mana_provider_phase_args "$provider" "$project_root" "$model" "$schema_path" "$native_schema" "$automatic_compaction_threshold" || {
+  mana_provider_phase_args "$provider" "$project_root" "$model" "$schema_path" "$native_schema" "$automatic_compaction_threshold" "$model_variant" "$resolved_effort" || {
     finish_runtime failed
     fail "provider phase adapter rejected $provider"
   }

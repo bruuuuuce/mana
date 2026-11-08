@@ -1,0 +1,5 @@
+[
+  {"id":"Default","model":"Default","alias":true},
+  {"id":"opus","model":"opus","alias":true},
+  {"id":"custom:local-coder","model":"custom:local-coder","custom":true}
+]

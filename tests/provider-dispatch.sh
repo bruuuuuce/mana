@@ -24,6 +24,10 @@ mana_provider_profile_args claude '/repo path' model 3 1 false; [ "$(join "${MAN
 mana_provider_profile_args opencode '/repo path' model 3 1 false; [ "$(join "${MANA_PROVIDER_ARGS[@]}")" = '<run><--dir></repo path><--model><model><--agent><mana_ctx02_no_children><--pure>' ] || fail 'OpenCode hard-disable args changed'
 jq -e '.agent.mana_ctx02_no_children.permission.task == "deny"' <<<"$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" >/dev/null || fail 'OpenCode hard-disable config changed'
 child_schema="$root/contracts/context-runtime/delegation-result-draft-v1.schema.json"
+mana_provider_worker_args opencode '/capsule path' 'provider/model' medium "$child_schema" false '' 'fast' || fail 'OpenCode worker rejected its resolved catalog variant'
+jq -e '.agent.mana_ctx07_worker.model == "provider/model#fast"' <<<"$MANA_PROVIDER_OPENCODE_CONFIG_CONTENT" >/dev/null || fail 'OpenCode worker agent lost its resolved variant'
+awk 'previous == "--variant" && $0 == "fast" { found=1 } { previous=$0 } END { exit(found ? 0 : 1) }' <(printf '%s\n' "${MANA_PROVIDER_ARGS[@]}") || fail 'OpenCode worker argv lost its resolved variant'
+mana_provider_worker_args claude '/capsule path' model medium "$child_schema" false '' 'fast' && fail 'non-OpenCode worker accepted a provider variant'
 mana_provider_child_worker_args claude '/capsule path' child-model high "$child_schema" && fail 'unattestable production Claude child adapter was selected'
 mana_provider_child_worker_args codex '/capsule path' child-model high "$child_schema" && fail 'unimplemented Codex child adapter was selected'
 mana_provider_child_worker_args opencode '/capsule path' child-model high "$child_schema" && fail 'unimplemented OpenCode child adapter was selected'

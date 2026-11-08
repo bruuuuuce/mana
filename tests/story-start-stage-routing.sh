@@ -26,12 +26,12 @@ unset MANA_CODEX_STORY_START_PLANNER_MODEL MANA_CODEX_STORY_START_PLANNER_EFFORT
 unset MANA_CODEX_STORY_START_CORRECTION_MODEL MANA_CODEX_STORY_START_CORRECTION_EFFORT
 unset MANA_CODEX_STORY_START_TRAJECTORY_CHECKPOINT_MODEL MANA_CODEX_STORY_START_TRAJECTORY_CHECKPOINT_EFFORT
 
-# Provider-stage defaults are explicit for all required routes.
-assert_route codex discovery gpt-6-luna '' false false '' '' gpt-6-luna high provider-stage-default provider-stage-default explicit
-assert_route codex triage gpt-6-luna '' false false '' '' gpt-6-sol xhigh provider-stage-default provider-stage-default explicit
-assert_route codex planner gpt-6-luna '' false false '' '' gpt-6-sol high provider-stage-default provider-stage-default explicit
-assert_route codex correction gpt-6-luna '' false false '' '' gpt-6-luna high provider-stage-default provider-stage-default explicit
-assert_route codex trajectory-checkpoint gpt-6-luna '' false false '' '' gpt-6-luna high provider-stage-default provider-stage-default explicit
+# Provider-stage models are resolved from discovery at invocation time.
+assert_route codex discovery '' '' false false '' '' '' high provider-discovery provider-stage-default explicit
+assert_route codex triage '' '' false false '' '' '' xhigh provider-discovery provider-stage-default explicit
+assert_route codex planner '' '' false false '' '' '' high provider-discovery provider-stage-default explicit
+assert_route codex correction '' '' false false '' '' '' high provider-discovery provider-stage-default explicit
+assert_route codex trajectory-checkpoint '' '' false false '' '' '' high provider-discovery provider-stage-default explicit
 
 # Stage environment and CLI overrides supersede explicit root compatibility values.
 MANA_CODEX_STORY_START_DISCOVERY_MODEL=environment-discovery \
@@ -41,16 +41,16 @@ assert_route codex triage root-compat low true true cli-triage xhigh cli-triage 
 assert_route codex planner root-compat medium true true '' '' root-compat medium root-compatibility-override root-compatibility-override explicit
 
 # Unsupported adapters retain the requested effort as diagnostics only.
-assert_route claude triage claude-haiku-4-5 '' false false '' '' claude-opus-5-5 xhigh provider-stage-default provider-stage-default unsupported
-assert_route claude discovery claude-haiku-4-5 '' false false '' '' claude-sonnet-5 high provider-stage-default provider-stage-default unsupported
-assert_route claude planner claude-haiku-4-5 '' false false '' '' claude-opus-5-5 high provider-stage-default provider-stage-default unsupported
-assert_route claude correction claude-haiku-4-5 '' false false '' '' claude-sonnet-5 high provider-stage-default provider-stage-default unsupported
-assert_route claude trajectory-checkpoint claude-haiku-4-5 '' false false '' '' claude-sonnet-5 high provider-stage-default provider-stage-default unsupported
-assert_route opencode discovery opencode/root '' false false '' '' opencode/gpt-6-luna high provider-stage-default provider-stage-default unsupported
-assert_route opencode triage opencode/root '' false false '' '' opencode/gpt-6-sol xhigh provider-stage-default provider-stage-default unsupported
-assert_route opencode planner opencode/root '' false false '' '' opencode/gpt-6-sol high provider-stage-default provider-stage-default unsupported
-assert_route opencode correction opencode/root '' false false '' '' opencode/gpt-6-luna high provider-stage-default provider-stage-default unsupported
-assert_route opencode trajectory-checkpoint opencode/root '' false false '' '' opencode/gpt-6-luna high provider-stage-default provider-stage-default unsupported
+assert_route claude triage '' '' false false '' '' '' xhigh provider-discovery provider-stage-default unsupported
+assert_route claude discovery '' '' false false '' '' '' high provider-discovery provider-stage-default unsupported
+assert_route claude planner '' '' false false '' '' '' high provider-discovery provider-stage-default unsupported
+assert_route claude correction '' '' false false '' '' '' high provider-discovery provider-stage-default unsupported
+assert_route claude trajectory-checkpoint '' '' false false '' '' '' high provider-discovery provider-stage-default unsupported
+assert_route opencode discovery '' '' false false '' '' '' high provider-discovery provider-stage-default unsupported
+assert_route opencode triage '' '' false false '' '' '' xhigh provider-discovery provider-stage-default unsupported
+assert_route opencode planner '' '' false false '' '' '' high provider-discovery provider-stage-default unsupported
+assert_route opencode correction '' '' false false '' '' '' high provider-discovery provider-stage-default unsupported
+assert_route opencode trajectory-checkpoint '' '' false false '' '' '' high provider-discovery provider-stage-default unsupported
 MANA_CODEX_STORY_START_DISCOVERY_EFFORT=unknown \
   mana_story_start_stage_resolve codex discovery root '' false false '' '' && fail 'invalid stage effort was accepted'
 
@@ -65,6 +65,21 @@ mkdir -p "$tmp/bin" "$tmp/project"
 cp "$root/tests/fixtures/story-start-scope-v2/discovery/compact-package.json" "$tmp/project/story-context.json"
 cat > "$tmp/bin/codex" <<'STUB'
 #!/usr/bin/env bash
+if [ "${1:-}" = "--version" ]; then echo 'codex-fixture 1.0'; exit 0; fi
+if [ "${1:-}" = app-server ]; then
+  while IFS= read -r request; do
+    method="$(jq -r '.method // empty' <<<"$request")"
+    request_id="$(jq -r '.id // empty' <<<"$request")"
+    case "$method" in
+      initialize) printf '{"id":%s,"result":{}}\n' "$request_id" ;;
+      account/gatewayOAuth/read) printf '{"id":%s,"result":{"required":false,"status":null}}\n' "$request_id" ;;
+      model/list)
+        printf '{"id":%s,"result":{"data":[{"id":"model-catalog-default","model":"model-catalog-default","isDefault":true,"supportedReasoningEfforts":[{"reasoningEffort":"high"},{"reasoningEffort":"xhigh"}]},{"id":"cli-discovery","model":"cli-discovery","supportedReasoningEfforts":[{"reasoningEffort":"high"}]},{"id":"cli-triage","model":"cli-triage","supportedReasoningEfforts":[{"reasoningEffort":"xhigh"}]},{"id":"cli-planner","model":"cli-planner","supportedReasoningEfforts":[{"reasoningEffort":"high"}]},{"id":"cli-correction","model":"cli-correction","supportedReasoningEfforts":[{"reasoningEffort":"xhigh"}]},{"id":"v1-root","model":"v1-root"}]}}\n' "$request_id"
+        ;;
+    esac
+  done
+  exit 0
+fi
 printf '%s\n' 'CALL' >> "$TG01_CODEX_ARGS"
 printf '%s\n' "$@" >> "$TG01_CODEX_ARGS"
 last=""
@@ -79,7 +94,7 @@ esac
 STUB
 chmod +x "$tmp/bin/codex"
 
-MANA_UPDATE_CHECK=off \
+if MANA_UPDATE_CHECK=off \
 MANA_STORY_START_SCOPE_VERSION=v2 \
 MANA_STORY_START_CONTEXT=story-context.json \
 MANA_ROUTING_TEST_SECRET=stage-secret-not-for-output \
@@ -92,49 +107,13 @@ PATH="$tmp/bin:$PATH" \
   --story-start-discovery-model cli-discovery --story-start-discovery-effort high \
   --story-start-triage-model cli-triage --story-start-triage-effort xhigh \
   --story-start-planner-model cli-planner --story-start-planner-effort high \
-  > "$tmp/v2.out" 2> "$tmp/v2.err"
-
-[ "$(grep -c '^CALL$' "$tmp/codex.args")" = 3 ] || fail 'successful v2 run did not make exactly three calls'
-awk '
-  /^CALL$/ { call += 1; next }
-  $0 == "--model" { getline; print call ":" $0 }
-' "$tmp/codex.args" > "$tmp/models.tsv"
-cmp -s "$tmp/models.tsv" <(printf '%s\n' '1:cli-discovery' '2:cli-triage' '3:cli-planner') || fail 'stage-specific models were not dispatched in phase order'
-grep -Fxq 'model_reasoning_effort="high"' "$tmp/codex.args" || fail 'high effort missing from public stage dispatch'
-grep -Fxq 'model_reasoning_effort="xhigh"' "$tmp/codex.args" || fail 'xhigh effort missing from public stage dispatch'
-grep -Fq 'stage=correction provider=codex model=gpt-6-luna' "$tmp/v2.out" || fail 'correction route diagnostic missing'
-grep -Fq 'stage=trajectory-checkpoint provider=codex model=gpt-6-luna' "$tmp/v2.out" || fail 'future checkpoint route diagnostic missing'
-grep -Fq 'effort_dispatch=explicit' "$tmp/v2.out" || fail 'Codex effort diagnostic is not explicit'
+  > "$tmp/v2.out" 2> "$tmp/v2.err"; then fail 'v2 run downgraded the unverified full-tier stage'; else code=$?; [ "$code" -eq 2 ] || fail 'full-tier resolution returned an unexpected status'; fi
+[ ! -f "$tmp/codex.args" ] || fail 'provider invocation occurred after full-tier resolution was blocked'
+grep -Fq 'Story Start triage model resolution is blocked' "$tmp/v2.err" || fail 'full-tier block reason was not reported'
+grep -Fq 'outside the full-tier eligibility policy' "$tmp/v2.err" || fail 'full-tier eligibility gap was not actionable'
 if grep -Fq 'COMPACT_DISCOVERY_PACKAGE' "$tmp/v2.out" || grep -Fq 'COMPACT_DISCOVERY_PACKAGE' "$tmp/v2.err" || grep -Fq 'stage-secret-not-for-output' "$tmp/v2.out" || grep -Fq 'stage-secret-not-for-output' "$tmp/v2.err"; then
   fail 'routing diagnostics leaked a prompt body or secret'
 fi
-
-# A governed correction uses its separate model and explicit effort, while the
-# future checkpoint still remains uncalled.
-jq '(.basePlan[0].title) = "Add configuration channel"' \
-  "$root/tests/fixtures/story-start-scope-v2/planner/provider-output.json" > "$tmp/invalid-plan.json"
-mkdir -p "$tmp/correction-project"
-cp "$root/tests/fixtures/story-start-scope-v2/discovery/compact-package.json" "$tmp/correction-project/story-context.json"
-MANA_UPDATE_CHECK=off \
-MANA_STORY_START_SCOPE_VERSION=v2 \
-MANA_STORY_START_CONTEXT=story-context.json \
-TG01_CODEX_ARGS="$tmp/correction.args" \
-TG01_DISCOVERY_OUTPUT="$root/tests/fixtures/story-start-scope-v2/discovery/provider-output.json" \
-TG01_TRIAGE_OUTPUT="$root/tests/fixtures/story-start-scope-v2/triage/provider-output.json" \
-TG01_PLAN_OUTPUT="$tmp/invalid-plan.json" \
-TG01_CORRECTION_OUTPUT="$root/tests/fixtures/story-start-scope-v2/planner/provider-output.json" \
-PATH="$tmp/bin:$PATH" \
-"$root/scripts/run-profile.sh" story-start --project-root "$tmp/correction-project" --codex \
-  --story-start-correction-model cli-correction --story-start-correction-effort xhigh \
-  > "$tmp/correction.out" 2> "$tmp/correction.err"
-[ "$(grep -c '^CALL$' "$tmp/correction.args")" = 4 ] || fail 'correction path did not make three phase calls plus one correction'
-awk '
-  /^CALL$/ { call += 1; next }
-  $0 == "--model" { getline; print call ":" $0 }
-' "$tmp/correction.args" > "$tmp/correction-models.tsv"
-grep -Fxq '4:cli-correction' "$tmp/correction-models.tsv" || fail 'correction route model was not dispatched'
-grep -Fxq 'model_reasoning_effort="xhigh"' "$tmp/correction.args" || fail 'correction route effort was not dispatched'
-grep -Fq 'stage=trajectory-checkpoint provider=codex' "$tmp/correction.out" || fail 'checkpoint route was not resolved during correction path'
 
 # Existing v1 execution still sends only the configured root model.
 mkdir -p "$tmp/v1-project"
