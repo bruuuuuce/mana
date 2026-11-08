@@ -26,9 +26,11 @@ provider call or switches providers.
 Claude Code supports dynamic `haiku`, `sonnet`, and `opus` family aliases. The
 aliases avoid release-specific IDs but do not prove account entitlement or
 quality for every task. MANA blocks Claude routing when its CLI is not installed.
-For requested effort, MANA accepts the CLI's documented `low`, `medium`, `high`,
-`xhigh`, and `max` values and passes the selected value through unchanged;
-unsupported values block before invocation.
+Requested effort is checked against the selected family before invocation:
+Haiku has no supported effort setting, Sonnet supports `low`, `medium`, and
+`high`, and Opus supports `low`, `medium`, `high`, `xhigh`, and `max`. A CLI
+flag's presence alone does not establish model-specific support, so unsupported
+or unverified model/effort pairs block.
 OpenCode discovery reads the active provider-scoped
 catalog and resolved project default, preserving the complete provider/model
 identity and advertised variants. Listing and variant metadata do not prove a

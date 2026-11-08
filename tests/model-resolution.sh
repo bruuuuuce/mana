@@ -32,8 +32,12 @@ jq -e '.selectedModel == "provider-new-default" and .availability == "blocked" a
 
 if python3 "$resolver" doctor --provider claude --tier full --json > "$tmp/claude.json"; then fail 'Claude opus alias was treated as full-tier proof'; fi
 jq -e '.selectedModel == "opus" and .confidence == "assumed" and .availability == "unknown" and .invocationCompatibility == "unknown"' "$tmp/claude.json" >/dev/null || fail 'Claude alias certainty was overstated'
-python3 "$resolver" doctor --provider claude --tier economy --effort medium --json > "$tmp/claude-effort.json"
-jq -e '.selectedModel == "haiku" and .reasoningEffort == "medium" and (.supportedReasoningEfforts | index("medium")) and .invocationCompatibility == "compatible"' "$tmp/claude-effort.json" >/dev/null || fail 'Claude CLI effort was not resolved as a supported invocation setting'
+python3 "$resolver" doctor --provider claude --tier economy --effort medium --json > "$tmp/claude-effort.json" && fail 'Claude Haiku alias accepted an unsupported model-specific effort'
+jq -e '.selectedModel == "haiku" and .reasoningEffort == "medium" and (.supportedReasoningEfforts | length == 0) and .availability == "blocked" and .invocationCompatibility == "incompatible"' "$tmp/claude-effort.json" >/dev/null || fail 'Claude Haiku effort did not block safely'
+python3 "$resolver" doctor --provider claude --tier standard --effort medium --json > "$tmp/claude-sonnet-effort.json"
+jq -e '.selectedModel == "sonnet" and (.supportedReasoningEfforts | index("medium")) and .invocationCompatibility == "compatible"' "$tmp/claude-sonnet-effort.json" >/dev/null || fail 'Claude Sonnet supported effort was not resolved'
+python3 "$resolver" doctor --provider claude --tier standard --effort high --model claude-opus-5 --json > "$tmp/claude-pinned-model-effort.json" && fail 'Claude release-specific pin borrowed alias-family effort capabilities'
+jq -e '.selectedModel == "claude-opus-5" and .availability == "blocked" and .invocationCompatibility == "incompatible"' "$tmp/claude-pinned-model-effort.json" >/dev/null || fail 'unverified Claude pinned model effort did not block'
 python3 "$resolver" doctor --provider claude --tier economy --effort minimal --json > "$tmp/claude-invalid-effort.json" && fail 'unsupported Claude effort level was accepted'
 jq -e '.availability == "blocked" and .invocationCompatibility == "incompatible"' "$tmp/claude-invalid-effort.json" >/dev/null || fail 'unsupported Claude effort did not block safely'
 if MANA_CLAUDE_BIN=mana-claude-missing python3 "$resolver" doctor --provider claude --tier economy --json > "$tmp/claude-missing-cli.json"; then fail 'Claude alias was selected without an installed CLI'; fi

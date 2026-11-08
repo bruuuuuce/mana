@@ -280,18 +280,26 @@ def select(provider: str, tier: str, effort: str | None, override: str | None,
             reason = "Junie Default is a documented provider-owned dynamic model; entitlement is checked at invocation"
         confidence = "assumed"
     elif provider == "claude":
-        supported_efforts = {"low", "medium", "high", "xhigh", "max"}
+        selected = override or {"economy": "haiku", "standard": "sonnet", "full": "opus"}[tier]
+        normalized_model = selected.lower()
+        family = normalized_model if normalized_model in {"haiku", "sonnet", "opus"} else None
+        family_efforts = {
+            "haiku": set(),
+            "sonnet": {"low", "medium", "high"},
+            "opus": {"low", "medium", "high", "xhigh", "max"},
+        }
+        supported_efforts = family_efforts.get(family, set())
         if effort and effort not in supported_efforts:
-            selected = override or {"economy": "haiku", "standard": "sonnet", "full": "opus"}[tier]
             status, compatible = "blocked", "incompatible"
-            reason = "Claude Code does not support the requested effort level"
+            reason = (f"selected Claude {family or 'model'} family does not establish support for the requested effort"
+                      if family else "explicit Claude model identity does not establish support for the requested effort")
             confidence = "assumed"
             return {"schemaVersion": SCHEMA, "provider": provider, "executionSupport": "supported",
                     "requestedTier": tier, "reasoningEffort": effort, "explicitOverride": override,
                     "selectedModel": selected, "selectedVariant": None, "supportedReasoningEfforts": sorted(supported_efforts),
                     "discoverySource": source, "providerVersion": version, "confidence": confidence,
                     "availability": status, "invocationCompatibility": compatible,
-                    "selectionReason": reason, "fallbackReason": "requested effort cannot be applied safely",
+                    "selectionReason": reason, "fallbackReason": "requested effort cannot be applied safely to the selected model family",
                     "costPolicy": "no cross-provider fallback; no increase to existing cost ceiling"}
         if override:
             found = next((m for m in models if override in (m.get("id"), m.get("model"))), None)
@@ -419,7 +427,13 @@ def select(provider: str, tier: str, effort: str | None, override: str | None,
                                 (selected_record or {}).get("supportedReasoningEfforts", [])
                                 if isinstance(item, dict) and isinstance(item.get("reasoningEffort"), str)})
     if provider == "claude":
-        supported_efforts = ["high", "low", "max", "medium", "xhigh"]
+        normalized_model = (selected or "").lower()
+        family = normalized_model if normalized_model in {"haiku", "sonnet", "opus"} else None
+        supported_efforts = sorted({
+            "haiku": set(),
+            "sonnet": {"low", "medium", "high"},
+            "opus": {"low", "medium", "high", "xhigh", "max"},
+        }.get(family, set()))
     return {"schemaVersion": SCHEMA, "provider": provider, "executionSupport": "unsupported" if provider == "junie" else "supported",
             "requestedTier": tier,
             "reasoningEffort": effort, "explicitOverride": override, "selectedModel": selected,
