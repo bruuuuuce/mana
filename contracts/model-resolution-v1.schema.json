@@ -1,10 +1,11 @@
+pyenv: cannot rehash: /Users/zel/.pyenv/shims isn't writable
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "mana.model-resolution/v1",
   "title": "MANA model resolution result",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "provider", "executionSupport", "providerVersion", "requestedTier", "reasoningEffort", "resolvedEffort", "explicitOverride", "selectedModel", "selectedVariant", "supportedReasoningEfforts", "discoverySource", "confidence", "availability", "accountAvailability", "executionStatus", "tierEligible", "eligibilityPolicyId", "eligibilityClass", "invocationCompatibility", "selectionReason", "fallbackReason", "costPolicy"],
+  "required": ["schemaVersion", "provider", "executionSupport", "providerVersion", "requestedTier", "reasoningEffort", "resolvedEffort", "explicitOverride", "selectedModel", "selectedVariant", "supportedReasoningEfforts", "observedReasoningEfforts", "discoverySource", "confidence", "availability", "accountAvailability", "executionStatus", "tierEligible", "eligibilityPolicyId", "eligibilityClass", "invocationCompatibility", "selectionReason", "fallbackReason", "costPolicy"],
   "properties": {
     "schemaVersion": {"const": "mana.model-resolution/v1"},
     "provider": {"enum": ["codex", "claude", "opencode", "junie"]},
@@ -17,6 +18,7 @@
     "selectedModel": {"type": ["string", "null"]},
     "selectedVariant": {"type": ["string", "null"]},
     "supportedReasoningEfforts": {"type": "array", "items": {"type": "string", "enum": ["minimal", "low", "medium", "high", "xhigh", "max"]}, "uniqueItems": true},
+    "observedReasoningEfforts": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["reasoningEffort", "model", "source"], "properties": {"reasoningEffort": {"type": "string"}, "model": {"type": "string"}, "source": {"type": "string"}}}, "uniqueItems": true},
     "discoverySource": {"type": "string"},
     "confidence": {"enum": ["verified", "assumed", "unknown"]},
     "availability": {"enum": ["available", "unknown", "unavailable", "blocked"]},

@@ -1,0 +1,21 @@
+pyenv: cannot rehash: /Users/zel/.pyenv/shims isn't writable
+[
+  {
+    "id": "gpt-6.1-sol",
+    "model": "openai/gpt-6.1-sol",
+    "providerID": "openai",
+    "status": "active",
+    "isDefault": true,
+    "variants": {"high": {"reasoningEffort": "high"}},
+    "supportedReasoningEfforts": [{"reasoningEffort": "high"}]
+  },
+  {
+    "id": "gpt-6.1-sol",
+    "model": "opencode/gpt-6.1-sol",
+    "providerID": "opencode",
+    "status": "active",
+    "isDefault": false,
+    "variants": {"high": {"reasoningEffort": "high"}},
+    "supportedReasoningEfforts": [{"reasoningEffort": "high"}]
+  }
+]

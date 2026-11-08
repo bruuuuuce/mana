@@ -1,3 +1,4 @@
+pyenv: cannot rehash: /Users/zel/.pyenv/shims isn't writable
 # Dynamic Model Resolution
 
 MANA resolves provider models by requested capability tier before it builds
@@ -33,8 +34,20 @@ flag's presence alone does not establish model-specific support, so unsupported
 or unverified model/effort pairs block.
 OpenCode discovery reads the active provider-scoped catalog and resolved
 project default, preserving the complete provider/model identity and
-advertised variants. A missing project default can use OpenCode's provider
-native default for low-risk requests with no effort requirement, while
+advertised variants. The provider prefix is part of that identity: a provider
+change for the same model family is a different route and may have different
+entitlement, billing, or terms. The full-tier family rule grants semantic
+eligibility only; it does not authorize MANA to switch OpenCode providers,
+rewrite project configuration, or assume equivalent billing. Automatic full-
+tier selection stays within the provider of the active project default; an
+explicit provider/model pin can request another route and still must pass the
+same full-tier eligibility policy. OpenCode defines route identity as
+`provider/model` ([model selection](https://opencode.ai/docs/models/)). In
+particular, `opencode/<model-id>` selects OpenCode Console, whose published
+flow requires account credits and charges per request ([Console models](https://opencode.ai/docs/console/models/)); MANA must not silently substitute
+it for another provider route. A
+missing project default can use OpenCode's provider-native default for low-risk
+requests with no effort requirement, while
 reporting that the exact identity is unknown. Explicit inactive pins block.
 Listing and variant metadata do not prove a full-tier capability. Codex discovery uses the
 App Server `model/list` interface when available and reads visibility,
@@ -69,8 +82,16 @@ actual execution are separate facts.
 
 Model tiers are semantic selection policy only. They do not grant tool,
 filesystem, provider, or external-write permissions and do not increase cost
-ceilings. The provider remains responsible for entitlement checks at invocation
-time. MANA does not persist catalog data or credentials.
+ceilings. Economy and standard may resolve to the same full-tier model, and
+neither tier guarantees a lower-cost model. The provider remains responsible
+for entitlement checks at invocation time. MANA does not persist catalog data
+or credentials.
+
+Diagnostics keep `supportedReasoningEfforts` limited to values accepted by the
+MANA dispatch contract. `observedReasoningEfforts` retains provider-reported
+values, including unknown values such as `ultra`, with the model identity and
+discovery source. Unknown observations remain unavailable for dispatch until
+the contract and policy explicitly support them.
 
 The production Context Runtime worker-routing policy leaves `modelId` null so
 the provider-boundary resolver owns identity selection. Workers resolve the
