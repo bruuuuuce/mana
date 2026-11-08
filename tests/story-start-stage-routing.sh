@@ -72,6 +72,7 @@ if [ "${1:-}" = app-server ]; then
     request_id="$(jq -r '.id // empty' <<<"$request")"
     case "$method" in
       initialize) printf '{"id":%s,"result":{}}\n' "$request_id" ;;
+      account/gatewayOAuth/read) printf '{"id":%s,"result":{"required":false,"status":null}}\n' "$request_id" ;;
       model/list)
         printf '{"id":%s,"result":{"data":[{"id":"model-catalog-default","model":"model-catalog-default","isDefault":true,"supportedReasoningEfforts":[{"reasoningEffort":"high"},{"reasoningEffort":"xhigh"}]},{"id":"cli-discovery","model":"cli-discovery","supportedReasoningEfforts":[{"reasoningEffort":"high"}]},{"id":"cli-triage","model":"cli-triage","supportedReasoningEfforts":[{"reasoningEffort":"xhigh"}]},{"id":"cli-planner","model":"cli-planner","supportedReasoningEfforts":[{"reasoningEffort":"high"}]},{"id":"cli-correction","model":"cli-correction","supportedReasoningEfforts":[{"reasoningEffort":"xhigh"}]},{"id":"v1-root","model":"v1-root"}]}}\n' "$request_id"
         ;;

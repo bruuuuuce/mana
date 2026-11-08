@@ -309,10 +309,11 @@ while :; do
     fail "phase $phase_id model resolution is blocked: ${MANA_MODEL_RESOLUTION_ERROR}"
   fi
   model="$MANA_PROVIDER_MODEL_ID"
+  model_variant="$MANA_PROVIDER_MODEL_VARIANT"
   valid_model "$model" || fail 'resolved provider model identifier is invalid'
 
   schema_path="$root/contracts/context-runtime/phase-checkpoint-v1.schema.json"
-  mana_provider_phase_args "$provider" "$project_root" "$model" "$schema_path" "$native_schema" "$automatic_compaction_threshold" || {
+  mana_provider_phase_args "$provider" "$project_root" "$model" "$schema_path" "$native_schema" "$automatic_compaction_threshold" "$model_variant" || {
     finish_runtime failed
     fail "provider phase adapter rejected $provider"
   }

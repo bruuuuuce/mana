@@ -163,6 +163,19 @@ install_managed_file_or_link() {
   fi
 }
 
+remove_unresolved_managed_agent() {
+  local source_file="$1" target_file="$2" marker="$3"
+  if [ -L "$target_file" ]; then
+    if [ "$(readlink "$target_file")" = "$source_file" ]; then
+      rm "$target_file"
+    fi
+    return 0
+  fi
+  if [ -f "$target_file" ] && grep -Fq "$marker" "$target_file" 2>/dev/null; then
+    rm "$target_file"
+  fi
+}
+
 install_codex_agents() {
   source_agents_dir="$framework_root/.codex/agents"
   target_agents_dir="$project_root/.codex/agents"
@@ -172,10 +185,8 @@ install_codex_agents() {
   # Full specialists are installed only by run-profile after a provider-boundary
   # resolution proves the requested full tier. Bootstrap has no provider
   # execution context and must not expose an unresolved specialist route.
-  if [ -L "$target_agents_dir/mana-full-specialist.toml" ] &&
-     [ "$(readlink "$target_agents_dir/mana-full-specialist.toml")" = "$source_agents_dir/mana-full-specialist.toml" ]; then
-    rm "$target_agents_dir/mana-full-specialist.toml"
-  fi
+  remove_unresolved_managed_agent "$source_agents_dir/mana-full-specialist.toml" \
+    "$target_agents_dir/mana-full-specialist.toml" 'Mana-managed Codex custom agent'
   for agent_file in mana-explorer.toml mana-worker.toml; do
     [ -f "$source_agents_dir/$agent_file" ] || continue
     # Codex discovers project roles from physical TOML files. Keep the Mana
@@ -211,6 +222,9 @@ install_claude_agents() {
     mode="link"
   fi
 
+  remove_unresolved_managed_agent "$source_agents_dir/mana-full-specialist.md" \
+    "$target_agents_dir/mana-full-specialist.md" 'Mana-managed Claude Code subagent'
+
   for agent_file in mana-orchestrator.md mana-explorer.md mana-worker.md; do
     [ -f "$source_agents_dir/$agent_file" ] || continue
     install_managed_file_or_link "$source_agents_dir/$agent_file" "$target_agents_dir/$agent_file" "$mode"
@@ -227,6 +241,9 @@ install_opencode_agents() {
   if [ "$create_links" = true ]; then
     mode="link"
   fi
+
+  remove_unresolved_managed_agent "$source_agents_dir/mana_full_specialist.md" \
+    "$target_agents_dir/mana_full_specialist.md" 'Mana-managed OpenCode agent'
 
   for agent_file in mana_orchestrator.md mana_explorer.md mana_worker.md; do
     [ -f "$source_agents_dir/$agent_file" ] || continue

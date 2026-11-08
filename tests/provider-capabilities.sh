@@ -460,6 +460,7 @@ case "${1:-}" in
       method="$(jq -r '.method // empty' <<<"$request")"
       request_id="$(jq -r '.id // empty' <<<"$request")"
       if [ "$method" = initialize ]; then printf '{"id":%s,"result":{}}\n' "$request_id"; fi
+      if [ "$method" = account/gatewayOAuth/read ]; then printf '{"id":%s,"result":{"required":false,"status":null}}\n' "$request_id"; fi
       if [ "$method" = model/list ]; then printf '{"id":%s,"error":{"code":-32601,"message":"unsupported"}}\n' "$request_id"; fi
     done
     exit 0 ;;

@@ -39,6 +39,7 @@ if [ "${1:-}" = "app-server" ]; then
     request_id="$(jq -r '.id // empty' <<<"$request")"
     case "$method" in
       initialize) printf '{"id":%s,"result":{}}\n' "$request_id" ;;
+      account/gatewayOAuth/read) printf '{"id":%s,"result":{"required":false,"status":null}}\n' "$request_id" ;;
       model/list)
         printf '{"id":%s,"result":{"data":[{"id":"new-default","model":"new-default","isDefault":true,"supportedReasoningEfforts":[{"reasoningEffort":"low"},{"reasoningEffort":"medium"},{"reasoningEffort":"high"},{"reasoningEffort":"xhigh"}]},{"id":"root-mini","model":"root-mini","supportedReasoningEfforts":[{"reasoningEffort":"medium"}]},{"id":"explorer-terra","model":"explorer-terra","supportedReasoningEfforts":[{"reasoningEffort":"medium"}]},{"id":"worker-terra","model":"worker-terra","supportedReasoningEfforts":[{"reasoningEffort":"high"}]},{"id":"full-sol","model":"full-sol","supportedReasoningEfforts":[{"reasoningEffort":"high"}]}]}}\n' "$request_id"
         ;;
@@ -282,6 +283,18 @@ mkdir -p "$legacy_link_project/.codex/agents"
 ln -s "$root/.codex/agents/mana-full-specialist.toml" "$legacy_link_project/.codex/agents/mana-full-specialist.toml"
 "$root/scripts/bootstrap-project.sh" --project-root "$legacy_link_project" --mana-root "$root" --no-jira-env > "$tmp/bootstrap-legacy-link.out" 2> "$tmp/bootstrap-legacy-link.err"
 [ ! -e "$legacy_link_project/.codex/agents/mana-full-specialist.toml" ] || fail 'bootstrap retained an unresolved managed specialist link'
+
+legacy_generated_project="$tmp/legacy generated project"
+mkdir -p "$legacy_generated_project/.codex/agents" "$legacy_generated_project/.claude/agents" "$legacy_generated_project/.opencode/agents"
+printf '%s\n' '# Mana-managed Codex custom agent.' 'model = "retired-codex-model"' > "$legacy_generated_project/.codex/agents/mana-full-specialist.toml"
+printf '%s\n' '# Mana-managed Claude Code subagent' 'model: retired-claude-model' > "$legacy_generated_project/.claude/agents/mana-full-specialist.md"
+printf '%s\n' '# Mana-managed OpenCode agent' 'model: provider/retired-opencode-model' > "$legacy_generated_project/.opencode/agents/mana_full_specialist.md"
+printf '%s\n' '# user-owned full specialist' 'model = "my-model"' > "$legacy_generated_project/.codex/agents/custom-full.toml"
+"$root/scripts/bootstrap-project.sh" --project-root "$legacy_generated_project" --mana-root "$root" --no-jira-env > "$tmp/bootstrap-legacy-generated.out" 2> "$tmp/bootstrap-legacy-generated.err"
+[ ! -e "$legacy_generated_project/.codex/agents/mana-full-specialist.toml" ] || fail 'bootstrap retained an unresolved managed Codex specialist copy'
+[ ! -e "$legacy_generated_project/.claude/agents/mana-full-specialist.md" ] || fail 'bootstrap retained an unresolved managed Claude specialist copy'
+[ ! -e "$legacy_generated_project/.opencode/agents/mana_full_specialist.md" ] || fail 'bootstrap retained an unresolved managed OpenCode specialist copy'
+assert_file_contains "$legacy_generated_project/.codex/agents/custom-full.toml" 'model = "my-model"'
 assert_file_contains "$bootstrap_project/.codex/config.toml" "max_threads = 3"
 assert_file_contains "$bootstrap_project/AGENTS.md" "Do not create one Codex subagent per Mana skill"
 

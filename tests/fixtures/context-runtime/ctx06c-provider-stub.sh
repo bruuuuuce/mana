@@ -22,6 +22,18 @@ case "${1:-}" in
       exit 0
     fi
     ;;
+  app-server)
+    while IFS= read -r request; do
+      [ -n "$request" ] || continue
+      request_id="$(jq -r '.id // empty' <<<"$request")"
+      case "$(jq -r '.method // empty' <<<"$request")" in
+        initialize) printf '{"id":%s,"result":{}}\n' "$request_id" ;;
+        account/gatewayOAuth/read) printf '{"id":%s,"result":{"required":false,"status":null}}\n' "$request_id" ;;
+        model/list) printf '{"id":%s,"error":{"code":-32601,"message":"unsupported"}}\n' "$request_id" ;;
+      esac
+    done
+    exit 0
+    ;;
 esac
 
 [ -z "${MANA_CONTEXT_PHASE_LOCK_HELD:-}" ] || exit 10

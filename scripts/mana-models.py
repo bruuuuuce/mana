@@ -72,7 +72,9 @@ def codex_catalog(binary: str) -> tuple[list[dict], str]:
                 error = payload["error"]
                 code = error.get("code") if isinstance(error, dict) else None
                 if code == -32601:
-                    raise CatalogUnavailable("Codex App Server does not support model/list")
+                    if message.get("method") == "model/list":
+                        raise CatalogUnavailable("Codex App Server does not support model/list")
+                    raise RuntimeError("Codex App Server cannot verify gateway-auth readiness safely")
                 if code in (401, 403):
                     raise RuntimeError("Codex model catalog authentication or entitlement was rejected")
                 raise RuntimeError("Codex App Server rejected model/list")
@@ -82,15 +84,19 @@ def codex_catalog(binary: str) -> tuple[list[dict], str]:
     try:
         request({"method": "initialize", "id": 1, "params": {
             "clientInfo": {"name": "mana-models", "title": "MANA model discovery", "version": "1"},
-            "capabilities": {"experimentalApi": True}}}, 1)
+            "capabilities": {"experimentalApi": True, "explicitGatewayOauth": True}}}, 1)
         request({"method": "initialized", "params": {}})
+        gateway_auth = request({"method": "account/gatewayOAuth/read", "id": 2}, 2)
+        if gateway_auth.get("required") is True and gateway_auth.get("status") != "succeeded":
+            raise RuntimeError("Codex gateway authentication is required but credentials are not ready")
         data: list[dict] = []
         cursor = None
         for ordinal in range(32):
             params: dict = {"limit": 100, "includeHidden": False}
             if cursor:
                 params["cursor"] = cursor
-            response = request({"method": "model/list", "id": ordinal + 2, "params": params}, ordinal + 2)
+            request_id = ordinal + 3
+            response = request({"method": "model/list", "id": request_id, "params": params}, request_id)
             page = response.get("data")
             if not isinstance(page, list):
                 raise RuntimeError("Codex model/list returned malformed catalog")
@@ -206,9 +212,9 @@ def discover(provider: str, fixture: str | None, refresh: bool = False,
         return models, "opencode:models --verbose+debug-config:model", version, "verified"
     if provider == "claude":
         binary = shutil.which(os.environ.get("MANA_CLAUDE_BIN", "claude"))
-        version = "unknown"
-        if binary:
-            version = subprocess.run([binary, "--version"], text=True, capture_output=True, timeout=5).stdout.strip()
+        if not binary:
+            raise RuntimeError("Claude Code CLI is not installed")
+        version = subprocess.run([binary, "--version"], text=True, capture_output=True, timeout=5).stdout.strip()
         # Claude Code documents dynamic family aliases; aliases remain unverified for account entitlement.
         models = [{"id": alias, "model": alias, "alias": True}
                   for alias in ("haiku", "sonnet", "opus")]
@@ -274,12 +280,22 @@ def select(provider: str, tier: str, effort: str | None, override: str | None,
             reason = "Junie Default is a documented provider-owned dynamic model; entitlement is checked at invocation"
         confidence = "assumed"
     elif provider == "claude":
+        supported_efforts = {"low", "medium", "high", "xhigh", "max"}
+        if effort and effort not in supported_efforts:
+            selected = override or {"economy": "haiku", "standard": "sonnet", "full": "opus"}[tier]
+            status, compatible = "blocked", "incompatible"
+            reason = "Claude Code does not support the requested effort level"
+            confidence = "assumed"
+            return {"schemaVersion": SCHEMA, "provider": provider, "executionSupport": "supported",
+                    "requestedTier": tier, "reasoningEffort": effort, "explicitOverride": override,
+                    "selectedModel": selected, "selectedVariant": None, "supportedReasoningEfforts": sorted(supported_efforts),
+                    "discoverySource": source, "providerVersion": version, "confidence": confidence,
+                    "availability": status, "invocationCompatibility": compatible,
+                    "selectionReason": reason, "fallbackReason": "requested effort cannot be applied safely",
+                    "costPolicy": "no cross-provider fallback; no increase to existing cost ceiling"}
         if override:
             found = next((m for m in models if override in (m.get("id"), m.get("model"))), None)
-            if effort:
-                selected, status, compatible = override, "blocked", "incompatible"
-                reason = "Claude Code adapter cannot apply the requested reasoning effort"
-            elif tier == "full":
+            if tier == "full":
                 selected, status, compatible = override, "unknown", "unknown"
                 reason = "explicit Claude pin is preserved, but alias/model identity does not prove full-tier suitability"
             elif found:
@@ -402,6 +418,8 @@ def select(provider: str, tier: str, effort: str | None, override: str | None,
     supported_efforts = sorted({item.get("reasoningEffort") for item in
                                 (selected_record or {}).get("supportedReasoningEfforts", [])
                                 if isinstance(item, dict) and isinstance(item.get("reasoningEffort"), str)})
+    if provider == "claude":
+        supported_efforts = ["high", "low", "max", "medium", "xhigh"]
     return {"schemaVersion": SCHEMA, "provider": provider, "executionSupport": "unsupported" if provider == "junie" else "supported",
             "requestedTier": tier,
             "reasoningEffort": effort, "explicitOverride": override, "selectedModel": selected,

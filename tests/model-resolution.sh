@@ -32,6 +32,12 @@ jq -e '.selectedModel == "provider-new-default" and .availability == "blocked" a
 
 if python3 "$resolver" doctor --provider claude --tier full --json > "$tmp/claude.json"; then fail 'Claude opus alias was treated as full-tier proof'; fi
 jq -e '.selectedModel == "opus" and .confidence == "assumed" and .availability == "unknown" and .invocationCompatibility == "unknown"' "$tmp/claude.json" >/dev/null || fail 'Claude alias certainty was overstated'
+python3 "$resolver" doctor --provider claude --tier economy --effort medium --json > "$tmp/claude-effort.json"
+jq -e '.selectedModel == "haiku" and .reasoningEffort == "medium" and (.supportedReasoningEfforts | index("medium")) and .invocationCompatibility == "compatible"' "$tmp/claude-effort.json" >/dev/null || fail 'Claude CLI effort was not resolved as a supported invocation setting'
+python3 "$resolver" doctor --provider claude --tier economy --effort minimal --json > "$tmp/claude-invalid-effort.json" && fail 'unsupported Claude effort level was accepted'
+jq -e '.availability == "blocked" and .invocationCompatibility == "incompatible"' "$tmp/claude-invalid-effort.json" >/dev/null || fail 'unsupported Claude effort did not block safely'
+if MANA_CLAUDE_BIN=mana-claude-missing python3 "$resolver" doctor --provider claude --tier economy --json > "$tmp/claude-missing-cli.json"; then fail 'Claude alias was selected without an installed CLI'; fi
+jq -e '.selectedModel == null and .availability == "blocked" and (.fallbackReason | contains("CLI is not installed"))' "$tmp/claude-missing-cli.json" >/dev/null || fail 'missing Claude CLI was not reported as unavailable'
 
 python3 "$resolver" doctor --provider opencode --tier economy --fixture "$fixtures/opencode-models.json" --json > "$tmp/opencode.json"
 jq -e '.selectedModel == "provider/example-model" and .availability == "available"' "$tmp/opencode.json" >/dev/null || fail 'OpenCode project default was not resolved'
@@ -80,6 +86,7 @@ if [ "${1:-}" = "app-server" ]; then
     if [ "$method" = "initialize" ]; then
       printf '{"method":"account/updated","params":{}}\n{"id":%s,"result":{}}\n' "$request_id"
     fi
+    if [ "$method" = "account/gatewayOAuth/read" ]; then printf '{"id":%s,"result":{"required":false,"status":null}}\n' "$request_id"; fi
     if [ "$method" = "model/list" ]; then printf '{"id":%s,"error":{"code":-32601,"message":"unsupported"}}\n' "$request_id"; fi
   done
   exit 0
@@ -101,6 +108,7 @@ if [ "${1:-}" = "app-server" ]; then
     request_id="$(jq -r '.id // empty' <<<"$request")"
     case "$method" in
       initialize) printf '{"id":%s,"result":{}}\n' "$request_id" ;;
+      account/gatewayOAuth/read) printf '{"id":%s,"result":{"required":false,"status":null}}\n' "$request_id" ;;
       model/list) printf '{"id":%s,"error":{"code":401,"message":"unauthorized"}}\n' "$request_id" ;;
     esac
   done
@@ -116,6 +124,33 @@ if MANA_CODEX_BIN="$tmp/bin/codex-auth-rejected" MANA_MODEL_AUTH_INVOKED="$tmp/a
 fi
 jq -e '.availability == "blocked" and (.fallbackReason | contains("authentication or entitlement was rejected"))' "$tmp/auth-rejected.json" >/dev/null || fail 'authentication rejection diagnostic was not distinguished'
 [ ! -e "$tmp/auth-invoked" ] || fail 'provider invocation occurred after discovery authentication rejection'
+
+cat > "$tmp/bin/codex-gateway-pending" <<'STUB'
+#!/usr/bin/env bash
+if [ "${1:-}" = "--version" ]; then echo 'codex fixture 1'; exit 0; fi
+if [ "${1:-}" = "app-server" ]; then
+  while IFS= read -r request; do
+    method="$(jq -r '.method // empty' <<<"$request")"
+    request_id="$(jq -r '.id // empty' <<<"$request")"
+    case "$method" in
+      initialize) printf '{"id":%s,"result":{}}\n' "$request_id" ;;
+      account/gatewayOAuth/read) printf '{"id":%s,"result":{"required":true,"status":"notReady"}}\n' "$request_id" ;;
+      model/list) printf 'catalog query must not follow an unready gateway auth check\n' >> "$MANA_GATEWAY_CATALOG_INVOKED" ;;
+    esac
+  done
+  exit 0
+fi
+printf 'provider invocation must not happen before gateway authentication is ready\n' >> "$MANA_GATEWAY_PROVIDER_INVOKED"
+exit 9
+STUB
+chmod +x "$tmp/bin/codex-gateway-pending"
+if MANA_CODEX_BIN="$tmp/bin/codex-gateway-pending" MANA_GATEWAY_CATALOG_INVOKED="$tmp/gateway-catalog-invoked" MANA_GATEWAY_PROVIDER_INVOKED="$tmp/gateway-provider-invoked" \
+    python3 "$resolver" doctor --provider codex --tier economy --json > "$tmp/gateway-pending.json"; then
+  fail 'Codex discovery proceeded without ready gateway credentials'
+fi
+jq -e '.availability == "blocked" and (.fallbackReason | contains("gateway authentication is required"))' "$tmp/gateway-pending.json" >/dev/null || fail 'gateway-auth readiness failure was not reported'
+[ ! -e "$tmp/gateway-catalog-invoked" ] || fail 'model catalog was queried before gateway auth readiness'
+[ ! -e "$tmp/gateway-provider-invoked" ] || fail 'provider was invoked before gateway auth readiness'
 
 for result in "$tmp"/*.json; do
   python3 "$root/tests/lib/json_schema_subset.py" "$root/contracts/model-resolution-v1.schema.json" "$result" ||

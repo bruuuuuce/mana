@@ -25,7 +25,7 @@ context_runtime:
       retry_limit: 0
     - id: synthesize
       ordinal: 2
-      model_tier: full
+      model_tier: economy
       output_schema: phase-checkpoint-v1
       subagents: optional
       evidence_kinds: [summary]

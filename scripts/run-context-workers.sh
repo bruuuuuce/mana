@@ -37,6 +37,8 @@ if [ "$invoked_path" = "$test_entrypoint" ] || [ "$invoked_path" = "$retain_test
 fi
 # shellcheck source=scripts/lib/provider-dispatch.sh
 . "$root/scripts/lib/provider-dispatch.sh"
+# shellcheck source=scripts/lib/model-resolution.sh
+. "$root/scripts/lib/model-resolution.sh"
 # shellcheck source=scripts/lib/provider-execution.sh
 . "$root/scripts/lib/provider-execution.sh"
 # shellcheck source=scripts/lib/worker-isolation.sh
@@ -272,7 +274,7 @@ test_crash_at() {
 }
 
 run_worker() {
-  local task_id="$1" worker_dir="$temporary/workers/$1" capsule="$temporary/capsules/$1" scratch="$temporary/scratch/$1" model effort provider_status capsule_schema claim action task_execution_key invocation_id timeout_seconds kill_grace_seconds terminal_status usage_summary raw_trace bind_command
+  local task_id="$1" worker_dir="$temporary/workers/$1" capsule="$temporary/capsules/$1" scratch="$temporary/scratch/$1" model effort model_tier model_variant provider_status capsule_schema claim action task_execution_key invocation_id timeout_seconds kill_grace_seconds terminal_status usage_summary raw_trace bind_command
   local -a usage_args=()
   mkdir "$worker_dir"
   mkdir -p "$temporary/capsules" "$temporary/scratch"
@@ -302,8 +304,22 @@ run_worker() {
       *) return 1 ;;
     esac
   done
-  model="$(jq -er '.modelSelection.modelId' "$worker_dir/packet.json")"
+  model="$(jq -r '.modelSelection.modelId // empty' "$worker_dir/packet.json")"
+  model_tier="$(jq -er '.modelSelection.modelTier' "$worker_dir/packet.json")"
   effort="$(jq -er '.modelSelection.reasoningEffort' "$worker_dir/packet.json")"
+  model_variant=""
+  if [ -z "$model" ]; then
+    if ! mana_model_resolve "$provider" "$model_tier" "$effort" "" "$project_root"; then
+      "$worker_helper" finalize-task --project-root "$project_root" --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" --status failed || true
+      jq -cn --arg provider "$provider" --arg tier "$model_tier" --arg reason "$MANA_MODEL_RESOLUTION_ERROR" --arg invocationId "$invocation_id" \
+        '{category:"model_resolution_blocked",provider:$provider,modelTier:$tier,reason:$reason,invocationId:$invocationId}' \
+        > "$worker_dir/public-error.json"
+      echo "ERROR: model resolution blocked for $provider/$model_tier: $MANA_MODEL_RESOLUTION_ERROR" >&2
+      return 1
+    fi
+    model="$MANA_PROVIDER_MODEL_ID"
+    model_variant="$MANA_PROVIDER_MODEL_VARIANT"
+  fi
   if ! "$worker_helper" materialize-capsule --packet "$worker_dir/packet.json" --project-root "$project_root" --capsule "$capsule" > "$worker_dir/capsule-manifest.json"; then
     "$worker_helper" finalize-task --project-root "$project_root" --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" --status failed || true
     return 1
@@ -329,7 +345,7 @@ run_worker() {
   if [ "$worker_transport" = provider-managed-child ]; then
     mana_provider_child_worker_args "$provider" "$capsule" "$model" "$effort" "$capsule_schema"
   else
-    mana_provider_worker_args "$provider" "$capsule" "$model" "$effort" "$capsule_schema" "$native_schema" "$automatic_compaction_threshold"
+    mana_provider_worker_args "$provider" "$capsule" "$model" "$effort" "$capsule_schema" "$native_schema" "$automatic_compaction_threshold" "$model_variant"
   fi || {
     echo "ERROR: provider worker adapter rejected $provider" >&2
     "$worker_helper" finalize-task --project-root "$project_root" --task-execution-key "$task_execution_key" --invocation-id "$invocation_id" --status failed || true
@@ -444,6 +460,8 @@ wait_batch() {
       if [ -f "$temporary/workers/$task_id/public-error.json" ]; then
         jq -r 'if .category == "transport_failure" then
           "ERROR: transport_failure provider=" + .provider + " invocationId=" + .invocationId + " exitStatus=" + (.exitStatus|tostring)
+          elif .category == "model_resolution_blocked" then
+          "ERROR: needs_model_escalation category=" + .category + " provider=" + .provider + " modelTier=" + .modelTier + " invocationId=" + .invocationId + " reason=" + (.reason|gsub("[\\r\\n\\t]"; " "))
           else "ERROR: needs_model_escalation category=" + .category + " provider=" + .provider + " invocationId=" + .invocationId end' \
           "$temporary/workers/$task_id/public-error.json" >&2
       else

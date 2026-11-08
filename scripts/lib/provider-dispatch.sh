@@ -67,12 +67,16 @@ mana_provider_usage_args() {
 # The final argument states whether the current CTX-02 probe proved native
 # schema enforcement.  Host validation remains mandatory in either case.
 mana_provider_phase_args() {
-  local provider="$1" project="$2" model="$3" output_schema="$4" native_schema="${5:-false}" automatic_compaction_threshold="${6:-}" schema_json=""
+  local provider="$1" project="$2" model="$3" output_schema="$4" native_schema="${5:-false}" automatic_compaction_threshold="${6:-}" variant="${7:-}" schema_json="" opencode_model="$3"
   MANA_PROVIDER_ARGS=()
   MANA_PROVIDER_OPENCODE_CONFIG_CONTENT=""
   MANA_PROVIDER_PHASE_OUTPUT_MODE="direct-json"
   case "$native_schema" in true|false) ;; *) return 1 ;; esac
   case "$automatic_compaction_threshold" in '' ) ;; *[!0123456789]* ) return 1 ;; esac
+  if [ -n "$variant" ]; then
+    [ "$provider" = opencode ] || return 1
+    opencode_model="$model#$variant"
+  fi
   [ -f "$output_schema" ] && [ ! -L "$output_schema" ] || return 1
   case "$provider" in
     codex)
@@ -96,8 +100,10 @@ mana_provider_phase_args() {
       # subagent disable.  CTX-06C's capability gate therefore rejects this
       # adapter before invocation; keep its argv deterministic for a future
       # capability improvement without claiming support now.
-      MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn --arg model "$model" '{agent:{mana_ctx06_phase:{description:"Mana read-only fresh phase worker",mode:"primary",model:$model,permission:{task:"deny",edit:"deny",bash:"deny"}}}}')" || return 1
-      MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model" --agent mana_ctx06_phase --pure)
+      MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn --arg model "$opencode_model" '{agent:{mana_ctx06_phase:{description:"Mana read-only fresh phase worker",mode:"primary",model:$model,permission:{task:"deny",edit:"deny",bash:"deny"}}}}')" || return 1
+      MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model")
+      [ -z "$variant" ] || MANA_PROVIDER_ARGS+=(--variant "$variant")
+      MANA_PROVIDER_ARGS+=(--agent mana_ctx06_phase --pure)
       ;;
     *) return 1 ;;
   esac
@@ -108,12 +114,16 @@ mana_provider_phase_args() {
 # invocation is read-only, ephemeral, explicitly model-routed, and has every
 # known child mechanism disabled.
 mana_provider_worker_args() {
-  local provider="$1" project="$2" model="$3" reasoning_effort="$4" output_schema="$5" native_schema="${6:-false}" automatic_compaction_threshold="${7:-}" schema_json=""
+  local provider="$1" project="$2" model="$3" reasoning_effort="$4" output_schema="$5" native_schema="${6:-false}" automatic_compaction_threshold="${7:-}" variant="${8:-}" schema_json="" opencode_model="$3"
   MANA_PROVIDER_ARGS=()
   MANA_PROVIDER_OPENCODE_CONFIG_CONTENT=""
   case "$reasoning_effort" in minimal|low|medium|high|xhigh|max) ;; *) return 1 ;; esac
   case "$native_schema" in true|false) ;; *) return 1 ;; esac
   case "$automatic_compaction_threshold" in '' ) ;; *[!0123456789]* ) return 1 ;; esac
+  if [ -n "$variant" ]; then
+    [ "$provider" = opencode ] || return 1
+    opencode_model="$model#$variant"
+  fi
   [ -f "$output_schema" ] && [ ! -L "$output_schema" ] || return 1
   case "$provider" in
     codex)
@@ -135,8 +145,10 @@ mana_provider_worker_args() {
       # The current CTX-02 report cannot prove hard child disable, so CTX-07B
       # rejects this path before invocation.  Keep the future adapter isolated
       # without claiming the missing capability today.
-      MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn --arg model "$model" '{agent:{mana_ctx07_worker:{description:"Mana read-only fresh delegation worker",mode:"primary",model:$model,permission:{task:"deny",edit:"deny",bash:"deny"}}}}')" || return 1
-      MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model" --variant "$reasoning_effort" --agent mana_ctx07_worker --pure)
+      MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn --arg model "$opencode_model" '{agent:{mana_ctx07_worker:{description:"Mana read-only fresh delegation worker",mode:"primary",model:$model,permission:{task:"deny",edit:"deny",bash:"deny"}}}}')" || return 1
+      MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model")
+      [ -z "$variant" ] || MANA_PROVIDER_ARGS+=(--variant "$variant")
+      MANA_PROVIDER_ARGS+=(--agent mana_ctx07_worker --pure)
       ;;
     *) return 1 ;;
   esac

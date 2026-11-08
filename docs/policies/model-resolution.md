@@ -25,7 +25,11 @@ provider call or switches providers.
 
 Claude Code supports dynamic `haiku`, `sonnet`, and `opus` family aliases. The
 aliases avoid release-specific IDs but do not prove account entitlement or
-quality for every task. OpenCode discovery reads the active provider-scoped
+quality for every task. MANA blocks Claude routing when its CLI is not installed.
+For requested effort, MANA accepts the CLI's documented `low`, `medium`, `high`,
+`xhigh`, and `max` values and passes the selected value through unchanged;
+unsupported values block before invocation.
+OpenCode discovery reads the active provider-scoped
 catalog and resolved project default, preserving the complete provider/model
 identity and advertised variants. Listing and variant metadata do not prove a
 full-tier capability. Codex discovery uses the
@@ -34,8 +38,11 @@ reasoning-effort, default, and upgrade metadata. Catalog membership is not
 entitlement proof, and an upgrade hint does not itself prove full-tier
 capability. If Codex model/list is unsupported, MANA leaves the model ID unset
 and lets Codex use its provider-owned default for requests without a required
-reasoning effort. Authentication errors and unsupported explicit efforts do
-not take this fallback. Junie accepts `--model` and `--effort`, documents a
+reasoning effort. Before querying its catalog, Codex opts out of automatic
+gateway OAuth browser login and checks the read-only gateway credential status;
+catalog discovery blocks unless required credentials are ready. Authentication
+errors and unsupported explicit efforts do not take the provider-default
+fallback. Junie accepts `--model` and `--effort`, documents a
 dynamic `Default`, documented model aliases, and custom profiles in `.junie/models` and
 `$JUNIE_HOME/models`. MANA reports those identities without exposing profile
 contents; it cannot verify account entitlement or custom endpoint reachability
@@ -49,10 +56,13 @@ ceilings. The provider remains responsible for entitlement checks at invocation
 time. MANA does not persist catalog data or credentials.
 
 The production Context Runtime worker-routing policy leaves `modelId` null so
-the provider-boundary resolver owns identity selection. A null packet identity
-is not an instruction to invoke a provider's unverified default. Full-tier
-capability must resolve before MANA installs a specialist agent or dispatches a
-high-risk stage.
+the provider-boundary resolver owns identity selection. Workers resolve the
+provider, semantic tier, and requested effort before constructing provider
+arguments; OpenCode receives only a catalog-advertised variant. A null packet
+identity is not an instruction to invoke a provider's unverified default.
+Full-tier capability must resolve before MANA installs a specialist agent or
+dispatches a high-risk stage. Fixture worker identities remain fixed by their
+test-only routing policy.
 
 ## Fixture verification
 
