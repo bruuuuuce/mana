@@ -44,7 +44,8 @@ def version_key(model: str) -> tuple[tuple[int, ...], str]:
 
 
 def validate_eligibility_policy(policy: dict) -> None:
-    if (policy.get("schemaVersion") != "mana.model-tier-eligibility/v1"
+    if (not isinstance(policy, dict)
+            or policy.get("schemaVersion") != "mana.model-tier-eligibility/v1"
             or not isinstance(policy.get("policyId"), str)
             or policy.get("selectionPolicy") != "highest-discovered-version-within-first-eligible-family"
             or not isinstance(policy.get("rationale"), str)
@@ -53,13 +54,14 @@ def validate_eligibility_policy(policy: dict) -> None:
     allowed_efforts = {"low", "medium", "high", "xhigh", "max"}
     seen_ids: set[str] = set()
     for rule in policy["rules"]:
-        if not isinstance(rule, dict) or rule.get("provider") not in {"codex", "claude", "opencode"}:
+        if (not isinstance(rule, dict) or not isinstance(rule.get("provider"), str)
+                or rule.get("provider") not in {"codex", "claude", "opencode"}):
             raise RuntimeError("tier-eligibility policy contains an invalid rule")
         rule_id = rule.get("id")
         efforts = rule.get("efforts")
         if (not isinstance(rule_id, str) or not rule_id or rule_id in seen_ids
                 or not isinstance(efforts, list) or not efforts
-                or any(item not in allowed_efforts for item in efforts)
+                or any(not isinstance(item, str) or item not in allowed_efforts for item in efforts)
                 or rule.get("defaultEffort") not in efforts):
             raise RuntimeError("tier-eligibility policy contains an invalid rule")
         seen_ids.add(rule_id)
@@ -594,7 +596,9 @@ def select(provider: str, tier: str, effort: str | None, override: str | None,
             reason = "Codex CLI provider-owned default selected without a model ID because App Server model/list is unavailable"
             confidence = "assumed"
     if not selected and status == "unknown":
-        if provider == "opencode" and compatible == "compatible" and tier in {"economy", "standard"} and not effort:
+        if provider == "codex" and source == "codex-cli:provider-owned-default" and compatible == "compatible":
+            fallback = "model ID unavailable; Codex will resolve its provider-owned default at invocation"
+        elif provider == "opencode" and compatible == "compatible" and tier in {"economy", "standard"} and not effort:
             fallback = "OpenCode will choose its provider-native project default; exact model identity is unavailable before invocation"
         else:
             fallback = "discovery cannot establish a safe model for the requested tier"

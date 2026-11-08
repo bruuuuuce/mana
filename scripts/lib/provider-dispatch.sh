@@ -32,7 +32,8 @@ mana_provider_profile_args() {
       fi ;;
     opencode)
       if [ "$subagents" = true ]; then
-        MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model")
+        MANA_PROVIDER_ARGS=(run --dir "$project")
+        [ -z "$model" ] || MANA_PROVIDER_ARGS+=(--model "$model")
         [ -z "$variant" ] || MANA_PROVIDER_ARGS+=(--variant "$variant")
         MANA_PROVIDER_ARGS+=(--agent mana_orchestrator)
       else
@@ -42,8 +43,13 @@ mana_provider_profile_args() {
         # complete user/project configuration isolation.
         local opencode_model="$model"
         [ -z "$variant" ] || opencode_model="$opencode_model#$variant"
-        MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn --arg model "$opencode_model" '{agent:{mana_ctx02_no_children:{description:"Mana primary with child execution disabled",mode:"primary",model:$model,permission:{task:"deny"}}}}')" || return 1
-        MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model")
+        if [ -n "$opencode_model" ]; then
+          MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn --arg model "$opencode_model" '{agent:{mana_ctx02_no_children:{description:"Mana primary with child execution disabled",mode:"primary",model:$model,permission:{task:"deny"}}}}')" || return 1
+        else
+          MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn '{agent:{mana_ctx02_no_children:{description:"Mana primary with child execution disabled",mode:"primary",permission:{task:"deny"}}}}')" || return 1
+        fi
+        MANA_PROVIDER_ARGS=(run --dir "$project")
+        [ -z "$model" ] || MANA_PROVIDER_ARGS+=(--model "$model")
         [ -z "$variant" ] || MANA_PROVIDER_ARGS+=(--variant "$variant")
         MANA_PROVIDER_ARGS+=(--agent mana_ctx02_no_children --pure)
       fi ;;
@@ -103,8 +109,14 @@ mana_provider_phase_args() {
       # subagent disable.  CTX-06C's capability gate therefore rejects this
       # adapter before invocation; keep its argv deterministic for a future
       # capability improvement without claiming support now.
-      MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn --arg model "$opencode_model" '{agent:{mana_ctx06_phase:{description:"Mana read-only fresh phase worker",mode:"primary",model:$model,permission:{task:"deny",edit:"deny",bash:"deny"}}}}')" || return 1
-      MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model")
+      if [ -n "$opencode_model" ]; then
+        MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn --arg model "$opencode_model" '{agent:{mana_ctx06_phase:{description:"Mana read-only fresh phase worker",mode:"primary",model:$model,permission:{task:"deny",edit:"deny",bash:"deny"}}}}')" || return 1
+      else
+        [ -z "$reasoning_effort" ] && [ -z "$variant" ] || return 1
+        MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn '{agent:{mana_ctx06_phase:{description:"Mana read-only fresh phase worker",mode:"primary",permission:{task:"deny",edit:"deny",bash:"deny"}}}}')" || return 1
+      fi
+      MANA_PROVIDER_ARGS=(run --dir "$project")
+      [ -z "$model" ] || MANA_PROVIDER_ARGS+=(--model "$model")
       [ -z "$variant" ] || MANA_PROVIDER_ARGS+=(--variant "$variant")
       MANA_PROVIDER_ARGS+=(--agent mana_ctx06_phase --pure)
       ;;

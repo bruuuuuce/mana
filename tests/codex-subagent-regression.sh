@@ -118,10 +118,15 @@ MODELS
   exit 0
 fi
 if [ "${1:-}" = "debug" ]; then
-  printf '%s\n' '{"model":"new-provider/new-default"}'
+  if [ "${MANA_TEST_OPENCODE_NO_DEFAULT:-0}" = 1 ]; then
+    printf '%s\n' '{}'
+  else
+    printf '%s\n' '{"model":"new-provider/new-default"}'
+  fi
   exit 0
 fi
 printf '%s\n' "$@" > "$MANA_TEST_OPENCODE_ARGS"
+printf '%s\n' "${OPENCODE_CONFIG_CONTENT:-}" > "$MANA_TEST_OPENCODE_CONFIG"
 last=""
 for arg in "$@"; do last="$arg"; done
 printf '%s\n' "$last" > "$MANA_TEST_OPENCODE_PROMPT"
@@ -163,6 +168,7 @@ run_opencode_profile_with_stub() {
   mkdir -p "$project"
   MANA_TEST_OPENCODE_ARGS="$tmp/opencode.args" \
     MANA_TEST_OPENCODE_PROMPT="$tmp/opencode.prompt" \
+  MANA_TEST_OPENCODE_CONFIG="$tmp/opencode.config" \
     PATH="$tmp/bin:$PATH" \
     "$root/scripts/run-profile.sh" story-start --project-root "$project" --opencode "$@" > "$tmp/opencode-run.out" 2> "$tmp/opencode-run.err"
 }
@@ -199,6 +205,7 @@ assert_file_contains "$project_with_spaces/.codex/agents/mana-full-specialist.to
 assert_file_contains "$project_with_spaces/.codex/agents/mana-full-specialist.toml" 'model_reasoning_effort = "high"'
 assert_file_contains "$project_with_spaces/.codex/agents/mana-explorer.toml" 'model = "new-default"'
 assert_file_contains "$project_with_spaces/.codex/agents/mana-worker.toml" 'model = "gpt-2099-sol"'
+assert_file_contains "$project_with_spaces/.codex/agents/mana-worker.toml" 'model_reasoning_effort = "high"'
 assert_file_not_contains "$tmp/codex.prompt" 'Full-tier escalation is blocked'
 
 unqualified_full_project="$tmp/unqualified full project"
@@ -347,6 +354,7 @@ assert_file_not_contains "$tmp/opencode.prompt" "skills/index.yaml"
 assert_file_contains "$tmp/opencode.prompt" "needs_model_escalation"
 assert_file_contains "$opencode_project/.opencode/agents/mana_orchestrator.md" "mode: primary"
 assert_file_contains "$opencode_project/.opencode/agents/mana_explorer.md" "mode: subagent"
+assert_file_contains "$opencode_project/.opencode/agents/mana_full_specialist.md" 'model: openai/gpt-2099-sol#high'
 [ -e "$opencode_project/.opencode/agents/mana_full_specialist.md" ] || fail 'OpenCode did not select the discovered eligible full specialist'
 assert_file_contains "$opencode_project/.opencode/agents/mana_full_specialist.md" 'model: openai/gpt-2099-sol#high'
 assert_file_contains "$opencode_project/.opencode/agents/mana_worker.md" 'model: openai/gpt-2099-sol#high'
@@ -369,6 +377,15 @@ assert_file_contains "$opencode_root_only_project/.opencode/agents/mana_orchestr
 assert_file_contains "$opencode_root_only_project/.opencode/agents/mana_explorer.md" "model: openai/root-only"
 [ ! -e "$opencode_root_only_project/.opencode/agents/mana_full_specialist.md" ] || fail 'OpenCode root pin bypassed full-tier verification'
 [ ! -e "$opencode_root_only_project/.opencode/agents/mana_worker.md" ] || fail 'OpenCode root pin bypassed worker-tier verification'
+
+opencode_native_default_project="$tmp/opencode native default project"
+MANA_TEST_OPENCODE_NO_DEFAULT=1 run_opencode_profile_with_stub "$opencode_native_default_project"
+assert_file_not_contains "$tmp/opencode.args" '--model'
+assert_file_not_contains "$opencode_native_default_project/.opencode/agents/mana_orchestrator.md" 'model:'
+opencode_native_default_no_children_project="$tmp/opencode native default no children project"
+MANA_TEST_OPENCODE_NO_DEFAULT=1 run_opencode_profile_with_stub "$opencode_native_default_no_children_project" --no-opencode-subagents
+assert_file_not_contains "$tmp/opencode.args" '--model'
+jq -e '.agent.mana_ctx02_no_children | has("model") | not' "$tmp/opencode.config" >/dev/null || fail 'OpenCode inline no-children config pinned an empty model'
 
 opencode_disabled_project="$tmp/opencode disabled project"
 run_opencode_profile_with_stub "$opencode_disabled_project" --no-opencode-subagents

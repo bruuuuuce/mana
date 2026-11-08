@@ -311,7 +311,11 @@ while :; do
   model="$MANA_PROVIDER_MODEL_ID"
   model_variant="$MANA_PROVIDER_MODEL_VARIANT"
   resolved_effort="$MANA_PROVIDER_SELECTED_EFFORT"
-  valid_model "$model" || fail 'resolved provider model identifier is invalid'
+  if [ -n "$model" ]; then
+    valid_model "$model" || fail 'resolved provider model identifier is invalid'
+  elif [ "$provider" != opencode ] || [ "$model_tier" != economy ] || [ -n "$resolved_effort" ] || [ -n "$model_variant" ]; then
+    fail 'provider-native model fallback is allowed only for OpenCode economy phases without an effort requirement'
+  fi
 
   schema_path="$root/contracts/context-runtime/phase-checkpoint-v1.schema.json"
   mana_provider_phase_args "$provider" "$project_root" "$model" "$schema_path" "$native_schema" "$automatic_compaction_threshold" "$model_variant" "$resolved_effort" || {

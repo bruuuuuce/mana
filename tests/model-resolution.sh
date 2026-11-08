@@ -104,7 +104,7 @@ exit 1
 STUB
 chmod +x "$tmp/bin/codex"
 MANA_CODEX_BIN="$tmp/bin/codex" python3 "$resolver" doctor --provider codex --tier economy --json > "$tmp/codex-default.json"
-jq -e '.selectedModel == null and .availability == "unknown" and .invocationCompatibility == "compatible" and (.discoverySource | contains("provider-owned-default"))' "$tmp/codex-default.json" >/dev/null || fail 'Codex CLI default fallback was not represented truthfully'
+jq -e '.selectedModel == null and .availability == "unknown" and .invocationCompatibility == "compatible" and (.discoverySource | contains("provider-owned-default")) and (.fallbackReason | contains("provider-owned default at invocation"))' "$tmp/codex-default.json" >/dev/null || fail 'Codex CLI default fallback was not represented truthfully'
 if MANA_CODEX_BIN="$tmp/bin/codex" python3 "$resolver" doctor --provider codex --tier economy --effort high --json > "$tmp/codex-effort.json"; then fail 'Codex default fallback ignored unverified effort'; fi
 jq -e '.invocationCompatibility == "unknown" and .selectedModel == null' "$tmp/codex-effort.json" >/dev/null || fail 'Codex effort uncertainty was lost during fallback'
 if MANA_CODEX_BIN="$tmp/bin/codex" python3 "$resolver" doctor --provider codex --tier full --json > "$tmp/codex-full-default.json"; then fail 'Codex provider-owned default fallback accepted full tier without model identity'; fi

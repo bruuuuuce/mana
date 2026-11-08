@@ -837,6 +837,7 @@ model_full_route_available=false
 model_full_route_reason=""
 model_worker_route_available=false
 model_worker_route_reason=""
+codex_worker_effort="medium"
 model_resolution_performed=false
 if [ -n "$runner" ] && [ "$render_only" = false ]; then
   model_resolution_performed=true
@@ -863,6 +864,7 @@ if [ -n "$runner" ] && [ "$render_only" = false ]; then
       fi
       if mana_model_resolve codex full high "$codex_worker_model" "$project_root"; then
         codex_worker_model="$MANA_PROVIDER_MODEL_ID"
+        codex_worker_effort="$MANA_PROVIDER_SELECTED_EFFORT"
         model_worker_route_available=true
       else
         codex_worker_model=""
@@ -1136,6 +1138,8 @@ render_opencode_agent() {
   description="$4"
   permission_block="$5"
   instructions="$6"
+  model_line=""
+  [ -z "$model" ] || model_line="model: $model"
 
   cat <<AGENT
 ---
@@ -1144,7 +1148,7 @@ render_opencode_agent() {
 # Safe to replace with --force or during a Mana profile run.
 description: "$description"
 mode: $mode
-model: $model
+$model_line
 temperature: 0.1
 permission:
 $permission_block
@@ -1284,7 +1288,7 @@ ensure_codex_agents_at() {
     remove_managed_agent_file "$agents_dir/mana-full-specialist.toml" 'Mana-managed Codex custom agent'
   fi
   if [ "$model_worker_route_available" = true ]; then
-    worker_content="$(render_codex_agent "mana_worker" "$codex_worker_model" "medium" "workspace-write" "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks." "$(codex_agent_instructions mana_worker)")"
+    worker_content="$(render_codex_agent "mana_worker" "$codex_worker_model" "$codex_worker_effort" "workspace-write" "Mana bounded worker for explicitly authorized implementation or artifact-writing tasks." "$(codex_agent_instructions mana_worker)")"
     install_codex_agent_file "$agents_dir/mana-worker.toml" "$worker_content" || true
   else
     remove_managed_agent_file "$agents_dir/mana-worker.toml" 'Mana-managed Codex custom agent'
