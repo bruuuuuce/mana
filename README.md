@@ -81,6 +81,8 @@ scripts/run-profile.sh mana-help
 scripts/run-profile.sh story-start --render-only
 ```
 
+For bounded Java/Spring source analysis, see the [transaction investigation guide](docs/guides/java-spring-transaction-investigation.md). Its standalone command produces a conditional report, transaction sequence source, resource timeline, and machine-readable evidence without running or modifying the target.
+
 Optional reusable personal guidance can be configured as a read-only User
 Context Layer and materialized under `.mana/user-context/`. See
 [User Context Layer](docs/workflow/user-context-layer.md). It remains distinct
