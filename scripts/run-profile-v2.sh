@@ -310,10 +310,11 @@ while :; do
   fi
   model="$MANA_PROVIDER_MODEL_ID"
   model_variant="$MANA_PROVIDER_MODEL_VARIANT"
+  resolved_effort="$MANA_PROVIDER_SELECTED_EFFORT"
   valid_model "$model" || fail 'resolved provider model identifier is invalid'
 
   schema_path="$root/contracts/context-runtime/phase-checkpoint-v1.schema.json"
-  mana_provider_phase_args "$provider" "$project_root" "$model" "$schema_path" "$native_schema" "$automatic_compaction_threshold" "$model_variant" || {
+  mana_provider_phase_args "$provider" "$project_root" "$model" "$schema_path" "$native_schema" "$automatic_compaction_threshold" "$model_variant" "$resolved_effort" || {
     finish_runtime failed
     fail "provider phase adapter rejected $provider"
   }

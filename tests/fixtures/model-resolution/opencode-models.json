@@ -1,3 +1,4 @@
 [
-  {"id":"example-model","model":"provider/example-model","providerID":"provider","status":"active","isDefault":true,"capabilities":{"reasoning":true},"variants":{"high":{"reasoningEffort":"high"}} ,"supportedReasoningEfforts":[{"reasoningEffort":"high"}]}
+  {"id":"example-model","model":"provider/example-model","providerID":"provider","status":"active","isDefault":true,"capabilities":{"reasoning":true},"variants":{"high":{"reasoningEffort":"high"}} ,"supportedReasoningEfforts":[{"reasoningEffort":"high"}]},
+  {"id":"retired-model","model":"provider/retired-model","providerID":"provider","status":"inactive","isDefault":false,"variants":{"high":{"reasoningEffort":"high"}}}
 ]

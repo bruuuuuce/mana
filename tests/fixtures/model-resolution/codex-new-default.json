@@ -1,4 +1,5 @@
 [
-  {"id":"new-default","model":"provider-new-default","hidden":false,"isDefault":true,"supportedReasoningEfforts":[{"reasoningEffort":"low"},{"reasoningEffort":"medium"}],"defaultReasoningEffort":"medium","upgrade":"newer-unrated"},
-  {"id":"newer-unrated","model":"provider-newer-unrated","hidden":false,"isDefault":false,"supportedReasoningEfforts":[{"reasoningEffort":"high"}],"defaultReasoningEffort":"high"}
+  {"id":"new-default","model":"provider-new-default","hidden":false,"isDefault":true,"supportedReasoningEfforts":[{"reasoningEffort":"low"},{"reasoningEffort":"medium"}],"defaultReasoningEffort":"medium"},
+  {"id":"newer-unrated","model":"provider-newer-unrated","hidden":false,"isDefault":false,"supportedReasoningEfforts":[{"reasoningEffort":"high"}],"defaultReasoningEffort":"high"},
+  {"id":"gpt-2099-sol","model":"gpt-2099-sol","hidden":false,"isDefault":false,"supportedReasoningEfforts":[{"reasoningEffort":"high"}],"defaultReasoningEffort":"high"}
 ]

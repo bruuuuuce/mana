@@ -18,8 +18,8 @@ Pin precedence is command-line `--model`, then the provider's `MANA_*_MODEL`
 setting, then the provider-native project/account default. Junie also honors
 `JUNIE_MODEL` when `MANA_JUNIE_MODEL` is unset. When discovery shows that a pin
 is unavailable, MANA blocks and does not substitute another model. For tiers
-without enough provider metadata,
-MANA reports the uncertainty and blocks high-risk escalation. Discovery
+without enough identity or eligibility evidence, MANA reports the uncertainty
+and blocks high-risk escalation. Discovery
 failure is distinct from invocation rejection; the resolver never retries a
 provider call or switches providers.
 
@@ -31,16 +31,25 @@ Haiku has no supported effort setting, Sonnet supports `low`, `medium`, and
 `high`, and Opus supports `low`, `medium`, `high`, `xhigh`, and `max`. A CLI
 flag's presence alone does not establish model-specific support, so unsupported
 or unverified model/effort pairs block.
-OpenCode discovery reads the active provider-scoped
-catalog and resolved project default, preserving the complete provider/model
-identity and advertised variants. Listing and variant metadata do not prove a
-full-tier capability. Codex discovery uses the
+OpenCode discovery reads the active provider-scoped catalog and resolved
+project default, preserving the complete provider/model identity and
+advertised variants. A missing project default can use OpenCode's provider
+native default for low-risk requests with no effort requirement, while
+reporting that the exact identity is unknown. Explicit inactive pins block.
+Listing and variant metadata do not prove a full-tier capability. Codex discovery uses the
 App Server `model/list` interface when available and reads visibility,
 reasoning-effort, default, and upgrade metadata. Catalog membership is not
 entitlement proof, and an upgrade hint does not itself prove full-tier
 capability. If Codex model/list is unsupported, MANA leaves the model ID unset
 and lets Codex use its provider-owned default for requests without a required
-reasoning effort. Before querying its catalog, Codex opts out of automatic
+reasoning effort, and only for economy or standard tiers. Full-tier resolution
+requires a discovered model identity that matches the explicit, versioned
+family eligibility policy in `config/model-tier-eligibility-v1.json` and
+advertises the required effort. Catalog presence and recency do not grant
+eligibility; discovery chooses the highest numeric version only within an
+approved family. Claude's dynamic `opus` alias and OpenCode variants are
+subject to their corresponding explicit policy rules. A pin outside the policy
+blocks without substitution. Before querying its catalog, Codex opts out of automatic
 gateway OAuth browser login and checks the read-only gateway credential status;
 catalog discovery blocks unless required credentials are ready. Authentication
 errors and unsupported explicit efforts do not take the provider-default
@@ -51,6 +60,12 @@ contents; it cannot verify account entitlement or custom endpoint reachability
 noninteractively. It uses `Default` for ordinary automatic resolution and
 blocks automatic full-tier selection. Junie execution through MANA remains
 unsupported.
+
+Resolution's `selectedModel` and `availability` describe model identity and
+catalog evidence; `accountAvailability` remains `unknown` until the provider
+checks entitlement. `executionStatus: not_invoked` means a doctor/selection
+result did not make an inference call. Selection, account availability, and
+actual execution are separate facts.
 
 Model tiers are semantic selection policy only. They do not grant tool,
 filesystem, provider, or external-write permissions and do not increase cost
@@ -68,6 +83,7 @@ test-only routing policy.
 
 ## Fixture verification
 
-Run `tests/model-resolution.sh` for local-only checks covering provider-owned
-new model discovery, explicit pin precedence, unavailable pins, conservative
-full-tier blocking, and the uncertain Claude alias result.
+Run `tests/model-resolution.sh` and `tests/codex-subagent-regression.sh` for
+local-only checks covering new model discovery and full-tier selection,
+eligibility blocking, provider-native fallback boundaries, explicit pins, and
+separation of selection, account availability, and execution evidence.

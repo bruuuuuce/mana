@@ -21,6 +21,171 @@ class CatalogUnavailable(RuntimeError):
     """The provider supports no usable model-list discovery interface."""
 
 
+def model_efforts(record: dict) -> list[str]:
+    return sorted({item.get("reasoningEffort") for item in record.get("supportedReasoningEfforts", [])
+                   if isinstance(item, dict) and isinstance(item.get("reasoningEffort"), str)})
+
+
+def eligibility_rule(provider: str, model: str, rules: list[dict]) -> dict | None:
+    for rule in rules:
+        if rule.get("provider") != provider:
+            continue
+        alias = rule.get("modelAlias")
+        if isinstance(alias, str) and model == alias:
+            return rule
+        pattern = rule.get("modelPattern")
+        if isinstance(pattern, str) and re.fullmatch(pattern, model, flags=re.IGNORECASE):
+            return rule
+    return None
+
+
+def version_key(model: str) -> tuple[tuple[int, ...], str]:
+    return tuple(int(value) for value in re.findall(r"\d+", model)), model
+
+
+def validate_eligibility_policy(policy: dict) -> None:
+    if (policy.get("schemaVersion") != "mana.model-tier-eligibility/v1"
+            or not isinstance(policy.get("policyId"), str)
+            or policy.get("selectionPolicy") != "highest-discovered-version-within-first-eligible-family"
+            or not isinstance(policy.get("rationale"), str)
+            or not isinstance(policy.get("rules"), list)):
+        raise RuntimeError("tier-eligibility policy is malformed")
+    allowed_efforts = {"low", "medium", "high", "xhigh", "max"}
+    seen_ids: set[str] = set()
+    for rule in policy["rules"]:
+        if not isinstance(rule, dict) or rule.get("provider") not in {"codex", "claude", "opencode"}:
+            raise RuntimeError("tier-eligibility policy contains an invalid rule")
+        rule_id = rule.get("id")
+        efforts = rule.get("efforts")
+        if (not isinstance(rule_id, str) or not rule_id or rule_id in seen_ids
+                or not isinstance(efforts, list) or not efforts
+                or any(item not in allowed_efforts for item in efforts)
+                or rule.get("defaultEffort") not in efforts):
+            raise RuntimeError("tier-eligibility policy contains an invalid rule")
+        seen_ids.add(rule_id)
+        has_alias = isinstance(rule.get("modelAlias"), str) and bool(rule["modelAlias"])
+        has_pattern = isinstance(rule.get("modelPattern"), str) and bool(rule["modelPattern"])
+        if has_alias == has_pattern:
+            raise RuntimeError("tier-eligibility rule must declare exactly one alias or model pattern")
+        if has_pattern:
+            try:
+                re.compile(rule["modelPattern"], flags=re.IGNORECASE)
+            except re.error as exc:
+                raise RuntimeError("tier-eligibility rule has an invalid model pattern") from exc
+
+
+def select_full(provider: str, effort: str | None, override: str | None,
+                models: list[dict], source: str, version: str, confidence: str,
+                eligibility_policy: dict) -> dict:
+    selected = override
+    requested_model = override
+    requested_variant = None
+    if provider == "opencode" and override and "#" in override:
+        requested_model, requested_variant = override.rsplit("#", 1)
+    candidates: list[tuple[dict, dict, str, str | None, list[str]]] = []
+    rules = eligibility_policy.get("rules", [])
+    for record in models:
+        model = record.get("model") or record.get("id")
+        if not isinstance(model, str) or not model:
+            continue
+        rule = eligibility_rule(provider, model, rules)
+        if not rule:
+            continue
+        if provider == "codex" and record.get("hidden", False):
+            continue
+        if provider == "opencode" and record.get("status") != "active":
+            continue
+        selected_effort = effort or rule.get("defaultEffort")
+        permitted_efforts = rule.get("efforts", [])
+        if not isinstance(selected_effort, str) or selected_effort not in permitted_efforts:
+            continue
+        variant = None
+        supported = model_efforts(record)
+        if provider == "codex" and selected_effort not in supported:
+            continue
+        if provider == "claude":
+            # The dynamic alias is the identity evidence. Account entitlement
+            # remains unknown until invocation.
+            if record.get("alias") is not True:
+                continue
+            supported = sorted(set(permitted_efforts))
+        if provider == "opencode":
+            variants = record.get("variants", {})
+            if not isinstance(variants, dict):
+                continue
+            if requested_variant:
+                metadata = variants.get(requested_variant)
+                if not isinstance(metadata, dict) or metadata.get("reasoningEffort") != selected_effort:
+                    continue
+                variant = requested_variant
+            else:
+                variant_names = sorted(name for name, metadata in variants.items()
+                                       if isinstance(metadata, dict) and metadata.get("reasoningEffort") == selected_effort)
+                if not variant_names:
+                    continue
+                variant = variant_names[0]
+            supported = sorted({metadata.get("reasoningEffort") for metadata in variants.values()
+                                if isinstance(metadata, dict) and isinstance(metadata.get("reasoningEffort"), str)})
+        if override and model != requested_model:
+            continue
+        candidates.append((record, rule, selected_effort, variant, supported))
+
+    if candidates:
+        # The policy explicitly approves every generation inside an eligible
+        # family. Numeric version ordering only chooses within that approved
+        # family; discovery or recency alone never grants full-tier eligibility.
+        rule_order = {rule.get("id"): index for index, rule in enumerate(rules)}
+        candidates.sort(key=lambda item: (rule_order.get(item[1].get("id"), len(rules)),
+                                          version_key(item[0].get("model") or item[0].get("id") or "")),
+                         reverse=False)
+        first_rule_order = rule_order.get(candidates[0][1].get("id"), len(rules))
+        same_rule = [item for item in candidates
+                     if rule_order.get(item[1].get("id"), len(rules)) == first_rule_order]
+        record, rule, selected_effort, variant, supported = max(
+            same_rule, key=lambda item: version_key(item[0].get("model") or item[0].get("id") or ""))
+        selected = record.get("model") or record.get("id")
+        availability = "unknown" if provider == "claude" else "available"
+        why = "model identity matched the explicit full-tier eligibility policy and required effort"
+        eligible = True
+        compatibility = "compatible"
+        policy_class = rule.get("id")
+    else:
+        selected_effort = effort
+        variant = None
+        supported = []
+        inactive_pin = (provider == "opencode" and override and any(
+            (record.get("model") or record.get("id")) == requested_model and record.get("status") != "active"
+            for record in models))
+        availability = "unavailable" if override else "blocked"
+        why = ("explicit OpenCode model is inactive in the current project catalog; substitution forbidden"
+               if inactive_pin else ("explicit pin is absent or outside the full-tier eligibility policy"
+                                     if override else "discovery found no model matching the full-tier eligibility policy and required effort"))
+        eligible = False
+        compatibility = "incompatible" if override else "unknown"
+        policy_class = None
+        if inactive_pin:
+            selected = None
+        elif override:
+            selected = requested_model
+    if provider == "opencode" and override and selected == requested_model and requested_variant:
+        selected = requested_model
+    fallback = None if eligible else why
+    if not models and provider == "codex" and source == "codex-cli:provider-owned-default":
+        fallback = "full-tier eligibility requires a discovered model identity; Codex native-default fallback is restricted to lower tiers"
+    return {
+        "schemaVersion": SCHEMA, "provider": provider, "executionSupport": "unsupported" if provider == "junie" else "supported",
+        "providerVersion": version, "requestedTier": "full", "reasoningEffort": effort,
+        "resolvedEffort": selected_effort, "explicitOverride": override, "selectedModel": selected,
+        "selectedVariant": variant, "supportedReasoningEfforts": supported,
+        "discoverySource": source, "confidence": "assumed" if provider in {"claude", "junie"} else confidence,
+        "availability": availability, "accountAvailability": "unknown", "executionStatus": "not_invoked",
+        "tierEligible": eligible, "eligibilityPolicyId": eligibility_policy.get("policyId"),
+        "eligibilityClass": policy_class, "invocationCompatibility": compatibility,
+        "selectionReason": why, "fallbackReason": fallback,
+        "costPolicy": "no cross-provider fallback; no increase to existing cost ceiling",
+    }
+
+
 def codex_catalog(binary: str) -> tuple[list[dict], str]:
     """Read the Codex App Server model/list catalog without starting a turn."""
     process = subprocess.Popen([binary, "app-server"], stdin=subprocess.PIPE,
@@ -255,7 +420,10 @@ def discover(provider: str, fixture: str | None, refresh: bool = False,
 
 
 def select(provider: str, tier: str, effort: str | None, override: str | None,
-           models: list[dict], source: str, version: str, confidence: str) -> dict:
+           models: list[dict], source: str, version: str, confidence: str,
+           eligibility_policy: dict) -> dict:
+    if tier == "full":
+        return select_full(provider, effort, override, models, source, version, confidence, eligibility_policy)
     selected = override
     selected_variant = None
     status = "unknown"
@@ -325,16 +493,26 @@ def select(provider: str, tier: str, effort: str | None, override: str | None,
         requested_variant = None
         if override and "#" in override:
             requested_model, requested_variant = override.rsplit("#", 1)
-        candidates = [m for m in models if m.get("model") == requested_model] if override else [
+        matching_models = [m for m in models if m.get("model") == requested_model] if override else []
+        candidates = [m for m in matching_models if m.get("status") == "active"] if override else [
             m for m in models if m.get("isDefault") is True and m.get("status") == "active"
         ]
         candidate = candidates[0] if candidates else None
-        if override and models and not candidate:
+        if override and matching_models and not candidate:
+            selected, status, compatible = None, "unavailable", "incompatible"
+            reason = "explicit OpenCode model is inactive in the current project catalog; substitution forbidden"
+        elif override and models and not candidate:
             selected, status, compatible = None, "unavailable", "incompatible"
             reason = "explicit OpenCode model is absent from active project catalog; substitution forbidden"
         elif not candidate:
-            selected, status, compatible = None, "blocked", "unknown"
-            reason = "OpenCode exposes no active project/provider default"
+            provider_has_active_models = any(model.get("status") == "active" for model in models)
+            if provider_has_active_models and tier in {"economy", "standard"} and not effort and not override:
+                selected, status, compatible = None, "unknown", "compatible"
+                reason = "OpenCode will choose its provider-native default from the active project catalog; exact model identity is unavailable before invocation"
+                confidence = "assumed"
+            else:
+                selected, status, compatible = None, "blocked", "unknown"
+                reason = "OpenCode exposes no active project/provider default compatible with the requested tier and effort"
         else:
             selected = candidate["model"]
             variants = candidate.get("variants", {})
@@ -410,14 +588,14 @@ def select(provider: str, tier: str, effort: str | None, override: str | None,
     else:
         status, compatible = "unknown", "unknown"
         reason = "provider catalog unavailable; no verified selection policy applies"
-        if provider == "codex" and source == "codex-cli:provider-owned-default" and not effort:
+        if provider == "codex" and source == "codex-cli:provider-owned-default" and tier in {"economy", "standard"} and not effort:
             selected = None
             compatible = "compatible"
             reason = "Codex CLI provider-owned default selected without a model ID because App Server model/list is unavailable"
             confidence = "assumed"
     if not selected and status == "unknown":
-        if provider == "codex" and source == "codex-cli:provider-owned-default" and compatible == "compatible":
-            fallback = "model ID unavailable; Codex will resolve its provider-owned default at invocation"
+        if provider == "opencode" and compatible == "compatible" and tier in {"economy", "standard"} and not effort:
+            fallback = "OpenCode will choose its provider-native project default; exact model identity is unavailable before invocation"
         else:
             fallback = "discovery cannot establish a safe model for the requested tier"
     elif tier == "full" and compatible != "compatible":
@@ -454,6 +632,7 @@ def main() -> int:
     parser.add_argument("--model", help="explicit model pin; never silently substituted")
     parser.add_argument("--fixture", help="local deterministic provider catalog fixture")
     parser.add_argument("--project", help="project context for project-scoped provider discovery")
+    parser.add_argument("--eligibility-policy", help="explicit versioned semantic tier-eligibility policy")
     parser.add_argument("--refresh", action="store_true", help="request a fresh provider catalog where supported")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
@@ -473,9 +652,12 @@ def main() -> int:
         args.model = os.environ.get(model_env) or (os.environ.get("JUNIE_MODEL") if args.provider == "junie" else None)
     if args.effort is None:
         args.effort = os.environ.get(effort_env)
+    policy_path = Path(args.eligibility_policy) if args.eligibility_policy else Path(__file__).resolve().parent.parent / "config" / "model-tier-eligibility-v1.json"
     try:
+        eligibility_policy = json.loads(policy_path.read_text(encoding="utf-8"))
+        validate_eligibility_policy(eligibility_policy)
         models, source, version, confidence = discover(args.provider, args.fixture, args.refresh, args.project)
-        result = select(args.provider, args.tier, args.effort, args.model, models, source, version, confidence)
+        result = select(args.provider, args.tier, args.effort, args.model, models, source, version, confidence, eligibility_policy)
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError, json.JSONDecodeError) as exc:
         result = {"schemaVersion": SCHEMA, "provider": args.provider,
                   "executionSupport": "unsupported" if args.provider == "junie" else "supported",
@@ -485,8 +667,17 @@ def main() -> int:
                   "supportedReasoningEfforts": [],
                   "discoverySource": "unavailable", "providerVersion": "unknown", "confidence": "unknown",
                   "availability": "blocked", "invocationCompatibility": "unknown",
+                  "accountAvailability": "unknown", "executionStatus": "not_invoked",
+                  "resolvedEffort": args.effort, "tierEligible": False,
+                  "eligibilityPolicyId": "unavailable", "eligibilityClass": None,
                   "selectionReason": "discovery failed safely", "fallbackReason": str(exc),
                   "costPolicy": "no cross-provider fallback; no increase to existing cost ceiling"}
+    result.setdefault("resolvedEffort", args.effort)
+    result.setdefault("accountAvailability", "unknown")
+    result.setdefault("executionStatus", "not_invoked")
+    result.setdefault("tierEligible", None)
+    result.setdefault("eligibilityPolicyId", eligibility_policy.get("policyId", "unavailable") if "eligibility_policy" in locals() else "unavailable")
+    result.setdefault("eligibilityClass", None)
     print(json.dumps(result, indent=2 if args.json else None, sort_keys=True))
     explicitly_pinned_unknown_tier = (
         args.model is not None and args.tier != "full" and not args.effort

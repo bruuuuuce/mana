@@ -11,8 +11,10 @@ python3 "$resolver" doctor --provider codex --tier economy --effort medium --fix
 jq -e '.schemaVersion == "mana.model-resolution/v1" and .selectedModel == "provider-new-default" and .availability == "available" and .confidence == "verified"' "$tmp/economy.json" >/dev/null || fail 'new provider default was not selected'
 if grep -q 'old-model' "$tmp/economy.json"; then fail 'resolver retained an obsolete hardcoded model'; fi
 
-python3 "$resolver" doctor --provider codex --tier full --effort high --fixture "$fixtures/codex-new-default.json" --json > "$tmp/full.json" && fail 'unrated full tier was accepted'
-jq -e '.selectedModel == null and .availability == "blocked" and (.selectionReason | contains("refusing downgrade"))' "$tmp/full.json" >/dev/null || fail 'full-tier discovery failure did not block safely'
+python3 "$resolver" doctor --provider codex --tier full --fixture "$fixtures/codex-new-default.json" --json > "$tmp/full.json"
+jq -e '.selectedModel == "gpt-2099-sol" and .resolvedEffort == "high" and .tierEligible == true and .availability == "available" and .accountAvailability == "unknown" and .executionStatus == "not_invoked"' "$tmp/full.json" >/dev/null || fail 'newly discovered explicitly eligible model was not selected for full tier'
+python3 "$resolver" doctor --provider codex --tier full --effort high --model provider-newer-unrated --fixture "$fixtures/codex-new-default.json" --json > "$tmp/unqualified-full.json" && fail 'full tier ran without eligibility evidence'
+jq -e '.selectedModel == "provider-newer-unrated" and .tierEligible == false and .invocationCompatibility == "incompatible" and .executionStatus == "not_invoked"' "$tmp/unqualified-full.json" >/dev/null || fail 'missing full-tier eligibility evidence did not block'
 
 python3 "$resolver" doctor --provider codex --tier standard --model provider-new-default --fixture "$fixtures/codex-new-default.json" --json > "$tmp/pinned.json"
 jq -e '.selectedModel == "provider-new-default" and .explicitOverride == "provider-new-default"' "$tmp/pinned.json" >/dev/null || fail 'explicit pin did not take precedence'
@@ -24,14 +26,11 @@ jq -e '.selectedModel == null and .explicitOverride == "retired-model" and .avai
 python3 "$resolver" doctor --provider codex --tier economy --model retired-model --fixture "$fixtures/codex-new-default.json" --json > "$tmp/unavailable.json" && fail 'unavailable explicit pin was accepted'
 jq -e '.selectedModel == null and .availability == "unavailable" and .explicitOverride == "retired-model"' "$tmp/unavailable.json" >/dev/null || fail 'unavailable explicit pin was substituted'
 
-python3 "$resolver" doctor --provider codex --tier full --effort high --model provider-newer-unrated --fixture "$fixtures/codex-new-default.json" --json > "$tmp/pinned-full.json" && fail 'full-tier pin without capability evidence was accepted'
-jq -e '.selectedModel == "provider-newer-unrated" and .invocationCompatibility == "unknown"' "$tmp/pinned-full.json" >/dev/null || fail 'full-tier pin capability uncertainty was lost'
-
 python3 "$resolver" doctor --provider codex --tier economy --effort high --model provider-new-default --fixture "$fixtures/codex-new-default.json" --json > "$tmp/effort.json" && fail 'unsupported reasoning effort was accepted'
 jq -e '.selectedModel == "provider-new-default" and .availability == "blocked" and .invocationCompatibility == "incompatible"' "$tmp/effort.json" >/dev/null || fail 'unsupported effort was not blocked safely'
 
-if python3 "$resolver" doctor --provider claude --tier full --json > "$tmp/claude.json"; then fail 'Claude opus alias was treated as full-tier proof'; fi
-jq -e '.selectedModel == "opus" and .confidence == "assumed" and .availability == "unknown" and .invocationCompatibility == "unknown"' "$tmp/claude.json" >/dev/null || fail 'Claude alias certainty was overstated'
+python3 "$resolver" doctor --provider claude --tier full --json > "$tmp/claude.json"
+jq -e '.selectedModel == "opus" and .confidence == "assumed" and .availability == "unknown" and .accountAvailability == "unknown" and .tierEligible == true and .invocationCompatibility == "compatible" and .executionStatus == "not_invoked"' "$tmp/claude.json" >/dev/null || fail 'Claude alias selection, account availability, and execution status were conflated'
 python3 "$resolver" doctor --provider claude --tier economy --effort medium --json > "$tmp/claude-effort.json" && fail 'Claude Haiku alias accepted an unsupported model-specific effort'
 jq -e '.selectedModel == "haiku" and .reasoningEffort == "medium" and (.supportedReasoningEfforts | length == 0) and .availability == "blocked" and .invocationCompatibility == "incompatible"' "$tmp/claude-effort.json" >/dev/null || fail 'Claude Haiku effort did not block safely'
 python3 "$resolver" doctor --provider claude --tier standard --effort medium --json > "$tmp/claude-sonnet-effort.json"
@@ -50,11 +49,17 @@ jq -e '.selectedModel == "provider/example-model" and .selectedVariant == "high"
 python3 "$resolver" doctor --provider opencode --tier economy --effort low --fixture "$fixtures/opencode-models.json" --json > "$tmp/opencode-unsupported.json" && fail 'OpenCode unsupported effort was accepted'
 jq -e '.availability == "blocked" and .invocationCompatibility == "incompatible"' "$tmp/opencode-unsupported.json" >/dev/null || fail 'OpenCode unsupported effort was not blocked'
 
-python3 "$resolver" doctor --provider opencode --tier full --fixture "$fixtures/opencode-models.json" --json > "$tmp/opencode-full.json" && fail 'OpenCode model listing was treated as full-tier proof'
-jq -e '.selectedModel == "provider/example-model" and .availability == "available" and .invocationCompatibility == "unknown" and .discoverySource == "fixture:opencode-models.json"' "$tmp/opencode-full.json" >/dev/null || fail 'OpenCode full-tier uncertainty was not retained'
+python3 "$resolver" doctor --provider opencode --tier full --fixture "$fixtures/opencode-models.json" --json > "$tmp/opencode-full.json" && fail 'OpenCode model listing without eligible family was treated as full-tier proof'
+jq -e '.selectedModel == null and .tierEligible == false and .availability == "blocked" and .invocationCompatibility == "unknown"' "$tmp/opencode-full.json" >/dev/null || fail 'OpenCode missing full-tier eligibility did not block'
 
 python3 "$resolver" doctor --provider opencode --tier economy --model provider/example-model --fixture "$fixtures/opencode-models.json" --json > "$tmp/opencode-pinned.json"
 jq -e '.selectedModel == "provider/example-model" and .availability == "available"' "$tmp/opencode-pinned.json" >/dev/null || fail 'OpenCode full provider/model identity was not preserved'
+python3 "$resolver" doctor --provider opencode --tier economy --model provider/retired-model --fixture "$fixtures/opencode-models.json" --json > "$tmp/opencode-inactive-pin.json" && fail 'inactive OpenCode override was accepted'
+jq -e '.selectedModel == null and .availability == "unavailable" and .invocationCompatibility == "incompatible"' "$tmp/opencode-inactive-pin.json" >/dev/null || fail 'inactive OpenCode pin did not block without substitution'
+python3 "$resolver" doctor --provider opencode --tier full --model provider/retired-model --fixture "$fixtures/opencode-models.json" --json > "$tmp/opencode-inactive-full-pin.json" && fail 'inactive OpenCode full-tier override was accepted'
+jq -e '.selectedModel == null and .tierEligible == false and .availability == "unavailable" and .invocationCompatibility == "incompatible"' "$tmp/opencode-inactive-full-pin.json" >/dev/null || fail 'inactive OpenCode full-tier pin did not block consistently'
+python3 "$resolver" doctor --provider opencode --tier economy --fixture "$fixtures/opencode-no-default.json" --json > "$tmp/opencode-native-default.json"
+jq -e '.selectedModel == null and .availability == "unknown" and .invocationCompatibility == "compatible" and .confidence == "assumed" and (.selectionReason | contains("provider-native default")) and .executionStatus == "not_invoked"' "$tmp/opencode-native-default.json" >/dev/null || fail 'OpenCode provider-native low-risk fallback was not represented accurately'
 python3 - "$root" "$fixtures/opencode-models-cli.txt" <<'PY'
 import importlib.util, json, pathlib, sys
 sys.dont_write_bytecode = True
@@ -102,6 +107,8 @@ MANA_CODEX_BIN="$tmp/bin/codex" python3 "$resolver" doctor --provider codex --ti
 jq -e '.selectedModel == null and .availability == "unknown" and .invocationCompatibility == "compatible" and (.discoverySource | contains("provider-owned-default"))' "$tmp/codex-default.json" >/dev/null || fail 'Codex CLI default fallback was not represented truthfully'
 if MANA_CODEX_BIN="$tmp/bin/codex" python3 "$resolver" doctor --provider codex --tier economy --effort high --json > "$tmp/codex-effort.json"; then fail 'Codex default fallback ignored unverified effort'; fi
 jq -e '.invocationCompatibility == "unknown" and .selectedModel == null' "$tmp/codex-effort.json" >/dev/null || fail 'Codex effort uncertainty was lost during fallback'
+if MANA_CODEX_BIN="$tmp/bin/codex" python3 "$resolver" doctor --provider codex --tier full --json > "$tmp/codex-full-default.json"; then fail 'Codex provider-owned default fallback accepted full tier without model identity'; fi
+jq -e '.selectedModel == null and .tierEligible == false and .invocationCompatibility == "unknown" and (.fallbackReason | contains("restricted to lower tiers")) and .executionStatus == "not_invoked"' "$tmp/codex-full-default.json" >/dev/null || fail 'Codex full-tier catalog fallback was not explicitly blocked'
 
 cat > "$tmp/bin/codex-auth-rejected" <<'STUB'
 #!/usr/bin/env bash

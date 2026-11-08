@@ -110,7 +110,7 @@ PATH="$tmp/bin:$PATH" \
   > "$tmp/v2.out" 2> "$tmp/v2.err"; then fail 'v2 run downgraded the unverified full-tier stage'; else code=$?; [ "$code" -eq 2 ] || fail 'full-tier resolution returned an unexpected status'; fi
 [ ! -f "$tmp/codex.args" ] || fail 'provider invocation occurred after full-tier resolution was blocked'
 grep -Fq 'Story Start triage model resolution is blocked' "$tmp/v2.err" || fail 'full-tier block reason was not reported'
-grep -Fq 'does not establish full-tier capability' "$tmp/v2.err" || fail 'full-tier capability gap was not actionable'
+grep -Fq 'outside the full-tier eligibility policy' "$tmp/v2.err" || fail 'full-tier eligibility gap was not actionable'
 if grep -Fq 'COMPACT_DISCOVERY_PACKAGE' "$tmp/v2.out" || grep -Fq 'COMPACT_DISCOVERY_PACKAGE' "$tmp/v2.err" || grep -Fq 'stage-secret-not-for-output' "$tmp/v2.out" || grep -Fq 'stage-secret-not-for-output' "$tmp/v2.err"; then
   fail 'routing diagnostics leaked a prompt body or secret'
 fi

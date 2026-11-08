@@ -7,12 +7,14 @@ mana_model_resolution_root() {
 }
 
 # Args: provider tier effort explicit-model project-root.
-# Output globals: MANA_MODEL_RESOLUTION_JSON, MANA_PROVIDER_MODEL_ID.
+# Output globals: MANA_MODEL_RESOLUTION_JSON, MANA_PROVIDER_MODEL_ID,
+# MANA_PROVIDER_MODEL_VARIANT, MANA_PROVIDER_SELECTED_EFFORT.
 mana_model_resolve() {
   local provider="$1" tier="$2" effort="$3" explicit_model="$4" project="$5"
   local root result status reason compatibility selected
   MANA_PROVIDER_MODEL_ID=""
   MANA_PROVIDER_MODEL_VARIANT=""
+  MANA_PROVIDER_SELECTED_EFFORT=""
   MANA_MODEL_RESOLUTION_ERROR=""
   root="$(mana_model_resolution_root)" || return 2
   local args=(doctor --provider "$provider" --tier "$tier" --project "$project" --json)
@@ -30,6 +32,7 @@ mana_model_resolve() {
   MANA_MODEL_RESOLUTION_JSON="$result"
   selected="$(jq -r '.selectedModel // empty' <<<"$result")" || return 2
   MANA_PROVIDER_MODEL_VARIANT="$(jq -r '.selectedVariant // empty' <<<"$result")" || return 2
+  MANA_PROVIDER_SELECTED_EFFORT="$(jq -r '.resolvedEffort // empty' <<<"$result")" || return 2
   compatibility="$(jq -r '.invocationCompatibility' <<<"$result")" || return 2
   reason="$(jq -r '.fallbackReason // .selectionReason' <<<"$result")" || return 2
   local explicit_resolution_tier

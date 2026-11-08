@@ -67,12 +67,13 @@ mana_provider_usage_args() {
 # The final argument states whether the current CTX-02 probe proved native
 # schema enforcement.  Host validation remains mandatory in either case.
 mana_provider_phase_args() {
-  local provider="$1" project="$2" model="$3" output_schema="$4" native_schema="${5:-false}" automatic_compaction_threshold="${6:-}" variant="${7:-}" schema_json="" opencode_model="$3"
+  local provider="$1" project="$2" model="$3" output_schema="$4" native_schema="${5:-false}" automatic_compaction_threshold="${6:-}" variant="${7:-}" reasoning_effort="${8:-}" schema_json="" opencode_model="$3"
   MANA_PROVIDER_ARGS=()
   MANA_PROVIDER_OPENCODE_CONFIG_CONTENT=""
   MANA_PROVIDER_PHASE_OUTPUT_MODE="direct-json"
   case "$native_schema" in true|false) ;; *) return 1 ;; esac
   case "$automatic_compaction_threshold" in '' ) ;; *[!0123456789]* ) return 1 ;; esac
+  case "$reasoning_effort" in ''|minimal|low|medium|high|xhigh|max) ;; *) return 1 ;; esac
   if [ -n "$variant" ]; then
     [ "$provider" = opencode ] || return 1
     opencode_model="$model#$variant"
@@ -83,10 +84,12 @@ mana_provider_phase_args() {
       MANA_PROVIDER_ARGS=(--ask-for-approval never exec)
       [ "$native_schema" = false ] || MANA_PROVIDER_ARGS+=(--output-schema "$output_schema")
       MANA_PROVIDER_ARGS+=(--model "$model" --cd "$project" --sandbox read-only --ephemeral --ignore-user-config)
+      [ -z "$reasoning_effort" ] || MANA_PROVIDER_ARGS+=(-c "model_reasoning_effort=\"$reasoning_effort\"")
       MANA_PROVIDER_ARGS+=(--disable multi_agent --disable multi_agent_v2 -c "agents.max_threads=1" -c "agents.max_depth=0" -c "agents.interrupt_message=false")
       ;;
     claude)
       MANA_PROVIDER_ARGS=(-p --model "$model" --permission-mode default --safe-mode --no-session-persistence --disable-slash-commands --disallowedTools 'Agent,Bash,Edit,Write,WebFetch,WebSearch')
+      [ -z "$reasoning_effort" ] || MANA_PROVIDER_ARGS+=(--effort "$reasoning_effort")
       # CTX-08 supplies this only when CTX-02 has proven the exact control.
       [ -z "$automatic_compaction_threshold" ] || MANA_PROVIDER_ARGS+=(--autocompact "$automatic_compaction_threshold")
       if [ "$native_schema" = true ]; then

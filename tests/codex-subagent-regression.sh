@@ -41,7 +41,11 @@ if [ "${1:-}" = "app-server" ]; then
       initialize) printf '{"id":%s,"result":{}}\n' "$request_id" ;;
       account/gatewayOAuth/read) printf '{"id":%s,"result":{"required":false,"status":null}}\n' "$request_id" ;;
       model/list)
-        printf '{"id":%s,"result":{"data":[{"id":"new-default","model":"new-default","isDefault":true,"supportedReasoningEfforts":[{"reasoningEffort":"low"},{"reasoningEffort":"medium"},{"reasoningEffort":"high"},{"reasoningEffort":"xhigh"}]},{"id":"root-mini","model":"root-mini","supportedReasoningEfforts":[{"reasoningEffort":"medium"}]},{"id":"explorer-terra","model":"explorer-terra","supportedReasoningEfforts":[{"reasoningEffort":"medium"}]},{"id":"worker-terra","model":"worker-terra","supportedReasoningEfforts":[{"reasoningEffort":"high"}]},{"id":"full-sol","model":"full-sol","supportedReasoningEfforts":[{"reasoningEffort":"high"}]}]}}\n' "$request_id"
+        if [ "${MANA_TEST_CODEX_NO_ELIGIBLE:-0}" = 1 ]; then
+          printf '{"id":%s,"result":{"data":[{"id":"new-default","model":"new-default","isDefault":true,"supportedReasoningEfforts":[{"reasoningEffort":"low"},{"reasoningEffort":"medium"},{"reasoningEffort":"high"}]},{"id":"root-mini","model":"root-mini","supportedReasoningEfforts":[{"reasoningEffort":"medium"}]},{"id":"worker-terra","model":"worker-terra","supportedReasoningEfforts":[{"reasoningEffort":"high"}]}]}}\n' "$request_id"
+        else
+          printf '{"id":%s,"result":{"data":[{"id":"new-default","model":"new-default","isDefault":true,"supportedReasoningEfforts":[{"reasoningEffort":"low"},{"reasoningEffort":"medium"},{"reasoningEffort":"high"},{"reasoningEffort":"xhigh"}]},{"id":"root-mini","model":"root-mini","supportedReasoningEfforts":[{"reasoningEffort":"medium"}]},{"id":"explorer-terra","model":"explorer-terra","supportedReasoningEfforts":[{"reasoningEffort":"medium"}]},{"id":"worker-terra","model":"worker-terra","supportedReasoningEfforts":[{"reasoningEffort":"high"}]},{"id":"gpt-2099-sol","model":"gpt-2099-sol","supportedReasoningEfforts":[{"reasoningEffort":"high"}]}]}}\n' "$request_id"
+        fi
         ;;
     esac
   done
@@ -82,10 +86,10 @@ openai/root-mini
   "status": "active",
   "variants": {"medium": {"reasoningEffort": "medium"}}
 }
-openai/full-sol
+openai/gpt-2099-sol
 {
   "providerID": "openai",
-  "id": "full-sol",
+  "id": "gpt-2099-sol",
   "status": "active",
   "variants": {"high": {"reasoningEffort": "high"}}
 }
@@ -191,10 +195,16 @@ assert_file_contains "$tmp/codex.prompt" "delegate required high-risk"
 assert_file_contains "$tmp/codex.prompt" "Compiled context manifest (authoritative for activation and routing)"
 assert_file_not_contains "$tmp/codex.prompt" "skills/index.yaml"
 assert_file_contains "$tmp/codex.prompt" "needs_model_escalation"
-[ ! -e "$project_with_spaces/.codex/agents/mana-full-specialist.toml" ] || fail 'unverified full specialist was installed'
+assert_file_contains "$project_with_spaces/.codex/agents/mana-full-specialist.toml" 'model = "gpt-2099-sol"'
+assert_file_contains "$project_with_spaces/.codex/agents/mana-full-specialist.toml" 'model_reasoning_effort = "high"'
 assert_file_contains "$project_with_spaces/.codex/agents/mana-explorer.toml" 'model = "new-default"'
-[ ! -e "$project_with_spaces/.codex/agents/mana-worker.toml" ] || fail 'unverified full-tier worker was installed'
+assert_file_contains "$project_with_spaces/.codex/agents/mana-worker.toml" 'model = "gpt-2099-sol"'
+assert_file_not_contains "$tmp/codex.prompt" 'Full-tier escalation is blocked'
+
+unqualified_full_project="$tmp/unqualified full project"
+MANA_TEST_CODEX_NO_ELIGIBLE=1 run_profile_with_stub "$unqualified_full_project"
 assert_file_contains "$tmp/codex.prompt" 'Full-tier escalation is blocked'
+[ ! -e "$unqualified_full_project/.codex/agents/mana-full-specialist.toml" ] || fail 'model without eligibility evidence was installed as full specialist'
 
 provider_failure_project="$tmp/provider failure project"
 if MANA_TEST_CODEX_EXIT=19 run_profile_with_stub "$provider_failure_project"; then
@@ -215,12 +225,12 @@ grep -Fq 'root model selection is blocked' "$tmp/run.err" || fail 'unavailable m
 override_project="$tmp/override project"
 run_profile_with_stub "$override_project" \
   --codex-model root-mini \
-  --codex-full-model full-sol \
+  --codex-full-model gpt-2099-sol \
   --codex-explorer-model explorer-terra \
   --codex-worker-model worker-terra
 assert_file_contains "$tmp/codex.args" "root-mini"
 assert_file_contains "$override_project/.codex/agents/mana-explorer.toml" 'model = "explorer-terra"'
-[ ! -e "$override_project/.codex/agents/mana-full-specialist.toml" ] || fail 'explicit full pin bypassed capability verification'
+assert_file_contains "$override_project/.codex/agents/mana-full-specialist.toml" 'model = "gpt-2099-sol"'
 [ ! -e "$override_project/.codex/agents/mana-worker.toml" ] || fail 'explicit worker pin bypassed capability verification'
 
 disabled_project="$tmp/disabled project"
@@ -239,7 +249,8 @@ assert_file_contains "$tmp/claude.prompt" "Compiled context manifest (authoritat
 assert_file_contains "$tmp/claude.prompt" "needs_model_escalation"
 assert_file_contains "$claude_project/.claude/agents/mana-orchestrator.md" "Agent(mana-explorer, mana-full-specialist, mana-worker)"
 assert_file_contains "$claude_project/.claude/agents/mana-explorer.md" "model: sonnet"
-[ ! -e "$claude_project/.claude/agents/mana-full-specialist.md" ] || fail 'unverified Claude full specialist was installed'
+assert_file_contains "$claude_project/.claude/agents/mana-full-specialist.md" 'model: opus'
+assert_file_contains "$claude_project/.claude/agents/mana-full-specialist.md" 'effort: high'
 assert_file_contains "$claude_project/.claude/agents/mana-worker.md" "model: sonnet"
 
 claude_override_project="$tmp/claude override project"
@@ -250,7 +261,7 @@ run_claude_profile_with_stub "$claude_override_project" \
   --claude-worker-model sonnet
 assert_file_contains "$tmp/claude.args" "haiku"
 assert_file_contains "$claude_override_project/.claude/agents/mana-orchestrator.md" "model: haiku"
-[ ! -e "$claude_override_project/.claude/agents/mana-full-specialist.md" ] || fail 'Claude opus alias bypassed full-tier capability verification'
+assert_file_contains "$claude_override_project/.claude/agents/mana-full-specialist.md" 'model: opus'
 assert_file_contains "$claude_override_project/.claude/agents/mana-explorer.md" "model: sonnet"
 assert_file_contains "$claude_override_project/.claude/agents/mana-worker.md" "model: sonnet"
 
@@ -274,8 +285,8 @@ bootstrap_project="$tmp/bootstrap project"
 mkdir -p "$bootstrap_project"
 "$root/scripts/bootstrap-project.sh" --project-root "$bootstrap_project" --mana-root "$root" --no-jira-env > "$tmp/bootstrap1.out" 2> "$tmp/bootstrap1.err"
 "$root/scripts/bootstrap-project.sh" --project-root "$bootstrap_project" --mana-root "$root" --no-jira-env > "$tmp/bootstrap2.out" 2> "$tmp/bootstrap2.err"
-if "$bootstrap_project/mana" models doctor --provider claude --tier full --json > "$tmp/model-doctor.json"; then fail 'full-tier doctor returned success without capability evidence'; fi
-jq -e '.schemaVersion == "mana.model-resolution/v1" and .selectedModel == "opus" and .confidence == "assumed" and .invocationCompatibility == "unknown"' "$tmp/model-doctor.json" >/dev/null || fail 'bootstrapped mana models doctor did not dispatch structured blocked diagnostics'
+"$bootstrap_project/mana" models doctor --provider claude --tier full --json > "$tmp/model-doctor.json"
+jq -e '.schemaVersion == "mana.model-resolution/v1" and .selectedModel == "opus" and .confidence == "assumed" and .tierEligible == true and .accountAvailability == "unknown" and .executionStatus == "not_invoked"' "$tmp/model-doctor.json" >/dev/null || fail 'bootstrapped mana models doctor did not distinguish alias selection from entitlement and execution'
 assert_file_contains "$bootstrap_project/.codex/agents/mana-explorer.toml" "Mana-managed Codex custom agent"
 [ ! -e "$bootstrap_project/.codex/agents/mana-full-specialist.toml" ] || fail 'bootstrap installed an unresolved full specialist'
 legacy_link_project="$tmp/legacy link project"
@@ -336,19 +347,20 @@ assert_file_not_contains "$tmp/opencode.prompt" "skills/index.yaml"
 assert_file_contains "$tmp/opencode.prompt" "needs_model_escalation"
 assert_file_contains "$opencode_project/.opencode/agents/mana_orchestrator.md" "mode: primary"
 assert_file_contains "$opencode_project/.opencode/agents/mana_explorer.md" "mode: subagent"
-[ ! -e "$opencode_project/.opencode/agents/mana_full_specialist.md" ] || fail 'OpenCode installed an unverified full specialist'
-[ ! -e "$opencode_project/.opencode/agents/mana_worker.md" ] || fail 'OpenCode installed an unverified full-tier worker'
+[ -e "$opencode_project/.opencode/agents/mana_full_specialist.md" ] || fail 'OpenCode did not select the discovered eligible full specialist'
+assert_file_contains "$opencode_project/.opencode/agents/mana_full_specialist.md" 'model: openai/gpt-2099-sol#high'
+assert_file_contains "$opencode_project/.opencode/agents/mana_worker.md" 'model: openai/gpt-2099-sol#high'
 
 opencode_override_project="$tmp/opencode override project"
 run_opencode_profile_with_stub "$opencode_override_project" \
   --opencode-model openai/root-mini \
-  --opencode-full-model openai/full-sol \
+  --opencode-full-model openai/gpt-2099-sol \
   --opencode-explorer-model openai/explorer-terra \
   --opencode-worker-model openai/worker-terra
 assert_file_contains "$tmp/opencode.args" "openai/root-mini"
 assert_file_contains "$opencode_override_project/.opencode/agents/mana_orchestrator.md" "model: openai/root-mini"
 assert_file_contains "$opencode_override_project/.opencode/agents/mana_explorer.md" "model: openai/explorer-terra"
-[ ! -e "$opencode_override_project/.opencode/agents/mana_full_specialist.md" ] || fail 'OpenCode explicit full pin bypassed capability verification'
+assert_file_contains "$opencode_override_project/.opencode/agents/mana_full_specialist.md" 'model: openai/gpt-2099-sol#high'
 [ ! -e "$opencode_override_project/.opencode/agents/mana_worker.md" ] || fail 'OpenCode explicit worker pin bypassed capability verification'
 
 opencode_root_only_project="$tmp/opencode root only project"
