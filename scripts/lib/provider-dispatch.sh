@@ -4,13 +4,15 @@
 # shellcheck disable=SC2034 # MANA_PROVIDER_* globals are the sourced adapter API.
 
 mana_provider_profile_args() {
-  local provider="$1" project="$2" model="$3" max_threads="$4" max_depth="$5" subagents="${6:-true}"
+  local provider="$1" project="$2" model="$3" max_threads="$4" max_depth="$5" subagents="${6:-true}" variant="${7:-}"
   MANA_PROVIDER_ARGS=()
   MANA_PROVIDER_OPENCODE_CONFIG_CONTENT=""
   case "$subagents" in true|false) ;; *) return 1 ;; esac
   case "$provider" in
     codex)
-      MANA_PROVIDER_ARGS=(--ask-for-approval on-request exec --model "$model" --cd "$project" --sandbox workspace-write)
+      MANA_PROVIDER_ARGS=(--ask-for-approval on-request exec)
+      [ -z "$model" ] || MANA_PROVIDER_ARGS+=(--model "$model")
+      MANA_PROVIDER_ARGS+=(--cd "$project" --sandbox workspace-write)
       if [ "$subagents" = true ]; then
         MANA_PROVIDER_ARGS+=(-c "agents.max_threads=$max_threads" -c "agents.max_depth=$max_depth" -c "agents.interrupt_message=false")
       else
@@ -30,14 +32,20 @@ mana_provider_profile_args() {
       fi ;;
     opencode)
       if [ "$subagents" = true ]; then
-        MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model" --agent mana_orchestrator)
+        MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model")
+        [ -z "$variant" ] || MANA_PROVIDER_ARGS+=(--variant "$variant")
+        MANA_PROVIDER_ARGS+=(--agent mana_orchestrator)
       else
         # OPENCODE_CONFIG_CONTENT selects an invocation-local primary whose
         # built-in Task permission is denied. OpenCode still merges other
         # config surfaces, so this is real Task containment but not proof of
         # complete user/project configuration isolation.
-        MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn --arg model "$model" '{agent:{mana_ctx02_no_children:{description:"Mana primary with child execution disabled",mode:"primary",model:$model,permission:{task:"deny"}}}}')" || return 1
-        MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model" --agent mana_ctx02_no_children --pure)
+        local opencode_model="$model"
+        [ -z "$variant" ] || opencode_model="$opencode_model#$variant"
+        MANA_PROVIDER_OPENCODE_CONFIG_CONTENT="$(jq -cn --arg model "$opencode_model" '{agent:{mana_ctx02_no_children:{description:"Mana primary with child execution disabled",mode:"primary",model:$model,permission:{task:"deny"}}}}')" || return 1
+        MANA_PROVIDER_ARGS=(run --dir "$project" --model "$model")
+        [ -z "$variant" ] || MANA_PROVIDER_ARGS+=(--variant "$variant")
+        MANA_PROVIDER_ARGS+=(--agent mana_ctx02_no_children --pure)
       fi ;;
     *) return 1 ;;
   esac
@@ -178,7 +186,8 @@ mana_provider_synthesis_args() {
       # Codex can enforce a final-message JSON Schema.  The schema remains
       # host-owned; this only improves the transport contract for this provider.
       [ -z "$output_schema" ] || MANA_PROVIDER_ARGS+=(--output-schema "$output_schema")
-      MANA_PROVIDER_ARGS+=(--model "$model" --cd "$workspace" --sandbox read-only --ephemeral --ignore-user-config)
+      [ -z "$model" ] || MANA_PROVIDER_ARGS+=(--model "$model")
+      MANA_PROVIDER_ARGS+=(--cd "$workspace" --sandbox read-only --ephemeral --ignore-user-config)
       # Keep the invocation isolated from user config while allowing one
       # explicit, validated M3 effort override to survive that isolation.
       [ -z "$reasoning_effort" ] || MANA_PROVIDER_ARGS+=(-c "model_reasoning_effort=\"$reasoning_effort\"")

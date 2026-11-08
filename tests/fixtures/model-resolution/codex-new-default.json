@@ -1,0 +1,4 @@
+[
+  {"id":"new-default","model":"provider-new-default","hidden":false,"isDefault":true,"supportedReasoningEfforts":[{"reasoningEffort":"low"},{"reasoningEffort":"medium"}],"defaultReasoningEffort":"medium","upgrade":"newer-unrated"},
+  {"id":"newer-unrated","model":"provider-newer-unrated","hidden":false,"isDefault":false,"supportedReasoningEfforts":[{"reasoningEffort":"high"}],"defaultReasoningEffort":"high"}
+]

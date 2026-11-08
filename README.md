@@ -112,41 +112,37 @@ scripts/run-profile.sh story-start --codex
 See [Story Start Scope v2](docs/workflow/story-start-scope-v2.md) for the input
 boundary, report semantics, owner-review behavior, and compatibility contract.
 
-Codex runs start with a small root orchestrator model configured by
-`MANA_CODEX_MODEL` or `--codex-model` (default: `gpt-6-luna`). The root model
-handles routing, light evidence inventory, low-risk checks, delegation,
-aggregation, and synthesis. Bounded high-risk work is delegated in the same run
-to Mana Codex custom agents when available:
+Provider models are resolved at invocation time. Use `./mana models doctor
+--provider codex --tier economy --json` (or `claude`, `opencode`, `junie`) to
+inspect discovery, confidence, effort support, and any blocked escalation.
+Explicit `MANA_*_MODEL` settings and matching CLI options pin a model; an
+unavailable pin is never silently replaced. Codex reads App Server `model/list`
+and can use its own default when the catalog interface is unavailable and no
+effort requirement was requested. OpenCode resolves the project's configured
+provider/model identity. Claude Code uses dynamic family aliases. Junie exposes
+a dynamic default, aliases, and custom model profiles for diagnostics, while
+MANA's Junie execution adapter remains unsupported.
 
-- `mana_explorer`: read-only evidence discovery on `gpt-6-luna` by default.
-- `mana_full_specialist`: read-only architecture, security, database,
-  concurrency, contract, production, and `model_tier: full` judgment on
-  `gpt-6-sol` by default.
-- `mana_worker`: serialized bounded writes on `gpt-6-sol` by default, only
-  when a selected profile explicitly permits source modification.
-
-Override them with `MANA_CODEX_EXPLORER_MODEL`, `MANA_CODEX_FULL_MODEL`,
-`MANA_CODEX_WORKER_MODEL`, `--codex-explorer-model`, `--codex-full-model`, and
-`--codex-worker-model`. Disable subagents with `MANA_CODEX_SUBAGENTS=false` or
-`--no-codex-subagents`. Mana still returns `needs_model_escalation` as a
-compatibility fallback when subagents are disabled, unavailable, fail, or leave
-a high-risk judgment unsupported.
+Root, explorer, specialist, and worker models use the same resolver. Provider
+catalog membership does not prove account entitlement or MANA full-tier
+suitability. When full-tier capability is not established, MANA blocks the
+specialist route and returns `needs_model_escalation`; it never downgrades to a
+lower tier, changes permissions, switches providers, or raises the cost ceiling.
+Disable subagents with the provider's `MANA_*_SUBAGENTS=false` setting or
+matching `--no-*-subagents` option.
 
 OpenCode uses the same Mana runtime shape with project-scoped agents under
-`.opencode/agents/`: `mana_orchestrator` as the primary agent plus
-`mana_explorer`, `mana_full_specialist`, and `mana_worker` as bounded
-subagents. OpenCode model IDs use `provider/model` format; defaults are
-`MANA_OPENCODE_MODEL=opencode/gpt-6-luna`, explorer on `opencode/gpt-6-luna`,
-and specialist and worker on `opencode/gpt-6-sol`. An explicit root override
-still supplies unspecified role models. Use `--opencode-model`,
+`.opencode/agents/`: `mana_orchestrator` as the primary agent plus bounded
+explorer, full specialist, and worker roles. OpenCode selections retain the
+complete provider/model identity from project-scoped discovery. Use
+`--opencode-model`,
 `--opencode-explorer-model`, `--opencode-full-model`, `--opencode-worker-model`,
 or disable subagents with `MANA_OPENCODE_SUBAGENTS=false` /
 `--no-opencode-subagents`.
 
-Claude Code now uses the same project-scoped runtime shape under
-`.claude/agents/`: `mana-orchestrator` uses `claude-haiku-4-5` by default,
-`mana-explorer` and `mana-worker` use `claude-sonnet-5`, and
-`mana-full-specialist` uses `claude-opus-5-5`. Use `MANA_CLAUDE_MODEL`,
+Claude Code uses the same project-scoped runtime shape under
+`.claude/agents/`, with documented dynamic `haiku`, `sonnet`, and `opus` family
+aliases. These aliases do not prove full-tier suitability. Use `MANA_CLAUDE_MODEL`,
 `MANA_CLAUDE_EXPLORER_MODEL`, `MANA_CLAUDE_FULL_MODEL`,
 `MANA_CLAUDE_WORKER_MODEL`, or `--claude-model`, `--claude-explorer-model`,
 `--claude-full-model`, and `--claude-worker-model` for a single run. Disable

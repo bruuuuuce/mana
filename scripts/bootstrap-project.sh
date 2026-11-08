@@ -169,7 +169,14 @@ install_codex_agents() {
   [ -d "$source_agents_dir" ] || return 0
   mkdir -p "$target_agents_dir"
 
-  for agent_file in mana-explorer.toml mana-full-specialist.toml mana-worker.toml; do
+  # Full specialists are installed only by run-profile after a provider-boundary
+  # resolution proves the requested full tier. Bootstrap has no provider
+  # execution context and must not expose an unresolved specialist route.
+  if [ -L "$target_agents_dir/mana-full-specialist.toml" ] &&
+     [ "$(readlink "$target_agents_dir/mana-full-specialist.toml")" = "$source_agents_dir/mana-full-specialist.toml" ]; then
+    rm "$target_agents_dir/mana-full-specialist.toml"
+  fi
+  for agent_file in mana-explorer.toml mana-worker.toml; do
     [ -f "$source_agents_dir/$agent_file" ] || continue
     # Codex discovers project roles from physical TOML files. Keep the Mana
     # framework links elsewhere, but install these role manifests as copies.
@@ -204,7 +211,7 @@ install_claude_agents() {
     mode="link"
   fi
 
-  for agent_file in mana-orchestrator.md mana-explorer.md mana-full-specialist.md mana-worker.md; do
+  for agent_file in mana-orchestrator.md mana-explorer.md mana-worker.md; do
     [ -f "$source_agents_dir/$agent_file" ] || continue
     install_managed_file_or_link "$source_agents_dir/$agent_file" "$target_agents_dir/$agent_file" "$mode"
   done
@@ -221,7 +228,7 @@ install_opencode_agents() {
     mode="link"
   fi
 
-  for agent_file in mana_orchestrator.md mana_explorer.md mana_full_specialist.md mana_worker.md; do
+  for agent_file in mana_orchestrator.md mana_explorer.md mana_worker.md; do
     [ -f "$source_agents_dir/$agent_file" ] || continue
     install_managed_file_or_link "$source_agents_dir/$agent_file" "$target_agents_dir/$agent_file" "$mode"
   done
@@ -263,6 +270,7 @@ Usage:
   ./mana review-inbox <cmd> --json       Manage the opt-in host review inbox.
   ./mana context <cmd> [args...]         Inspect or refresh optional User Context.
   ./mana doctor [args...]                Diagnose Mana and this linked project.
+  ./mana models doctor (options)
   ./mana learning <cmd> [args...]        Inspect governed learning candidates.
   ./mana journey <cmd> [args...]         Create and inspect append-only Learning Journeys.
   ./mana concepts <cmd> [args...]        Query/validate the Learning Concept Registry.
@@ -374,6 +382,11 @@ USAGE
     ;;
   doctor)
     exec "$MANA_HOME/scripts/mana-doctor.sh" --project "$project_root" "$@"
+    ;;
+  models)
+    [ "${1:-}" = doctor ] || { echo "ERROR: run mana models doctor for provider details" >&2; exit 2; }
+    shift
+    exec python3 "$MANA_HOME/scripts/mana-models.py" doctor --project "$project_root" "$@"
     ;;
   learning)
     exec "$MANA_HOME/scripts/mana-learning.sh" --project-root "$project_root" "$@"

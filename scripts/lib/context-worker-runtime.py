@@ -1127,6 +1127,9 @@ def load_active_skills(
 def selection_from_mapping(
     policy: dict[str, Any], mapping: dict[str, Any], reasons: list[str]
 ) -> dict[str, Any]:
+    # Production routing policies leave modelId null. Provider-boundary
+    # orchestration must resolve it before building invocation arguments; this
+    # packet records the semantic tier without pinning a release-specific ID.
     return {
         "provider": mapping["provider"],
         "modelTier": mapping["modelTier"],

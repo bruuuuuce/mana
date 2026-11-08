@@ -33,10 +33,24 @@ if [ "${1:-}" = "--version" ]; then
   echo "codex-cli fake"
   exit 0
 fi
+if [ "${1:-}" = "app-server" ]; then
+  while IFS= read -r request; do
+    method="$(jq -r '.method // empty' <<<"$request")"
+    request_id="$(jq -r '.id // empty' <<<"$request")"
+    case "$method" in
+      initialize) printf '{"id":%s,"result":{}}\n' "$request_id" ;;
+      model/list)
+        printf '{"id":%s,"result":{"data":[{"id":"new-default","model":"new-default","isDefault":true,"supportedReasoningEfforts":[{"reasoningEffort":"low"},{"reasoningEffort":"medium"},{"reasoningEffort":"high"},{"reasoningEffort":"xhigh"}]},{"id":"root-mini","model":"root-mini","supportedReasoningEfforts":[{"reasoningEffort":"medium"}]},{"id":"explorer-terra","model":"explorer-terra","supportedReasoningEfforts":[{"reasoningEffort":"medium"}]},{"id":"worker-terra","model":"worker-terra","supportedReasoningEfforts":[{"reasoningEffort":"high"}]},{"id":"full-sol","model":"full-sol","supportedReasoningEfforts":[{"reasoningEffort":"high"}]}]}}\n' "$request_id"
+        ;;
+    esac
+  done
+  exit 0
+fi
 printf '%s\n' "$@" > "$MANA_TEST_CODEX_ARGS"
 last=""
 for arg in "$@"; do last="$arg"; done
 printf '%s\n' "$last" > "$MANA_TEST_CODEX_PROMPT"
+if [ "${MANA_TEST_CODEX_EXIT:-0}" -ne 0 ]; then exit "$MANA_TEST_CODEX_EXIT"; fi
 STUB
   chmod +x "$bin_dir/codex"
 }
@@ -48,6 +62,58 @@ make_fake_opencode() {
 #!/usr/bin/env bash
 if [ "${1:-}" = "--version" ]; then
   echo "opencode fake"
+  exit 0
+fi
+if [ "${1:-}" = "models" ]; then
+  cat <<'MODELS'
+new-provider/new-default
+{
+  "providerID": "new-provider",
+  "id": "new-default",
+  "status": "active",
+  "capabilities": {"reasoning": true},
+  "variants": {"medium": {"reasoningEffort": "medium"}, "high": {"reasoningEffort": "high"}}
+}
+openai/root-mini
+{
+  "providerID": "openai",
+  "id": "root-mini",
+  "status": "active",
+  "variants": {"medium": {"reasoningEffort": "medium"}}
+}
+openai/full-sol
+{
+  "providerID": "openai",
+  "id": "full-sol",
+  "status": "active",
+  "variants": {"high": {"reasoningEffort": "high"}}
+}
+openai/explorer-terra
+{
+  "providerID": "openai",
+  "id": "explorer-terra",
+  "status": "active",
+  "variants": {"medium": {"reasoningEffort": "medium"}}
+}
+openai/worker-terra
+{
+  "providerID": "openai",
+  "id": "worker-terra",
+  "status": "active",
+  "variants": {"high": {"reasoningEffort": "high"}}
+}
+openai/root-only
+{
+  "providerID": "openai",
+  "id": "root-only",
+  "status": "active",
+  "variants": {"medium": {"reasoningEffort": "medium"}}
+}
+MODELS
+  exit 0
+fi
+if [ "${1:-}" = "debug" ]; then
+  printf '%s\n' '{"model":"new-provider/new-default"}'
   exit 0
 fi
 printf '%s\n' "$@" > "$MANA_TEST_OPENCODE_ARGS"
@@ -81,6 +147,7 @@ run_profile_with_stub() {
   mkdir -p "$project"
   MANA_TEST_CODEX_ARGS="$tmp/codex.args" \
     MANA_TEST_CODEX_PROMPT="$tmp/codex.prompt" \
+    MANA_TEST_CODEX_EXIT="${MANA_TEST_CODEX_EXIT:-0}" \
     PATH="$tmp/bin:$PATH" \
     "$root/scripts/run-profile.sh" story-start --project-root "$project" --codex "$@" > "$tmp/run.out" 2> "$tmp/run.err"
 }
@@ -111,10 +178,11 @@ make_fake_claude "$tmp/bin"
 
 project_with_spaces="$tmp/project with spaces"
 run_profile_with_stub "$project_with_spaces"
+project_with_spaces_canonical="$(cd "$project_with_spaces" && pwd -P)"
 assert_file_contains "$tmp/codex.args" "--model"
-assert_file_contains "$tmp/codex.args" "gpt-6-luna"
+assert_file_contains "$tmp/codex.args" "new-default"
 assert_file_contains "$tmp/codex.args" "--cd"
-assert_file_contains "$tmp/codex.args" "$project_with_spaces"
+assert_file_contains "$tmp/codex.args" "$project_with_spaces_canonical"
 assert_file_contains "$tmp/codex.args" "agents.max_threads=3"
 assert_file_contains "$tmp/codex.args" "agents.max_depth=1"
 assert_file_contains "$tmp/codex.args" "agents.interrupt_message=false"
@@ -122,9 +190,26 @@ assert_file_contains "$tmp/codex.prompt" "delegate required high-risk"
 assert_file_contains "$tmp/codex.prompt" "Compiled context manifest (authoritative for activation and routing)"
 assert_file_not_contains "$tmp/codex.prompt" "skills/index.yaml"
 assert_file_contains "$tmp/codex.prompt" "needs_model_escalation"
-assert_file_contains "$project_with_spaces/.codex/agents/mana-full-specialist.toml" 'model = "gpt-6-sol"'
-assert_file_contains "$project_with_spaces/.codex/agents/mana-explorer.toml" 'model = "gpt-6-luna"'
-assert_file_contains "$project_with_spaces/.codex/agents/mana-worker.toml" 'model = "gpt-6-sol"'
+[ ! -e "$project_with_spaces/.codex/agents/mana-full-specialist.toml" ] || fail 'unverified full specialist was installed'
+assert_file_contains "$project_with_spaces/.codex/agents/mana-explorer.toml" 'model = "new-default"'
+[ ! -e "$project_with_spaces/.codex/agents/mana-worker.toml" ] || fail 'unverified full-tier worker was installed'
+assert_file_contains "$tmp/codex.prompt" 'Full-tier escalation is blocked'
+
+provider_failure_project="$tmp/provider failure project"
+if MANA_TEST_CODEX_EXIT=19 run_profile_with_stub "$provider_failure_project"; then
+  fail 'provider execution failure was hidden'
+fi
+[ "$(grep -c '^exec$' "$tmp/codex.args")" = 1 ] || fail 'failed provider invocation was replayed'
+
+# Reproduce an unavailable-model escalation at the deterministic discovery
+# boundary: the retired explicit pin is rejected before provider invocation.
+unavailable_model_project="$tmp/unavailable model project"
+rm -f "$tmp/codex.args"
+if MANA_CODEX_MODEL=retired-model run_profile_with_stub "$unavailable_model_project"; then
+  fail 'unavailable model pin reached provider execution'
+fi
+grep -Fq 'root model selection is blocked' "$tmp/run.err" || fail 'unavailable model did not stop at root model resolution'
+[ ! -e "$tmp/codex.args" ] || fail 'provider was invoked after the model pin was found unavailable'
 
 override_project="$tmp/override project"
 run_profile_with_stub "$override_project" \
@@ -133,9 +218,9 @@ run_profile_with_stub "$override_project" \
   --codex-explorer-model explorer-terra \
   --codex-worker-model worker-terra
 assert_file_contains "$tmp/codex.args" "root-mini"
-assert_file_contains "$override_project/.codex/agents/mana-full-specialist.toml" 'model = "full-sol"'
 assert_file_contains "$override_project/.codex/agents/mana-explorer.toml" 'model = "explorer-terra"'
-assert_file_contains "$override_project/.codex/agents/mana-worker.toml" 'model = "worker-terra"'
+[ ! -e "$override_project/.codex/agents/mana-full-specialist.toml" ] || fail 'explicit full pin bypassed capability verification'
+[ ! -e "$override_project/.codex/agents/mana-worker.toml" ] || fail 'explicit worker pin bypassed capability verification'
 
 disabled_project="$tmp/disabled project"
 run_profile_with_stub "$disabled_project" --no-codex-subagents
@@ -147,26 +232,26 @@ run_claude_profile_with_stub "$claude_project"
 assert_file_contains "$tmp/claude.args" "--agent"
 assert_file_contains "$tmp/claude.args" "mana-orchestrator"
 assert_file_contains "$tmp/claude.args" "--model"
-assert_file_contains "$tmp/claude.args" "claude-haiku-4-5"
+assert_file_contains "$tmp/claude.args" "haiku"
 assert_file_contains "$tmp/claude.prompt" "Claude subagents=true/3"
 assert_file_contains "$tmp/claude.prompt" "Compiled context manifest (authoritative for activation and routing)"
 assert_file_contains "$tmp/claude.prompt" "needs_model_escalation"
 assert_file_contains "$claude_project/.claude/agents/mana-orchestrator.md" "Agent(mana-explorer, mana-full-specialist, mana-worker)"
-assert_file_contains "$claude_project/.claude/agents/mana-explorer.md" "model: claude-sonnet-5"
-assert_file_contains "$claude_project/.claude/agents/mana-full-specialist.md" "model: claude-opus-5-5"
-assert_file_contains "$claude_project/.claude/agents/mana-worker.md" "model: claude-sonnet-5"
+assert_file_contains "$claude_project/.claude/agents/mana-explorer.md" "model: sonnet"
+[ ! -e "$claude_project/.claude/agents/mana-full-specialist.md" ] || fail 'unverified Claude full specialist was installed'
+assert_file_contains "$claude_project/.claude/agents/mana-worker.md" "model: sonnet"
 
 claude_override_project="$tmp/claude override project"
 run_claude_profile_with_stub "$claude_override_project" \
-  --claude-model root-haiku \
-  --claude-full-model full-opus \
-  --claude-explorer-model explorer-sonnet \
-  --claude-worker-model worker-sonnet
-assert_file_contains "$tmp/claude.args" "root-haiku"
-assert_file_contains "$claude_override_project/.claude/agents/mana-orchestrator.md" "model: root-haiku"
-assert_file_contains "$claude_override_project/.claude/agents/mana-full-specialist.md" "model: full-opus"
-assert_file_contains "$claude_override_project/.claude/agents/mana-explorer.md" "model: explorer-sonnet"
-assert_file_contains "$claude_override_project/.claude/agents/mana-worker.md" "model: worker-sonnet"
+  --claude-model haiku \
+  --claude-full-model opus \
+  --claude-explorer-model sonnet \
+  --claude-worker-model sonnet
+assert_file_contains "$tmp/claude.args" "haiku"
+assert_file_contains "$claude_override_project/.claude/agents/mana-orchestrator.md" "model: haiku"
+[ ! -e "$claude_override_project/.claude/agents/mana-full-specialist.md" ] || fail 'Claude opus alias bypassed full-tier capability verification'
+assert_file_contains "$claude_override_project/.claude/agents/mana-explorer.md" "model: sonnet"
+assert_file_contains "$claude_override_project/.claude/agents/mana-worker.md" "model: sonnet"
 
 claude_disabled_project="$tmp/claude disabled project"
 run_claude_profile_with_stub "$claude_disabled_project" --no-claude-subagents
@@ -177,25 +262,26 @@ assert_file_contains "$tmp/claude.prompt" "needs_model_escalation"
 
 jira_project="$tmp/jira project"
 mkdir -p "$jira_project/.mana"
+jira_project_canonical="$(cd "$jira_project" && pwd -P)"
 printf 'JIRA_URL=https://jira.example.invalid\nJIRA_PERSONAL_TOKEN=dummy\n' > "$jira_project/.mana/jira-mcp.env"
 run_profile_with_stub "$jira_project"
 assert_file_contains "$tmp/codex.args" "agents.max_threads=3"
 assert_file_contains "$tmp/codex.args" "mcp_servers.jira.command="
-assert_file_contains "$tmp/codex.args" "mcp_servers.jira.args=[\"--env-file\",\"$jira_project/.mana/jira-mcp.env\"]"
+assert_file_contains "$tmp/codex.args" "mcp_servers.jira.args=[\"--env-file\",\"$jira_project_canonical/.mana/jira-mcp.env\"]"
 
 bootstrap_project="$tmp/bootstrap project"
 mkdir -p "$bootstrap_project"
 "$root/scripts/bootstrap-project.sh" --project-root "$bootstrap_project" --mana-root "$root" --no-jira-env > "$tmp/bootstrap1.out" 2> "$tmp/bootstrap1.err"
 "$root/scripts/bootstrap-project.sh" --project-root "$bootstrap_project" --mana-root "$root" --no-jira-env > "$tmp/bootstrap2.out" 2> "$tmp/bootstrap2.err"
+if "$bootstrap_project/mana" models doctor --provider claude --tier full --json > "$tmp/model-doctor.json"; then fail 'full-tier doctor returned success without capability evidence'; fi
+jq -e '.schemaVersion == "mana.model-resolution/v1" and .selectedModel == "opus" and .confidence == "assumed" and .invocationCompatibility == "unknown"' "$tmp/model-doctor.json" >/dev/null || fail 'bootstrapped mana models doctor did not dispatch structured blocked diagnostics'
 assert_file_contains "$bootstrap_project/.codex/agents/mana-explorer.toml" "Mana-managed Codex custom agent"
-assert_file_contains "$bootstrap_project/.codex/agents/mana-full-specialist.toml" 'name = "mana_full_specialist"'
-[ ! -L "$bootstrap_project/.codex/agents/mana-full-specialist.toml" ] || fail 'Codex custom agents must be physical TOML files for discovery'
+[ ! -e "$bootstrap_project/.codex/agents/mana-full-specialist.toml" ] || fail 'bootstrap installed an unresolved full specialist'
 legacy_link_project="$tmp/legacy link project"
 mkdir -p "$legacy_link_project/.codex/agents"
 ln -s "$root/.codex/agents/mana-full-specialist.toml" "$legacy_link_project/.codex/agents/mana-full-specialist.toml"
 "$root/scripts/bootstrap-project.sh" --project-root "$legacy_link_project" --mana-root "$root" --no-jira-env > "$tmp/bootstrap-legacy-link.out" 2> "$tmp/bootstrap-legacy-link.err"
-[ ! -L "$legacy_link_project/.codex/agents/mana-full-specialist.toml" ] || fail 'bootstrap did not migrate a Mana-owned Codex role symlink'
-assert_file_contains "$legacy_link_project/.codex/agents/mana-full-specialist.toml" 'model = "gpt-6-sol"'
+[ ! -e "$legacy_link_project/.codex/agents/mana-full-specialist.toml" ] || fail 'bootstrap retained an unresolved managed specialist link'
 assert_file_contains "$bootstrap_project/.codex/config.toml" "max_threads = 3"
 assert_file_contains "$bootstrap_project/AGENTS.md" "Do not create one Codex subagent per Mana skill"
 
@@ -224,11 +310,12 @@ assert_file_contains "$nolinks_project/.codex/agents/mana-explorer.toml" 'name =
 
 opencode_project="$tmp/opencode project with spaces"
 run_opencode_profile_with_stub "$opencode_project"
+opencode_project_canonical="$(cd "$opencode_project" && pwd -P)"
 assert_file_contains "$tmp/opencode.args" "run"
 assert_file_contains "$tmp/opencode.args" "--dir"
-assert_file_contains "$tmp/opencode.args" "$opencode_project"
+assert_file_contains "$tmp/opencode.args" "$opencode_project_canonical"
 assert_file_contains "$tmp/opencode.args" "--model"
-assert_file_contains "$tmp/opencode.args" "opencode/gpt-6-luna"
+assert_file_contains "$tmp/opencode.args" "new-provider/new-default"
 assert_file_contains "$tmp/opencode.args" "--agent"
 assert_file_contains "$tmp/opencode.args" "mana_orchestrator"
 assert_file_contains "$tmp/opencode.prompt" "OpenCode subagents=true/3"
@@ -236,8 +323,8 @@ assert_file_not_contains "$tmp/opencode.prompt" "skills/index.yaml"
 assert_file_contains "$tmp/opencode.prompt" "needs_model_escalation"
 assert_file_contains "$opencode_project/.opencode/agents/mana_orchestrator.md" "mode: primary"
 assert_file_contains "$opencode_project/.opencode/agents/mana_explorer.md" "mode: subagent"
-assert_file_contains "$opencode_project/.opencode/agents/mana_full_specialist.md" "model: opencode/gpt-6-sol"
-assert_file_contains "$opencode_project/.opencode/agents/mana_worker.md" "model: opencode/gpt-6-sol"
+[ ! -e "$opencode_project/.opencode/agents/mana_full_specialist.md" ] || fail 'OpenCode installed an unverified full specialist'
+[ ! -e "$opencode_project/.opencode/agents/mana_worker.md" ] || fail 'OpenCode installed an unverified full-tier worker'
 
 opencode_override_project="$tmp/opencode override project"
 run_opencode_profile_with_stub "$opencode_override_project" \
@@ -247,16 +334,16 @@ run_opencode_profile_with_stub "$opencode_override_project" \
   --opencode-worker-model openai/worker-terra
 assert_file_contains "$tmp/opencode.args" "openai/root-mini"
 assert_file_contains "$opencode_override_project/.opencode/agents/mana_orchestrator.md" "model: openai/root-mini"
-assert_file_contains "$opencode_override_project/.opencode/agents/mana_full_specialist.md" "model: openai/full-sol"
 assert_file_contains "$opencode_override_project/.opencode/agents/mana_explorer.md" "model: openai/explorer-terra"
-assert_file_contains "$opencode_override_project/.opencode/agents/mana_worker.md" "model: openai/worker-terra"
+[ ! -e "$opencode_override_project/.opencode/agents/mana_full_specialist.md" ] || fail 'OpenCode explicit full pin bypassed capability verification'
+[ ! -e "$opencode_override_project/.opencode/agents/mana_worker.md" ] || fail 'OpenCode explicit worker pin bypassed capability verification'
 
 opencode_root_only_project="$tmp/opencode root only project"
 run_opencode_profile_with_stub "$opencode_root_only_project" --opencode-model openai/root-only
 assert_file_contains "$opencode_root_only_project/.opencode/agents/mana_orchestrator.md" "model: openai/root-only"
-assert_file_contains "$opencode_root_only_project/.opencode/agents/mana_full_specialist.md" "model: openai/root-only"
 assert_file_contains "$opencode_root_only_project/.opencode/agents/mana_explorer.md" "model: openai/root-only"
-assert_file_contains "$opencode_root_only_project/.opencode/agents/mana_worker.md" "model: openai/root-only"
+[ ! -e "$opencode_root_only_project/.opencode/agents/mana_full_specialist.md" ] || fail 'OpenCode root pin bypassed full-tier verification'
+[ ! -e "$opencode_root_only_project/.opencode/agents/mana_worker.md" ] || fail 'OpenCode root pin bypassed worker-tier verification'
 
 opencode_disabled_project="$tmp/opencode disabled project"
 run_opencode_profile_with_stub "$opencode_disabled_project" --no-opencode-subagents
@@ -265,10 +352,10 @@ assert_file_contains "$tmp/opencode.prompt" "OpenCode subagents=false/3"
 [ ! -e "$opencode_disabled_project/.opencode/agents/mana_full_specialist.md" ] || fail "--no-opencode-subagents should not install OpenCode subagents"
 
 assert_file_contains "$bootstrap_project/.opencode/agents/mana_orchestrator.md" "Mana-managed OpenCode agent"
-assert_file_contains "$bootstrap_project/.opencode/agents/mana_full_specialist.md" "mode: subagent"
+[ ! -e "$bootstrap_project/.opencode/agents/mana_full_specialist.md" ] || fail 'bootstrap installed an unresolved OpenCode full specialist'
 assert_file_contains "$bootstrap_project/AGENTS.md" "OpenCode follows the same Mana chain"
 assert_file_contains "$bootstrap_project/.claude/agents/mana-orchestrator.md" "Mana-managed Claude Code subagent"
-assert_file_contains "$bootstrap_project/.claude/agents/mana-full-specialist.md" "model: claude-opus-5-5"
+[ ! -e "$bootstrap_project/.claude/agents/mana-full-specialist.md" ] || fail 'bootstrap installed an unresolved Claude full specialist'
 assert_file_contains "$bootstrap_project/AGENTS.md" "Claude Code follows the same bounded delegation chain"
 
 claude_collision_project="$tmp/claude collision project"

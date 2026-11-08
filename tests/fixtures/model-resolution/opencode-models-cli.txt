@@ -1,0 +1,8 @@
+provider/example-model
+{
+"id": "example-model",
+"providerID": "provider",
+"status": "active",
+"capabilities": {"reasoning": true},
+"variants": {"high": {"reasoningEffort": "high"}}
+}

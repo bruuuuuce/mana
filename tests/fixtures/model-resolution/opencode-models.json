@@ -1,0 +1,3 @@
+[
+  {"id":"example-model","model":"provider/example-model","providerID":"provider","status":"active","isDefault":true,"capabilities":{"reasoning":true},"variants":{"high":{"reasoningEffort":"high"}} ,"supportedReasoningEfforts":[{"reasoningEffort":"high"}]}
+]

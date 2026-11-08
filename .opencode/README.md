@@ -24,9 +24,10 @@ Run a profile with:
 scripts/run-profile.sh story-start --opencode
 ```
 
-OpenCode model IDs use `provider/model` format. The root and explorer default
-to `opencode/gpt-6-luna`; full specialist and worker default to
-`opencode/gpt-6-sol`. Override these with
+OpenCode model IDs use `provider/model` format. MANA resolves the project's
+provider/model default before invocation and retains that complete identity.
+Full-tier routing blocks unless the provider exposes suitable capability
+evidence. Override selections with
 `MANA_OPENCODE_MODEL`, `MANA_OPENCODE_EXPLORER_MODEL`,
 `MANA_OPENCODE_FULL_MODEL`, `MANA_OPENCODE_WORKER_MODEL`, or the matching
 `--opencode-*` flags. Disable subagents with `MANA_OPENCODE_SUBAGENTS=false` or

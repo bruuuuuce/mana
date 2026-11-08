@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mana.model-resolution/v1",
+  "title": "MANA model resolution result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "provider", "executionSupport", "providerVersion", "requestedTier", "reasoningEffort", "explicitOverride", "selectedModel", "selectedVariant", "supportedReasoningEfforts", "discoverySource", "confidence", "availability", "invocationCompatibility", "selectionReason", "fallbackReason", "costPolicy"],
+  "properties": {
+    "schemaVersion": {"const": "mana.model-resolution/v1"},
+    "provider": {"enum": ["codex", "claude", "opencode", "junie"]},
+    "executionSupport": {"enum": ["supported", "unsupported"]},
+    "providerVersion": {"type": "string"},
+    "requestedTier": {"enum": ["economy", "standard", "full"]},
+    "reasoningEffort": {"type": ["string", "null"]},
+    "explicitOverride": {"type": ["string", "null"]},
+    "selectedModel": {"type": ["string", "null"]},
+    "selectedVariant": {"type": ["string", "null"]},
+    "supportedReasoningEfforts": {"type": "array", "items": {"type": "string", "enum": ["minimal", "low", "medium", "high", "xhigh", "max"]}, "uniqueItems": true},
+    "discoverySource": {"type": "string"},
+    "confidence": {"enum": ["verified", "assumed", "unknown"]},
+    "availability": {"enum": ["available", "unknown", "unavailable", "blocked"]},
+    "invocationCompatibility": {"enum": ["compatible", "unknown", "incompatible"]},
+    "selectionReason": {"type": "string"},
+    "fallbackReason": {"type": ["string", "null"]},
+    "costPolicy": {"type": "string"}
+  }
+}

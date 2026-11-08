@@ -19,15 +19,7 @@ mana_story_start_stage_valid_effort() {
 mana_story_start_stage_default_model() {
   local provider="$1" stage="$2"
   mana_story_start_stage_valid "$stage" || return 1
-  case "$provider:$stage" in
-    codex:discovery|codex:correction|codex:trajectory-checkpoint) printf '%s\n' 'gpt-6-luna' ;;
-    codex:triage|codex:planner) printf '%s\n' 'gpt-6-sol' ;;
-    claude:discovery|claude:correction|claude:trajectory-checkpoint) printf '%s\n' 'claude-sonnet-5' ;;
-    claude:triage|claude:planner) printf '%s\n' 'claude-opus-5-5' ;;
-    opencode:discovery|opencode:correction|opencode:trajectory-checkpoint) printf '%s\n' 'opencode/gpt-6-luna' ;;
-    opencode:triage|opencode:planner) printf '%s\n' 'opencode/gpt-6-sol' ;;
-    *) return 1 ;;
-  esac
+  case "$provider" in codex|claude|opencode) printf '\n' ;; *) return 1 ;; esac
 }
 
 mana_story_start_stage_default_effort() {
@@ -82,7 +74,7 @@ mana_story_start_stage_resolve() {
     MANA_STORY_START_ROUTE_MODEL_SOURCE="root-compatibility-override"
   else
     MANA_STORY_START_ROUTE_MODEL="$default_model"
-    MANA_STORY_START_ROUTE_MODEL_SOURCE="provider-stage-default"
+    MANA_STORY_START_ROUTE_MODEL_SOURCE="provider-discovery"
   fi
 
   if [ -n "$cli_effort" ]; then

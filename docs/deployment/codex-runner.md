@@ -11,20 +11,26 @@ Codex should run repository analysis, story planning, branch validation, PR read
 - Codex should start on the configured economy model and delegate bounded difficult work to stronger custom agents only when evidence requires deep judgment.
 
 ## Model Policy
-`scripts/run-profile.sh --codex` passes `--model` to `codex exec`.
+`scripts/run-profile.sh --codex` discovers the provider default through Codex
+App Server `model/list` and selects it before constructing `codex exec`
+arguments. If that discovery interface is unavailable and no effort is
+required, MANA omits `--model` and lets Codex apply its own default.
 
-Default model settings:
+Optional explicit model settings:
 
 ```bash
-MANA_CODEX_MODEL=gpt-6-luna
-MANA_CODEX_EXPLORER_MODEL=gpt-6-luna
-MANA_CODEX_FULL_MODEL=gpt-6-sol
-MANA_CODEX_WORKER_MODEL=gpt-6-sol
+MANA_CODEX_MODEL=<provider model ID>
+MANA_CODEX_EXPLORER_MODEL=<provider model ID>
+MANA_CODEX_FULL_MODEL=<provider model ID>
+MANA_CODEX_WORKER_MODEL=<provider model ID>
 MANA_CODEX_MODEL_POLICY=economy-first
 MANA_CODEX_SUBAGENTS=true
 MANA_CODEX_MAX_THREADS=3
 ```
 
+Use `./mana models doctor --provider codex --tier economy --json` to inspect
+the live selection. Pins are never silently replaced. Full-tier suitability
+must be established separately; provider catalog membership is insufficient.
 Use `--codex-model`, `--codex-explorer-model`, `--codex-full-model`,
 `--codex-worker-model`, `--no-codex-subagents`, or the environment variables
 above to override behavior per run. `--codex-full-model` controls the model

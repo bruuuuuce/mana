@@ -17,6 +17,7 @@ positionals=()
 . "$root/scripts/lib/json.sh"
 . "$root/scripts/lib/run-identity.sh"
 . "$root/scripts/lib/provider-dispatch.sh"
+. "$root/scripts/lib/model-resolution.sh"
 . "$root/scripts/lib/user-context.sh"
 
 usage() {
@@ -163,9 +164,9 @@ m3_init_limits() {
   m3_max_output_bytes=$((m3_max_output_tokens * 4)); m3_provider="${MANA_USER_LEARNING_T1_PROVIDER:-codex}"; m3_codex_reasoning_effort="${MANA_USER_LEARNING_CODEX_REASONING_EFFORT:-}"
   case "$m3_codex_reasoning_effort" in ''|minimal|low|medium|high|xhigh) ;; *) fail 'M3 Codex reasoning effort must be minimal, low, medium, high, or xhigh' ;; esac
   case "$m3_provider" in
-    codex) m3_model="${MANA_USER_LEARNING_T1_MODEL:-${MANA_CODEX_MODEL:-gpt-6-luna}}" ;;
-    claude) m3_model="${MANA_USER_LEARNING_T1_MODEL:-${MANA_CLAUDE_MODEL:-haiku}}" ;;
-    opencode) m3_model="${MANA_USER_LEARNING_T1_MODEL:-${MANA_OPENCODE_MODEL:-opencode/gpt-6-luna}}" ;;
+    codex) m3_model="${MANA_USER_LEARNING_T1_MODEL:-${MANA_CODEX_MODEL:-}}" ;;
+    claude) m3_model="${MANA_USER_LEARNING_T1_MODEL:-${MANA_CLAUDE_MODEL:-}}" ;;
+    opencode) m3_model="${MANA_USER_LEARNING_T1_MODEL:-${MANA_OPENCODE_MODEL:-}}" ;;
     stub) m3_model="${MANA_USER_LEARNING_T1_MODEL:-deterministic-stub}" ;;
     *) fail 'M3 T1 provider must be codex, claude, opencode, or explicit test stub' ;;
   esac
@@ -519,6 +520,14 @@ synthesize() {
       (($multi | map(. + {rank:0})) + ($single | map(. + {rank:1})))
       | sort_by(.rank,.unitKey) | unique_by(.clusters|map(.clusterId)) | .[0:$maxUnits] | map(del(.rank))
   ' "$scratch/clusters.json" > "$scratch/units.json"; unit_count="$(jq length "$scratch/units.json")"
+  if [ "$unit_count" -gt 0 ] && [ "$m3_provider" != stub ]; then
+    m3_resolution_effort=""
+    [ "$m3_provider" != codex ] || m3_resolution_effort="$m3_codex_reasoning_effort"
+    if ! mana_model_resolve "$m3_provider" economy "$m3_resolution_effort" "$m3_model" "$project_root"; then
+      fail "M3 model resolution blocked synthesis: $MANA_MODEL_RESOLUTION_ERROR"
+    fi
+    m3_model="$MANA_PROVIDER_MODEL_ID"
+  fi
   while IFS= read -r unit; do
     [ -n "$unit" ] || continue; considered=$((considered+1)); cluster_ids="$(jq -c '[.clusters[].clusterId]|sort' <<<"$unit")"
     reduced=false
