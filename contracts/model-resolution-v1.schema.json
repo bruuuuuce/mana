@@ -1,4 +1,3 @@
-pyenv: cannot rehash: /Users/zel/.pyenv/shims isn't writable
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "mana.model-resolution/v1",

@@ -1,4 +1,3 @@
-pyenv: cannot rehash: /Users/zel/.pyenv/shims isn't writable
 #!/usr/bin/env python3
 """Provider model discovery and conservative tier resolution for MANA."""
 from __future__ import annotations

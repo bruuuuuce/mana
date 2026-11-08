@@ -1,4 +1,3 @@
-pyenv: cannot rehash: /Users/zel/.pyenv/shims isn't writable
 # Dynamic Model Resolution
 
 MANA resolves provider models by requested capability tier before it builds
