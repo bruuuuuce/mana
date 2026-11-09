@@ -206,11 +206,16 @@ public final class JavaFacts {
                 // same-package classpath types. Qualified package/type prefixes
                 // require attribution; do not guess their namespace here.
                 boolean explicit=spelling.equals("JdbcTemplate") &&
-                    "org.springframework.jdbc.core.JdbcTemplate".equals(imports.get(spelling));
+                    "org.springframework.jdbc.core.JdbcTemplate".equals(imports.get("JdbcTemplate")) &&
+                    allocation!=null && allocation.getIdentifier().toString().equals(spelling);
+                boolean explicitAllocation=allocation!=null &&
+                    "org.springframework.jdbc.core.JdbcTemplate".equals(imports.get("JdbcTemplate")) &&
+                    allocation.getIdentifier().toString().equals("JdbcTemplate");
                 fields.add(obj("name",f.getName().toString(),"type",qualify(spelling),
                     "flags",flags(f.getModifiers()),
                     "allocation",allocation==null?null:obj("type",qualify(allocation.getIdentifier().toString()),
-                        "explicitType",explicit && allocation.getIdentifier().toString().equals(spelling),
+                        "explicitType",explicit,
+                        "explicitAllocationType",explicitAllocation,
                         "arity",allocation.getArguments().size(),"anonymous",allocation.getClassBody()!=null,
                         "evidence",position(allocation)),
                     "annotations",annotations(f.getModifiers()),"initialized",f.getInitializer()!=null,
@@ -230,10 +235,13 @@ public final class JavaFacts {
                         "type",resolved,"declaredType",syntax,
                         "typeResolution",resolved!=null?"SOURCE_NAMESPACE":declarationOnly?"DECLARED_ONLY":"UNSUPPORTED",
                         "runtimeValue","UNKNOWN",
+                        "annotations",annotations(parameter.getModifiers()),
                         "evidence",position(parameter)));
                 }
                 if (!m.getTypeParameters().isEmpty()) dispatchHazards.add("UNRESOLVED_TYPE_PARAMETERS");
                 final List<Object> calls=new ArrayList<Object>();
+                final List<Object> assignments=new ArrayList<Object>();
+                final List<Object> localVariables=new ArrayList<Object>();
                 final Set<MethodInvocationTree> statementCalls=Collections.newSetFromMap(new IdentityHashMap<MethodInvocationTree,Boolean>());
                 List<String> hazards=new ArrayList<String>();
                 if (structuralDependency || referencesOmitted(m,omittedNames))
@@ -271,11 +279,26 @@ public final class JavaFacts {
                             for (ExpressionTree argument:call.getArguments()) {
                                 arguments.add(obj("kind",argument.getKind().toString(),
                                     "literal",argument instanceof LiteralTree?((LiteralTree)argument).getValue():null,
+                                    "text",argument.toString(),
                                     "evidence",position(argument)));
                             }
                             calls.add(obj("receiver",receiver,"name",name,"arity",call.getArguments().size(),
                                 "arguments",arguments,"statementCall",statementCalls.contains(call),"evidence",position(call)));
                             return null;
+                        }
+                        @Override public Void visitAssignment(AssignmentTree assignment,Void unused) {
+                            assignments.add(obj("target",assignment.getVariable().toString(),
+                                "value",assignment.getExpression().toString(),
+                                "evidence",position(assignment)));
+                            return super.visitAssignment(assignment,unused);
+                        }
+                        @Override public Void visitVariable(VariableTree variable,Void unused) {
+                            ExpressionTree init=variable.getInitializer();
+                            localVariables.add(obj("name",variable.getName().toString(),
+                                "type",parameterType(variable.getType(),variables),
+                                "initializer",init==null?null:init.toString(),
+                                "evidence",position(variable)));
+                            return super.visitVariable(variable,unused);
                         }
                         @Override public Void visitClass(ClassTree nested,Void unused) {
                             hazards.add("omitted-local-or-anonymous-type-dependency");
@@ -287,7 +310,7 @@ public final class JavaFacts {
                     "parameters",parameters,
                     "returnType",m.getReturnType()==null?"":qualify(m.getReturnType().toString()),
                     "annotations",annotations(m.getModifiers()),"flags",flags(m.getModifiers()),
-                    "hazards",hazards,"calls",calls,"evidence",position(m)));
+                    "hazards",hazards,"calls",calls,"assignments",assignments,"variables",localVariables,"evidence",position(m)));
             }
         }
         classes.add(obj("name",pkg+cls.getSimpleName(),"simpleName",cls.getSimpleName().toString(),

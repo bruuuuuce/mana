@@ -177,7 +177,9 @@ class EntryTests(unittest.TestCase):
         self.assertFalse(
             any(e["kind"] == "RESOURCE_LEAF_CALL" for e in report["events"])
         )
-        self.assertEqual(timeline["observations"][0]["operationType"], "UNKNOWN")
+        self.assertEqual(timeline["observations"][0]["operationType"], "WRITE")
+        self.assertEqual(timeline["observations"][0]["resource"]["name"], "accounts")
+        self.assertEqual(timeline["observations"][0]["jdbcBinding"]["status"], "UNKNOWN_OR_AMBIGUOUS")
 
     def test_s01_frontier_in_parameterized_method(self):
         report, timeline = self.model("literal")

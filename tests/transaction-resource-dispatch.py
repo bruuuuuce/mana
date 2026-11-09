@@ -296,12 +296,16 @@ class DispatchTests(unittest.TestCase):
             with self.subTest(name=name):
                 forged = copy.deepcopy(self.reports["standard"])
                 new_facts = copy.deepcopy(self.reports[name]["sourceFacts"])
-                new_hash = next(c["evidence"]["sha256"] for c in new_facts["classes"])
+                new_hashes = {
+                    path: hashlib.sha256(raw.encode("utf-8")).hexdigest()
+                    for path, raw in new_facts["sources"].items()
+                }
 
                 def rehash(value):
                     if isinstance(value, dict):
-                        if "sha256" in value:
-                            value["sha256"] = new_hash
+                        path = value.get("file", value.get("path"))
+                        if "sha256" in value and path in new_hashes:
+                            value["sha256"] = new_hashes[path]
                         for child in value.values():
                             rehash(child)
                     elif isinstance(value, list):

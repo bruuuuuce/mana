@@ -1,0 +1,50 @@
+@startuml
+hide footbox
+title Conditional static transaction scenario - runtime identity UNKNOWN
+actor "Scenario entry" as Entry
+participant "fixture.TransactionScenarioA" as B1
+participant "fixture.TransactionScenarioB" as B2
+legend left
+All P identifiers are SYMBOLIC_SCENARIO; actual runtime identity UNKNOWN.
+L = TRANSACTION_LOGICAL_SCOPE; P = TRANSACTION_PHYSICAL
+S = TRANSACTION_SUSPENDED; SP = TRANSACTION_SAVEPOINT
+Green: shared physical context / logical scope
+Blue: independent physical scope; outer P retained while SUSPENDED
+Yellow: nested SAVEPOINT on the SAME P
+Gray: NO_TRANSACTION; red: UNKNOWN / unsupported path
+Groups show method nesting. BEGIN/END notes define physical lifetimes.
+Suspended lifetime overlap is explicit in SUSPEND/RESUME notes.
+Interception: APPLIED / BYPASSED / UNKNOWN; context: ACTIVE / INACTIVE / UNKNOWN.
+INHERITED physical context does not require interception of this method.
+AspectJ ASSUMED_APPLIED is a conditional premise, never runtime weaving proof.
+endlegend
+Entry -> B1: fixture.TransactionScenarioA#forward() / CONDITIONAL_CALL
+group #CCE5FF F1 REQUIRED L1 P1
+note right of B1: interception=APPLIED; context=ACTIVE; INDEPENDENT P1
+note right of B1: advice=SCENARIO_PROXY_CALL; manager=tx
+note right of B1: bean=transactionScenarioA proxy=CLASS crossed=True\nsource=src/main/java/fixture/InjectedResources.java:76 / VERIFIED static reference
+note over B1: 2 PHYSICAL_BEGIN P1
+note over B1: 3 LOGICAL_BEGIN L1
+B1 -> B2: fixture.TransactionScenarioB#changeB() / CONDITIONAL_CALL
+group #CCE5FF F2 REQUIRES_NEW L2 P2
+note right of B2: interception=APPLIED; context=ACTIVE; INDEPENDENT P2
+note right of B2: advice=SCENARIO_PROXY_CALL; manager=tx
+note right of B2: bean=transactionScenarioB proxy=CLASS crossed=True\nsource=src/main/java/fixture/InjectedResources.java:77 / VERIFIED static reference
+note over B2: 5 SUSPEND S1 P1
+note over B2 #CCE5FF: P1 LIVE / SUSPENDED\nRetained until conditional resume; no commit or automatic lock release
+note over B2: 6 PHYSICAL_BEGIN P2
+note over B2: 7 LOGICAL_BEGIN L2
+note right of B2 #D6F5D6: JDBC O1 jdbcB.update WRITE resource_b\nCONDITIONAL timeline=8 before T01=8 context=P2 manager=tx\nsrc/main/java/fixture/InjectedResources.java:69 / lockAcquired=UNKNOWN
+note right of B2 #CCE5FF: RESOURCE_LEAF_CALL T01=8 / witness in evidence.json\nContinuation IF normal return / context preserved under catalog premises\nRuntime execution UNKNOWN
+note over B2: 9 LOGICAL_END L2
+note over B2: 10 PHYSICAL_END_OUTCOME_UNKNOWN P2
+note over B2: 11 RESUME_CONDITIONAL S1 P1
+end
+B2 --> B1: scope exit / outcome UNKNOWN
+note right of B1 #D6F5D6: JDBC O2 jdbcA.update WRITE resource_a\nCONDITIONAL timeline=14 before T01=13 context=P1 manager=tx\nsrc/main/java/fixture/InjectedResources.java:77 / lockAcquired=UNKNOWN
+note right of B1 #CCE5FF: RESOURCE_LEAF_CALL T01=13 / witness in evidence.json\nContinuation IF normal return / context preserved under catalog premises\nRuntime execution UNKNOWN
+note over B1: 14 LOGICAL_END L1
+note over B1: 15 PHYSICAL_END_OUTCOME_UNKNOWN P1
+end
+B1 --> Entry: scope exit / outcome UNKNOWN
+@enduml

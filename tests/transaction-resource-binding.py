@@ -56,7 +56,7 @@ CASES = {
         0,
     ),
     "override": (DYNAMIC + SUBCLASS, 0),
-    "dynamic": (DYNAMIC, 0),
+    "dynamic": (DYNAMIC, 2),
     "overload": (
         BASE.replace(
             'jdbc.execute("SELECT * FROM accounts")',
@@ -200,20 +200,17 @@ class BindingTests(unittest.TestCase):
             [[], [4], [4, 5]],
         )
 
-    def test_dynamic_receiver_has_no_false_continuation(self):
+    def test_injected_jdbc_receiver_has_conditional_continuation(self):
         report = self.reports["dynamic"]
         self.assertEqual(
             [o["placement"]["status"] for o in report["observations"]],
-            ["T01_FRONTIER", "UNPLACED"],
+            ["T01_RESOURCE_LEAF", "T01_RESOURCE_LEAF"],
         )
         self.assertEqual(
             [o["transactionContext"]["physicalId"] for o in report["observations"]],
-            ["P1", None],
+            ["P1", "P1"],
         )
-        self.assertIn(
-            "RESOURCE_LEAF_DISPATCH_UNPROVEN",
-            [u["reason"] for u in report["transactionModel"]["uncertainties"]],
-        )
+        self.assertEqual([leaf["method"] for leaf in self.leaves("dynamic")], ["execute", "update"])
 
     def test_both_historical_high_sources_and_witnesses(self):
         for review, case in [("R1", "historical_r1"), ("R2", "generic_shadow")]:

@@ -1,4 +1,4 @@
-# Resource Timeline Model v1 — T02-S01
+# Resource Timeline Model v1/v2 — T02-S01
 
 Status: implemented foundation, conditional static analysis, pending independent
 review. The current S01 mandate authorizes this bounded implementation; the older
@@ -27,14 +27,16 @@ The combined JSON has a 4 MiB publication budget. Existing output is not replace
 
 ## Structured format
 
-Schema identifier: `mana.resource-timeline/v1`. The Python implementation's
-`validate_timeline(report)` is the v1 semantic validator.
+Schema identifier: `mana.resource-timeline/v2` for reports containing JDBC
+observations. Reports with no observations and historical artifacts retain
+`mana.resource-timeline/v1`. The Python implementation's
+`validate_timeline(report)` validates both versions.
 
 | Field | Contract |
 |---|---|
 | `status` | Always `CONDITIONAL_STATIC_SCENARIO`; never runtime qualification |
 | `transactionModel` | Complete, unchanged `mana.transaction-model/v1` supplied by T01, including context/evidence/uncertainties |
-| `sourceFacts` | Parse-only AST facts from the same snapshot; invocation arguments add literal kind/value and source location |
+| `sourceFacts` | Parse-only AST facts from the same snapshot; invocation arguments and statically observed assignments/aliases include source locations |
 | `observations` | Ordered observation IDs O1…On, including explicitly unplaced source syntax |
 | `timeline` | Contiguous sequence of unchanged T01 event wrappers and positioned resource observations |
 | `limits` | Explicit fixed premises/limitations of this increment |
@@ -43,13 +45,14 @@ Each observation contains:
 
 | Field | Meaning |
 |---|---|
-| `frame`, `method`, `applicationOperation` | T01 frame, enclosing Java method, receiver and invoked method |
+| `frame`, `method`, `applicationOperation` | T01 frame (null for an untraversed helper), Java method identity, receiver and invoked method |
 | `callSite`, `evidence` | Relative source path, SHA-256, 1-based line and JDK UTF-16 offsets (`end` exclusive); field/argument evidence where available |
 | `operationType` | `READ`, `WRITE`, `EXPLICIT_LOCK_REQUEST` or `UNKNOWN` |
 | `sqlLiteral` | Supported source literal, otherwise null; unsupported SQL grammar can retain the literal with UNKNOWN resource/type |
 | `resource` | Exact lexical SQL identifier or UNKNOWN; never a runtime database object identity; lock granularity always UNKNOWN |
 | `transactionContext` | Copied current T01 `{kind, physicalId, manager}` at the frontier, or wholly UNKNOWN for unplaced syntax |
 | `datasource` | `{status: UNKNOWN, id: null}` in S01; no connection/datasource binding resolver is qualified |
+| `jdbcBinding` | v2 only: static JDBC receiver binding status and declared type; does not identify a datasource or Spring bean instance |
 | `enlistment`, `lockAcquired` | Always UNKNOWN; enclosing P is causal context, not proof that JDBC joins that transaction |
 | `certainty`, `placement` | CONDITIONAL/T01_FRONTIER or opt-in T01_RESOURCE_LEAF with `beforeT01Sequence`, or UNKNOWN/UNPLACED with null position |
 | `premises`, `limits` | Conditional reachability and explicit unresolved API, datasource or traversal restrictions |
@@ -62,22 +65,34 @@ positioned observations first, followed by unplaced syntax in T01 frame/AST orde
 array order is **not** chronology for unplaced syntax. UNPLACED observations have
 no timeline entry and must never supply an edge to a future wait graph.
 
-## Minimal supported reconstruction
+## JDBC receiver and operation reconstruction
 
-The qualified source pattern is a direct, noninitialized, unqualified
-`@Autowired JdbcTemplate` field, explicitly imported as
-`org.springframework.jdbc.core.JdbcTemplate`, in a class without declared parents,
-inside a T01-selected method without parser hazards (including bounded formal
-parameters; see REAL-01-F01 in Transaction Model v1). `jdbc` and `this.jdbc`
-receivers are supported. Optional/qualified injection, inherited members, local
-aliases, other resource APIs and runtime wiring remain unresolved. Even the
-qualified source field does not prove Spring can start or bind a datasource.
-Formal runtime values remain UNKNOWN; a parameter named `jdbc` does not bind the
-field's resource API. `sourceFacts` remains source-bearing local evidence at the
-explicit output destination; default AST diagnostics exclude source expressions.
+Supported static bindings include an unqualified `@Autowired JdbcTemplate` field,
+a single constructor or annotated setter assigning a `JdbcTemplate` parameter to a
+field, a final explicitly initialized `JdbcTemplate` field, a simple local alias
+of one of those fields, and a `JdbcOperations` field whose constructor or setter
+assignment proves its concrete `JdbcTemplate` value. Qualified or optional
+injection, multiple candidate assignments, inherited members, and runtime wiring
+remain UNKNOWN or ambiguous. A single simple `JdbcTemplate` parameter alias can
+resolve its receiver binding from a traversed caller's field argument; the helper
+body remains UNPLACED with UNKNOWN transaction context because T01 does not
+traverse nonzero-argument calls. An injected
+field proves the declared API binding only; it does not identify a Spring bean,
+datasource, connection, or enlistment. Operations on a `JdbcOperations` reference
+are resolved only when its concrete binding is proven.
 
-Recognized invocation APIs are `execute`, `update`, and `queryForList`, each with
-exactly one AST string literal argument. A deliberately closed, case-insensitive
+S01 recognizes `query`, `queryForObject`, `queryForList`, `update`, `batchUpdate`,
+and `execute`. The first SQL argument is retained only when it is a source string
+literal. Dynamic expressions remain UNKNOWN and never produce guessed SQL or
+resources. Operations with unsupported overloads remain visible as UNKNOWN.
+`sourceFacts` remains source-bearing local evidence at the explicit output
+destination; default AST diagnostics exclude source expressions.
+
+The opt-in `JDBC_LITERAL_V1` continuation catalog supports non-callback literal
+overloads of `execute`, `update`, `batchUpdate`, and `queryForList`. Each requires
+one SQL string literal argument. Other recognized APIs such as callback-based
+`query` and `queryForObject` remain observations at their T01 frontier because
+the current catalog does not prove callback behavior. A deliberately closed, case-insensitive
 SQL grammar recognizes the following exact forms (outer whitespace allowed):
 
 | SQL form | Type |
@@ -89,8 +104,9 @@ SQL grammar recognizes the following exact forms (outer whitespace allowed):
 | `DELETE FROM identifier` | WRITE |
 
 Identifiers use `[A-Za-z_][A-Za-z_0-9]*`; a name is copied from the literal only
-after the whole SQL matches. `update` permits only WRITE; `queryForList` permits
-READ or EXPLICIT_LOCK_REQUEST; `execute` permits all three. Qualified/quoted names,
+after the whole SQL matches. `update` and `batchUpdate` permit only WRITE;
+`query`, `queryForList` and `queryForObject` permit READ or EXPLICIT_LOCK_REQUEST;
+`execute` permits all three. Qualified/quoted names,
 joins, WHERE clauses, placeholders, comments, semicolons, multiple statements,
 concatenation, variables and computed/dynamic SQL are outside this grammar.
 These produce UNKNOWN rather than guessed names. No row identifier is emitted.
@@ -99,11 +115,12 @@ row/table granularity, acquisition, retention or blocking.
 
 ## Causality, physical lifetime and uncertainty
 
-Without the opt-in leaf extension, T01 does not resolve JDBC bodies. S01 can observe the invocation syntax at the
-first T01 `UNRESOLVED_CALL` frontier and insert an observation immediately before
-that event. It preserves the frontier and UNKNOWN continuation. It does not
-declare the JDBC call resolved or resume traversal past it. Any unresolved
-resource API at a frontier is represented with UNKNOWN type/resource.
+Without the opt-in leaf extension, T01 does not resolve JDBC bodies. S01 can
+observe the invocation syntax at the first T01 `UNRESOLVED_CALL` frontier and
+insert an observation immediately before that event. It preserves the frontier
+and UNKNOWN continuation. It does not declare the JDBC call resolved or resume
+traversal past it. Any unresolved resource API at a frontier is represented
+with UNKNOWN type/resource.
 
 Context starts with the frame's T01 `duringState`; a resolved child return uses
 that child's T01 `afterState`. This matters when an empty REQUIRES_NEW child ends
@@ -121,11 +138,13 @@ event wrappers. No commit, rollback or lock release is derived from these marker
 
 For NOT_ASSERTED bodies, async calls, unknown interception/initial context, or
 resource syntax after unresolved continuation, S01 can retain direct JDBC syntax
-as UNPLACED observations. It assigns no P or manager even if a boundary-entry
+as UNPLACED observations. A uniquely matched helper parameter alias can establish
+the JDBC receiver binding, but the helper observation has no T01 frame and no
+transaction context. No P or manager is assigned even if a boundary-entry
 property is known: entry context cannot establish context throughout an
-untraversed body. Bodies of methods T01 never visits are not scanned as if called.
-Nested calls in dynamic SQL arguments can stop T01 before the outer JDBC call;
-the JDBC syntax then remains UNPLACED/UNKNOWN.
+untraversed body. Untraversed methods are not treated as called. Nested calls in
+dynamic SQL arguments can stop T01 before the outer JDBC call; the JDBC syntax
+then remains UNPLACED/UNKNOWN.
 
 ### Opt-in resource leaves (D02)
 

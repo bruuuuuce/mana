@@ -247,12 +247,11 @@ class LeafTests(unittest.TestCase):
                     ["RESOURCE_LEAF_CALL", "UNRESOLVED_CALL"],
                 )
 
-    def test_callback_nonliteral_uncatalogued_and_demarcation_are_not_leaves(self):
+    def test_callback_nonliteral_and_demarcation_are_not_leaves(self):
         for method in [
             "callbackArgument",
             "autoCommit",
             "sqlCommit",
-            "uncatalogued",
             "variableSql",
         ]:
             with self.subTest(method=method):
@@ -267,6 +266,10 @@ class LeafTests(unittest.TestCase):
                 self.assertEqual(
                     report["observations"][-1]["placement"]["status"], "UNPLACED"
                 )
+
+    def test_literal_batch_update_is_a_catalogued_leaf(self):
+        report = self.model("fixture.Operations#uncatalogued()", "variants")
+        self.assertEqual([leaf["method"] for leaf in self.leaves(report)], ["batchUpdate", "update"])
 
     def test_unknown_control_flow_async_and_lambda_bodies_not_traversed(self):
         for method in ["unordered", "callbackLambda", "async"]:
