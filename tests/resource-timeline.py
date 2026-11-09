@@ -18,7 +18,11 @@ spec = importlib.util.spec_from_file_location(
 )
 cli = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(cli)
-from skill_factory.transactions.resources import sql_operation  # noqa: E402
+from skill_factory.transactions.resources import (  # noqa: E402
+    LIMITS,
+    _legacy_observations,
+    sql_operation,
+)
 
 
 def snapshot(root):
@@ -397,6 +401,18 @@ class ResourceTests(unittest.TestCase):
         report["sourceFacts"]["classes"][0]["evidence"]["sha256"] = "0" * 64
         with self.assertRaisesRegex(ValueError, "source hash"):
             cli.validate_timeline(report)
+
+    def test_v1_projection_omits_new_unplaced_jdbc_operations_observations(self):
+        report = self.model("fixture.UnknownThenJdbcOperations#read()")
+        self.assertTrue(any(o["placement"]["beforeT01Sequence"] is None for o in report["observations"]))
+        legacy = copy.deepcopy(report)
+        legacy["schema"] = "mana.resource-timeline/v1"
+        legacy["limits"] = list(LIMITS)
+        legacy["observations"] = _legacy_observations(
+            report["observations"], report["sourceFacts"]
+        )
+        self.assertFalse(any(o["placement"]["beforeT01Sequence"] is None for o in legacy["observations"]))
+        cli.validate_timeline(legacy)
 
     def test_t01_events_must_remain_intact(self):
         report = self.model("fixture.Entry#independent()")

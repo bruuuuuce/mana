@@ -55,6 +55,24 @@ def _legacy_observations(observations, facts):
     """Recreate the original direct-field-only v1 observation semantics."""
     result = []
     for observation in observations:
+        # v1 retained UNPLACED JdbcTemplate field observations, but its bounded
+        # receiver inventory did not include newly supported JdbcOperations,
+        # constructor, setter, alias, or local-binding observations.
+        if observation["placement"]["beforeT01Sequence"] is None:
+            matches = [
+                (cls, call)
+                for cls in facts["classes"] for method in cls["methods"] for call in method["calls"]
+                if call["evidence"] == observation["callSite"]
+            ]
+            if len(matches) != 1:
+                raise ValueError("legacy unplaced call has no unique source invocation")
+            cls, call = matches[0]
+            field = next(
+                (f for f in cls["fields"] if f["name"] == call["receiver"].removeprefix("this.")),
+                None,
+            )
+            if field is None or field["type"] != JDBC:
+                continue
         if observation["placement"]["status"] == "T01_RESOURCE_LEAF":
             legacy = {k: copy.deepcopy(v) for k, v in observation.items() if k != "jdbcBinding"}
             matches = [

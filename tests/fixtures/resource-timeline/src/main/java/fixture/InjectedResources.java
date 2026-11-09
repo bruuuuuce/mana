@@ -15,6 +15,13 @@ class ConstructorOperations {
 }
 
 @Service
+class UnknownThenJdbcOperations {
+    private final org.springframework.jdbc.core.JdbcOperations jdbc;
+    @Autowired UnknownThenJdbcOperations(JdbcTemplate jdbc) { this.jdbc = jdbc; }
+    public void read() { unknownReceiver.run(); jdbc.queryForObject("SELECT * FROM constructor_accounts", String.class); }
+}
+
+@Service
 class SetterOperations {
     private JdbcTemplate jdbc;
     @Autowired public void setJdbc(JdbcTemplate jdbc) { this.jdbc = jdbc; }
