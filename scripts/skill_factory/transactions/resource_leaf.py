@@ -16,7 +16,7 @@ SIGNATURES = {
     "execute": JDBC + "#execute(java.lang.String):void",
     "update": JDBC + "#update(java.lang.String):int",
     "queryForList": JDBC + "#queryForList(java.lang.String):java.util.List",
-    "batchUpdate": JDBC + "#batchUpdate(java.lang.String[]):int[][]",
+    "batchUpdate": JDBC + "#batchUpdate(java.lang.String[]):int[]",
 }
 CALLER_ANNOTATIONS = {
     "org.springframework.stereotype." + name

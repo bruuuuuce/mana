@@ -52,30 +52,78 @@ def _limits(transaction):
 
 
 def _legacy_observations(observations, facts):
-    variable_evidence = {
-        json.dumps(variable["evidence"], sort_keys=True)
-        for cls in facts["classes"]
-        for method in cls["methods"]
-        for variable in method.get("variables", [])
-    }
-    allocation_evidence = {
-        json.dumps(field["allocation"]["evidence"], sort_keys=True)
-        for cls in facts["classes"]
-        for field in cls["fields"]
-        if isinstance(field.get("allocation"), dict)
-    }
-    return [
-        {
-            **{k: v for k, v in observation.items() if k != "jdbcBinding"},
-            "evidence": [
-                item
-                for item in observation["evidence"]
-                if json.dumps(item, sort_keys=True) not in variable_evidence
-                and json.dumps(item, sort_keys=True) not in allocation_evidence
-            ],
+    """Recreate the original direct-field-only v1 observation semantics."""
+    result = []
+    for observation in observations:
+        if observation["placement"]["status"] == "T01_RESOURCE_LEAF":
+            legacy = {k: copy.deepcopy(v) for k, v in observation.items() if k != "jdbcBinding"}
+            matches = [
+                (cls, method, call)
+                for cls in facts["classes"] for method in cls["methods"] for call in method["calls"]
+                if call["evidence"] == observation["callSite"]
+            ]
+            if len(matches) != 1:
+                raise ValueError("legacy resource leaf has no unique source invocation")
+            cls, _, call = matches[0]
+            field = next((f for f in cls["fields"] if f["name"] == call["receiver"].removeprefix("this.")), None)
+            legacy["evidence"] = [copy.deepcopy(call["evidence"])]
+            if field:
+                legacy["evidence"].append(copy.deepcopy(field["evidence"]))
+            args = call.get("arguments", [])
+            if args and args[0]["kind"] == "STRING_LITERAL":
+                legacy["evidence"].append(copy.deepcopy(args[0]["evidence"]))
+            result.append(legacy)
+            continue
+        matches = [
+            (cls, method, call)
+            for cls in facts["classes"]
+            for method in cls["methods"]
+            for call in method["calls"]
+            if call["evidence"] == observation["callSite"]
+        ]
+        if len(matches) != 1:
+            raise ValueError("legacy resource call has no unique source invocation")
+        cls, method, call = matches[0]
+        receiver = call["receiver"]
+        fields = [f for f in cls["fields"] if f["name"] == receiver.removeprefix("this.")]
+        field = fields[0] if len(fields) == 1 else None
+        annotations = field["annotations"] if field else []
+        binding = bool(
+            field and not shadows_receiver(method, receiver)
+            and field["type"] == JDBC and not cls["parents"]
+            and not method["hazards"] and receiver in {field["name"], "this." + field["name"]}
+            and (
+                binding_blocker(field) is None
+                or (
+                    not field["initialized"] and len(annotations) == 1
+                    and annotations[0]["type"] == AUTOWIRED and not annotations[0]["args"]
+                )
+            )
+        )
+        args = call.get("arguments", [])
+        supported = binding and call["name"] in {"execute", "update", "queryForList"} \
+            and call["arity"] == len(args) == 1 and args[0]["kind"] == "STRING_LITERAL"
+        sql = args[0]["literal"] if supported else None
+        kind, name = sql_operation(sql, call["name"])
+        legacy = {k: copy.deepcopy(v) for k, v in observation.items() if k != "jdbcBinding"}
+        legacy["operationType"] = kind
+        legacy["sqlLiteral"] = sql
+        legacy["resource"] = {
+            "status": "LEXICAL_SQL_IDENTIFIER" if name else "UNKNOWN",
+            "name": name, "runtimeIdentity": "UNKNOWN", "lockGranularity": "UNKNOWN",
         }
-        for observation in observations
-    ]
+        legacy["evidence"] = [copy.deepcopy(call["evidence"])]
+        if field:
+            legacy["evidence"].append(copy.deepcopy(field["evidence"]))
+        if supported:
+            legacy["evidence"].append(copy.deepcopy(args[0]["evidence"]))
+        legacy["limits"] = [
+            "JDBC_DATASOURCE_BINDING_NOT_MODELED",
+            "EXECUTION_AND_LOCK_OWNERSHIP_NOT_OBSERVED",
+        ] + (["SQL_OR_RESOURCE_API_UNRESOLVED"] if kind == "UNKNOWN" else []) \
+          + (["T01_BODY_OR_CONTINUATION_NOT_TRAVERSED"] if legacy["placement"]["beforeT01Sequence"] is None else [])
+        result.append(legacy)
+    return result
 
 
 def _method(facts, frame):
@@ -162,12 +210,29 @@ def _parameter_binding(facts, cls, method, receiver, allowed_callers=None):
     if any(a["type"] == QUALIFIER for a in parameter.get("annotations", [])):
         return None, "UNKNOWN_OR_AMBIGUOUS", [parameter["evidence"]]
     matches = []
+    unresolved_match = False
     for caller_cls in facts["classes"]:
         for caller in caller_cls["methods"]:
             if allowed_callers is not None and method_key(caller_cls, caller) not in allowed_callers:
                 continue
             for call in caller["calls"]:
                 if call["name"] != method["name"] or call["arity"] != method["arity"]:
+                    continue
+                arguments = call.get("arguments", [])
+                if len(arguments) != method["arity"]:
+                    continue
+                plausible_target = (
+                    caller_cls["name"] == cls["name"]
+                    and call["receiver"] in {"", "this"}
+                ) or (
+                    caller_cls["name"] != cls["name"]
+                    and any(
+                        f["name"] == call["receiver"].removeprefix("this.")
+                        and f["type"] in {cls["name"], cls["simpleName"]}
+                        for f in caller_cls["fields"]
+                    )
+                )
+                if not plausible_target:
                     continue
                 if caller_cls["name"] == cls["name"]:
                     if call["receiver"] not in {"", "this"}:
@@ -180,13 +245,11 @@ def _parameter_binding(facts, cls, method, receiver, allowed_callers=None):
                     ]
                     if len(target_fields) != 1:
                         continue
-                arguments = call.get("arguments", [])
-                if len(arguments) != method["arity"]:
-                    continue
                 # Parameter position is stable in the declaration.
                 index = method.get("parameters", []).index(parameter)
                 expression = arguments[index].get("text", "")
                 if not expression or not expression.replace("this.", "", 1).isidentifier():
+                    unresolved_match = True
                     continue
                 bound_field, bound_status, bound_evidence = _receiver_binding(
                     caller_cls, caller, expression
@@ -202,7 +265,9 @@ def _parameter_binding(facts, cls, method, receiver, allowed_callers=None):
                 )
                 if type_compatible and bound_status == "RESOLVED_STATIC_TYPE":
                     matches.append((bound_field, call, arguments[index], bound_evidence))
-    if not matches:
+                else:
+                    unresolved_match = True
+    if not matches or unresolved_match:
         return None, "UNKNOWN_OR_AMBIGUOUS", [parameter["evidence"]]
     identities = {json.dumps(item[0]["evidence"], sort_keys=True) for item in matches}
     if len(identities) != 1:
@@ -242,6 +307,8 @@ def _receiver_binding(cls, method, receiver, facts=None, allowed_callers=None):
         if len(aliases) != 1 or aliases[0].get("type") not in {JDBC, JDBC_OPERATIONS}:
             return None, "UNKNOWN_OR_AMBIGUOUS", []
         alias = aliases[0]
+        if any(a["target"].removeprefix("this.") == current for a in method.get("assignments", [])):
+            return None, "UNKNOWN_OR_AMBIGUOUS", [alias["evidence"]]
         evidence.append(alias["evidence"])
         initializer = alias.get("initializer")
         if not isinstance(initializer, str) or not initializer.replace("this.", "", 1).isidentifier():

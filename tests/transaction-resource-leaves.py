@@ -19,6 +19,7 @@ spec = importlib.util.spec_from_file_location(
 )
 cli = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(cli)
+from skill_factory.transactions.resource_leaf import SIGNATURES  # noqa: E402
 
 VARIANTS = """
     @Autowired org.springframework.transaction.support.TransactionTemplate template;
@@ -52,6 +53,12 @@ def snapshot(project):
 
 
 class LeafTests(unittest.TestCase):
+    def test_batch_update_signature_matches_spring_api(self):
+        self.assertEqual(
+            SIGNATURES["batchUpdate"],
+            "org.springframework.jdbc.core.JdbcTemplate#batchUpdate(java.lang.String[]):int[]",
+        )
+
     @classmethod
     def setUpClass(cls):
         cls.tmp = tempfile.TemporaryDirectory()
