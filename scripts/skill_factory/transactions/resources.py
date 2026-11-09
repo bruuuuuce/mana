@@ -318,6 +318,23 @@ def _receiver_binding(cls, method, receiver, facts=None, allowed_callers=None):
         if current in seen:
             return None, "UNKNOWN_OR_AMBIGUOUS", []
         seen.add(current)
+        # An unqualified name resolves to a local variable before a field.
+        # The compact Java facts do not retain lexical ranges, so multiple
+        # same-named declarations cannot be safely assigned to this call.
+        if "." not in current:
+            aliases = [v for v in method.get("variables", []) if v["name"] == current]
+            if aliases:
+                if len(aliases) != 1 or aliases[0].get("type") not in {JDBC, JDBC_OPERATIONS}:
+                    return None, "UNKNOWN_OR_AMBIGUOUS", []
+                alias = aliases[0]
+                if any(a["target"].removeprefix("this.") == current for a in method.get("assignments", [])):
+                    return None, "UNKNOWN_OR_AMBIGUOUS", [alias["evidence"]]
+                evidence.append(alias["evidence"])
+                initializer = alias.get("initializer")
+                if not isinstance(initializer, str) or not initializer.replace("this.", "", 1).isidentifier():
+                    return None, "UNKNOWN_OR_AMBIGUOUS", evidence
+                current = initializer
+                continue
         field_name = current.removeprefix("this.")
         fields = [f for f in cls["fields"] if f["name"] == field_name]
         if len(fields) == 1 and current in {field_name, "this." + field_name}:

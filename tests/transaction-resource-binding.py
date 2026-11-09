@@ -84,6 +84,26 @@ CASES = {
         BASE.replace("public void sequence()", "public <JdbcTemplate> void sequence()"),
         0,
     ),
+    "local_shadow_unknown": (
+        DYNAMIC.replace(
+            "@Transactional public void sequence() {",
+            "JdbcTemplate obtainOtherTemplate() { return null; }\n    @Transactional public void sequence() {",
+        ).replace(
+            "@Transactional public void sequence() {",
+            "@Transactional public void sequence() { JdbcTemplate jdbc = obtainOtherTemplate();",
+        ),
+        0,
+    ),
+    "local_shadow_explicit_field": (
+        DYNAMIC.replace(
+            "@Transactional public void sequence() {",
+            "JdbcTemplate obtainOtherTemplate() { return null; }\n    @Transactional public void sequence() {",
+        ).replace(
+            'jdbc.execute("SELECT * FROM accounts");',
+            'JdbcTemplate jdbc = obtainOtherTemplate(); this.jdbc.execute("SELECT * FROM accounts");',
+        ),
+        0,
+    ),
     "mutable": (BASE.replace("private final JdbcTemplate", "private JdbcTemplate"), 0),
     "anonymous": (
         BASE.replace(
@@ -211,6 +231,25 @@ class BindingTests(unittest.TestCase):
             ["P1", "P1"],
         )
         self.assertEqual([leaf["method"] for leaf in self.leaves("dynamic")], ["execute", "update"])
+
+    def test_local_shadow_is_not_attributed_to_field_but_this_is(self):
+        from skill_factory.transactions.resources import _receiver_binding
+
+        report = self.reports["local_shadow_unknown"]
+        operations = next(c for c in report["sourceFacts"]["classes"] if c["simpleName"] == "Operations")
+        method = next(m for m in operations["methods"] if m["name"] == "sequence")
+        field, status, _ = _receiver_binding(operations, method, "jdbc", report["sourceFacts"])
+        self.assertIsNone(field)
+        self.assertEqual(status, "UNKNOWN_OR_AMBIGUOUS")
+        self.assertEqual(self.leaves("local_shadow_unknown"), [])
+
+        explicit = self.reports["local_shadow_explicit_field"]["observations"]
+        this_call = next(o for o in explicit if o["applicationOperation"]["receiver"] == "this.jdbc")
+        self.assertEqual(this_call["jdbcBinding"]["status"], "RESOLVED_STATIC_TYPE")
+        self.assertEqual(this_call["jdbcBinding"]["declaredType"], "org.springframework.jdbc.core.JdbcTemplate")
+        # The local variable makes the complete body ineligible for T01
+        # continuation; explicit field binding in S01 must not relax that.
+        self.assertEqual(self.leaves("local_shadow_explicit_field"), [])
 
     def test_both_historical_high_sources_and_witnesses(self):
         for review, case in [("R1", "historical_r1"), ("R2", "generic_shadow")]:
