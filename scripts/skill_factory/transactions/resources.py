@@ -333,6 +333,11 @@ def _receiver_binding(cls, method, receiver, facts=None, allowed_callers=None):
                 initializer = alias.get("initializer")
                 if not isinstance(initializer, str) or not initializer.replace("this.", "", 1).isidentifier():
                     return None, "UNKNOWN_OR_AMBIGUOUS", evidence
+                if not initializer.startswith("this.") and (
+                    any(p["name"] == initializer for p in method.get("parameters", []))
+                    or any(v["name"] == initializer for v in method.get("variables", []))
+                ):
+                    return None, "UNKNOWN_OR_AMBIGUOUS", evidence
                 current = initializer
                 continue
         field_name = current.removeprefix("this.")
@@ -350,6 +355,11 @@ def _receiver_binding(cls, method, receiver, facts=None, allowed_callers=None):
         evidence.append(alias["evidence"])
         initializer = alias.get("initializer")
         if not isinstance(initializer, str) or not initializer.replace("this.", "", 1).isidentifier():
+            return None, "UNKNOWN_OR_AMBIGUOUS", evidence
+        if not initializer.startswith("this.") and (
+            any(p["name"] == initializer for p in method.get("parameters", []))
+            or any(v["name"] == initializer for v in method.get("variables", []))
+        ):
             return None, "UNKNOWN_OR_AMBIGUOUS", evidence
         current = initializer
     return None, "UNKNOWN_OR_AMBIGUOUS", evidence

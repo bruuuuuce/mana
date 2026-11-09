@@ -94,6 +94,16 @@ CASES = {
         ),
         0,
     ),
+    "out_of_scope_alias_unknown": (
+        DYNAMIC.replace(
+            "@Autowired JdbcTemplate jdbc;",
+            "@Autowired JdbcTemplate jdbc;\n    @Autowired JdbcTemplate other;",
+        ).replace(
+            "@Transactional public void sequence() {",
+            "JdbcTemplate obtainOtherTemplate() { return null; }\n    @Transactional public void sequence() { { JdbcTemplate other = obtainOtherTemplate(); } JdbcTemplate jdbc = other;",
+        ),
+        0,
+    ),
     "local_shadow_explicit_field": (
         DYNAMIC.replace(
             "@Transactional public void sequence() {",
@@ -238,10 +248,20 @@ class BindingTests(unittest.TestCase):
         report = self.reports["local_shadow_unknown"]
         operations = next(c for c in report["sourceFacts"]["classes"] if c["simpleName"] == "Operations")
         method = next(m for m in operations["methods"] if m["name"] == "sequence")
+        self.assertTrue(any(c["receiver"] == "jdbc" and c["name"] == "execute" for c in method["calls"]))
         field, status, _ = _receiver_binding(operations, method, "jdbc", report["sourceFacts"])
         self.assertIsNone(field)
         self.assertEqual(status, "UNKNOWN_OR_AMBIGUOUS")
         self.assertEqual(self.leaves("local_shadow_unknown"), [])
+
+        out_of_scope = self.reports["out_of_scope_alias_unknown"]
+        operations = next(c for c in out_of_scope["sourceFacts"]["classes"] if c["simpleName"] == "Operations")
+        method = next(m for m in operations["methods"] if m["name"] == "sequence")
+        self.assertTrue(any(c["receiver"] == "jdbc" and c["name"] == "update" for c in method["calls"]))
+        field, status, _ = _receiver_binding(operations, method, "jdbc", out_of_scope["sourceFacts"])
+        self.assertIsNone(field)
+        self.assertEqual(status, "UNKNOWN_OR_AMBIGUOUS")
+        self.assertEqual(self.leaves("out_of_scope_alias_unknown"), [])
 
         explicit = self.reports["local_shadow_explicit_field"]["observations"]
         this_call = next(o for o in explicit if o["applicationOperation"]["receiver"] == "this.jdbc")
