@@ -71,7 +71,10 @@ def _legacy_observations(observations, facts):
                 (f for f in cls["fields"] if f["name"] == call["receiver"].removeprefix("this.")),
                 None,
             )
-            if field is None or field["type"] != JDBC:
+            if field is None or not (
+                field["type"] == JDBC
+                or field["type"].startswith("UNKNOWN_TYPE_PARAMETER:")
+            ):
                 continue
         if observation["placement"]["status"] == "T01_RESOURCE_LEAF":
             legacy = {k: copy.deepcopy(v) for k, v in observation.items() if k != "jdbcBinding"}
