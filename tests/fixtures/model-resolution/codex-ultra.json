@@ -1,0 +1,12 @@
+[
+  {
+    "id": "gpt-6.1-sol",
+    "model": "gpt-6.1-sol",
+    "hidden": false,
+    "isDefault": true,
+    "supportedReasoningEfforts": [
+      {"reasoningEffort": "high"},
+      {"reasoningEffort": "ultra"}
+    ]
+  }
+]

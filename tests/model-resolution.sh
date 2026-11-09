@@ -13,6 +13,20 @@ if grep -q 'old-model' "$tmp/economy.json"; then fail 'resolver retained an obso
 
 python3 "$resolver" doctor --provider codex --tier full --fixture "$fixtures/codex-new-default.json" --json > "$tmp/full.json"
 jq -e '.selectedModel == "gpt-2099-sol" and .resolvedEffort == "high" and .tierEligible == true and .availability == "available" and .accountAvailability == "unknown" and .executionStatus == "not_invoked"' "$tmp/full.json" >/dev/null || fail 'newly discovered explicitly eligible model was not selected for full tier'
+
+ultra_fixture="$fixtures/codex-ultra.json"
+python3 "$resolver" doctor --provider codex --tier economy --fixture "$ultra_fixture" --json > "$tmp/ultra-economy-cost.json"
+python3 "$resolver" doctor --provider codex --tier standard --fixture "$ultra_fixture" --json > "$tmp/ultra-standard-cost.json"
+python3 "$resolver" doctor --provider codex --tier full --fixture "$ultra_fixture" --json > "$tmp/ultra-full.json"
+for tier in economy standard; do
+  python3 "$resolver" doctor --provider codex --tier "$tier" --effort ultra --fixture "$ultra_fixture" --json > "$tmp/ultra-$tier.json" && fail "$tier tier accepted an unknown provider effort"
+  jq -e '.selectedModel == null and .availability == "blocked" and (.supportedReasoningEfforts | length == 0) and any(.observedReasoningEfforts[]; .reasoningEffort == "ultra" and .model == "gpt-6.1-sol" and .source == "fixture:codex-ultra.json")' "$tmp/ultra-$tier.json" >/dev/null || fail "$tier unknown effort was selected or its provider provenance was lost"
+done
+jq -e '.selectedModel == "gpt-6.1-sol" and (.costPolicy | contains("same full-tier model") and contains("without a lower-cost guarantee"))' "$tmp/ultra-economy-cost.json" >/dev/null || fail 'economy diagnostic omitted model identity or cost uncertainty'
+jq -e '.selectedModel == "gpt-6.1-sol" and (.costPolicy | contains("same full-tier model") and contains("without a lower-cost guarantee"))' "$tmp/ultra-standard-cost.json" >/dev/null || fail 'standard diagnostic omitted model identity or cost uncertainty'
+jq -e '.selectedModel == "gpt-6.1-sol" and .resolvedEffort == "high" and .tierEligible == true and (.supportedReasoningEfforts == ["high"]) and ([.observedReasoningEfforts[].reasoningEffort] | index("ultra")) and any(.observedReasoningEfforts[]; .reasoningEffort == "ultra" and .model == "gpt-6.1-sol" and .source == "fixture:codex-ultra.json")' "$tmp/ultra-full.json" >/dev/null || fail 'unknown provider effort changed full/high selection or lost its provenance'
+python3 "$resolver" doctor --provider codex --tier full --effort ultra --fixture "$ultra_fixture" --json > "$tmp/ultra-requested.json" && fail 'unknown provider effort was enabled for dispatch'
+jq -e '.selectedModel == null and .resolvedEffort == null and .tierEligible == false and .invocationCompatibility == "unknown" and any(.observedReasoningEfforts[]; .reasoningEffort == "ultra" and .model == "gpt-6.1-sol" and .source == "fixture:codex-ultra.json")' "$tmp/ultra-requested.json" >/dev/null || fail 'unknown effort was not blocked safely with its provider provenance'
 python3 "$resolver" doctor --provider codex --tier full --effort high --model provider-newer-unrated --fixture "$fixtures/codex-new-default.json" --json > "$tmp/unqualified-full.json" && fail 'full tier ran without eligibility evidence'
 jq -e '.selectedModel == "provider-newer-unrated" and .tierEligible == false and .invocationCompatibility == "incompatible" and .executionStatus == "not_invoked"' "$tmp/unqualified-full.json" >/dev/null || fail 'missing full-tier eligibility evidence did not block'
 
@@ -51,6 +65,12 @@ jq -e '.availability == "blocked" and .invocationCompatibility == "incompatible"
 
 python3 "$resolver" doctor --provider opencode --tier full --fixture "$fixtures/opencode-models.json" --json > "$tmp/opencode-full.json" && fail 'OpenCode model listing without eligible family was treated as full-tier proof'
 jq -e '.selectedModel == null and .tierEligible == false and .availability == "blocked" and .invocationCompatibility == "unknown"' "$tmp/opencode-full.json" >/dev/null || fail 'OpenCode missing full-tier eligibility did not block'
+
+route_fixture="$fixtures/opencode-provider-routes.json"
+python3 "$resolver" doctor --provider opencode --tier full --fixture "$route_fixture" --json > "$tmp/opencode-route-default.json"
+jq -e '.selectedModel == "openai/gpt-6.1-sol" and .tierEligible == true and .resolvedEffort == "high"' "$tmp/opencode-route-default.json" >/dev/null || fail 'OpenCode automatic full-tier selection changed the configured provider route'
+python3 "$resolver" doctor --provider opencode --tier full --effort high --model opencode/gpt-6.1-sol --fixture "$route_fixture" --json > "$tmp/opencode-route-pin.json"
+jq -e '.selectedModel == "opencode/gpt-6.1-sol" and .tierEligible == true and .resolvedEffort == "high"' "$tmp/opencode-route-pin.json" >/dev/null || fail 'explicit eligible OpenCode provider route pin was not preserved'
 
 python3 "$resolver" doctor --provider opencode --tier economy --model provider/example-model --fixture "$fixtures/opencode-models.json" --json > "$tmp/opencode-pinned.json"
 jq -e '.selectedModel == "provider/example-model" and .availability == "available"' "$tmp/opencode-pinned.json" >/dev/null || fail 'OpenCode full provider/model identity was not preserved'

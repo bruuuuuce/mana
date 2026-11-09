@@ -15,15 +15,36 @@ from collections import deque
 from pathlib import Path
 
 SCHEMA = "mana.model-resolution/v1"
+DISPATCH_EFFORTS = {"minimal", "low", "medium", "high", "xhigh", "max"}
 
 
 class CatalogUnavailable(RuntimeError):
     """The provider supports no usable model-list discovery interface."""
 
 
+def observed_model_efforts(record: dict) -> list[str]:
+    values = {item.get("reasoningEffort") for item in record.get("supportedReasoningEfforts", [])
+              if isinstance(item, dict) and isinstance(item.get("reasoningEffort"), str)}
+    variants = record.get("variants", {})
+    if isinstance(variants, dict):
+        values.update(metadata.get("reasoningEffort") for metadata in variants.values()
+                      if isinstance(metadata, dict) and isinstance(metadata.get("reasoningEffort"), str))
+    return sorted(values)
+
+
 def model_efforts(record: dict) -> list[str]:
-    return sorted({item.get("reasoningEffort") for item in record.get("supportedReasoningEfforts", [])
-                   if isinstance(item, dict) and isinstance(item.get("reasoningEffort"), str)})
+    """Return only efforts that the MANA dispatch contract can represent."""
+    return sorted(set(observed_model_efforts(record)) & DISPATCH_EFFORTS)
+
+
+def effort_evidence(record: dict | None, source: str) -> list[dict]:
+    if not record:
+        return []
+    model = record.get("model") or record.get("id")
+    if not isinstance(model, str) or not model:
+        return []
+    return [{"reasoningEffort": value, "model": model, "source": source}
+            for value in observed_model_efforts(record)]
 
 
 def eligibility_rule(provider: str, model: str, rules: list[dict]) -> dict | None:
@@ -84,6 +105,13 @@ def select_full(provider: str, effort: str | None, override: str | None,
     requested_variant = None
     if provider == "opencode" and override and "#" in override:
         requested_model, requested_variant = override.rsplit("#", 1)
+    opencode_default = next((record for record in models
+                             if record.get("status") == "active" and record.get("isDefault") is True), None)
+    opencode_default_provider = None
+    if opencode_default:
+        opencode_default_provider = opencode_default.get("providerID")
+        if not isinstance(opencode_default_provider, str):
+            opencode_default_provider = (opencode_default.get("model") or "").partition("/")[0] or None
     candidates: list[tuple[dict, dict, str, str | None, list[str]]] = []
     rules = eligibility_policy.get("rules", [])
     for record in models:
@@ -97,6 +125,12 @@ def select_full(provider: str, effort: str | None, override: str | None,
             continue
         if provider == "opencode" and record.get("status") != "active":
             continue
+        if provider == "opencode" and not override:
+            record_provider = record.get("providerID")
+            if not isinstance(record_provider, str):
+                record_provider = model.partition("/")[0] or None
+            if not opencode_default_provider or record_provider != opencode_default_provider:
+                continue
         selected_effort = effort or rule.get("defaultEffort")
         permitted_efforts = rule.get("efforts", [])
         if not isinstance(selected_effort, str) or selected_effort not in permitted_efforts:
@@ -127,7 +161,8 @@ def select_full(provider: str, effort: str | None, override: str | None,
                     continue
                 variant = variant_names[0]
             supported = sorted({metadata.get("reasoningEffort") for metadata in variants.values()
-                                if isinstance(metadata, dict) and isinstance(metadata.get("reasoningEffort"), str)})
+                                if isinstance(metadata, dict) and isinstance(metadata.get("reasoningEffort"), str)
+                                and metadata.get("reasoningEffort") in DISPATCH_EFFORTS})
         if override and model != requested_model:
             continue
         candidates.append((record, rule, selected_effort, variant, supported))
@@ -151,6 +186,7 @@ def select_full(provider: str, effort: str | None, override: str | None,
         eligible = True
         compatibility = "compatible"
         policy_class = rule.get("id")
+        evidence_record = record
     else:
         selected_effort = effort
         variant = None
@@ -165,6 +201,15 @@ def select_full(provider: str, effort: str | None, override: str | None,
         eligible = False
         compatibility = "incompatible" if override else "unknown"
         policy_class = None
+        evidence_record = next((record for record in models
+                                if (record.get("model") or record.get("id")) == requested_model), None) if override else None
+        if evidence_record is None and not override and effort:
+            evidence_record = next((record for record in models
+                                    if isinstance(record.get("model") or record.get("id"), str)
+                                    and eligibility_rule(provider, record.get("model") or record.get("id"), rules)
+                                    and not (provider == "codex" and record.get("hidden", False))
+                                    and not (provider == "opencode" and record.get("status") != "active")
+                                    and effort in observed_model_efforts(record)), None)
         if inactive_pin:
             selected = None
         elif override:
@@ -177,14 +222,16 @@ def select_full(provider: str, effort: str | None, override: str | None,
     return {
         "schemaVersion": SCHEMA, "provider": provider, "executionSupport": "unsupported" if provider == "junie" else "supported",
         "providerVersion": version, "requestedTier": "full", "reasoningEffort": effort,
-        "resolvedEffort": selected_effort, "explicitOverride": override, "selectedModel": selected,
+        "resolvedEffort": selected_effort if selected_effort in DISPATCH_EFFORTS else None,
+        "explicitOverride": override, "selectedModel": selected,
         "selectedVariant": variant, "supportedReasoningEfforts": supported,
+        "observedReasoningEfforts": effort_evidence(evidence_record, source),
         "discoverySource": source, "confidence": "assumed" if provider in {"claude", "junie"} else confidence,
         "availability": availability, "accountAvailability": "unknown", "executionStatus": "not_invoked",
         "tierEligible": eligible, "eligibilityPolicyId": eligibility_policy.get("policyId"),
         "eligibilityClass": policy_class, "invocationCompatibility": compatibility,
         "selectionReason": why, "fallbackReason": fallback,
-        "costPolicy": "no cross-provider fallback; no increase to existing cost ceiling",
+        "costPolicy": ("no cross-provider fallback; no increase to existing cost ceiling; economy and standard may select the same full-tier model without a lower-cost guarantee"),
     }
 
 
@@ -432,6 +479,31 @@ def select(provider: str, tier: str, effort: str | None, override: str | None,
     compatible = "unknown"
     reason = ""
     fallback = None
+    if effort is not None and effort not in DISPATCH_EFFORTS:
+        found = next((model for model in models if override in (model.get("id"), model.get("model"))), None) if override else None
+        if found is None and not override:
+            found = next((model for model in models
+                          if (provider == "codex" and model.get("isDefault") is True
+                              or provider == "opencode" and model.get("status") == "active"
+                              and model.get("isDefault") is True)
+                          and effort in observed_model_efforts(model)), None)
+        selected = override if found else None
+        supported_efforts = model_efforts(found) if override and found else []
+        return {"schemaVersion": SCHEMA, "provider": provider,
+                "executionSupport": "unsupported" if provider == "junie" else "supported",
+                "requestedTier": tier, "reasoningEffort": effort, "explicitOverride": override,
+                "selectedModel": selected, "selectedVariant": None,
+                "supportedReasoningEfforts": supported_efforts,
+                "observedReasoningEfforts": effort_evidence(found, source),
+                "discoverySource": source, "providerVersion": version,
+                "confidence": confidence, "availability": "blocked",
+                "accountAvailability": "unknown", "executionStatus": "not_invoked",
+                "tierEligible": False if tier == "full" else None,
+                "eligibilityPolicyId": eligibility_policy.get("policyId"), "eligibilityClass": None,
+                "invocationCompatibility": "incompatible",
+                "selectionReason": "requested reasoning effort is not supported by the MANA dispatch contract",
+                "fallbackReason": "unknown provider effort preserved as observation; dispatch blocked",
+                "costPolicy": "no cross-provider fallback; no increase to existing cost ceiling; economy and standard may select the same full-tier model without a lower-cost guarantee"}
     if provider == "junie":
         found = next((m for m in models if override in (m.get("id"), m.get("model"))), None) if override else None
         if override and not found:
@@ -470,7 +542,8 @@ def select(provider: str, tier: str, effort: str | None, override: str | None,
                     "discoverySource": source, "providerVersion": version, "confidence": confidence,
                     "availability": status, "invocationCompatibility": compatible,
                     "selectionReason": reason, "fallbackReason": "requested effort cannot be applied safely to the selected model family",
-                    "costPolicy": "no cross-provider fallback; no increase to existing cost ceiling"}
+                    "observedReasoningEfforts": [],
+                    "costPolicy": "no cross-provider fallback; no increase to existing cost ceiling; economy and standard may select the same full-tier model without a lower-cost guarantee"}
         if override:
             found = next((m for m in models if override in (m.get("id"), m.get("model"))), None)
             if tier == "full":
@@ -607,7 +680,8 @@ def select(provider: str, tier: str, effort: str | None, override: str | None,
     selected_record = next((m for m in models if selected in (m.get("id"), m.get("model"))), None)
     supported_efforts = sorted({item.get("reasoningEffort") for item in
                                 (selected_record or {}).get("supportedReasoningEfforts", [])
-                                if isinstance(item, dict) and isinstance(item.get("reasoningEffort"), str)})
+                                if isinstance(item, dict) and isinstance(item.get("reasoningEffort"), str)
+                                and item.get("reasoningEffort") in DISPATCH_EFFORTS})
     if provider == "claude":
         normalized_model = (selected or "").lower()
         family = normalized_model if normalized_model in {"haiku", "sonnet", "opus"} else None
@@ -621,10 +695,11 @@ def select(provider: str, tier: str, effort: str | None, override: str | None,
             "reasoningEffort": effort, "explicitOverride": override, "selectedModel": selected,
             "selectedVariant": selected_variant,
             "supportedReasoningEfforts": supported_efforts,
+            "observedReasoningEfforts": effort_evidence(selected_record, source),
             "discoverySource": source, "providerVersion": version, "confidence": confidence,
             "availability": status, "invocationCompatibility": compatible,
             "selectionReason": reason, "fallbackReason": fallback,
-            "costPolicy": "no cross-provider fallback; no increase to existing cost ceiling"}
+            "costPolicy": "no cross-provider fallback; no increase to existing cost ceiling; economy and standard may select the same full-tier model without a lower-cost guarantee"}
 
 
 def main() -> int:
@@ -668,15 +743,18 @@ def main() -> int:
                   "requestedTier": args.tier,
                   "reasoningEffort": args.effort, "explicitOverride": args.model, "selectedModel": None,
                   "selectedVariant": None,
-                  "supportedReasoningEfforts": [],
+                  "supportedReasoningEfforts": [], "observedReasoningEfforts": [],
                   "discoverySource": "unavailable", "providerVersion": "unknown", "confidence": "unknown",
                   "availability": "blocked", "invocationCompatibility": "unknown",
                   "accountAvailability": "unknown", "executionStatus": "not_invoked",
-                  "resolvedEffort": args.effort, "tierEligible": False,
+                  "resolvedEffort": args.effort if args.effort in DISPATCH_EFFORTS else None,
+                  "tierEligible": False,
                   "eligibilityPolicyId": "unavailable", "eligibilityClass": None,
                   "selectionReason": "discovery failed safely", "fallbackReason": str(exc),
-                  "costPolicy": "no cross-provider fallback; no increase to existing cost ceiling"}
-    result.setdefault("resolvedEffort", args.effort)
+                  "costPolicy": "no cross-provider fallback; no increase to existing cost ceiling; economy and standard may select the same full-tier model without a lower-cost guarantee"}
+    result.setdefault("resolvedEffort", args.effort if args.effort in DISPATCH_EFFORTS else None)
+    if result.get("resolvedEffort") not in DISPATCH_EFFORTS:
+        result["resolvedEffort"] = None
     result.setdefault("accountAvailability", "unknown")
     result.setdefault("executionStatus", "not_invoked")
     result.setdefault("tierEligible", None)

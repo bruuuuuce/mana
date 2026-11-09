@@ -93,6 +93,13 @@ openai/gpt-2099-sol
   "status": "active",
   "variants": {"high": {"reasoningEffort": "high"}}
 }
+new-provider/gpt-2099-sol
+{
+  "providerID": "new-provider",
+  "id": "gpt-2099-sol",
+  "status": "active",
+  "variants": {"high": {"reasoningEffort": "high"}}
+}
 openai/explorer-terra
 {
   "providerID": "openai",
@@ -354,10 +361,10 @@ assert_file_not_contains "$tmp/opencode.prompt" "skills/index.yaml"
 assert_file_contains "$tmp/opencode.prompt" "needs_model_escalation"
 assert_file_contains "$opencode_project/.opencode/agents/mana_orchestrator.md" "mode: primary"
 assert_file_contains "$opencode_project/.opencode/agents/mana_explorer.md" "mode: subagent"
-assert_file_contains "$opencode_project/.opencode/agents/mana_full_specialist.md" 'model: openai/gpt-2099-sol#high'
+assert_file_contains "$opencode_project/.opencode/agents/mana_full_specialist.md" 'model: new-provider/gpt-2099-sol#high'
 [ -e "$opencode_project/.opencode/agents/mana_full_specialist.md" ] || fail 'OpenCode did not select the discovered eligible full specialist'
-assert_file_contains "$opencode_project/.opencode/agents/mana_full_specialist.md" 'model: openai/gpt-2099-sol#high'
-assert_file_contains "$opencode_project/.opencode/agents/mana_worker.md" 'model: openai/gpt-2099-sol#high'
+assert_file_contains "$opencode_project/.opencode/agents/mana_full_specialist.md" 'model: new-provider/gpt-2099-sol#high'
+assert_file_contains "$opencode_project/.opencode/agents/mana_worker.md" 'model: new-provider/gpt-2099-sol#high'
 
 opencode_override_project="$tmp/opencode override project"
 run_opencode_profile_with_stub "$opencode_override_project" \
