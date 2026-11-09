@@ -56,7 +56,7 @@ CASES = {
         0,
     ),
     "override": (DYNAMIC + SUBCLASS, 0),
-    "dynamic": (DYNAMIC, 0),
+    "dynamic": (DYNAMIC, 2),
     "overload": (
         BASE.replace(
             'jdbc.execute("SELECT * FROM accounts")',
@@ -82,6 +82,46 @@ CASES = {
     ),
     "method_generic": (
         BASE.replace("public void sequence()", "public <JdbcTemplate> void sequence()"),
+        0,
+    ),
+    "local_shadow_unknown": (
+        DYNAMIC.replace(
+            "@Transactional public void sequence() {",
+            "JdbcTemplate obtainOtherTemplate() { return null; }\n    @Transactional public void sequence() {",
+        ).replace(
+            "@Transactional public void sequence() {",
+            "@Transactional public void sequence() { JdbcTemplate jdbc = obtainOtherTemplate();",
+        ),
+        0,
+    ),
+    "out_of_scope_alias_unknown": (
+        DYNAMIC.replace(
+            "@Autowired JdbcTemplate jdbc;",
+            "@Autowired JdbcTemplate jdbc;\n    @Autowired JdbcTemplate other;",
+        ).replace(
+            "@Transactional public void sequence() {",
+            "@Transactional public void sequence() { { JdbcTemplate other = this.jdbc; } JdbcTemplate jdbc = other;",
+        ),
+        0,
+    ),
+    "nested_local_shadow_unknown": (
+        DYNAMIC.replace(
+            "@Autowired JdbcTemplate jdbc;",
+            "@Autowired JdbcTemplate jdbc;\n    @Autowired JdbcTemplate other;",
+        ).replace(
+            "@Transactional public void sequence() {",
+            "@Transactional public void sequence() { { JdbcTemplate jdbc = this.other; }",
+        ),
+        0,
+    ),
+    "local_shadow_explicit_field": (
+        DYNAMIC.replace(
+            "@Transactional public void sequence() {",
+            "JdbcTemplate obtainOtherTemplate() { return null; }\n    @Transactional public void sequence() {",
+        ).replace(
+            'jdbc.execute("SELECT * FROM accounts");',
+            'JdbcTemplate jdbc = obtainOtherTemplate(); this.jdbc.execute("SELECT * FROM accounts");',
+        ),
         0,
     ),
     "mutable": (BASE.replace("private final JdbcTemplate", "private JdbcTemplate"), 0),
@@ -200,20 +240,55 @@ class BindingTests(unittest.TestCase):
             [[], [4], [4, 5]],
         )
 
-    def test_dynamic_receiver_has_no_false_continuation(self):
+    def test_injected_jdbc_receiver_has_conditional_continuation(self):
         report = self.reports["dynamic"]
         self.assertEqual(
             [o["placement"]["status"] for o in report["observations"]],
-            ["T01_FRONTIER", "UNPLACED"],
+            ["T01_RESOURCE_LEAF", "T01_RESOURCE_LEAF"],
         )
         self.assertEqual(
             [o["transactionContext"]["physicalId"] for o in report["observations"]],
-            ["P1", None],
+            ["P1", "P1"],
         )
-        self.assertIn(
-            "RESOURCE_LEAF_DISPATCH_UNPROVEN",
-            [u["reason"] for u in report["transactionModel"]["uncertainties"]],
-        )
+        self.assertEqual([leaf["method"] for leaf in self.leaves("dynamic")], ["execute", "update"])
+
+    def test_local_shadow_is_not_attributed_to_field_but_this_is(self):
+        from skill_factory.transactions.resources import _receiver_binding
+
+        report = self.reports["local_shadow_unknown"]
+        operations = next(c for c in report["sourceFacts"]["classes"] if c["simpleName"] == "Operations")
+        method = next(m for m in operations["methods"] if m["name"] == "sequence")
+        self.assertTrue(any(c["receiver"] == "jdbc" and c["name"] == "execute" for c in method["calls"]))
+        field, status, _ = _receiver_binding(operations, method, "jdbc", report["sourceFacts"])
+        self.assertIsNone(field)
+        self.assertEqual(status, "UNKNOWN_OR_AMBIGUOUS")
+        self.assertEqual(self.leaves("local_shadow_unknown"), [])
+
+        out_of_scope = self.reports["out_of_scope_alias_unknown"]
+        operations = next(c for c in out_of_scope["sourceFacts"]["classes"] if c["simpleName"] == "Operations")
+        method = next(m for m in operations["methods"] if m["name"] == "sequence")
+        self.assertTrue(any(c["receiver"] == "jdbc" and c["name"] == "update" for c in method["calls"]))
+        field, status, _ = _receiver_binding(operations, method, "jdbc", out_of_scope["sourceFacts"])
+        self.assertIsNone(field)
+        self.assertEqual(status, "UNKNOWN_OR_AMBIGUOUS")
+        self.assertEqual(self.leaves("out_of_scope_alias_unknown"), [])
+
+        nested_local = self.reports["nested_local_shadow_unknown"]
+        operations = next(c for c in nested_local["sourceFacts"]["classes"] if c["simpleName"] == "Operations")
+        method = next(m for m in operations["methods"] if m["name"] == "sequence")
+        self.assertTrue(any(c["receiver"] == "jdbc" and c["name"] == "execute" for c in method["calls"]))
+        field, status, _ = _receiver_binding(operations, method, "jdbc", nested_local["sourceFacts"])
+        self.assertIsNone(field)
+        self.assertEqual(status, "UNKNOWN_OR_AMBIGUOUS")
+        self.assertEqual(self.leaves("nested_local_shadow_unknown"), [])
+
+        explicit = self.reports["local_shadow_explicit_field"]["observations"]
+        this_call = next(o for o in explicit if o["applicationOperation"]["receiver"] == "this.jdbc")
+        self.assertEqual(this_call["jdbcBinding"]["status"], "RESOLVED_STATIC_TYPE")
+        self.assertEqual(this_call["jdbcBinding"]["declaredType"], "org.springframework.jdbc.core.JdbcTemplate")
+        # The local variable makes the complete body ineligible for T01
+        # continuation; explicit field binding in S01 must not relax that.
+        self.assertEqual(self.leaves("local_shadow_explicit_field"), [])
 
     def test_both_historical_high_sources_and_witnesses(self):
         for review, case in [("R1", "historical_r1"), ("R2", "generic_shadow")]:

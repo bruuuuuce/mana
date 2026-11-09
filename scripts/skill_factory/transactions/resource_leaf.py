@@ -10,11 +10,13 @@ AUTOWIRED = "org.springframework.beans.factory.annotation.Autowired"
 POLICY = "JDBC_LITERAL_V1"
 MAX_LEAVES = 128
 EXTENSION = "mana.transaction-resource-leaves/v1"
-RULE = {"id": "spring-jdbc-template-literal", "version": 2}
+RULE_V2 = {"id": "spring-jdbc-template-literal", "version": 2}
+RULE = {"id": "spring-jdbc-template-literal", "version": 3}
 SIGNATURES = {
     "execute": JDBC + "#execute(java.lang.String):void",
     "update": JDBC + "#update(java.lang.String):int",
     "queryForList": JDBC + "#queryForList(java.lang.String):java.util.List",
+    "batchUpdate": JDBC + "#batchUpdate(java.lang.String[]):int[]",
 }
 CALLER_ANNOTATIONS = {
     "org.springframework.stereotype." + name
@@ -27,6 +29,13 @@ CALLER_ANNOTATIONS = {
     "java.lang.Deprecated",
 }
 PREMISES = [
+    "The receiver is bound by a supported direct allocation or statically identified Spring injection; no reflective mutation, bytecode rewriting or external advisor is assumed.",
+    "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
+    "Normal synchronous return is assumed only for continuation of this path.",
+    "No unmodeled transaction-context changes by library, driver or database are assumed on this path.",
+    "The catalogued overload has no application callback argument.",
+]
+PREMISES_V2 = [
     "The private final receiver is directly allocated as the catalogued Spring class; no reflective mutation, bytecode rewriting or external advisor is assumed.",
     "The bounded lexical binding and allocation screen succeeds; the named Spring library declaration/API is assumed authentic on the target classpath.",
     "Normal synchronous return is assumed only for continuation of this path.",
@@ -112,8 +121,10 @@ def sql_operation(sql, api):
             api == "execute"
             or api == "update"
             and kind == "WRITE"
-            or api == "queryForList"
+            or api in {"query", "queryForList", "queryForObject"}
             and kind in {"READ", "EXPLICIT_LOCK_REQUEST"}
+            or api == "batchUpdate"
+            and kind == "WRITE"
         ):
             return kind, match.group(1)
     return "UNKNOWN", None
@@ -155,6 +166,66 @@ def binding_blocker(field):
     return None
 
 
+def _injected_binding(cls, field):
+    if field.get("type") not in {JDBC, "org.springframework.jdbc.core.JdbcOperations"}:
+        return None
+    annotations = field.get("annotations", [])
+    allocation = field.get("allocation")
+    reassigned = any(
+        assignment["target"].removeprefix("this.") == field["name"]
+        for method in cls["methods"]
+        for assignment in method.get("assignments", [])
+    )
+    if (
+        field.get("initialized") is True
+        and "final" in field.get("flags", [])
+        and not annotations
+        and isinstance(allocation, dict)
+        and allocation.get("type") == JDBC
+        and allocation.get("explicitAllocationType") is True
+        and allocation.get("anonymous") is False
+        and not reassigned
+    ):
+        return [field["evidence"], allocation["evidence"]]
+    if (
+        len(annotations) == 1
+        and annotations[0]["type"] == AUTOWIRED
+        and annotations[0].get("args", {}).get("required", {}).get("literal", True) is True
+        and not reassigned
+    ):
+        return [field["evidence"]]
+    constructors = [m for m in cls["methods"] if m["name"] in {"<init>", cls["simpleName"]}]
+    matches = []
+    for method in cls["methods"]:
+        autowired = next((a for a in method.get("annotations", []) if a["type"] == AUTOWIRED), None)
+        injected = autowired is not None and autowired.get("args", {}).get("required", {}).get("literal", True) is True
+        constructor = method in constructors and (len(constructors) == 1 or injected)
+        setter = injected and method["name"].lower().startswith("set")
+        if not (constructor or setter):
+            continue
+        parameters = {p["name"]: p for p in method.get("parameters", [])}
+        for assignment in method.get("assignments", []):
+            parameter = parameters.get(assignment["value"])
+            if (
+                assignment["target"].removeprefix("this.") == field["name"]
+                and parameter
+                and parameter.get("type") == JDBC
+                and not any(a["type"] == "org.springframework.beans.factory.annotation.Qualifier" for a in parameter.get("annotations", []))
+            ):
+                matches.append((method, parameter, assignment))
+    if len(matches) == 1:
+        method, parameter, assignment = matches[0]
+        all_assignments = [
+            item
+            for owner in cls["methods"]
+            for item in owner.get("assignments", [])
+            if item["target"].removeprefix("this.") == field["name"]
+        ]
+        if len(all_assignments) == 1 and all_assignments[0] == assignment:
+            return [field["evidence"], method["evidence"], parameter["evidence"], assignment["evidence"]]
+    return None
+
+
 def call_blocker(facts, cls, call):
     blocker = dispatch_blocker(facts)
     if blocker is not None:
@@ -162,11 +233,11 @@ def call_blocker(facts, cls, call):
     fields = [
         f for f in cls["fields"] if f["name"] == call["receiver"].removeprefix("this.")
     ]
-    return (
-        binding_blocker(fields[0])
-        if len(fields) == 1
-        else "RESOURCE_LEAF_TYPE_BINDING_UNPROVEN"
-    )
+    if len(fields) != 1:
+        return "RESOURCE_LEAF_TYPE_BINDING_UNPROVEN"
+    if _injected_binding(cls, fields[0]) is not None:
+        return None
+    return binding_blocker(fields[0])
 
 
 def classify(facts, cls, method, call, state, sequence, dependencies):
@@ -204,8 +275,11 @@ def classify(facts, cls, method, call, state, sequence, dependencies):
     ):
         return None
     field = fields[0]
-    if binding_blocker(field) is not None:
+    injected_evidence = _injected_binding(cls, field)
+    direct_binding = binding_blocker(field) is None
+    if not direct_binding and injected_evidence is None:
         return None
+    legacy_catalog = direct_binding and call["name"] in {"execute", "update", "queryForList"}
 
     def inside(child, parent):
         return (
@@ -226,9 +300,9 @@ def classify(facts, cls, method, call, state, sequence, dependencies):
     if dispatch_blocker(facts) is not None:
         return None
     index = next(i for i, c in enumerate(method["calls"], 1) if c == call)
-    return {
+    witness = {
         "schema": "mana.resource-leaf-witness/v1",
-        "rule": dict(RULE),
+        "rule": dict(RULE_V2 if legacy_catalog else RULE),
         "signature": SIGNATURES[call["name"]],
         "receiverType": JDBC,
         "callSite": copy.deepcopy(call["evidence"]),
@@ -239,9 +313,12 @@ def classify(facts, cls, method, call, state, sequence, dependencies):
         "t01Sequence": sequence,
         "normalReturnDependencies": list(dependencies),
         "transactionContext": copy.deepcopy(state),
-        "premises": list(PREMISES),
+        "premises": list(PREMISES_V2 if legacy_catalog else PREMISES),
         "limits": list(LIMITS),
     }
+    if not legacy_catalog:
+        witness["injectionEvidence"] = copy.deepcopy(injected_evidence or [])
+    return witness
 
 
 def validate_extension(report):

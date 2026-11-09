@@ -19,6 +19,7 @@ spec = importlib.util.spec_from_file_location(
 )
 cli = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(cli)
+from skill_factory.transactions.resource_leaf import SIGNATURES  # noqa: E402
 
 VARIANTS = """
     @Autowired org.springframework.transaction.support.TransactionTemplate template;
@@ -52,6 +53,12 @@ def snapshot(project):
 
 
 class LeafTests(unittest.TestCase):
+    def test_batch_update_signature_matches_spring_api(self):
+        self.assertEqual(
+            SIGNATURES["batchUpdate"],
+            "org.springframework.jdbc.core.JdbcTemplate#batchUpdate(java.lang.String[]):int[]",
+        )
+
     @classmethod
     def setUpClass(cls):
         cls.tmp = tempfile.TemporaryDirectory()
@@ -247,12 +254,11 @@ class LeafTests(unittest.TestCase):
                     ["RESOURCE_LEAF_CALL", "UNRESOLVED_CALL"],
                 )
 
-    def test_callback_nonliteral_uncatalogued_and_demarcation_are_not_leaves(self):
+    def test_callback_nonliteral_and_demarcation_are_not_leaves(self):
         for method in [
             "callbackArgument",
             "autoCommit",
             "sqlCommit",
-            "uncatalogued",
             "variableSql",
         ]:
             with self.subTest(method=method):
@@ -267,6 +273,10 @@ class LeafTests(unittest.TestCase):
                 self.assertEqual(
                     report["observations"][-1]["placement"]["status"], "UNPLACED"
                 )
+
+    def test_literal_batch_update_is_a_catalogued_leaf(self):
+        report = self.model("fixture.Operations#uncatalogued()", "variants")
+        self.assertEqual([leaf["method"] for leaf in self.leaves(report)], ["batchUpdate", "update"])
 
     def test_unknown_control_flow_async_and_lambda_bodies_not_traversed(self):
         for method in ["unordered", "callbackLambda", "async"]:

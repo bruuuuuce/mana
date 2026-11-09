@@ -69,7 +69,7 @@ class InvestigationCliTests(unittest.TestCase):
         model = json.loads((output / "transaction-model.json").read_text())
         timeline = json.loads((output / "resource-timeline.json").read_text())
         self.assertEqual(model["schema"], "mana.transaction-model/v1")
-        self.assertEqual(timeline["schema"], "mana.resource-timeline/v1")
+        self.assertEqual(timeline["schema"], "mana.resource-timeline/v2")
         self.assertEqual(model["contextEvidence"]["origin"], "EXPLICIT_SCENARIO_NOT_RUNTIME_PROOF")
         self.assertTrue(model["evidence"])
         expected_process = ORACLES["investigation.OrderService#process()"]

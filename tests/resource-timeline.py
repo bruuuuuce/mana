@@ -18,7 +18,11 @@ spec = importlib.util.spec_from_file_location(
 )
 cli = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(cli)
-from skill_factory.transactions.resources import sql_operation  # noqa: E402
+from skill_factory.transactions.resources import (  # noqa: E402
+    LIMITS,
+    _legacy_observations,
+    sql_operation,
+)
 
 
 def snapshot(root):
@@ -96,11 +100,87 @@ class ResourceTests(unittest.TestCase):
             ("/* SELECT * FROM account */", "execute", "UNKNOWN", None),
             ("SELECT * FROM account", "update", "UNKNOWN", None),
             ("DELETE FROM account", "queryForList", "UNKNOWN", None),
+            ("SELECT * FROM account", "queryForObject", "READ", "account"),
+            ("SELECT * FROM account", "query", "READ", "account"),
+            ("UPDATE account SET id = 1", "batchUpdate", "WRITE", "account"),
             (None, "execute", "UNKNOWN", None),
         ]
         for sql, api, kind, resource in cases:
             with self.subTest(sql=sql, api=api):
                 self.assertEqual(sql_operation(sql, api), (kind, resource))
+
+    def test_constructor_and_setter_injected_jdbc_bindings(self):
+        for entry, method, expected_api in [
+            ("fixture.ConstructorOperations#read()", "queryForObject", "JdbcOperations"),
+            ("fixture.SetterOperations#read()", "queryForList", "JdbcTemplate"),
+            ("fixture.SetterOperations#aliasRead()", "queryForList", "JdbcTemplate"),
+            ("fixture.ExplicitOperations#read()", "queryForList", "JdbcTemplate"),
+            ("fixture.ExplicitOperationsInterface#read()", "queryForList", "JdbcOperations"),
+        ]:
+            with self.subTest(entry=entry):
+                operation = self.model(entry)["observations"][0]
+                self.assertEqual(operation["applicationOperation"]["method"], method)
+                self.assertEqual(operation["jdbcBinding"]["status"], "RESOLVED_STATIC_TYPE")
+                self.assertEqual(operation["jdbcBinding"]["declaredType"], "org.springframework.jdbc.core." + expected_api)
+                self.assertEqual(operation["operationType"], "READ")
+                expected_resource = {
+                    "ConstructorOperations": "constructor_accounts",
+                    "SetterOperations": "alias_accounts" if "aliasRead" in entry else "setter_accounts",
+                    "ExplicitOperations": "explicit_accounts",
+                    "ExplicitOperationsInterface": "explicit_interface_accounts",
+                }[entry.split("#")[0].split(".")[-1]]
+                self.assertEqual(operation["resource"]["name"], expected_resource)
+
+    def test_requires_new_transaction_scenario_and_reverse_entry_order(self):
+        for entry, expected_order in [
+            ("fixture.TransactionScenarioA#forward()", ["resource_b", "resource_a"]),
+            ("fixture.TransactionScenarioA#reverse()", ["resource_a", "resource_b"]),
+        ]:
+            with self.subTest(entry=entry):
+                report = self.model(entry, {**self.context, "resourceLeafPolicy": "JDBC_LITERAL_V1"})
+                placed = [o for o in report["observations"] if o["placement"]["beforeT01Sequence"] is not None]
+                self.assertEqual([o["resource"]["name"] for o in placed], expected_order)
+                self.assertEqual([o["transactionContext"]["physicalId"] for o in placed], ["P2", "P1"] if entry.endswith("forward()") else ["P1", "P2"])
+                self.assertEqual(len(report["transactionModel"]["suspensions"]), 1)
+                self.assertTrue(all(o["enlistment"] == "UNKNOWN" and o["lockAcquired"] == "UNKNOWN" for o in placed))
+
+    def test_qualified_jdbc_injection_is_reported_as_ambiguous(self):
+        operation = self.model("fixture.Operations#ambiguousDatasource()", self.context)["observations"][0]
+        self.assertEqual(operation["jdbcBinding"]["status"], "UNKNOWN_OR_AMBIGUOUS")
+        self.assertEqual(operation["sqlLiteral"], "DELETE FROM accounts")
+        self.assertEqual(operation["resource"]["name"], "accounts")
+
+    def test_qualified_constructor_and_optional_field_do_not_claim_binding(self):
+        for entry, table in [
+            ("fixture.QualifiedConstructorOperations#read()", "qualified_accounts"),
+            ("fixture.OptionalFieldOperations#read()", "optional_accounts"),
+        ]:
+            with self.subTest(entry=entry):
+                operation = self.model(entry)["observations"][0]
+                self.assertEqual(operation["jdbcBinding"]["status"], "UNKNOWN_OR_AMBIGUOUS")
+                self.assertEqual(operation["sqlLiteral"], "SELECT * FROM " + table)
+                self.assertEqual(operation["resource"]["name"], table)
+
+    def test_passed_jdbc_alias_is_reported_unplaced_with_unique_binding(self):
+        report = self.model("fixture.PassedAliasOperations#dispatch()")
+        operation = next(
+            item for item in report["observations"]
+            if item["applicationOperation"]["method"] == "update"
+        )
+        self.assertIsNone(operation["frame"])
+        self.assertTrue(operation["method"].endswith("#write(org.springframework.jdbc.core.JdbcTemplate)"))
+        self.assertEqual(operation["placement"]["status"], "UNPLACED")
+        self.assertEqual(operation["transactionContext"]["kind"], "UNKNOWN")
+        self.assertEqual(operation["jdbcBinding"]["status"], "RESOLVED_STATIC_TYPE")
+        self.assertEqual(operation["resource"]["name"], "passed_accounts")
+
+    def test_multi_statement_batch_does_not_guess_one_resource(self):
+        report = self.model("fixture.MultiBatchOperations#execute()")
+        operation = report["observations"][0]
+        self.assertEqual(operation["applicationOperation"]["method"], "batchUpdate")
+        self.assertIsNone(operation["sqlLiteral"])
+        self.assertEqual(operation["operationType"], "UNKNOWN")
+        self.assertIsNone(operation["resource"]["name"])
 
     def test_source_positions_match_actual_invocation_and_literal(self):
         report = self.model()
@@ -321,6 +401,18 @@ class ResourceTests(unittest.TestCase):
         report["sourceFacts"]["classes"][0]["evidence"]["sha256"] = "0" * 64
         with self.assertRaisesRegex(ValueError, "source hash"):
             cli.validate_timeline(report)
+
+    def test_v1_projection_omits_new_unplaced_jdbc_operations_observations(self):
+        report = self.model("fixture.UnknownThenJdbcOperations#read()")
+        self.assertTrue(any(o["placement"]["beforeT01Sequence"] is None for o in report["observations"]))
+        legacy = copy.deepcopy(report)
+        legacy["schema"] = "mana.resource-timeline/v1"
+        legacy["limits"] = list(LIMITS)
+        legacy["observations"] = _legacy_observations(
+            report["observations"], report["sourceFacts"]
+        )
+        self.assertFalse(any(o["placement"]["beforeT01Sequence"] is None for o in legacy["observations"]))
+        cli.validate_timeline(legacy)
 
     def test_t01_events_must_remain_intact(self):
         report = self.model("fixture.Entry#independent()")

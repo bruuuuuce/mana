@@ -217,11 +217,37 @@ def verify_leaf_snapshot(facts, hashes):
     # Parameter metadata is additive. Historical snapshots remain verifiable;
     # omit only this new derived field when the original snapshot lacks it.
     for parsed_cls, supplied_cls in zip(parsed["classes"], supplied.get("classes", [])):
+        for parsed_field, supplied_field in zip(parsed_cls["fields"], supplied_cls["fields"]):
+            parsed_allocation = parsed_field.get("allocation")
+            supplied_allocation = supplied_field.get("allocation")
+            if (
+                isinstance(parsed_allocation, dict)
+                and isinstance(supplied_allocation, dict)
+                and "explicitAllocationType" not in supplied_allocation
+            ):
+                parsed_allocation.pop("explicitAllocationType", None)
         for parsed_method, supplied_method in zip(
             parsed_cls["methods"], supplied_cls["methods"]
         ):
             if "parameters" not in supplied_method:
                 parsed_method.pop("parameters", None)
+            else:
+                for parsed_parameter, supplied_parameter in zip(
+                    parsed_method["parameters"], supplied_method["parameters"]
+                ):
+                    if "annotations" not in supplied_parameter:
+                        parsed_parameter.pop("annotations", None)
+            for additive in ("assignments", "variables"):
+                if additive not in supplied_method:
+                    parsed_method.pop(additive, None)
+            for parsed_call, supplied_call in zip(
+                parsed_method["calls"], supplied_method["calls"]
+            ):
+                for parsed_argument, supplied_argument in zip(
+                    parsed_call["arguments"], supplied_call["arguments"]
+                ):
+                    if "text" not in supplied_argument:
+                        parsed_argument.pop("text", None)
     for cls in supplied.get("classes", []):
         for method in cls["methods"]:
             for call in method["calls"]:

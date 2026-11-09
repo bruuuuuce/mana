@@ -249,7 +249,17 @@ class LocalAdmission(unittest.TestCase):
         ).decode()
         exec(compile(source, "legacy-resources.py", "exec"), old.__dict__)
         old.validate_model = legacy.validate_model
-        old.validate_timeline(cli.build_timeline(model, facts))
+        timeline = cli.build_timeline(model, facts)
+        if timeline["schema"] == "mana.resource-timeline/v2":
+            with self.assertRaisesRegex(ValueError, "invalid resource timeline schema"):
+                old.validate_timeline(timeline)
+        else:
+            self.assertEqual(timeline["observations"], [])
+            old.validate_timeline(timeline)
+        historical = json.loads(
+            (ROOT / "docs/reports/MANA-TRANSACTION-01-T02-S01-R1-results.json").read_text()
+        )["counterexampleFullReport"]
+        old.validate_timeline(historical)
 
 
 if __name__ == "__main__":
