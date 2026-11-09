@@ -100,7 +100,17 @@ CASES = {
             "@Autowired JdbcTemplate jdbc;\n    @Autowired JdbcTemplate other;",
         ).replace(
             "@Transactional public void sequence() {",
-            "JdbcTemplate obtainOtherTemplate() { return null; }\n    @Transactional public void sequence() { { JdbcTemplate other = obtainOtherTemplate(); } JdbcTemplate jdbc = other;",
+            "@Transactional public void sequence() { { JdbcTemplate other = this.jdbc; } JdbcTemplate jdbc = other;",
+        ),
+        0,
+    ),
+    "nested_local_shadow_unknown": (
+        DYNAMIC.replace(
+            "@Autowired JdbcTemplate jdbc;",
+            "@Autowired JdbcTemplate jdbc;\n    @Autowired JdbcTemplate other;",
+        ).replace(
+            "@Transactional public void sequence() {",
+            "@Transactional public void sequence() { { JdbcTemplate jdbc = this.other; }",
         ),
         0,
     ),
@@ -262,6 +272,15 @@ class BindingTests(unittest.TestCase):
         self.assertIsNone(field)
         self.assertEqual(status, "UNKNOWN_OR_AMBIGUOUS")
         self.assertEqual(self.leaves("out_of_scope_alias_unknown"), [])
+
+        nested_local = self.reports["nested_local_shadow_unknown"]
+        operations = next(c for c in nested_local["sourceFacts"]["classes"] if c["simpleName"] == "Operations")
+        method = next(m for m in operations["methods"] if m["name"] == "sequence")
+        self.assertTrue(any(c["receiver"] == "jdbc" and c["name"] == "execute" for c in method["calls"]))
+        field, status, _ = _receiver_binding(operations, method, "jdbc", nested_local["sourceFacts"])
+        self.assertIsNone(field)
+        self.assertEqual(status, "UNKNOWN_OR_AMBIGUOUS")
+        self.assertEqual(self.leaves("nested_local_shadow_unknown"), [])
 
         explicit = self.reports["local_shadow_explicit_field"]["observations"]
         this_call = next(o for o in explicit if o["applicationOperation"]["receiver"] == "this.jdbc")
