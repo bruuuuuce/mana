@@ -16,6 +16,10 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
+from urllib.parse import quote
+
+sys.dont_write_bytecode = True
+from lib.project_config import ConfigError, resolve as resolve_project_config
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,6 +47,7 @@ class Source:
     title: str | None
     info: os.stat_result
     candidate: bool = False
+    knowledge_root: Path | None = None
 
 
 def identifier(prefix: str, value: str) -> str:
@@ -120,6 +125,38 @@ def add_source(values: list[Source], path: Path, reference: str, scope: str, lif
     values.append(Source(identifier("doc", f"{scope}\0{reference}"), reference, path, scope, lifecycle, title, info, candidate))
 
 
+def configured_sources(project):
+    try:
+        config, scope = resolve_project_config(project)
+    except (ConfigError, OSError, RuntimeError) as exc:
+        raise catalog.CatalogError(str(exc)) from exc
+    for alias, root in sorted(scope.get("knowledge", {}).items()):
+        if not config["settings"].get(f"knowledge.sources.{alias}", {}).get("value"):
+            continue
+        kind = "user" if alias == "personal" else "project"
+        if not root.is_dir() or root.is_symlink():
+            raise catalog.CatalogError(f"configured knowledge alias {alias} is unavailable")
+        count = 0
+        def walk_error(error):
+            raise catalog.CatalogError(f"cannot read configured knowledge alias {alias}") from error
+
+        for base, folders, files, fd in os.fwalk(root, onerror=walk_error, follow_symlinks=False):
+            folders[:] = sorted(folder for folder in folders if not folder.startswith("."))
+            count += 1 + len(files)
+            if count > 10_000:
+                raise catalog.CatalogError(f"configured knowledge alias {alias} exceeds the scan limit")
+            for name in sorted(files):
+                if name.startswith(".") or Path(name).suffix.lower() not in TEXT_SUFFIXES:
+                    continue
+                info = os.stat(name, dir_fd=fd, follow_symlinks=False)
+                if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_size > MAX_DOCUMENT_BYTES:
+                    continue
+                path = Path(base) / name
+                reference = f"mana://knowledge/{alias}/{quote(path.relative_to(root).as_posix())}"
+                yield Source(identifier("doc", f"{kind}\0{reference}"), reference, path,
+                             kind, "active", None, info, knowledge_root=root)
+
+
 def discover(project: Path) -> tuple[list[Source], list[dict[str, str]], str]:
     sources: list[Source] = []
     diagnostics: list[dict[str, str]] = []
@@ -164,6 +201,7 @@ def discover(project: Path) -> tuple[list[Source], list[dict[str, str]], str]:
                 continue
             title = value.get("candidateId") if isinstance(value.get("candidateId"), str) else path.stem
             add_source(sources, path, path.relative_to(project).as_posix(), "candidate", lifecycle, title, True)
+    sources.extend(configured_sources(project))
     sources.sort(key=lambda source: (source.scope, source.reference))
     signature_basis = [user_digest]
     for source in sources:
@@ -178,10 +216,33 @@ def source_content(source: Source) -> str:
         fields = ["observation", "possibleImpact", "counterEvidence", "suggestedDestination"]
         parts = [f"# {source.title}"] + [f"## {name}\n{value[name]}" for name in fields if isinstance(value.get(name), str)]
         return "\n\n".join(parts) + "\n"
-    data = source.path.read_bytes()
+    data = read_configured_source(source) if source.knowledge_root else source.path.read_bytes()
     if b"\x00" in data:
         raise UnicodeError("binary content")
     return data.decode("utf-8")
+
+
+def read_configured_source(source):
+    root = source.knowledge_root
+    *folders, name = source.path.relative_to(root).parts
+    flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_DIRECTORY
+    fd = os.open(root, flags)
+    try:
+        for folder in folders:
+            child = os.open(folder, flags, dir_fd=fd)
+            os.close(fd)
+            fd = child
+        with os.fdopen(os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=fd), "rb") as file:
+            before = os.fstat(file.fileno())
+            identity = lambda info: (info.st_dev, info.st_ino, info.st_size, info.st_ctime_ns, info.st_mtime_ns)
+            if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or identity(before) != identity(source.info):
+                raise catalog.CatalogError(f"configured knowledge source changed: {source.reference}")
+            raw = file.read(MAX_DOCUMENT_BYTES + 1)
+            if len(raw) != before.st_size or identity(os.fstat(file.fileno())) != identity(before):
+                raise catalog.CatalogError(f"configured knowledge source changed: {source.reference}")
+            return raw
+    finally:
+        os.close(fd)
 
 
 def title_and_passages(source: Source, content: str) -> tuple[str, list[tuple[str, str, str]]]:
@@ -410,9 +471,25 @@ def passage(database: Path, identity: str, project: Path, args: argparse.Namespa
 
 def capabilities(project: Path, database: Path, identity: str) -> tuple[dict[str, object], int]:
     freshness, reason, revision, diagnostics = index_status(project, database, identity)
-    user_available = not any(item.get("code") == "user_context_not_current" for item in diagnostics)
-    user_source = configured_user_source(project) if freshness == "current" and user_available else None
+    mirror_available = not any(item.get("code") == "user_context_not_current" for item in diagnostics)
+    personal_available = False
+    if freshness == "current":
+        connection = catalog.connect(database, readonly=True)
+        try:
+            personal_available = connection.execute(
+                "SELECT 1 FROM knowledge_documents WHERE source_scope = ? AND source_reference LIKE ? LIMIT 1",
+                ("user", "mana://knowledge/personal/%"),
+            ).fetchone() is not None
+        finally:
+            connection.close()
+    user_available = mirror_available or personal_available
+    user_source = configured_user_source(project) if freshness == "current" and mirror_available else None
     user_editable = user_source is not None
+    user_reason = "configured-external-source-unavailable"
+    if user_editable:
+        user_reason = "explicit-source-confirmation-required"
+    elif personal_available:
+        user_reason = "registered-personal-source-read-only"
     return {
         "schema": "mana.knowledge.capabilities/v1",
         "index": {"freshness": freshness, "reason": reason, "revision": revision or None, "ranking": "sqlite-fts5-bm25/v1"},
@@ -422,7 +499,7 @@ def capabilities(project: Path, database: Path, identity: str) -> tuple[dict[str
                 "scope": "user",
                 "health": "current" if freshness == "current" and user_available else "unavailable",
                 "editable": user_editable,
-                "reason": "explicit-source-confirmation-required" if user_editable else "configured-external-source-unavailable",
+                "reason": user_reason,
                 "source_disclosure": str(user_source) if user_editable else None,
             },
             {"scope": "project", "health": "current" if freshness == "current" else freshness, "editable": True},

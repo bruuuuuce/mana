@@ -282,6 +282,8 @@ Usage:
   ./mana explore "<question>" [opts]     Run bounded read-only explorer retrieval.
   ./mana inspect <cmd> --json            Inspect project, artifacts, detail, or source relations.
   ./mana catalog <cmd> --json            Maintain the explicit derived catalog cache.
+  ./mana config explain [--json]        Show inherited project preferences and their sources.
+  ./mana export transaction --from DIR [--apply]
   ./mana knowledge <cmd> --json          Build or query the bounded local knowledge index.
   ./mana action <cmd> --json             Apply revision-checked knowledge or learning actions.
   ./mana review-inbox <cmd> --json       Manage the opt-in host review inbox.
@@ -368,7 +370,12 @@ Examples:
 USAGE
     ;;
   profile)
-    exec "$MANA_HOME/scripts/run-profile.sh" "$@"
+    if [ "$#" -eq 0 ]; then
+      exec "$MANA_HOME/scripts/run-profile.sh"
+    fi
+    selected_profile="$1"
+    shift
+    exec "$MANA_HOME/scripts/run-profile.sh" "$selected_profile" --project-root "$project_root" "$@"
     ;;
   divination)
     exec "$MANA_HOME/scripts/divination.sh" --project-root "$project_root" "$@"
@@ -384,6 +391,12 @@ USAGE
     ;;
   catalog)
     exec python3 "$MANA_HOME/scripts/mana-catalog.py" --project-root "$project_root" "$@"
+    ;;
+  config)
+    exec python3 "$MANA_HOME/scripts/mana-config.py" --project-root "$project_root" "$@"
+    ;;
+  export)
+    exec python3 "$MANA_HOME/scripts/mana-export.py" --project-root "$project_root" "$@"
     ;;
   knowledge)
     exec python3 "$MANA_HOME/scripts/mana-knowledge.py" --project-root "$project_root" "$@"

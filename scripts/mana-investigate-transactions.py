@@ -293,7 +293,7 @@ def main():
                 "unknownCount": len(item["model"]["uncertainties"]),
                 "proxyTrueAlternative": proxy_true_manifest,
             })
-        artifacts["entries.json"] = (json.dumps({"schema": "mana.transaction-investigation-entries/v1", "sourceRevision": revision, "entries": entry_manifest}, indent=2) + "\n").encode()
+        artifacts["entries.json"] = (json.dumps({"schema": "mana.transaction-investigation-entries/v1", "projectRoot": str(project), "sourceRevision": revision, "entries": entry_manifest}, indent=2) + "\n").encode()
         artifacts["evidence.json"] = (json.dumps({"sourceRevision": revision, "contextOrigin": context_origin, "sourceEvidence": model["evidence"], "contextSha256": hashlib.sha256(context_raw).hexdigest(), "proxyEntryAlternatives": scenarios[0]["proxyAlternatives"], "proxyEntryAlternativesByEntry": [{"entry": item["entry"], "alternatives": item["proxyAlternatives"], "proxyTrueAlternative": entry_manifest[index]["proxyTrueAlternative"]} for index, item in enumerate(scenarios)], "waitScenario": wait_summary}, indent=2) + "\n").encode()
         if sum(map(len, artifacts.values())) > 12 * 1024 * 1024:
             raise ValueError("combined investigation exceeds 12 MiB output budget")
@@ -328,7 +328,11 @@ def main():
                     for svg in svgs:
                         svg.unlink(missing_ok=True)
             report = comparative_report(project, scenarios, revision, svg_result, context_origin, args.context, wait_summary, args.wait_scenario, args.wait_timeline)
-            (output / "report.md").write_text(report, encoding="utf-8")
+            report_raw = report.encode("utf-8")
+            (output / "report.md").write_bytes(report_raw)
+            manifest = json.loads(artifacts["entries.json"])
+            manifest["reportSha256"] = hashlib.sha256(report_raw).hexdigest()
+            (output / "entries.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         except Exception:
             for child in output.iterdir():
                 if child.is_file() and not child.is_symlink():

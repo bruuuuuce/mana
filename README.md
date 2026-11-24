@@ -319,6 +319,10 @@ hooks/      Local Git hook entrypoints.
 ```
 
 ## Link Into A Project
+
+Use [hierarchical project configuration](docs/workflow/hierarchical-project-config.md)
+to share folder-level preferences, configure knowledge sources, or export
+transaction investigations to an Obsidian vault.
 From a target application repository, run:
 
 ```bash
