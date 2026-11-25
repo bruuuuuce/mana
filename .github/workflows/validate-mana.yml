@@ -16,6 +16,8 @@ jobs:
         run: bash -n scripts/*.sh hooks/pre-commit hooks/pre-push
       - name: Validate repository
         run: scripts/validate-repo.sh
+      - name: Hierarchical project configuration and consumers
+        run: python3 tests/mana-project-config.py
       - name: Single-process Inspect snapshot regression
         run: python3 tests/mana-inspect-snapshot.py
       - name: Wide Windows file identities
